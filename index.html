@@ -10,7 +10,8 @@
     canvas { position: absolute; top: 0; left: 0; border-radius: 10px; }
     .status { margin-top: 15px; font-weight: bold; color: #007bff; }
   </style>
-  <script src="[https://unpkg.com/face-api.js@0.22.2/dist/face-api.min.js](https://unpkg.com/face-api.js@0.22.2/dist/face-api.min.js)"></script>
+  <!-- Link Script yang BENAR (Tanpa tanda kurung siku/kurung biasa) -->
+  <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
 </head>
 <body>
 
@@ -25,16 +26,15 @@
     const video = document.getElementById('video');
     const statusText = document.getElementById('statusText');
     
-    // Menggunakan CDN Raw GitHub Resmi (Lebih Stabil)
-    const MODEL_URL = 'https://raw.githubusercontent.com/justadudewhohacks/face-api.js/master/weights';
+    // Server Model AI Resmi yang anti-CORS dan stabil
+    const MODEL_URL = 'https://justadudewhohacks.github.io/face-api.js/models';
 
-    // Nyalakan Kamera Dulu (Biar layar tidak hitam)
     function startVideo() {
       navigator.mediaDevices.getUserMedia({ video: true })
         .then(stream => { 
           video.srcObject = stream; 
           statusText.innerText = "Kamera aktif! Proses sinkronisasi AI...";
-          statusText.style.color = "#d39e00"; // Kuning peringatan
+          statusText.style.color = "#d39e00"; 
         })
         .catch(err => {
           statusText.innerText = "Gagal mengakses kamera.";
@@ -43,10 +43,10 @@
         });
     }
 
-    // Jalankan kamera langsung
+    // Nyalakan kamera langsung
     startVideo();
 
-    // Baru muat Model AI di latar belakang
+    // Muat Model AI
     Promise.all([
       faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
       faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL),
@@ -68,12 +68,15 @@
           
           const resizedDetections = faceapi.resizeResults(detections, displaySize);
           canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
+          
+          // Gambar kotak pendeteksi
           faceapi.draw.drawDetections(canvas, resizedDetections);
+          // Gambar titik-titik wajah
           faceapi.draw.drawFaceLandmarks(canvas, resizedDetections);
         }, 100); 
       });
     }).catch(err => {
-      statusText.innerText = "Error memuat file AI. Cek koneksi atau Console (F12).";
+      statusText.innerText = "Error memuat file AI. Cek koneksi atau Console.";
       statusText.style.color = "red";
       console.error("Gagal muat model:", err);
     });
