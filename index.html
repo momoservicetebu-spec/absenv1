@@ -5,54 +5,55 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
     body { font-family: sans-serif; text-align: center; background-color: #f4f7f6; margin: 0; padding: 20px; }
-    #video-container { position: relative; display: inline-block; margin-top: 20px; }
+    #video-container { position: relative; display: inline-block; margin-top: 15px; }
     video { border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.2); background-color: #000; }
     canvas { position: absolute; top: 0; left: 0; border-radius: 10px; }
     .status { margin-top: 15px; font-weight: bold; color: #007bff; }
+    .controls { margin-top: 20px; }
+    input, button { padding: 10px 15px; font-size: 14px; margin: 5px; border-radius: 5px; border: 1px solid #ccc; }
+    button { background-color: #28a745; color: white; border: none; cursor: pointer; font-weight: bold; }
+    button:hover { background-color: #218838; }
   </style>
-  <!-- Link Script yang BENAR (Tanpa tanda kurung siku/kurung biasa) -->
   <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
 </head>
 <body>
 
-  <h2>Absensi Biometrik Wajah</h2>
+  <h2>Absensi Biometrik Wajah AI</h2>
   <div class="status" id="statusText">Memuat Model AI... (Harap tunggu)</div>
   
   <div id="video-container">
     <video id="video" width="640" height="480" autoplay muted playsinline></video>
   </div>
 
+  <div class="controls">
+    <input type="text" id="userIdInput" placeholder="Masukkan ID / NIP / NIS (Misal: 123456)">
+    <button onclick="registerCurrentFace()">Daftarkan Wajah Ini</button>
+  </div>
+
   <script>
+    // MASUKKAN URL WEB APP GOOGLE APPS SCRIPT ANDA DI SINI
+    const GAS_URL = "https://script.google.com/macros/s/AKfycby.../exec"; 
+
     const video = document.getElementById('video');
     const statusText = document.getElementById('statusText');
-    
-    // Server Model AI Resmi yang anti-CORS dan stabil
     const MODEL_URL = 'https://justadudewhohacks.github.io/face-api.js/models';
+    
+    let lastDescriptor = null; // Menyimpan data titik wajah terkini
 
     function startVideo() {
       navigator.mediaDevices.getUserMedia({ video: true })
-        .then(stream => { 
-          video.srcObject = stream; 
-          statusText.innerText = "Kamera aktif! Proses sinkronisasi AI...";
-          statusText.style.color = "#d39e00"; 
-        })
-        .catch(err => {
-          statusText.innerText = "Gagal mengakses kamera.";
-          statusText.style.color = "red";
-          console.error(err);
-        });
+        .then(stream => { video.srcObject = stream; })
+        .catch(err => { console.error(err); });
     }
 
-    // Nyalakan kamera langsung
     startVideo();
 
-    // Muat Model AI
     Promise.all([
       faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
       faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL),
       faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL)
     ]).then(() => {
-      statusText.innerText = "AI Aktif & Siap Memindai!";
+      statusText.innerText = "AI Aktif! Arahkan wajah ke kamera.";
       statusText.style.color = "green";
       
       video.addEventListener('play', () => {
@@ -69,17 +70,61 @@
           const resizedDetections = faceapi.resizeResults(detections, displaySize);
           canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
           
-          // Gambar kotak pendeteksi
           faceapi.draw.drawDetections(canvas, resizedDetections);
-          // Gambar titik-titik wajah
           faceapi.draw.drawFaceLandmarks(canvas, resizedDetections);
+
+          // Simpan descriptor wajah terkini jika terdeteksi
+          if (detections.length > 0) {
+            lastDescriptor = Array.from(detections[0].descriptor);
+          } else {
+            lastDescriptor = null;
+          }
         }, 100); 
       });
-    }).catch(err => {
-      statusText.innerText = "Error memuat file AI. Cek koneksi atau Console.";
-      statusText.style.color = "red";
-      console.error("Gagal muat model:", err);
     });
+
+    // Fungsi Mengirim Data Wajah ke Google Sheets
+    async function registerCurrentFace() {
+      const userId = document.getElementById('userIdInput').value;
+      
+      if (!userId) {
+        alert("Harap isi ID / NIP / NIS terlebih dahulu!");
+        return;
+      }
+
+      if (!lastDescriptor) {
+        alert("Wajah tidak terdeteksi oleh kamera! Harap menghadap kamera.");
+        return;
+      }
+
+      statusText.innerText = "Mengirim data wajah ke server...";
+      statusText.style.color = "#d39e00";
+
+      const payload = {
+        action: "registerFace",
+        userId: userId,
+        role: "GURU",
+        embeddingData: JSON.stringify(lastDescriptor)
+      };
+
+      try {
+        // Mengirim data via URL Fetch
+        const targetUrl = `${GAS_URL}?action=${payload.action}&userId=${payload.userId}&role=${payload.role}&embeddingData=${encodeURIComponent(payload.embeddingData)}`;
+        const response = await fetch(targetUrl);
+        const result = await response.json();
+
+        if (result.success) {
+          alert("BERHASIL! Wajah terdaftar untuk ID: " + userId);
+          statusText.innerText = "Wajah Berhasil Didaftarkan!";
+          statusText.style.color = "green";
+        } else {
+          alert("Gagal: " + result.message);
+        }
+      } catch (error) {
+        alert("Error koneksi server: " + error.message);
+        console.error(error);
+      }
+    }
   </script>
 </body>
 </html>
