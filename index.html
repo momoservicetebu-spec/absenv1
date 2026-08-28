@@ -66,9 +66,17 @@
     });
 
     // Mengambil Seluruh Referensi Wajah dari Sheet
+   // Mengambil Seluruh Referensi Wajah dari Sheet (DIPERBARUI KE METODE POST)
     async function loadFaceReferencesFromGAS() {
       try {
-        const response = await fetch(`${GAS_URL}?action=getFaceReferences`);
+        const formData = new URLSearchParams();
+        formData.append("action", "getFaceReferences");
+
+        const response = await fetch(GAS_URL, { 
+          method: "POST", 
+          body: formData 
+        });
+        
         const result = await response.json();
         
         if (result.success && result.data.length > 0) {
