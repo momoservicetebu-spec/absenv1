@@ -40,10 +40,53 @@
     const statusText = document.getElementById('statusText');
     const alertBox = document.getElementById('alertBox');
     const MODEL_URL = 'https://justadudewhohacks.github.io/face-api.js/models';
+    <!DOCTYPE html>
+<html>
+<head>
+  <title>Sistem Absensi Wajah AI</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body { font-family: sans-serif; text-align: center; background-color: #f4f7f6; margin: 0; padding: 20px; }
+    #video-container { position: relative; display: inline-block; margin-top: 15px; }
+    video { border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.2); background-color: #000; }
+    canvas { position: absolute; top: 0; left: 0; border-radius: 10px; }
+    .status { margin-top: 15px; font-size: 18px; font-weight: bold; color: #007bff; }
+    .alert-box { padding: 15px; margin: 15px auto; width: 80%; max-width: 500px; border-radius: 8px; display: none; font-size: 16px; font-weight: bold; }
+    .controls { margin-top: 15px; }
+    input, button { padding: 10px; font-size: 14px; margin: 5px; border-radius: 5px; border: 1px solid #ccc; }
+    button { background-color: #28a745; color: white; border: none; cursor: pointer; font-weight: bold; }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
+</head>
+<body>
+
+  <h2>Gate Camera: Absensi Wajah AI</h2>
+  <div class="status" id="statusText">Memuat Model AI & Database Server...</div>
+  <div class="alert-box" id="alertBox"></div>
+  
+  <div id="video-container">
+    <video id="video" width="640" height="480" autoplay muted playsinline></video>
+  </div>
+
+  <div class="controls">
+    <hr style="width: 50%; margin: 20px auto;">
+    <p><b>Fitur Tambah Wajah Baru:</b></p>
+    <input type="text" id="userIdInput" placeholder="Masukkan ID / NIP / NIS">
+    <button onclick="registerCurrentFace()">Daftarkan Wajah Ini</button>
+  </div>
+
+  <script>
+    // URL Web App Anda sudah dimasukkan di sini
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbxx3BLAOh7RZwF2vvukhDPhytbAPXfMP3H_RAJNeWgxLe2LNcCzojm-6HQ1kktPQMTQ/exec";
+
+    const video = document.getElementById('video');
+    const statusText = document.getElementById('statusText');
+    const alertBox = document.getElementById('alertBox');
+    const MODEL_URL = 'https://justadudewhohacks.github.io/face-api.js/models';
     
     let faceMatcher = null;
     let lastDescriptor = null;
-    let isProcessingAbsen = false; // Mencegah spamm/double-absen dalam hitungan detik
+    let isProcessingAbsen = false; 
 
     function startVideo() {
       navigator.mediaDevices.getUserMedia({ video: true })
@@ -53,7 +96,6 @@
 
     startVideo();
 
-    // 1. Muat AI + Download Data Wajah dari Google Sheets saat Web Dibuka
     Promise.all([
       faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
       faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL),
@@ -65,56 +107,47 @@
       startRealtimeDetection();
     });
 
-    // Mengambil Seluruh Referensi Wajah dari Sheet (Aman, Dinamis & Anti-Error)
+    // Kode yang Ditingkatkan: Anti-Error dan Bebas "undefined"
     async function loadFaceReferencesFromGAS() {
       try {
         const formData = new URLSearchParams();
         formData.append("action", "getFaceReferences");
 
-        const response = await fetch(GAS_URL, { 
-          method: "POST", 
-          body: formData 
-        });
-        
+        const response = await fetch(GAS_URL, { method: "POST", body: formData });
         const result = await response.json();
         
         if (result.success && Array.isArray(result.data) && result.data.length > 0) {
           const validDescriptors = [];
 
           result.data.forEach(item => {
-            // Mencari nama kolom secara otomatis tanpa peduli huruf besar/kecil/spasi
-            const keys = Object.keys(item);
-            const embedKey = keys.find(k => k.toLowerCase().includes('embed') || k.toLowerCase().includes('descriptor'));
-            const userKey = keys.find(k => k.toLowerCase().includes('user') || k.toLowerCase().includes('nip') || k.toLowerCase().includes('id'));
+            const ObjectKeys = Object.keys(item);
+            const embedKey = ObjectKeys.find(k => k.toLowerCase().includes('embed'));
+            const userKey = ObjectKeys.find(k => k.toLowerCase().includes('user') || k.toLowerCase().includes('id'));
 
             const rawEmbedData = embedKey ? item[embedKey] : null;
             const rawUserID = userKey ? item[userKey] : "Unknown";
 
-            // Validasi data agar tidak memicu JSON.parse(undefined)
-            if (rawEmbedData && rawEmbedData !== "undefined" && rawEmbedData !== "") {
+            if (rawEmbedData && rawEmbedData !== "undefined" && rawEmbedData.trim() !== "") {
               try {
                 const parsedData = (typeof rawEmbedData === 'string') ? JSON.parse(rawEmbedData) : rawEmbedData;
                 const descriptorArray = new Float32Array(parsedData);
                 validDescriptors.push(new faceapi.LabeledFaceDescriptors(String(rawUserID), [descriptorArray]));
-              } catch (parseErr) {
-                console.warn("Format data biometrik baris ini dilewati karena tidak valid:", item);
+              } catch (e) {
+                console.warn("Skip baris rusak:", e);
               }
             }
           });
 
           if (validDescriptors.length > 0) {
             faceMatcher = new faceapi.FaceMatcher(validDescriptors, 0.5);
-            console.log("Database wajah berhasil di-load ke AI!", validDescriptors);
-          } else {
-            console.warn("Belum ada data biometrik wajah yang valid di Google Sheets.");
+            console.log("Database wajah sukses di-load!");
           }
         }
       } catch (err) {
-        console.error("Gagal load referensi wajah:", err);
+        console.error("Gagal load database:", err);
       }
     }
 
-    // 2. Deteksi Realtime & Auto-Checkin
     function startRealtimeDetection() {
       video.addEventListener('play', () => {
         const canvas = faceapi.createCanvasFromMedia(video);
@@ -133,16 +166,12 @@
           if (detections.length > 0) {
             lastDescriptor = Array.from(detections[0].descriptor);
 
-            // Jika AI sudah punya database wajah
             if (faceMatcher) {
               const bestMatch = faceMatcher.findBestMatch(detections[0].descriptor);
-              
-              // Gambar box + nama/ID di atas kepala
               const box = resizedDetections[0].detection.box;
               const drawBox = new faceapi.draw.DrawBox(box, { label: bestMatch.toString() });
               drawBox.draw(canvas);
 
-              // JIKA TERGENAL & TIDAK SEDANG PROSES ABSEN -> ABSEN OTOMATIS!
               if (bestMatch.label !== 'unknown' && !isProcessingAbsen) {
                 triggerAutoAttendance(bestMatch.label);
               }
@@ -156,9 +185,8 @@
       });
     }
 
-    // 3. Kirim Absen Otomatis ke GAS
     async function triggerAutoAttendance(userId) {
-      isProcessingAbsen = true; // Kunci sementara
+      isProcessingAbsen = true;
       showAlert(`Wajah Dikenali: ID ${userId}. Mencatat Absen...`, "#d39e00");
 
       try {
@@ -180,7 +208,6 @@
         showAlert(`❌ Network Error`, "red");
       }
 
-      // Jeda 5 detik sebelum siap menerima absen wajah berikutnya
       setTimeout(() => {
         isProcessingAbsen = false;
         hideAlert();
@@ -198,7 +225,6 @@
       alertBox.style.display = "none";
     }
 
-    // Fungsi Pendaftaran Manual Tetap Ada
     async function registerCurrentFace() {
       const userId = document.getElementById('userIdInput').value;
       if (!userId || !lastDescriptor) { alert("Isi ID & pastikan wajah terlihat!"); return; }
@@ -212,7 +238,7 @@
       const response = await fetch(GAS_URL, { method: "POST", body: formData });
       const result = await response.json();
       if (result.success) {
-        alert("Wajah Berhasil Didaftarkan! Refresh halaman untuk memuat ulang AI.");
+        alert("Wajah Berhasil Didaftarkan! Halaman akan dimuat ulang.");
         location.reload();
       }
     }
