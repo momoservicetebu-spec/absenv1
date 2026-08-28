@@ -14,48 +14,6 @@
     input, button { padding: 10px; font-size: 14px; margin: 5px; border-radius: 5px; border: 1px solid #ccc; }
     button { background-color: #28a745; color: white; border: none; cursor: pointer; font-weight: bold; }
   </style>
-  <script src=<script src="[https://unpkg.com/face-api.js@0.22.2/dist/face-api.min.js](https://unpkg.com/face-api.js@0.22.2/dist/face-api.min.js)"></script>
-</head>
-<body>
-
-  <h2>Gate Camera: Absensi Wajah AI</h2>
-  <div class="status" id="statusText">Memuat Model AI & Database Server...</div>
-  <div class="alert-box" id="alertBox"></div>
-  
-  <div id="video-container">
-    <video id="video" width="640" height="480" autoplay muted playsinline></video>
-  </div>
-
-  <div class="controls">
-    <hr style="width: 50%; margin: 20px auto;">
-    <p><b>Fitur Tambah Wajah Baru:</b></p>
-    <input type="text" id="userIdInput" placeholder="Masukkan ID / NIP / NIS">
-    <button onclick="registerCurrentFace()">Daftarkan Wajah Ini</button>
-  </div>
-
-  <script>
-    const GAS_URL = "https://script.google.com/macros/s/AKfycbxx3BLAOh7RZwF2vvukhDPhytbAPXfMP3H_RAJNeWgxLe2LNcCzojm-6HQ1kktPQMTQ/exec"; // BISA DIGANTI DENGAN URL GAS ANDA
-
-    const video = document.getElementById('video');
-    const statusText = document.getElementById('statusText');
-    const alertBox = document.getElementById('alertBox');
-    const MODEL_URL = 'https://justadudewhohacks.github.io/face-api.js/models';
-    <!DOCTYPE html>
-<html>
-<head>
-  <title>Sistem Absensi Wajah AI</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <style>
-    body { font-family: sans-serif; text-align: center; background-color: #f4f7f6; margin: 0; padding: 20px; }
-    #video-container { position: relative; display: inline-block; margin-top: 15px; }
-    video { border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.2); background-color: #000; }
-    canvas { position: absolute; top: 0; left: 0; border-radius: 10px; }
-    .status { margin-top: 15px; font-size: 18px; font-weight: bold; color: #007bff; }
-    .alert-box { padding: 15px; margin: 15px auto; width: 80%; max-width: 500px; border-radius: 8px; display: none; font-size: 16px; font-weight: bold; }
-    .controls { margin-top: 15px; }
-    input, button { padding: 10px; font-size: 14px; margin: 5px; border-radius: 5px; border: 1px solid #ccc; }
-    button { background-color: #28a745; color: white; border: none; cursor: pointer; font-weight: bold; }
-  </style>
   <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
 </head>
 <body>
