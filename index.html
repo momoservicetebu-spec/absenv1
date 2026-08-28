@@ -65,8 +65,7 @@
       startRealtimeDetection();
     });
 
-    // Mengambil Seluruh Referensi Wajah dari Sheet
-   // Mengambil Seluruh Referensi Wajah dari Sheet (DIPERBARUI KE METODE POST)
+    // Mengambil Seluruh Referensi Wajah dari Sheet (Tahan Banting Case Sensitive)
     async function loadFaceReferencesFromGAS() {
       try {
         const formData = new URLSearchParams();
@@ -81,11 +80,15 @@
         
         if (result.success && result.data.length > 0) {
           const labeledDescriptors = result.data.map(item => {
-            const descriptorArray = new Float32Array(JSON.parse(item.EmbeddingData));
-            return new faceapi.LabeledFaceDescriptors(item.UserID, [descriptorArray]);
+            // Deteksi otomatis nama kolom (antisipasi perbedaan huruf besar/kecil)
+            const rawEmbedData = item.EmbeddingData || item.embeddingData || item.EMBEDDINGDATA;
+            const rawUserID = item.UserID || item.userId || item.USERID;
+
+            const descriptorArray = new Float32Array(JSON.parse(rawEmbedData));
+            return new faceapi.LabeledFaceDescriptors(String(rawUserID), [descriptorArray]);
           });
           
-          // Akurasi pencocokan 0.5 (semakin kecil makin ketat)
+          // Akurasi pencocokan 0.5
           faceMatcher = new faceapi.FaceMatcher(labeledDescriptors, 0.5);
           console.log("Database wajah berhasil di-load ke AI!");
         }
