@@ -8,37 +8,42 @@
     #video-container { position: relative; display: inline-block; margin-top: 15px; }
     video { border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.2); background-color: #000; }
     canvas { position: absolute; top: 0; left: 0; border-radius: 10px; }
-    .status { margin-top: 15px; font-weight: bold; color: #007bff; }
-    .controls { margin-top: 20px; }
-    input, button { padding: 10px 15px; font-size: 14px; margin: 5px; border-radius: 5px; border: 1px solid #ccc; }
+    .status { margin-top: 15px; font-size: 18px; font-weight: bold; color: #007bff; }
+    .alert-box { padding: 15px; margin: 15px auto; width: 80%; max-width: 500px; border-radius: 8px; display: none; font-size: 16px; font-weight: bold; }
+    .controls { margin-top: 15px; }
+    input, button { padding: 10px; font-size: 14px; margin: 5px; border-radius: 5px; border: 1px solid #ccc; }
     button { background-color: #28a745; color: white; border: none; cursor: pointer; font-weight: bold; }
-    button:hover { background-color: #218838; }
   </style>
   <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
 </head>
 <body>
 
-  <h2>Absensi Biometrik Wajah AI</h2>
-  <div class="status" id="statusText">Memuat Model AI... (Harap tunggu)</div>
+  <h2>Gate Camera: Absensi Wajah AI</h2>
+  <div class="status" id="statusText">Memuat Model AI & Database Server...</div>
+  <div class="alert-box" id="alertBox"></div>
   
   <div id="video-container">
     <video id="video" width="640" height="480" autoplay muted playsinline></video>
   </div>
 
   <div class="controls">
-    <input type="text" id="userIdInput" placeholder="Masukkan ID / NIP / NIS (Misal: 123456)">
+    <hr style="width: 50%; margin: 20px auto;">
+    <p><b>Fitur Tambah Wajah Baru:</b></p>
+    <input type="text" id="userIdInput" placeholder="Masukkan ID / NIP / NIS">
     <button onclick="registerCurrentFace()">Daftarkan Wajah Ini</button>
   </div>
 
   <script>
-    // MASUKKAN URL WEB APP GOOGLE APPS SCRIPT ANDA DI SINI
-    const GAS_URL = "https://script.google.com/macros/s/AKfycbxx3BLAOh7RZwF2vvukhDPhytbAPXfMP3H_RAJNeWgxLe2LNcCzojm-6HQ1kktPQMTQ/exec"; 
+    const GAS_URL = "https://script.google.com/macros/s/AKfycby.../exec"; // BISA DIGANTI DENGAN URL GAS ANDA
 
     const video = document.getElementById('video');
     const statusText = document.getElementById('statusText');
+    const alertBox = document.getElementById('alertBox');
     const MODEL_URL = 'https://justadudewhohacks.github.io/face-api.js/models';
     
-    let lastDescriptor = null; // Menyimpan data titik wajah terkini
+    let faceMatcher = null;
+    let lastDescriptor = null;
+    let isProcessingAbsen = false; // Mencegah spamm/double-absen dalam hitungan detik
 
     function startVideo() {
       navigator.mediaDevices.getUserMedia({ video: true })
@@ -48,14 +53,41 @@
 
     startVideo();
 
+    // 1. Muat AI + Download Data Wajah dari Google Sheets saat Web Dibuka
     Promise.all([
       faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
       faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL),
-      faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL)
+      faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL),
+      loadFaceReferencesFromGAS()
     ]).then(() => {
-      statusText.innerText = "AI Aktif! Arahkan wajah ke kamera.";
+      statusText.innerText = "Sistem Siap! Silakan Menghadap Kamera.";
       statusText.style.color = "green";
-      
+      startRealtimeDetection();
+    });
+
+    // Mengambil Seluruh Referensi Wajah dari Sheet
+    async function loadFaceReferencesFromGAS() {
+      try {
+        const response = await fetch(`${GAS_URL}?action=getFaceReferences`);
+        const result = await response.json();
+        
+        if (result.success && result.data.length > 0) {
+          const labeledDescriptors = result.data.map(item => {
+            const descriptorArray = new Float32Array(JSON.parse(item.EmbeddingData));
+            return new faceapi.LabeledFaceDescriptors(item.UserID, [descriptorArray]);
+          });
+          
+          // Akurasi pencocokan 0.5 (semakin kecil makin ketat)
+          faceMatcher = new faceapi.FaceMatcher(labeledDescriptors, 0.5);
+          console.log("Database wajah berhasil di-load ke AI!");
+        }
+      } catch (err) {
+        console.error("Gagal load referensi wajah:", err);
+      }
+    }
+
+    // 2. Deteksi Realtime & Auto-Checkin
+    function startRealtimeDetection() {
       video.addEventListener('play', () => {
         const canvas = faceapi.createCanvasFromMedia(video);
         document.getElementById('video-container').append(canvas);
@@ -69,108 +101,91 @@
           
           const resizedDetections = faceapi.resizeResults(detections, displaySize);
           canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
-          
-          faceapi.draw.drawDetections(canvas, resizedDetections);
-          faceapi.draw.drawFaceLandmarks(canvas, resizedDetections);
 
-          // Simpan descriptor wajah terkini jika terdeteksi
           if (detections.length > 0) {
             lastDescriptor = Array.from(detections[0].descriptor);
+
+            // Jika AI sudah punya database wajah
+            if (faceMatcher) {
+              const bestMatch = faceMatcher.findBestMatch(detections[0].descriptor);
+              
+              // Gambar box + nama/ID di atas kepala
+              const box = resizedDetections[0].detection.box;
+              const drawBox = new faceapi.draw.DrawBox(box, { label: bestMatch.toString() });
+              drawBox.draw(canvas);
+
+              // JIKA TERGENAL & TIDAK SEDANG PROSES ABSEN -> ABSEN OTOMATIS!
+              if (bestMatch.label !== 'unknown' && !isProcessingAbsen) {
+                triggerAutoAttendance(bestMatch.label);
+              }
+            } else {
+              faceapi.draw.drawDetections(canvas, resizedDetections);
+            }
           } else {
             lastDescriptor = null;
           }
-        }, 100); 
+        }, 200);
       });
-    });
+    }
 
-    // Fungsi Mengirim Data Wajah ke Google Sheets
-    async function registerCurrentFace() {
-      const userId = document.getElementById('userIdInput').value;
-      
-      if (!userId) {
-        alert("Harap isi ID / NIP / NIS terlebih dahulu!");
-        return;
-      }
-
-      if (!lastDescriptor) {
-        alert("Wajah tidak terdeteksi oleh kamera! Harap menghadap kamera.");
-        return;
-      }
-
-      statusText.innerText = "Mengirim data wajah ke server...";
-      statusText.style.color = "#d39e00";
-
-      const payload = {
-        action: "registerFace",
-        userId: userId,
-        role: "GURU",
-        embeddingData: JSON.stringify(lastDescriptor)
-      };
+    // 3. Kirim Absen Otomatis ke GAS
+    async function triggerAutoAttendance(userId) {
+      isProcessingAbsen = true; // Kunci sementara
+      showAlert(`Wajah Dikenali: ID ${userId}. Mencatat Absen...`, "#d39e00");
 
       try {
-        // Mengirim data via URL Fetch
-        const targetUrl = `${GAS_URL}?action=${payload.action}&userId=${payload.userId}&role=${payload.role}&embeddingData=${encodeURIComponent(payload.embeddingData)}`;
-        const response = await fetch(targetUrl);
+        const formData = new URLSearchParams();
+        formData.append("action", "submitAutoAttendance");
+        formData.append("userId", userId);
+        formData.append("role", "GURU");
+        formData.append("checkType", "IN");
+
+        const response = await fetch(GAS_URL, { method: "POST", body: formData });
         const result = await response.json();
 
         if (result.success) {
-          alert("BERHASIL! Wajah terdaftar untuk ID: " + userId);
-          statusText.innerText = "Wajah Berhasil Didaftarkan!";
-          statusText.style.color = "green";
+          showAlert(`✅ ABSEN BERHASIL! Selamat Datang ID: ${userId}`, "green");
         } else {
-          alert("Gagal: " + result.message);
+          showAlert(`❌ Gagal: ${result.message}`, "red");
         }
-      } catch (error) {
-        alert("Error koneksi server: " + error.message);
-        console.error(error);
+      } catch (err) {
+        showAlert(`❌ Network Error`, "red");
       }
+
+      // Jeda 5 detik sebelum siap menerima absen wajah berikutnya
+      setTimeout(() => {
+        isProcessingAbsen = false;
+        hideAlert();
+      }, 5000);
     }
-    // Fungsi Mengirim Data Wajah ke Google Sheets (Metode POST)
+
+    function showAlert(text, color) {
+      alertBox.style.display = "block";
+      alertBox.style.backgroundColor = color;
+      alertBox.style.color = "white";
+      alertBox.innerText = text;
+    }
+
+    function hideAlert() {
+      alertBox.style.display = "none";
+    }
+
+    // Fungsi Pendaftaran Manual Tetap Ada
     async function registerCurrentFace() {
       const userId = document.getElementById('userIdInput').value;
-      
-      if (!userId) {
-        alert("Harap isi ID / NIP / NIS terlebih dahulu!");
-        return;
-      }
+      if (!userId || !lastDescriptor) { alert("Isi ID & pastikan wajah terlihat!"); return; }
 
-      if (!lastDescriptor) {
-        alert("Wajah tidak terdeteksi oleh kamera! Harap menghadap kamera.");
-        return;
-      }
-
-      statusText.innerText = "Mengirim data wajah ke server...";
-      statusText.style.color = "#d39e00";
-
-      // Membungkus data ke dalam Form Body (Metode POST)
       const formData = new URLSearchParams();
       formData.append("action", "registerFace");
       formData.append("userId", userId);
       formData.append("role", "GURU");
       formData.append("embeddingData", JSON.stringify(lastDescriptor));
 
-      try {
-        const response = await fetch(GAS_URL, {
-          method: "POST",
-          body: formData
-        });
-
-        const result = await response.json();
-
-        if (result.success) {
-          alert("BERHASIL! Wajah terdaftar untuk ID: " + userId);
-          statusText.innerText = "Wajah Berhasil Didaftarkan!";
-          statusText.style.color = "green";
-        } else {
-          alert("Gagal: " + result.message);
-          statusText.innerText = "Gagal: " + result.message;
-          statusText.style.color = "red";
-        }
-      } catch (error) {
-        alert("Error koneksi server: " + error.message);
-        statusText.innerText = "Error koneksi server.";
-        statusText.style.color = "red";
-        console.error(error);
+      const response = await fetch(GAS_URL, { method: "POST", body: formData });
+      const result = await response.json();
+      if (result.success) {
+        alert("Wajah Berhasil Didaftarkan! Refresh halaman untuk memuat ulang AI.");
+        location.reload();
       }
     }
   </script>
