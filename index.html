@@ -125,6 +125,54 @@
         console.error(error);
       }
     }
+    // Fungsi Mengirim Data Wajah ke Google Sheets (Metode POST)
+    async function registerCurrentFace() {
+      const userId = document.getElementById('userIdInput').value;
+      
+      if (!userId) {
+        alert("Harap isi ID / NIP / NIS terlebih dahulu!");
+        return;
+      }
+
+      if (!lastDescriptor) {
+        alert("Wajah tidak terdeteksi oleh kamera! Harap menghadap kamera.");
+        return;
+      }
+
+      statusText.innerText = "Mengirim data wajah ke server...";
+      statusText.style.color = "#d39e00";
+
+      // Membungkus data ke dalam Form Body (Metode POST)
+      const formData = new URLSearchParams();
+      formData.append("action", "registerFace");
+      formData.append("userId", userId);
+      formData.append("role", "GURU");
+      formData.append("embeddingData", JSON.stringify(lastDescriptor));
+
+      try {
+        const response = await fetch(GAS_URL, {
+          method: "POST",
+          body: formData
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+          alert("BERHASIL! Wajah terdaftar untuk ID: " + userId);
+          statusText.innerText = "Wajah Berhasil Didaftarkan!";
+          statusText.style.color = "green";
+        } else {
+          alert("Gagal: " + result.message);
+          statusText.innerText = "Gagal: " + result.message;
+          statusText.style.color = "red";
+        }
+      } catch (error) {
+        alert("Error koneksi server: " + error.message);
+        statusText.innerText = "Error koneksi server.";
+        statusText.style.color = "red";
+        console.error(error);
+      }
+    }
   </script>
 </body>
 </html>
