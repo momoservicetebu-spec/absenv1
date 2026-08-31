@@ -36,9 +36,8 @@
     <a href="index.html" class="back-link">← Kembali ke Gerbang Utama</a>
   </div>
 
-  <script>
-    // GANTI DENGAN URL DEPLOYMENT GOOGLE APPS SCRIPT ANDA YANG TERBARU!
-    const GAS_URL = "https://script.google.com/macros/s/AKfycbxx3BLAOh7RZwF2vvukhDPhytbAPXfMP3H_RAJNeWgxLe2LNcCzojm-6HQ1kktPQMTQ/exec;
+ <script>
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbxx3BLAOh7RZwF2vvukhDPhytbAPXfMP3H_RAJNeWgxLe2LNcCzojm-6HQ1kktPQMTQ/exec";
 
     async function processLogin() {
       const user = document.getElementById('username').value.trim();
@@ -72,7 +71,6 @@
             if (result.role === "admin") {
               window.location.href = "dashboard-admin.html";
             } else {
-              // Untuk role guru/siswa/operator ke depannya
               alert(`Login Sukses! Anda masuk sebagai: ${result.role}. Halaman ini belum dibuat.`);
               btn.disabled = false;
               btn.innerText = "Masuk";
