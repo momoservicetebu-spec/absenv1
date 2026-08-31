@@ -1,19 +1,25 @@
 <!DOCTYPE html>
-<html lang="id">
+<html>
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Gerbang Utama - SIS Absensi</title>
+  <title>Gate Masuk - MFA Absensi</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
-    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f0f2f5; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-    .container { text-align: center; background: white; padding: 40px; border-radius: 12px; box-shadow: 0 8px 16px rgba(0,0,0,0.1); max-width: 500px; width: 90%; }
-    h1 { color: #333; margin-bottom: 10px; }
-    p { color: #666; margin-bottom: 30px; }
-    .btn { display: block; width: 100%; padding: 15px; margin: 10px 0; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; text-decoration: none; transition: 0.3s; box-sizing: border-box; }
-    .btn-primary { background-color: #007bff; color: white; }
-    .btn-primary:hover { background-color: #0056b3; }
-    .btn-outline { background-color: transparent; color: #007bff; border: 2px solid #007bff; }
-    .btn-outline:hover { background-color: #e7f1ff; }
+    body { font-family: sans-serif; text-align: center; background-color: #f4f7f6; margin: 0; padding: 20px; }
+    .card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); max-width: 600px; margin: auto; position: relative; }
+    #video-container { position: relative; display: none; margin-top: 15px; justify-content: center; }
+    video { border-radius: 10px; background-color: #000; }
+    canvas { position: absolute; border-radius: 10px; }
+    .status { margin-top: 15px; font-size: 18px; font-weight: bold; }
+    input { padding: 12px; font-size: 16px; text-align: center; width: 90%; border: 2px solid #007bff; border-radius: 5px; margin-top: 10px; box-sizing: border-box; }
+    button.fp-btn { padding: 10px 20px; font-size: 16px; background-color: #28a745; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; margin-top: 10px; }
+    button.fp-btn:disabled { background-color: #ccc; cursor: not-allowed; }
+    .alert-box { padding: 15px; margin-top: 15px; border-radius: 8px; display: none; font-weight: bold; color: white; }
+    .method-box { background: #e9ecef; padding: 15px; border-radius: 8px; margin-bottom: 15px; }
+    
+    /* Tombol Login Admin */
+    .login-btn { display: inline-block; margin-top: 25px; padding: 10px 20px; background-color: #343a40; color: white; text-decoration: none; border-radius: 5px; font-size: 14px; font-weight: bold; transition: 0.3s; }
+    .login-btn:hover { background-color: #495057; }
+    hr { border: 0; height: 1px; background: #ddd; margin-top: 25px; }
   </style>
   <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
 </head>
@@ -34,24 +40,27 @@
 
       <div class="method-box">
         <p style="margin: 0 0 10px 0; font-size: 14px;">👆 Fingerprint (Localhost Bridge)</p>
-        <button id="btnFingerprint" onclick="simulateFingerprintBridge()" disabled>Simulasikan Tempel Jari</button>
+        <button id="btnFingerprint" class="fp-btn" onclick="simulateFingerprintBridge()" disabled>Simulasikan Tempel Jari</button>
         <p id="fingerprintStatus" style="font-size: 13px; font-weight:bold; color: gray; margin-top: 10px;"></p>
       </div>
     </div>
 
-    <!-- STATE 2: VERIFICATION (Kamera Nyala untuk 1:1) -->
+    <!-- STATE 2: VERIFICATION -->
     <div id="video-container">
       <video id="video" width="480" height="360" autoplay muted playsinline></video>
     </div>
 
     <div class="alert-box" id="alertBox"></div>
+
+    <hr>
+    <!-- Link Menuju Halaman Login -->
+    <a href="login.html" class="login-btn">⚙️ Masuk ke Dashboard Login</a>
   </div>
 
   <script>
     const GAS_URL = "https://script.google.com/macros/s/AKfycbxx3BLAOh7RZwF2vvukhDPhytbAPXfMP3H_RAJNeWgxLe2LNcCzojm-6HQ1kktPQMTQ/exec";
     const MODEL_URL = 'https://justadudewhohacks.github.io/face-api.js/models';
     
-    // UI Elements 
     const video = document.getElementById('video');
     const videoContainer = document.getElementById('video-container');
     const standbyUI = document.getElementById('standby-ui');
@@ -60,13 +69,11 @@
     const statusText = document.getElementById('statusText');
     const alertBox = document.getElementById('alertBox');
 
-    // Engine Variables
     let databaseWajah = []; 
     let currentMFAUser = null; 
     let verificationInterval = null;
     let isProcessing = false;
 
-    // Inisialisasi Sistem
     Promise.all([
       faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
       faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL),
@@ -90,9 +97,9 @@
         .catch(err => console.error(err));
     }
 
-    // Load Database Wajah ke RAM Browser
     async function loadFaceDatabase() {
       try {
+        console.log("Mencoba mengunduh data wajah...");
         const formData = new URLSearchParams();
         formData.append("action", "getFaceReferences");
         const response = await fetch(GAS_URL, { method: "POST", body: formData });
@@ -101,24 +108,25 @@
         if (result.success && Array.isArray(result.data)) {
           result.data.forEach(item => {
             const keys = Object.keys(item);
-            const embedKey = keys.find(k => k.toLowerCase().includes('embed'));
-            const userKey = keys.find(k => k.toLowerCase().includes('user') || k.toLowerCase().includes('id'));
-            const rawEmbed = embedKey ? item[embedKey] : null;
-            const userID = userKey ? item[userKey] : null;
-
-            if (rawEmbed && rawEmbed !== "undefined") {
-              try {
-                const parsed = typeof rawEmbed === 'string' ? JSON.parse(rawEmbed) : rawEmbed;
-                const descriptor = new Float32Array(parsed);
-                databaseWajah.push({ id: String(userID), descriptor: descriptor });
-              } catch(e){}
+            const embedKey = keys.find(k => k.toLowerCase().includes('embed') || k.toLowerCase().includes('vektor') || k.toLowerCase().includes('face'));
+            const userKey = keys.find(k => k.toLowerCase().includes('id') || k.toLowerCase().includes('user'));
+            
+            if(embedKey && userKey) {
+              const rawEmbed = item[embedKey];
+              const userID = String(item[userKey]).trim();
+              if (rawEmbed && rawEmbed !== "undefined") {
+                try {
+                  const parsed = typeof rawEmbed === 'string' ? JSON.parse(rawEmbed) : rawEmbed;
+                  const descriptor = new Float32Array(parsed);
+                  databaseWajah.push({ id: userID, descriptor: descriptor });
+                } catch(e){}
+              }
             }
           });
         }
       } catch (err) { console.error("Gagal load DB", err); }
     }
 
-    // STATE 1A: Input Barcode/NFC
     nfcInput.addEventListener('keypress', function (e) {
       if (e.key === 'Enter') {
         const inputID = this.value.trim();
@@ -128,7 +136,6 @@
       }
     });
 
-    // STATE 1B: Input Fingerprint
     function simulateFingerprintBridge() {
       if(isProcessing) return;
       const fpStatus = document.getElementById('fingerprintStatus');
@@ -139,9 +146,8 @@
       fpStatus.style.color = "blue";
 
       setTimeout(() => {
-        // GANTI TEXT DI BAWAH INI DENGAN ID ANDA YANG ADA DI GOOGLE SHEETS!
+        // GANTI TEXT INI DENGAN ID YANG VALID DI SHEET ANDA JIKA INGIN TES FINGERPRINT
         const detectedUserID = "FACE-1787924439928"; 
-        
         fpStatus.innerText = `Sidik jari terdeteksi: ID ${detectedUserID}! Mengaktifkan Kamera...`;
         fpStatus.style.color = "green";
 
@@ -149,11 +155,9 @@
           fpStatus.innerText = "";
           startVerificationState(detectedUserID);
         }, 1500);
-
       }, 1500);
     }
 
-    // STATE 2: Face Verification 1:1
     function startVerificationState(userID) {
       if(isProcessing) return;
       isProcessing = true;
@@ -194,7 +198,7 @@
 
           const distance = faceapi.euclideanDistance(detections.descriptor, currentMFAUser.descriptor);
           
-          if (distance < 0.5) { // MATCH
+          if (distance < 0.5) { 
             clearInterval(verificationInterval);
             canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
             executeAttendance(currentMFAUser.id);
@@ -202,7 +206,6 @@
         }
       }, 200);
 
-      // Timeout Verifikasi (Gagal jika 10 detik wajah tidak cocok)
       setTimeout(() => {
         if(isProcessing && verificationInterval) {
           clearInterval(verificationInterval);
@@ -212,7 +215,6 @@
       }, 10000);
     }
 
-    // STATE 3: Final Submit Data
     async function executeAttendance(userID) {
       showAlert(`✅ Verifikasi MFA Sukses! Mencatat Absen...`, "#d39e00");
       statusText.innerText = "Mengirim Data...";
