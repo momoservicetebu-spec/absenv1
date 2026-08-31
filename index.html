@@ -1,204 +1,235 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Sistem Absensi Wajah AI</title>
+  <title>Gate Masuk - MFA Absensi</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
     body { font-family: sans-serif; text-align: center; background-color: #f4f7f6; margin: 0; padding: 20px; }
-    #video-container { position: relative; display: inline-block; margin-top: 15px; }
-    video { border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.2); background-color: #000; }
-    canvas { position: absolute; top: 0; left: 0; border-radius: 10px; }
-    .status { margin-top: 15px; font-size: 18px; font-weight: bold; color: #007bff; }
-    .alert-box { padding: 15px; margin: 15px auto; width: 80%; max-width: 500px; border-radius: 8px; display: none; font-size: 16px; font-weight: bold; }
-    .controls { margin-top: 15px; }
-    input, button { padding: 10px; font-size: 14px; margin: 5px; border-radius: 5px; border: 1px solid #ccc; }
-    button { background-color: #28a745; color: white; border: none; cursor: pointer; font-weight: bold; }
+    .card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); max-width: 600px; margin: auto; }
+    #video-container { position: relative; display: none; margin-top: 15px; justify-content: center; }
+    video { border-radius: 10px; background-color: #000; }
+    canvas { position: absolute; border-radius: 10px; }
+    .status { margin-top: 15px; font-size: 18px; font-weight: bold; }
+    input { padding: 12px; font-size: 18px; text-align: center; width: 80%; border: 2px solid #007bff; border-radius: 5px; margin-top: 10px;}
+    .alert-box { padding: 15px; margin-top: 15px; border-radius: 8px; display: none; font-weight: bold; color: white;}
   </style>
-  <script src="https://unpkg.com/face-api.js@0.22.2/dist/face-api.min.js"></script>
-  <link rel="shortcut icon" href="#">
+  <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
 </head>
 <body>
 
-  <h2>Gate Camera: Absensi Wajah AI</h2>
-  <div class="status" id="statusText">Memuat Model AI & Database Server...</div>
-  <div class="alert-box" id="alertBox"></div>
-  
-  <div id="video-container">
-    <video id="video" width="640" height="480" autoplay muted playsinline></video>
-  </div>
+  <div class="card">
+    <h2>Terminal Absensi MFA</h2>
+    <div class="status" id="statusText" style="color: orange;">Memuat Engine AI...</div>
+    
+    <!-- STATE 1: STANDBY (Tunggu NFC/Barcode) -->
+    <div id="standby-ui">
+      <p>Silakan Tap Kartu NFC / Scan Barcode Anda</p>
+      <input type="text" id="nfcSimulator" placeholder="Tap Kartu Disini..." disabled autocomplete="off">
+    </div>
 
-  <div class="controls">
-    <hr style="width: 50%; margin: 20px auto;">
-    <p><b>Fitur Tambah Wajah Baru:</b></p>
-    <input type="text" id="userIdInput" placeholder="Masukkan ID / NIP / NIS">
-    <button onclick="registerCurrentFace()">Daftarkan Wajah Ini</button>
+    <!-- STATE 2: VERIFICATION (Kamera Nyala untuk 1:1) -->
+    <div id="video-container">
+      <video id="video" width="480" height="360" autoplay muted playsinline></video>
+    </div>
+
+    <div class="alert-box" id="alertBox"></div>
   </div>
 
   <script>
-    // URL Web App Anda sudah dimasukkan di sini
     const GAS_URL = "https://script.google.com/macros/s/AKfycbxx3BLAOh7RZwF2vvukhDPhytbAPXfMP3H_RAJNeWgxLe2LNcCzojm-6HQ1kktPQMTQ/exec";
-
-    const video = document.getElementById('video');
-    const statusText = document.getElementById('statusText');
-    const alertBox = document.getElementById('alertBox');
     const MODEL_URL = 'https://justadudewhohacks.github.io/face-api.js/models';
     
-    let faceMatcher = null;
-    let lastDescriptor = null;
-    let isProcessingAbsen = false; 
+    // UI Elements
+    const video = document.getElementById('video');
+    const videoContainer = document.getElementById('video-container');
+    const standbyUI = document.getElementById('standby-ui');
+    const nfcInput = document.getElementById('nfcSimulator');
+    const statusText = document.getElementById('statusText');
+    const alertBox = document.getElementById('alertBox');
 
-    function startVideo() {
-      navigator.mediaDevices.getUserMedia({ video: true })
-        .then(stream => { video.srcObject = stream; })
-        .catch(err => { console.error(err); });
-    }
+    // Engine Variables
+    let databaseWajah = []; 
+    let currentMFAUser = null; 
+    let verificationInterval = null;
+    let isProcessing = false;
 
-    startVideo();
-
+    // Inisialisasi Sistem
     Promise.all([
       faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
       faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL),
       faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL),
-      loadFaceReferencesFromGAS()
+      loadFaceDatabase()
     ]).then(() => {
-      statusText.innerText = "Sistem Siap! Silakan Menghadap Kamera.";
+      statusText.innerText = "Sistem Siap";
       statusText.style.color = "green";
-      startRealtimeDetection();
+      nfcInput.disabled = false;
+      nfcInput.focus();
+      startVideo();
     });
 
-    // Kode yang Ditingkatkan: Anti-Error dan Bebas "undefined"
-    async function loadFaceReferencesFromGAS() {
+    function startVideo() {
+      navigator.mediaDevices.getUserMedia({ video: true })
+        .then(stream => { video.srcObject = stream; })
+        .catch(err => console.error(err));
+    }
+
+    // Load Database Wajah ke RAM Browser
+    async function loadFaceDatabase() {
       try {
         const formData = new URLSearchParams();
         formData.append("action", "getFaceReferences");
-
         const response = await fetch(GAS_URL, { method: "POST", body: formData });
         const result = await response.json();
         
-        if (result.success && Array.isArray(result.data) && result.data.length > 0) {
-          const validDescriptors = [];
-
+        if (result.success && Array.isArray(result.data)) {
           result.data.forEach(item => {
-            const ObjectKeys = Object.keys(item);
-            const embedKey = ObjectKeys.find(k => k.toLowerCase().includes('embed'));
-            const userKey = ObjectKeys.find(k => k.toLowerCase().includes('user') || k.toLowerCase().includes('id'));
+            const keys = Object.keys(item);
+            const embedKey = keys.find(k => k.toLowerCase().includes('embed'));
+            const userKey = keys.find(k => k.toLowerCase().includes('user') || k.toLowerCase().includes('id'));
+            const rawEmbed = embedKey ? item[embedKey] : null;
+            const userID = userKey ? item[userKey] : null;
 
-            const rawEmbedData = embedKey ? item[embedKey] : null;
-            const rawUserID = userKey ? item[userKey] : "Unknown";
-
-            if (rawEmbedData && rawEmbedData !== "undefined" && rawEmbedData.trim() !== "") {
+            if (rawEmbed && rawEmbed !== "undefined") {
               try {
-                const parsedData = (typeof rawEmbedData === 'string') ? JSON.parse(rawEmbedData) : rawEmbedData;
-                const descriptorArray = new Float32Array(parsedData);
-                validDescriptors.push(new faceapi.LabeledFaceDescriptors(String(rawUserID), [descriptorArray]));
-              } catch (e) {
-                console.warn("Skip baris rusak:", e);
-              }
+                const parsed = typeof rawEmbed === 'string' ? JSON.parse(rawEmbed) : rawEmbed;
+                const descriptor = new Float32Array(parsed);
+                // Simpan dalam array sebagai referensi terpisah
+                databaseWajah.push({ id: String(userID), descriptor: descriptor });
+              } catch(e){}
             }
           });
-
-          if (validDescriptors.length > 0) {
-            faceMatcher = new faceapi.FaceMatcher(validDescriptors, 0.5);
-            console.log("Database wajah sukses di-load!");
-          }
         }
-      } catch (err) {
-        console.error("Gagal load database:", err);
-      }
+      } catch (err) { console.error("Gagal load DB", err); }
     }
 
-    function startRealtimeDetection() {
-      // Langsung buat canvas tanpa menunggu event 'play' karena kamera sudah menyala
-      const canvas = faceapi.createCanvasFromMedia(video);
-      document.getElementById('video-container').append(canvas);
+    // STATE 1: Pemicu Input (Simulasi Tap NFC tekan Enter)
+    nfcInput.addEventListener('keypress', function (e) {
+      if (e.key === 'Enter') {
+        const inputID = this.value.trim();
+        this.value = ''; // Bersihkan input
+        if (inputID === '') return;
+        
+        startVerificationState(inputID);
+      }
+    });
+
+    // STATE 2: Face Verification 1:1
+    function startVerificationState(userID) {
+      if(isProcessing) return;
+      isProcessing = true;
+
+      // Cari data biometrik target dari RAM
+      const targetUser = databaseWajah.find(u => u.id === userID);
+      
+      if (!targetUser) {
+        showAlert(`ID ${userID} tidak ditemukan di database.`, "red");
+        setTimeout(resetToStandby, 3000);
+        return;
+      }
+
+      currentMFAUser = targetUser;
+      
+      // Ubah UI ke Mode Verifikasi Wajah
+      standbyUI.style.display = 'none';
+      videoContainer.style.display = 'flex';
+      statusText.innerText = `Halo ${userID}, Verifikasi Wajah Anda...`;
+      statusText.style.color = "blue";
+
+      // Siapkan Canvas
+      let canvas = document.querySelector('canvas');
+      if(!canvas){
+        canvas = faceapi.createCanvasFromMedia(video);
+        videoContainer.append(canvas);
+      }
       const displaySize = { width: video.width, height: video.height };
       faceapi.matchDimensions(canvas, displaySize);
 
-      setInterval(async () => {
-        const detections = await faceapi.detectAllFaces(video, new faceapi.TinyFaceDetectorOptions())
+      // Mulai Looping Deteksi 1:1
+      verificationInterval = setInterval(async () => {
+        const detections = await faceapi.detectSingleFace(video, new faceapi.TinyFaceDetectorOptions())
                                         .withFaceLandmarks()
-                                        .withFaceDescriptors();
+                                        .withFaceDescriptor();
         
-        const resizedDetections = faceapi.resizeResults(detections, displaySize);
         canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
 
-        if (detections.length > 0) {
-          lastDescriptor = Array.from(detections[0].descriptor);
+        if (detections) {
+          const resized = faceapi.resizeResults(detections, displaySize);
+          faceapi.draw.drawDetections(canvas, resized);
 
-          if (faceMatcher) {
-            const bestMatch = faceMatcher.findBestMatch(detections[0].descriptor);
-            const box = resizedDetections[0].detection.box;
-            const drawBox = new faceapi.draw.DrawBox(box, { label: bestMatch.toString() });
-            drawBox.draw(canvas);
-
-            if (bestMatch.label !== 'unknown' && !isProcessingAbsen) {
-              triggerAutoAttendance(bestMatch.label);
-            }
-          } else {
-            faceapi.draw.drawDetections(canvas, resizedDetections);
+          // Hitung jarak (Euclidean Distance). Semakin kecil = semakin mirip. Threshold standar: 0.5
+          const distance = faceapi.euclideanDistance(detections.descriptor, currentMFAUser.descriptor);
+          
+          if (distance < 0.5) {
+            // MATCH!
+            clearInterval(verificationInterval);
+            canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
+            executeAttendance(currentMFAUser.id);
           }
-        } else {
-          lastDescriptor = null;
         }
       }, 200);
+
+      // Timeout Verifikasi (Gagal jika wajah tidak cocok setelah 10 detik)
+      setTimeout(() => {
+        if(isProcessing && verificationInterval) {
+          clearInterval(verificationInterval);
+          showAlert(`Verifikasi Wajah Gagal. Wajah tidak cocok dengan ID ${userID}.`, "red");
+          setTimeout(resetToStandby, 3000);
+        }
+      }, 10000);
     }
-    async function triggerAutoAttendance(userId) {
-      isProcessingAbsen = true;
-      showAlert(`Wajah Dikenali: ID ${userId}. Mencatat Absen...`, "#d39e00");
+
+    // STATE 3: Final Submit
+    async function executeAttendance(userID) {
+      showAlert(`✅ Verifikasi MFA Sukses! Mencatat Absen...`, "#d39e00");
+      statusText.innerText = "Mengirim Data...";
 
       try {
         const formData = new URLSearchParams();
         formData.append("action", "submitAutoAttendance");
-        formData.append("userId", userId);
-        formData.append("role", "GURU");
+        formData.append("userId", userID);
+        formData.append("role", "GURU"); // Bisa dinamis nanti
         formData.append("checkType", "IN");
 
         const response = await fetch(GAS_URL, { method: "POST", body: formData });
         const result = await response.json();
 
         if (result.success) {
-          showAlert(`✅ ABSEN BERHASIL! Selamat Datang ID: ${userId}`, "green");
+          showAlert(`✅ ABSEN BERHASIL: ${userID}`, "green");
         } else {
-          showAlert(`❌ Gagal: ${result.message}`, "red");
+          showAlert(`❌ Gagal Server: ${result.message}`, "red");
         }
       } catch (err) {
         showAlert(`❌ Network Error`, "red");
       }
 
-      setTimeout(() => {
-        isProcessingAbsen = false;
-        hideAlert();
-      }, 5000);
+      setTimeout(resetToStandby, 3000);
+    }
+
+    // Kembali ke State Standby
+    function resetToStandby() {
+      clearInterval(verificationInterval);
+      verificationInterval = null;
+      currentMFAUser = null;
+      isProcessing = false;
+      
+      const canvas = document.querySelector('canvas');
+      if(canvas) canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
+
+      hideAlert();
+      videoContainer.style.display = 'none';
+      standbyUI.style.display = 'block';
+      statusText.innerText = "Sistem Siap";
+      statusText.style.color = "green";
+      
+      nfcInput.focus();
     }
 
     function showAlert(text, color) {
       alertBox.style.display = "block";
       alertBox.style.backgroundColor = color;
-      alertBox.style.color = "white";
       alertBox.innerText = text;
     }
-
-    function hideAlert() {
-      alertBox.style.display = "none";
-    }
-
-    async function registerCurrentFace() {
-      const userId = document.getElementById('userIdInput').value;
-      if (!userId || !lastDescriptor) { alert("Isi ID & pastikan wajah terlihat!"); return; }
-
-      const formData = new URLSearchParams();
-      formData.append("action", "registerFace");
-      formData.append("userId", userId);
-      formData.append("role", "GURU");
-      formData.append("embeddingData", JSON.stringify(lastDescriptor));
-
-      const response = await fetch(GAS_URL, { method: "POST", body: formData });
-      const result = await response.json();
-      if (result.success) {
-        alert("Wajah Berhasil Didaftarkan! Halaman akan dimuat ulang.");
-        location.reload();
-      }
-    }
+    function hideAlert() { alertBox.style.display = "none"; }
   </script>
 </body>
 </html>
