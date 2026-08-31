@@ -14,6 +14,7 @@
     }
     body { 
       font-family: 'Inter', Tahoma, sans-serif; 
+      /* Warna background hijau tosca sesuai gambar */
       background-color: #88cebc; 
       display: flex; 
       justify-content: center; 
@@ -22,7 +23,7 @@
       padding: 20px;
     }
 
-    /* Container Utama */
+    /* Container Utama (Split screen) */
     .login-wrapper {
       display: flex;
       background: white;
@@ -85,7 +86,7 @@
     .input-wrapper {
       position: relative;
     }
-    .input-wrapper .icon-left {
+    .input-wrapper svg {
       position: absolute;
       left: 12px;
       top: 50%;
@@ -96,7 +97,7 @@
     }
     .input-wrapper input { 
       width: 100%; 
-      padding: 12px 40px 12px 38px; /* Padding kanan ditambah untuk ikon mata */
+      padding: 12px 12px 12px 38px; /* Padding kiri untuk ikon */
       border: 1px solid #ddd; 
       border-radius: 8px; 
       font-size: 14px; 
@@ -106,22 +107,6 @@
       border-color: #3f2a7a;
       outline: none;
       box-shadow: 0 0 0 3px rgba(63, 42, 122, 0.1);
-    }
-    
-    /* Tombol Toggle Password */
-    .toggle-password {
-      position: absolute;
-      right: 12px;
-      top: 50%;
-      transform: translateY(-50%);
-      width: 20px;
-      height: 20px;
-      fill: #888;
-      cursor: pointer;
-      transition: fill 0.2s;
-    }
-    .toggle-password:hover {
-      fill: #342168;
     }
     
     .forgot-password {
@@ -138,6 +123,7 @@
     .btn-login { 
       width: 100%; 
       padding: 12px; 
+      /* Warna ungu gelap sesuai gambar */
       background-color: #342168; 
       color: white; 
       border: none; 
@@ -201,7 +187,7 @@
     /* Bagian Kanan (Ilustrasi) */
     .right-panel {
       flex: 1;
-      background-color: #f4f0fa;
+      background-color: #f4f0fa; /* Warna background ungu super muda */
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -223,12 +209,13 @@
     .illustration {
       max-width: 100%;
       height: auto;
+      /* Anda bisa meletakkan URL gambar ilustrasi Anda di sini di tag <img> nanti */
     }
 
     /* Responsif untuk layar HP */
     @media (max-width: 768px) {
       .login-wrapper { flex-direction: column; }
-      .right-panel { display: none; }
+      .right-panel { display: none; /* Sembunyikan ilustrasi di layar kecil agar fokus ke form */ }
       .left-panel { padding: 30px; }
     }
   </style>
@@ -250,7 +237,7 @@
         <div class="input-group">
           <label>Username</label>
           <div class="input-wrapper">
-            <svg class="icon-left" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+            <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
             <input type="text" id="username" placeholder="Masukkan Username" required autocomplete="off">
           </div>
         </div>
@@ -258,13 +245,8 @@
         <div class="input-group">
           <label>Password</label>
           <div class="input-wrapper">
-            <svg class="icon-left" viewBox="0 0 24 24"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zM9 6c0-1.66 1.34-3 3-3s3 1.34 3 3v2H9V6zm9 14H6V10h12v10zm-6-3c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2z"/></svg>
+            <svg viewBox="0 0 24 24"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zM9 6c0-1.66 1.34-3 3-3s3 1.34 3 3v2H9V6zm9 14H6V10h12v10zm-6-3c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2z"/></svg>
             <input type="password" id="password" placeholder="Masukkan Password" required autocomplete="off">
-            <!-- Ikon Mata Baru -->
-            <svg class="toggle-password" id="togglePassword" viewBox="0 0 24 24">
-              <!-- Default Icon: Mata Terbuka -->
-              <path id="eyeIcon" d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/>
-            </svg>
           </div>
           <a href="#" class="forgot-password">Forgot Password?</a>
         </div>
@@ -293,7 +275,6 @@
   </div>
 
   <script>
-    // SCRIPT ASLI UNTUK LOGIN
     const GAS_URL = "https://script.google.com/macros/s/AKfycbxx3BLAOh7RZwF2vvukhDPhytbAPXfMP3H_RAJNeWgxLe2LNcCzojm-6HQ1kktPQMTQ/exec";
 
     async function processLogin() {
@@ -321,7 +302,7 @@
         const result = await response.json();
 
         if (result.success) {
-          btn.style.backgroundColor = "#342168";
+          btn.style.backgroundColor = "#342168"; // Disesuaikan dengan warna tema baru
           btn.innerText = "Halo, " + result.name + "!";
           
           setTimeout(function() {
@@ -331,7 +312,7 @@
               alert("Login Sukses! Anda masuk sebagai: " + result.role + ". Halaman ini belum dibuat.");
               btn.disabled = false;
               btn.innerText = "Masuk";
-              btn.style.backgroundColor = "#342168";
+              btn.style.backgroundColor = "#342168"; // Disesuaikan dengan warna tema baru
             }
           }, 1000);
 
@@ -352,23 +333,6 @@
       errMsg.innerText = text;
       errMsg.style.display = "block";
     }
-
-    // SCRIPT BARU: TOGGLE SHOW/HIDE PASSWORD
-    document.getElementById('togglePassword').addEventListener('click', function () {
-      const passwordInput = document.getElementById('password');
-      const eyeIcon = document.getElementById('eyeIcon');
-      
-      // Cek tipe input saat ini
-      if (passwordInput.type === 'password') {
-        passwordInput.type = 'text'; // Ubah jadi teks agar terlihat
-        // Ubah jadi ikon mata disilang (eye-slash)
-        eyeIcon.setAttribute('d', 'M11.83 9L15 12.16V12a3 3 0 0 0-3-3h-.17zm-4.3.8l1.55 1.55c-.05.21-.08.43-.08.65a3 3 0 0 0 3 3c.22 0 .44-.03.65-.08l1.55 1.55c-.67.33-1.41.53-2.2.53-2.76 0-5-2.24-5-5 0-.79.2-1.53.53-2.2zm4.3-3.8c4.29 0 7.97 2.34 9.66 5.99-.44.95-1 1.83-1.66 2.6l-1.46-1.46C19.14 11.82 19.85 10.7 20.31 9.5c-1.48-3.32-4.85-5.69-8.59-5.69-1.22 0-2.4.24-3.48.67l1.55 1.55c.61-.17 1.25-.26 1.93-.26zM2.81 2.81L1.39 4.22l3.4 3.4C3.17 8.87 1.55 10.74 1 12c1.73 4.39 6 7.5 11 7.5 1.55 0 3.03-.3 4.38-.84l2.4 2.4 1.41-1.41L2.81 2.81z');
-      } else {
-        passwordInput.type = 'password'; // Kembalikan jadi bintang/titik
-        // Ubah kembali jadi ikon mata terbuka
-        eyeIcon.setAttribute('d', 'M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z');
-      }
-    });
   </script>
 </body>
 </html>
