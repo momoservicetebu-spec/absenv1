@@ -5,82 +5,152 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Dashboard Admin - SIS Absensi</title>
   <style>
-    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f6; margin: 0; display: flex; }
-    .sidebar { width: 250px; background-color: #343a40; color: white; height: 100vh; padding: 20px; box-sizing: border-box; }
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f6; margin: 0; display: flex; height: 100vh; overflow: hidden; }
+    
+    /* Sidebar */
+    .sidebar { width: 250px; background-color: #343a40; color: white; padding: 20px; box-sizing: border-box; display: flex; flex-direction: column; }
     .sidebar h2 { margin-top: 0; font-size: 20px; border-bottom: 1px solid #4f5962; padding-bottom: 10px; }
-    .sidebar a { color: #c2c7d0; text-decoration: none; display: block; margin: 15px 0; font-size: 16px; font-weight: bold; }
-    .sidebar a:hover { color: white; }
-    .main-content { flex: 1; padding: 30px; overflow-y: auto; height: 100vh; box-sizing: border-box; }
-    .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); margin-bottom: 25px; }
-    h3 { margin-top: 0; color: #333; }
+    .sidebar button { background: none; border: none; color: #c2c7d0; text-align: left; padding: 12px 0; font-size: 16px; font-weight: bold; cursor: pointer; width: 100%; transition: 0.2s; }
+    .sidebar button:hover, .sidebar button.active { color: white; padding-left: 10px; border-left: 3px solid #007bff; }
+    .logout-btn { color: #ff6b6b !important; margin-top: auto; border-top: 1px solid #4f5962; padding-top: 15px !important; }
     
-    /* Tabel & Form Import */
-    input[type="file"], input[type="text"] { padding: 10px; border: 1px solid #ccc; border-radius: 5px; margin-right: 10px; width: 60%; }
-    button { padding: 10px 20px; font-size: 14px; background-color: #28a745; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; }
-    button:hover { background-color: #218838; }
+    /* Main Content */
+    .main-content { flex: 1; padding: 30px; overflow-y: auto; box-sizing: border-box; }
+    .section { display: none; } /* Sembunyikan semua section secara default */
+    .section.active { display: block; } /* Tampilkan hanya yang aktif */
     
-    /* Kamera Pendaftaran */
-    #video-container { position: relative; display: inline-block; margin-top: 15px; }
-    video { border-radius: 10px; background-color: #000; }
-    canvas { position: absolute; top: 0; left: 0; border-radius: 10px; }
-    .status { margin-top: 10px; font-size: 16px; font-weight: bold; color: #007bff; }
+    .card { background: white; padding: 25px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); margin-bottom: 25px; }
+    h3 { margin-top: 0; color: #333; border-bottom: 2px solid #007bff; padding-bottom: 10px; display: inline-block; }
+    
+    /* Form & Input */
+    input[type="file"], input[type="text"] { padding: 10px; border: 1px solid #ccc; border-radius: 5px; width: 100%; max-width: 400px; margin-bottom: 15px; box-sizing: border-box; display: block; }
+    .btn-action { padding: 10px 20px; font-size: 14px; background-color: #28a745; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; }
+    .btn-action:hover { background-color: #218838; }
+    .btn-action:disabled { background-color: #6c757d; cursor: not-allowed; }
+    
+    /* Kamera Panel */
+    #video-container { position: relative; display: inline-block; margin-top: 15px; border: 3px solid #ddd; border-radius: 12px; overflow: hidden; }
+    video { display: block; background-color: #000; }
+    canvas { position: absolute; top: 0; left: 0; }
+    .status { font-size: 16px; font-weight: bold; color: #007bff; margin-bottom: 10px; }
   </style>
   <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
 </head>
 <body>
 
+  <!-- SIDEBAR NAVIGASI -->
   <div class="sidebar">
     <h2>⚙️ Admin Panel</h2>
-    <a href="#">📁 Manajemen Data</a>
-    <a href="#">📸 Pendaftaran Biometrik</a>
-    <a href="#">📊 Laporan Absensi</a>
-    <hr style="border-color: #4f5962; margin: 30px 0;">
-    <a href="login.html" style="color: #ff6b6b;">🚪 Logout</a>
+    <button class="nav-btn active" onclick="switchTab('import')">📁 Import Data Users</button>
+    <button class="nav-btn" onclick="switchTab('enrollment')">📸 Daftar Wajah (AI)</button>
+    <button class="nav-btn" onclick="alert('Fitur laporan akan segera dibuat')">📊 Laporan Absensi</button>
+    <button class="logout-btn" onclick="window.location.href='login.html'">🚪 Keluar Sistem</button>
   </div>
 
+  <!-- AREA KONTEN UTAMA -->
   <div class="main-content">
     
-    <div class="card">
-      <h3>📁 Import Data Pengguna (CSV/Excel)</h3>
-      <p style="color: #666; font-size: 14px;">Unggah data siswa atau guru ke Google Sheets sebelum mendaftarkan wajah mereka.</p>
-      <input type="file" id="fileUpload" accept=".csv, .xlsx">
-      <button onclick="alert('Fitur parser CSV/Excel ke Google Sheets akan dihubungkan di tahap selanjutnya.')">Proses Import Data</button>
+    <!-- SECTION 1: IMPORT DATA -->
+    <div id="import" class="section active card">
+      <h3>📁 Import Data Pengguna (CSV)</h3>
+      <p style="color: #666; font-size: 14px;">Unggah file .csv yang berisi data siswa/guru (Kolom: ID, Nama, Role, Password). Sistem akan menambahkannya ke database secara otomatis.</p>
+      
+      <input type="file" id="csvFile" accept=".csv">
+      <button class="btn-action" id="btnImport" onclick="processCSV()">Mulai Import Data</button>
+      <p id="importLog" style="font-size: 13px; color: #d35400; margin-top: 15px;"></p>
     </div>
 
-    <div class="card">
+    <!-- SECTION 2: PENDAFTARAN WAJAH -->
+    <div id="enrollment" class="section card">
       <h3>📸 Pendaftaran Wajah Biometrik</h3>
-      <div class="status" id="statusText">Memuat Model AI Kamera...</div>
+      <p style="color: #666; font-size: 14px;">Pastikan ID User yang dimasukkan sudah terdaftar di database sebelumnya.</p>
+      
+      <div class="status" id="statusText">Menunggu aktivasi kamera...</div>
       
       <div id="video-container">
         <video id="video" width="480" height="360" autoplay muted playsinline></video>
       </div>
 
       <div style="margin-top: 20px;">
-        <input type="text" id="userIdInput" placeholder="Masukkan ID User (Contoh: GURU-001)">
-        <button onclick="registerCurrentFace()">Daftarkan Wajah Ini</button>
+        <input type="text" id="userIdInput" placeholder="Ketik ID User (Contoh: SISWA-001)" autocomplete="off">
+        <button class="btn-action" id="btnEnroll" onclick="registerCurrentFace()" disabled>Daftarkan Wajah Ini</button>
       </div>
     </div>
 
   </div>
 
   <script>
+    // URL GOOGLE APPS SCRIPT ANDA
     const GAS_URL = "https://script.google.com/macros/s/AKfycbxx3BLAOh7RZwF2vvukhDPhytbAPXfMP3H_RAJNeWgxLe2LNcCzojm-6HQ1kktPQMTQ/exec";
-    const MODEL_URL = 'https://justadudewhohacks.github.io/face-api.js/models';
     
+    // --- FUNGSI NAVIGASI TAB ---
+    function switchTab(tabId) {
+      document.querySelectorAll('.section').forEach(sec => sec.classList.remove('active'));
+      document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+      
+      document.getElementById(tabId).classList.add('active');
+      event.target.classList.add('active');
+
+      // Jika pindah ke tab kamera, nyalakan AI
+      if(tabId === 'enrollment' && !window.aiLoaded) {
+        initFaceAI();
+      }
+    }
+
+    // --- FITUR 1: BACA FILE CSV (FRONTEND PARSER) ---
+    function processCSV() {
+      const fileInput = document.getElementById('csvFile');
+      const log = document.getElementById('importLog');
+      const file = fileInput.files[0];
+
+      if (!file) {
+        alert("Silakan pilih file CSV terlebih dahulu!");
+        return;
+      }
+
+      const reader = new FileReader();
+      log.innerText = "Membaca file...";
+      
+      reader.onload = function(e) {
+        const text = e.target.result;
+        // Kita hanya mencetak ke log untuk sementara.
+        // Di tahap selanjutnya, teks ini akan dikirim ke server.
+        log.innerText = `File berhasil dibaca! Total karakter: ${text.length}.\nSiap dikirim ke server pada tahap berikutnya.`;
+        console.log("Isi CSV:", text);
+        alert("Script pembaca CSV berfungsi dengan baik!");
+      };
+
+      reader.readAsText(file);
+    }
+
+    // --- FITUR 2: ENGINE PENDAFTARAN WAJAH AI ---
+    const MODEL_URL = 'https://justadudewhohacks.github.io/face-api.js/models';
     const video = document.getElementById('video');
     const statusText = document.getElementById('statusText');
+    const btnEnroll = document.getElementById('btnEnroll');
     let lastDescriptor = null;
     let detectionInterval = null;
 
-    Promise.all([
-      faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
-      faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL),
-      faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL)
-    ]).then(() => {
-      statusText.innerText = "Kamera Pendaftaran Siap!";
-      statusText.style.color = "green";
-      startVideo();
-    }).catch(err => console.error(err));
+    function initFaceAI() {
+      window.aiLoaded = true;
+      statusText.innerText = "Memuat AI Engine...";
+      statusText.style.color = "orange";
+      
+      Promise.all([
+        faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
+        faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL),
+        faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL)
+      ]).then(() => {
+        statusText.innerText = "Kamera Siap! Arahkan wajah ke kamera.";
+        statusText.style.color = "green";
+        btnEnroll.disabled = false;
+        startVideo();
+      }).catch(err => {
+        statusText.innerText = "Gagal memuat AI";
+        statusText.style.color = "red";
+        console.error(err);
+      });
+    }
 
     function startVideo() {
       navigator.mediaDevices.getUserMedia({ video: true })
@@ -88,7 +158,7 @@
           video.srcObject = stream; 
           startFaceTracking();
         })
-        .catch(err => console.error(err));
+        .catch(err => console.error("Kamera diblokir/tidak ditemukan.", err));
     }
 
     function startFaceTracking() {
@@ -114,40 +184,38 @@
       }, 200);
     }
 
-    // FUNGSI LAMA YANG DISELAMATKAN
     async function registerCurrentFace() {
       const userId = document.getElementById('userIdInput').value.trim();
       if (!userId || !lastDescriptor) { 
-        alert("Peringatan: Isi ID pengguna dan pastikan kotak biru muncul di wajah Anda!"); 
+        alert("Pastikan ID diisi dan wajah Anda terdeteksi (ada kotak biru)!"); 
         return; 
       }
 
-      const btn = document.querySelector('button[onclick="registerCurrentFace()"]');
-      btn.innerText = "Menyimpan Data...";
-      btn.disabled = true;
+      btnEnroll.innerText = "Mengirim Data ke Server...";
+      btnEnroll.disabled = true;
 
       try {
         const formData = new URLSearchParams();
-        formData.append("action", "registerFace");
+        formData.append("action", "registerFace"); // Menuju Srv_Biometrics di GAS
         formData.append("userId", userId);
-        formData.append("role", "GURU"); 
+        formData.append("role", "GURU"); // Bisa dibuat dinamis nanti
         formData.append("embeddingData", JSON.stringify(lastDescriptor));
 
         const response = await fetch(GAS_URL, { method: "POST", body: formData });
         const result = await response.json();
         
         if (result.success) {
-          alert(`Wajah untuk ID ${userId} Berhasil Didaftarkan ke Database!`);
+          alert(`Sukses! Wajah untuk ID ${userId} berhasil disimpan ke database.`);
           document.getElementById('userIdInput').value = "";
         } else {
-          alert(`Gagal menyimpan: ${result.message}`);
+          alert(`Gagal: ${result.message}`);
         }
       } catch (err) {
-        alert("Terjadi kesalahan jaringan saat mengirim data.");
+        alert("Error jaringan. Tidak bisa menghubungi Google Server.");
       }
       
-      btn.innerText = "Daftarkan Wajah Ini";
-      btn.disabled = false;
+      btnEnroll.innerText = "Daftarkan Wajah Ini";
+      btnEnroll.disabled = false;
     }
   </script>
 </body>
