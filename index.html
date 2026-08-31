@@ -118,6 +118,38 @@
         startVerificationState(inputID);
       }
     });
+    // STATE 1 B: Simulasi Fingerprint (Localhost Bridge Adapter)
+    function simulateFingerprintBridge() {
+      if(isProcessing) return;
+      
+      const fpStatus = document.getElementById('fingerprintStatus');
+      const fpButton = document.getElementById('btnFingerprint');
+      
+      fpButton.disabled = true;
+      fpStatus.innerText = "Menunggu mesin fingerprint (localhost)...";
+      fpStatus.style.color = "blue";
+
+      // Simulasi jeda waktu saat hardware fingerprint memproses sidik jari
+      setTimeout(() => {
+        // Di dunia nyata, bagian ini diganti dengan:
+        // const response = await fetch('http://localhost:8080/api/get-last-fingerprint');
+        // const data = await response.json();
+        
+        // Simulasi: Mengembalikan ID Guru yang sudah Anda daftarkan sebelumnya
+        // GANTI "GURU-001" DENGAN ID YANG ADA DI SPREADSHEET ANDA
+        const detectedUserID = "GURU-001"; 
+        
+        fpStatus.innerText = `Sidik jari terdeteksi: ID ${detectedUserID}! Melanjutkan ke Kamera...`;
+        fpStatus.style.color = "green";
+
+        setTimeout(() => {
+          fpButton.disabled = false;
+          fpStatus.innerText = "";
+          startVerificationState(detectedUserID); // Lanjut ke State 2 (Face 1:1)
+        }, 1000);
+
+      }, 1500); // Simulasi delay 1.5 detik
+    }
 
     // STATE 2: Face Verification 1:1
     function startVerificationState(userID) {
