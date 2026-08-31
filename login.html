@@ -4,39 +4,296 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Login - SIS Absensi</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
-    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #e9ecef; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-    .login-box { background: white; padding: 40px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); width: 100%; max-width: 350px; }
-    h2 { text-align: center; color: #333; margin-bottom: 25px; }
-    .input-group { margin-bottom: 15px; text-align: left; }
-    .input-group label { display: block; font-size: 14px; color: #555; margin-bottom: 5px; }
-    .input-group input { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 15px; box-sizing: border-box; }
-    .btn-login { width: 100%; padding: 12px; background-color: #28a745; color: white; border: none; border-radius: 6px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 10px; }
-    .btn-login:disabled { background-color: #94d3a2; cursor: not-allowed; }
-    .back-link { display: block; text-align: center; margin-top: 20px; color: #007bff; text-decoration: none; font-size: 14px; }
-    .error-text { color: red; font-size: 13px; text-align: center; margin-top: 10px; display: none; }
+    /* Reset & Base Styles */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body { 
+      font-family: 'Inter', Tahoma, sans-serif; 
+      background-color: #88cebc; 
+      display: flex; 
+      justify-content: center; 
+      align-items: center; 
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    /* Container Utama */
+    .login-wrapper {
+      display: flex;
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+      width: 100%;
+      max-width: 900px;
+      min-height: 550px;
+      overflow: hidden;
+    }
+
+    /* Bagian Kiri (Form) */
+    .left-panel {
+      flex: 1;
+      padding: 40px 50px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      background-color: #ffffff;
+    }
+    
+    .brand-logo {
+      display: flex;
+      align-items: center;
+      font-weight: 700;
+      font-size: 18px;
+      color: #1a1a1a;
+      margin-bottom: 30px;
+    }
+    .brand-logo svg {
+      margin-right: 10px;
+      width: 24px;
+      height: 24px;
+    }
+
+    .left-panel h2 { 
+      color: #111; 
+      font-size: 26px;
+      margin-bottom: 8px;
+    }
+    .left-panel p.subtitle {
+      color: #666;
+      font-size: 14px;
+      margin-bottom: 30px;
+      line-height: 1.5;
+    }
+
+    .input-group { 
+      margin-bottom: 18px; 
+      text-align: left; 
+    }
+    .input-group label { 
+      display: block; 
+      font-size: 13px; 
+      color: #555; 
+      margin-bottom: 6px; 
+      font-weight: 500;
+    }
+    
+    .input-wrapper {
+      position: relative;
+    }
+    .input-wrapper .icon-left {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 18px;
+      height: 18px;
+      fill: #888;
+    }
+    .input-wrapper input { 
+      width: 100%; 
+      padding: 12px 40px 12px 38px; /* Padding kanan ditambah untuk ikon mata */
+      border: 1px solid #ddd; 
+      border-radius: 8px; 
+      font-size: 14px; 
+      transition: all 0.2s;
+    }
+    .input-wrapper input:focus {
+      border-color: #3f2a7a;
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(63, 42, 122, 0.1);
+    }
+    
+    /* Tombol Toggle Password */
+    .toggle-password {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 20px;
+      height: 20px;
+      fill: #888;
+      cursor: pointer;
+      transition: fill 0.2s;
+    }
+    .toggle-password:hover {
+      fill: #342168;
+    }
+    
+    .forgot-password {
+      display: block;
+      text-align: right;
+      font-size: 12px;
+      color: #555;
+      text-decoration: none;
+      margin-top: 6px;
+    }
+    .forgot-password:hover { text-decoration: underline; }
+
+    /* Tombol-tombol */
+    .btn-login { 
+      width: 100%; 
+      padding: 12px; 
+      background-color: #342168; 
+      color: white; 
+      border: none; 
+      border-radius: 25px; 
+      font-size: 15px; 
+      font-weight: 600; 
+      cursor: pointer; 
+      margin-top: 15px; 
+      transition: opacity 0.2s;
+    }
+    .btn-login:hover { opacity: 0.9; }
+    .btn-login:disabled { background-color: #897db0; cursor: not-allowed; }
+
+    .btn-google {
+      width: 100%;
+      padding: 12px;
+      background-color: white;
+      color: #333;
+      border: 1px solid #ddd;
+      border-radius: 25px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      margin-top: 15px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s;
+    }
+    .btn-google:hover { background-color: #f9f9f9; }
+    .btn-google img { width: 18px; margin-right: 10px; }
+
+    .error-text { 
+      color: #dc3545; 
+      font-size: 13px; 
+      text-align: center; 
+      margin-top: 10px; 
+      display: none; 
+      background: #ffe6e6;
+      padding: 8px;
+      border-radius: 6px;
+    }
+
+    /* Footer / Bottom Links */
+    .bottom-links {
+      margin-top: 30px;
+      text-align: center;
+      font-size: 13px;
+    }
+    .bottom-links a {
+      color: #333;
+      text-decoration: none;
+      display: block;
+      margin-bottom: 5px;
+      font-weight: 500;
+    }
+    .bottom-links a:hover { text-decoration: underline; }
+    .register-text { color: #666; margin-top: 10px; }
+    .register-text a { display: inline; color: #342168; font-weight: 600; }
+
+    /* Bagian Kanan (Ilustrasi) */
+    .right-panel {
+      flex: 1;
+      background-color: #f4f0fa;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 40px;
+      text-align: center;
+    }
+    .right-panel h3 {
+      font-weight: 400;
+      color: #333;
+      font-size: 16px;
+      margin-bottom: 5px;
+    }
+    .right-panel h1 {
+      font-size: 32px;
+      color: #111;
+      margin-bottom: 30px;
+    }
+    .illustration {
+      max-width: 100%;
+      height: auto;
+    }
+
+    /* Responsif untuk layar HP */
+    @media (max-width: 768px) {
+      .login-wrapper { flex-direction: column; }
+      .right-panel { display: none; }
+      .left-panel { padding: 30px; }
+    }
   </style>
 </head>
 <body>
 
-  <div class="login-box">
-    <h2>Portal Akses</h2>
-    <form id="loginForm">
-      <div class="input-group">
-        <label>Username</label>
-        <input type="text" id="username" placeholder="Masukkan Username" required autocomplete="off">
+  <div class="login-wrapper">
+    <div class="left-panel">
+      
+      <div class="brand-logo">
+        <svg viewBox="0 0 24 24"><path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10zm0-12H5V6h14v2zm-7 5h5v5h-5z"/></svg>
+        SIS Absensi
       </div>
-      <div class="input-group">
-        <label>Password</label>
-        <input type="password" id="password" placeholder="Masukkan Password" required autocomplete="off">
+
+      <h2>Portal Akses</h2>
+      <p class="subtitle">Silakan masuk dengan kredensial terdaftar Anda.</p>
+
+      <form id="loginForm">
+        <div class="input-group">
+          <label>Username</label>
+          <div class="input-wrapper">
+            <svg class="icon-left" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+            <input type="text" id="username" placeholder="Masukkan Username" required autocomplete="off">
+          </div>
+        </div>
+        
+        <div class="input-group">
+          <label>Password</label>
+          <div class="input-wrapper">
+            <svg class="icon-left" viewBox="0 0 24 24"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zM9 6c0-1.66 1.34-3 3-3s3 1.34 3 3v2H9V6zm9 14H6V10h12v10zm-6-3c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2z"/></svg>
+            <input type="password" id="password" placeholder="Masukkan Password" required autocomplete="off">
+            <!-- Ikon Mata Baru -->
+            <svg class="toggle-password" id="togglePassword" viewBox="0 0 24 24">
+              <!-- Default Icon: Mata Terbuka -->
+              <path id="eyeIcon" d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/>
+            </svg>
+          </div>
+          <a href="#" class="forgot-password">Forgot Password?</a>
+        </div>
+
+        <button type="button" class="btn-login" id="btnLogin" onclick="processLogin()">Masuk</button>
+        
+        <button type="button" class="btn-google">
+          <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" alt="Google">
+          Sign in with Google
+        </button>
+
+        <div class="error-text" id="errorMsg"></div>
+      </form>
+
+      <div class="bottom-links">
+        <a href="index.html">← Kembali ke Gerbang Utama</a>
+        <p class="register-text">Belum punya akun? <a href="#">Daftar</a></p>
       </div>
-      <button type="button" class="btn-login" id="btnLogin" onclick="processLogin()">Masuk</button>
-      <div class="error-text" id="errorMsg"></div>
-    </form>
-    <a href="index.html" class="back-link">← Kembali ke Gerbang Utama</a>
+    </div>
+
+    <div class="right-panel">
+      <h3>Senang melihat Anda kembali,</h3>
+      <h1>Selamat Datang</h1>
+      <img class="illustration" src="https://i.ibb.co/3s67Cvw/illustration-placeholder.png" alt="Ilustrasi Absensi" style="width: 80%; max-width: 350px;">
+    </div>
   </div>
 
   <script>
+    // SCRIPT ASLI UNTUK LOGIN
     const GAS_URL = "https://script.google.com/macros/s/AKfycbxx3BLAOh7RZwF2vvukhDPhytbAPXfMP3H_RAJNeWgxLe2LNcCzojm-6HQ1kktPQMTQ/exec";
 
     async function processLogin() {
@@ -64,7 +321,7 @@
         const result = await response.json();
 
         if (result.success) {
-          btn.style.backgroundColor = "#007bff";
+          btn.style.backgroundColor = "#342168";
           btn.innerText = "Halo, " + result.name + "!";
           
           setTimeout(function() {
@@ -74,7 +331,7 @@
               alert("Login Sukses! Anda masuk sebagai: " + result.role + ". Halaman ini belum dibuat.");
               btn.disabled = false;
               btn.innerText = "Masuk";
-              btn.style.backgroundColor = "#28a745";
+              btn.style.backgroundColor = "#342168";
             }
           }, 1000);
 
@@ -95,6 +352,23 @@
       errMsg.innerText = text;
       errMsg.style.display = "block";
     }
+
+    // SCRIPT BARU: TOGGLE SHOW/HIDE PASSWORD
+    document.getElementById('togglePassword').addEventListener('click', function () {
+      const passwordInput = document.getElementById('password');
+      const eyeIcon = document.getElementById('eyeIcon');
+      
+      // Cek tipe input saat ini
+      if (passwordInput.type === 'password') {
+        passwordInput.type = 'text'; // Ubah jadi teks agar terlihat
+        // Ubah jadi ikon mata disilang (eye-slash)
+        eyeIcon.setAttribute('d', 'M11.83 9L15 12.16V12a3 3 0 0 0-3-3h-.17zm-4.3.8l1.55 1.55c-.05.21-.08.43-.08.65a3 3 0 0 0 3 3c.22 0 .44-.03.65-.08l1.55 1.55c-.67.33-1.41.53-2.2.53-2.76 0-5-2.24-5-5 0-.79.2-1.53.53-2.2zm4.3-3.8c4.29 0 7.97 2.34 9.66 5.99-.44.95-1 1.83-1.66 2.6l-1.46-1.46C19.14 11.82 19.85 10.7 20.31 9.5c-1.48-3.32-4.85-5.69-8.59-5.69-1.22 0-2.4.24-3.48.67l1.55 1.55c.61-.17 1.25-.26 1.93-.26zM2.81 2.81L1.39 4.22l3.4 3.4C3.17 8.87 1.55 10.74 1 12c1.73 4.39 6 7.5 11 7.5 1.55 0 3.03-.3 4.38-.84l2.4 2.4 1.41-1.41L2.81 2.81z');
+      } else {
+        passwordInput.type = 'password'; // Kembalikan jadi bintang/titik
+        // Ubah kembali jadi ikon mata terbuka
+        eyeIcon.setAttribute('d', 'M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z');
+      }
+    });
   </script>
 </body>
 </html>
