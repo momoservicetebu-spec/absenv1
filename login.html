@@ -24,11 +24,11 @@
     <form id="loginForm">
       <div class="input-group">
         <label>Username</label>
-        <input type="text" id="username" placeholder="Masukkan Username" required>
+        <input type="text" id="username" placeholder="Masukkan Username" required autocomplete="off">
       </div>
       <div class="input-group">
         <label>Password</label>
-        <input type="password" id="password" placeholder="Masukkan Password" required>
+        <input type="password" id="password" placeholder="Masukkan Password" required autocomplete="off">
       </div>
       <button type="button" class="btn-login" id="btnLogin" onclick="processLogin()">Masuk</button>
       <div class="error-text" id="errorMsg"></div>
@@ -36,7 +36,7 @@
     <a href="index.html" class="back-link">← Kembali ke Gerbang Utama</a>
   </div>
 
- <script>
+  <script>
     const GAS_URL = "https://script.google.com/macros/s/AKfycbxx3BLAOh7RZwF2vvukhDPhytbAPXfMP3H_RAJNeWgxLe2LNcCzojm-6HQ1kktPQMTQ/exec";
 
     async function processLogin() {
@@ -65,13 +65,13 @@
 
         if (result.success) {
           btn.style.backgroundColor = "#007bff";
-          btn.innerText = `Halo, ${result.name}!`;
+          btn.innerText = "Halo, " + result.name + "!";
           
-          setTimeout(() => {
+          setTimeout(function() {
             if (result.role === "admin") {
               window.location.href = "dashboard-admin.html";
             } else {
-              alert(`Login Sukses! Anda masuk sebagai: ${result.role}. Halaman ini belum dibuat.`);
+              alert("Login Sukses! Anda masuk sebagai: " + result.role + ". Halaman ini belum dibuat.");
               btn.disabled = false;
               btn.innerText = "Masuk";
               btn.style.backgroundColor = "#28a745";
