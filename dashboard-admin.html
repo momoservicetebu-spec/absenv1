@@ -64,6 +64,37 @@
     .dashboard-footer { text-align: center; padding: 20px 0 10px 0; color: #95a5a6; font-size: 13px; border-top: 1px solid #ecf0f1; margin-top: auto; width: 100%; }
     
     .search-bar { display: flex; gap: 10px; margin-bottom: 15px; }
+    /* ANALYTICS DARK THEME */
+    #dashboard.analytics-theme {
+      background-color: #161224;
+      color: #ffffff;
+      padding: 20px;
+      border-radius: 12px;
+    }
+    .analytics-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+    .analytics-title { font-size: 22px; font-weight: bold; color: #fff; margin: 0; }
+    .filter-tabs { display: flex; gap: 8px; }
+    .filter-btn { background: #261f3d; border: 1px solid #3d3361; color: #a29bfe; padding: 6px 14px; border-radius: 6px; cursor: pointer; }
+    .filter-btn.active { background: #6c5ce7; color: #fff; border-color: #a29bfe; }
+    
+    .kpi-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 20px; }
+    .kpi-card { background: #201a35; border: 1px solid #30274e; border-radius: 8px; padding: 15px; text-align: center; }
+    .kpi-card h5 { margin: 0 0 8px 0; color: #a29bfe; font-size: 11px; text-transform: uppercase; }
+    .kpi-card .kpi-num { font-size: 24px; font-weight: bold; color: #00d2d3; }
+    
+    .analytics-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 15px; }
+    .chart-box { background: #201a35; border: 1px solid #30274e; border-radius: 8px; padding: 15px; height: 260px; box-sizing: border-box; }
+    .chart-box h4 { margin: 0 0 10px 0; font-size: 13px; color: #dcdde1; border-bottom: 1px solid #30274e; padding-bottom: 6px; }
+    
+    .analytics-table-wrap { height: 180px; overflow-y: auto; }
+    .dark-table { width: 100%; border-collapse: collapse; font-size: 12px; color: #dcdde1; }
+    .dark-table th { background: #161224; color: #a29bfe; padding: 8px; text-align: left; position: sticky; top: 0; }
+    .dark-table td { padding: 8px; border-bottom: 1px solid #261f3d; }
   </style>
   <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
 </head>
@@ -94,29 +125,70 @@
   </div>
 
   <!-- AREA KONTEN UTAMA -->
-  <div class="main-content">
-    
-    <div id="dashboard" class="section active">
-      <h2 class="section-title">📊 Ringkasan Sistem Terkini</h2>
-      <div class="dashboard-header">
-        <div class="stat-card" style="border-left-color: #2ecc71;"><h4>Hadir Hari Ini</h4><div class="value">428</div></div>
-        <div class="stat-card" style="border-left-color: #e74c3c;"><h4>Terlambat / Alpa</h4><div class="value">15</div></div>
-        <div class="stat-card" style="border-left-color: #f39c12;"><h4>Izin Keluar (Gatepass)</h4><div class="value">7</div></div>
-        <div class="stat-card" style="border-left-color: #9b59b6;"><h4>Total User Aktif</h4><div class="value">512</div></div>
-      </div>
-      <div class="dashboard-tables">
-        <div class="table-card">
-          <h3>🚪 Monitor Izin Keluar (Hari Ini)</h3>
-          <table>
-            <thead><tr><th>Nama / ID</th><th>Role</th><th>Waktu Keluar</th><th>Status</th></tr></thead>
-            <tbody>
-               <tr><td>Dimas Anggara</td><td>Siswa</td><td>09:15 WIB</td><td><span class="badge badge-warning">Belum Kembali</span></td></tr>
-               <tr><td>Rani Maharani</td><td>Siswa</td><td>08:30 WIB</td><td><span class="badge badge-danger">Pulang Cepat</span></td></tr>
-            </tbody>
-          </table>
-        </div>
+  <div id="dashboard" class="section active analytics-theme">
+  <!-- Top Header & Filter Slicers -->
+  <div class="analytics-header">
+    <h2 class="analytics-title">📊 Absensi Analytics Dashboard</h2>
+    <div class="filter-tabs">
+      <button class="filter-btn active">Semua</button>
+      <button class="filter-btn">Siswa</button>
+      <button class="filter-btn">Guru</button>
+    </div>
+  </div>
+
+  <!-- KPI Row (6 Indikator Utam) -->
+  <div class="kpi-row">
+    <div class="kpi-card"><h5>Total User</h5><div class="kpi-num" style="color:#00d2d3;">512</div></div>
+    <div class="kpi-card"><h5>Kehadiran %</h5><div class="kpi-num" style="color:#54a0ff;">94.2%</div></div>
+    <div class="kpi-card"><h5>Hadir Hari Ini</h5><div class="kpi-num" style="color:#1dd1a1;">428</div></div>
+    <div class="kpi-card"><h5>Terlambat</h5><div class="kpi-num" style="color:#feca57;">15</div></div>
+    <div class="kpi-card"><h5>Izin / Sakit</h5><div class="kpi-num" style="color:#ff9ff3;">7</div></div>
+    <div class="kpi-card"><h5>Alpa</h5><div class="kpi-num" style="color:#ff6b6b;">3</div></div>
+  </div>
+
+  <!-- Row 1 Grafik -->
+  <div class="analytics-grid">
+    <div class="chart-box">
+      <h4>Distribusi Kehadiran Hari Ini</h4>
+      <canvas id="donutStatusChart"></canvas>
+    </div>
+    <div class="chart-box">
+      <h4>Tingkat Kehadiran per Angkatan</h4>
+      <canvas id="barGradeChart"></canvas>
+    </div>
+    <div class="chart-box">
+      <h4>Matriks Rekap per Jurusan</h4>
+      <div class="analytics-table-wrap">
+        <table class="dark-table">
+          <thead><tr><th>Jurusan</th><th>Hadir</th><th>Izin</th><th>Alpa</th></tr></thead>
+          <tbody>
+            <tr><td>MIPA 1</td><td>34</td><td>1</td><td>0</td></tr>
+            <tr><td>MIPA 2</td><td>32</td><td>2</td><td>1</td></tr>
+            <tr><td>IPS 1</td><td>35</td><td>0</td><td>0</td></tr>
+            <tr><td>IPS 2</td><td>30</td><td>3</td><td>2</td></tr>
+            <tr><td>Bahasa</td><td>28</td><td>1</td><td>0</td></tr>
+          </tbody>
+        </table>
       </div>
     </div>
+  </div>
+
+  <!-- Row 2 Grafik -->
+  <div class="analytics-grid">
+    <div class="chart-box">
+      <h4>Top 5 Alasan Terlambat / Izin</h4>
+      <canvas id="horizontalReasonChart"></canvas>
+    </div>
+    <div class="chart-box">
+      <h4>Tren Kehadiran (7 Hari Terakhir)</h4>
+      <canvas id="lineTrendChart"></canvas>
+    </div>
+    <div class="chart-box">
+      <h4>Siswa Terajin (Kehadiran 100%)</h4>
+      <canvas id="topStudentChart"></canvas>
+    </div>
+  </div>
+</div>
 
     <!-- DATA SISWA -->
     <div id="data-siswa" class="section card">
@@ -216,6 +288,62 @@
         } else { lastDescriptor = null; }
       }, 200);
     }
+    // Inisialisasi Grafik Analisis Absensi
+window.addEventListener('DOMContentLoaded', () => {
+  const chartOptions = { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#dcdde1', font: { size: 10 } } } } };
+
+  // Donut Chart Status Absen
+  new Chart(document.getElementById('donutStatusChart'), {
+    type: 'doughnut',
+    data: {
+      labels: ['Hadir', 'Terlambat', 'Izin', 'Alpa'],
+      datasets: [{ data: [428, 15, 7, 3], backgroundColor: ['#1dd1a1', '#feca57', '#ff9ff3', '#ff6b6b'] }]
+    },
+    options: chartOptions
+  });
+
+  // Bar Chart per Angkatan
+  new Chart(document.getElementById('barGradeChart'), {
+    type: 'bar',
+    data: {
+      labels: ['Kelas X', 'Kelas XI', 'Kelas XII'],
+      datasets: [{ label: 'Hadir (%)', data: [96, 92, 95], backgroundColor: '#54a0ff' }]
+    },
+    options: { ...chartOptions, scales: { y: { ticks: { color: '#a29bfe' } }, x: { ticks: { color: '#a29bfe' } } } }
+  });
+
+  // Horizontal Bar Alasan
+  new Chart(document.getElementById('horizontalReasonChart'), {
+    type: 'bar',
+    indexAxis: 'y',
+    data: {
+      labels: ['Macet', 'Sakit', 'Ban Bocor', 'Hujan', 'Keluarga'],
+      datasets: [{ label: 'Jumlah', data: [12, 8, 5, 4, 2], backgroundColor: '#ff9ff3' }]
+    },
+    options: chartOptions
+  });
+
+  // Line Chart Tren Kehadiran
+  new Chart(document.getElementById('lineTrendChart'), {
+    type: 'line',
+    data: {
+      labels: ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'],
+      datasets: [{ label: 'Jumlah Hadir', data: [440, 435, 438, 428, 410, 425], borderColor: '#00d2d3', fill: true, backgroundColor: 'rgba(0,210,211,0.1)' }]
+    },
+    options: chartOptions
+  });
+
+  // Horizontal Bar Top Siswa
+  new Chart(document.getElementById('topStudentChart'), {
+    type: 'bar',
+    indexAxis: 'y',
+    data: {
+      labels: ['Andi W', 'Siska A', 'Reza R', 'Dewi P', 'Bagus P'],
+      datasets: [{ label: 'Total Kehadiran', data: [100, 100, 99, 98, 98], backgroundColor: '#1dd1a1' }]
+    },
+    options: chartOptions
+  });
+});
   </script>
 </body>
 </html>
