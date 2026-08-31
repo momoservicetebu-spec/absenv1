@@ -10,8 +10,11 @@
     video { border-radius: 10px; background-color: #000; }
     canvas { position: absolute; border-radius: 10px; }
     .status { margin-top: 15px; font-size: 18px; font-weight: bold; }
-    input { padding: 12px; font-size: 18px; text-align: center; width: 80%; border: 2px solid #007bff; border-radius: 5px; margin-top: 10px;}
-    .alert-box { padding: 15px; margin-top: 15px; border-radius: 8px; display: none; font-weight: bold; color: white;}
+    input { padding: 12px; font-size: 16px; text-align: center; width: 90%; border: 2px solid #007bff; border-radius: 5px; margin-top: 10px; }
+    button { padding: 10px 20px; font-size: 16px; background-color: #28a745; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; }
+    button:disabled { background-color: #ccc; cursor: not-allowed; }
+    .alert-box { padding: 15px; margin-top: 15px; border-radius: 8px; display: none; font-weight: bold; color: white; }
+    .method-box { background: #e9ecef; padding: 15px; border-radius: 8px; margin-bottom: 15px; }
   </style>
   <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
 </head>
@@ -21,23 +24,27 @@
     <h2>Terminal Absensi MFA</h2>
     <div class="status" id="statusText" style="color: orange;">Memuat Engine AI...</div>
     
-    <!-- STATE 1: STANDBY (Tunggu NFC/Barcode atau Fingerprint) -->
+    <!-- STATE 1: STANDBY -->
     <div id="standby-ui">
       <p><b>Pilih Metode Faktor Pertama:</b></p>
       
-      <!-- Metode 1: NFC / Barcode (Keyboard Emulator) -->
-      <div style="background: #e9ecef; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+      <div class="method-box">
         <p style="margin: 0 0 10px 0; font-size: 14px;">📡 Tap Kartu NFC / Scan Barcode</p>
-        <input type="text" id="nfcSimulator" placeholder="Fokus di sini & Tap Kartu..." disabled autocomplete="off" style="width: 90%;">
+        <input type="text" id="nfcSimulator" placeholder="Fokus di sini & Ketik ID -> Enter" disabled autocomplete="off">
       </div>
 
-      <!-- Metode 2: Fingerprint (Localhost Bridge) -->
-      <div style="background: #e9ecef; padding: 15px; border-radius: 8px;">
+      <div class="method-box">
         <p style="margin: 0 0 10px 0; font-size: 14px;">👆 Fingerprint (Localhost Bridge)</p>
-        <button id="btnFingerprint" onclick="simulateFingerprintBridge()" style="padding: 10px 20px; font-size: 16px;">Simulasikan Tempel Jari</button>
-        <p id="fingerprintStatus" style="font-size: 12px; color: gray; margin-top: 5px;"></p>
+        <button id="btnFingerprint" onclick="simulateFingerprintBridge()" disabled>Simulasikan Tempel Jari</button>
+        <p id="fingerprintStatus" style="font-size: 13px; font-weight:bold; color: gray; margin-top: 10px;"></p>
       </div>
     </div>
+
+    <!-- STATE 2: VERIFICATION (Kamera Nyala untuk 1:1) -->
+    <div id="video-container">
+      <video id="video" width="480" height="360" autoplay muted playsinline></video>
+    </div>
+
     <div class="alert-box" id="alertBox"></div>
   </div>
 
@@ -45,11 +52,12 @@
     const GAS_URL = "https://script.google.com/macros/s/AKfycbxx3BLAOh7RZwF2vvukhDPhytbAPXfMP3H_RAJNeWgxLe2LNcCzojm-6HQ1kktPQMTQ/exec";
     const MODEL_URL = 'https://justadudewhohacks.github.io/face-api.js/models';
     
-    // UI Elements
+    // UI Elements 
     const video = document.getElementById('video');
     const videoContainer = document.getElementById('video-container');
     const standbyUI = document.getElementById('standby-ui');
     const nfcInput = document.getElementById('nfcSimulator');
+    const btnFingerprint = document.getElementById('btnFingerprint');
     const statusText = document.getElementById('statusText');
     const alertBox = document.getElementById('alertBox');
 
@@ -69,8 +77,12 @@
       statusText.innerText = "Sistem Siap";
       statusText.style.color = "green";
       nfcInput.disabled = false;
+      btnFingerprint.disabled = false;
       nfcInput.focus();
       startVideo();
+    }).catch(err => {
+      statusText.innerText = "Gagal memuat AI";
+      console.error(err);
     });
 
     function startVideo() {
@@ -99,7 +111,6 @@
               try {
                 const parsed = typeof rawEmbed === 'string' ? JSON.parse(rawEmbed) : rawEmbed;
                 const descriptor = new Float32Array(parsed);
-                // Simpan dalam array sebagai referensi terpisah
                 databaseWajah.push({ id: String(userID), descriptor: descriptor });
               } catch(e){}
             }
@@ -108,47 +119,39 @@
       } catch (err) { console.error("Gagal load DB", err); }
     }
 
-    // STATE 1: Pemicu Input (Simulasi Tap NFC tekan Enter)
+    // STATE 1A: Input Barcode/NFC
     nfcInput.addEventListener('keypress', function (e) {
       if (e.key === 'Enter') {
         const inputID = this.value.trim();
-        this.value = ''; // Bersihkan input
+        this.value = ''; 
         if (inputID === '') return;
-        
         startVerificationState(inputID);
       }
     });
-    // STATE 1 B: Simulasi Fingerprint (Localhost Bridge Adapter)
+
+    // STATE 1B: Input Fingerprint
     function simulateFingerprintBridge() {
       if(isProcessing) return;
-      
       const fpStatus = document.getElementById('fingerprintStatus');
-      const fpButton = document.getElementById('btnFingerprint');
       
-      fpButton.disabled = true;
-      fpStatus.innerText = "Menunggu mesin fingerprint (localhost)...";
+      btnFingerprint.disabled = true;
+      nfcInput.disabled = true;
+      fpStatus.innerText = "Menunggu mesin fingerprint memproses...";
       fpStatus.style.color = "blue";
 
-      // Simulasi jeda waktu saat hardware fingerprint memproses sidik jari
       setTimeout(() => {
-        // Di dunia nyata, bagian ini diganti dengan:
-        // const response = await fetch('http://localhost:8080/api/get-last-fingerprint');
-        // const data = await response.json();
-        
-        // Simulasi: Mengembalikan ID Guru yang sudah Anda daftarkan sebelumnya
-        // GANTI "GURU-001" DENGAN ID YANG ADA DI SPREADSHEET ANDA
+        // GANTI TEXT DI BAWAH INI DENGAN ID ANDA YANG ADA DI GOOGLE SHEETS!
         const detectedUserID = "FACE-1787924439928"; 
         
-        fpStatus.innerText = `Sidik jari terdeteksi: ID ${detectedUserID}! Melanjutkan ke Kamera...`;
+        fpStatus.innerText = `Sidik jari terdeteksi: ID ${detectedUserID}! Mengaktifkan Kamera...`;
         fpStatus.style.color = "green";
 
         setTimeout(() => {
-          fpButton.disabled = false;
           fpStatus.innerText = "";
-          startVerificationState(detectedUserID); // Lanjut ke State 2 (Face 1:1)
-        }, 1000);
+          startVerificationState(detectedUserID);
+        }, 1500);
 
-      }, 1500); // Simulasi delay 1.5 detik
+      }, 1500);
     }
 
     // STATE 2: Face Verification 1:1
@@ -156,24 +159,21 @@
       if(isProcessing) return;
       isProcessing = true;
 
-      // Cari data biometrik target dari RAM
       const targetUser = databaseWajah.find(u => u.id === userID);
       
       if (!targetUser) {
-        showAlert(`ID ${userID} tidak ditemukan di database.`, "red");
+        showAlert(`ID ${userID} tidak ditemukan di database wajah.`, "red");
         setTimeout(resetToStandby, 3000);
         return;
       }
 
       currentMFAUser = targetUser;
       
-      // Ubah UI ke Mode Verifikasi Wajah
       standbyUI.style.display = 'none';
       videoContainer.style.display = 'flex';
       statusText.innerText = `Halo ${userID}, Verifikasi Wajah Anda...`;
       statusText.style.color = "blue";
 
-      // Siapkan Canvas
       let canvas = document.querySelector('canvas');
       if(!canvas){
         canvas = faceapi.createCanvasFromMedia(video);
@@ -182,7 +182,6 @@
       const displaySize = { width: video.width, height: video.height };
       faceapi.matchDimensions(canvas, displaySize);
 
-      // Mulai Looping Deteksi 1:1
       verificationInterval = setInterval(async () => {
         const detections = await faceapi.detectSingleFace(video, new faceapi.TinyFaceDetectorOptions())
                                         .withFaceLandmarks()
@@ -194,11 +193,9 @@
           const resized = faceapi.resizeResults(detections, displaySize);
           faceapi.draw.drawDetections(canvas, resized);
 
-          // Hitung jarak (Euclidean Distance). Semakin kecil = semakin mirip. Threshold standar: 0.5
           const distance = faceapi.euclideanDistance(detections.descriptor, currentMFAUser.descriptor);
           
-          if (distance < 0.5) {
-            // MATCH!
+          if (distance < 0.5) { // MATCH
             clearInterval(verificationInterval);
             canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
             executeAttendance(currentMFAUser.id);
@@ -206,17 +203,17 @@
         }
       }, 200);
 
-      // Timeout Verifikasi (Gagal jika wajah tidak cocok setelah 10 detik)
+      // Timeout Verifikasi (Gagal jika 10 detik wajah tidak cocok)
       setTimeout(() => {
         if(isProcessing && verificationInterval) {
           clearInterval(verificationInterval);
-          showAlert(`Verifikasi Wajah Gagal. Wajah tidak cocok dengan ID ${userID}.`, "red");
+          showAlert(`Verifikasi Wajah Gagal. Anda bukan ID ${userID}.`, "red");
           setTimeout(resetToStandby, 3000);
         }
       }, 10000);
     }
 
-    // STATE 3: Final Submit
+    // STATE 3: Final Submit Data
     async function executeAttendance(userID) {
       showAlert(`✅ Verifikasi MFA Sukses! Mencatat Absen...`, "#d39e00");
       statusText.innerText = "Mengirim Data...";
@@ -225,7 +222,7 @@
         const formData = new URLSearchParams();
         formData.append("action", "submitAutoAttendance");
         formData.append("userId", userID);
-        formData.append("role", "GURU"); // Bisa dinamis nanti
+        formData.append("role", "GURU"); 
         formData.append("checkType", "IN");
 
         const response = await fetch(GAS_URL, { method: "POST", body: formData });
@@ -243,7 +240,6 @@
       setTimeout(resetToStandby, 3000);
     }
 
-    // Kembali ke State Standby
     function resetToStandby() {
       clearInterval(verificationInterval);
       verificationInterval = null;
@@ -259,6 +255,8 @@
       statusText.innerText = "Sistem Siap";
       statusText.style.color = "green";
       
+      nfcInput.disabled = false;
+      btnFingerprint.disabled = false;
       nfcInput.focus();
     }
 
