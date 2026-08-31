@@ -36,7 +36,8 @@
     .dashboard-tables { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 20px; }
     .table-card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
     .table-card h3 { font-size: 16px; margin-top: 0; color: #34495e; margin-bottom: 15px; }
-    table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    
+    table { width: 100%; border-collapse: collapse; font-size: 14px; margin-bottom: 15px; }
     th, td { padding: 12px 10px; text-align: left; border-bottom: 1px solid #ecf0f1; }
     th { background-color: #f8f9fa; color: #7f8c8d; font-weight: bold; text-transform: uppercase; font-size: 12px; }
     tr:hover { background-color: #f8f9fa; }
@@ -53,13 +54,16 @@
     .btn-action:hover { background-color: #2980b9; }
     .btn-success { background-color: #2ecc71; }
     .btn-success:hover { background-color: #27ae60; }
+    .btn-small { padding: 6px 12px; font-size: 12px; }
+    
     #video-container { position: relative; display: inline-block; margin-top: 10px; border: 4px solid #ecf0f1; border-radius: 12px; overflow: hidden; }
     video { display: block; background-color: #000; }
     canvas { position: absolute; top: 0; left: 0; }
     .barcode-box { width: 200px; height: 200px; border: 2px dashed #bdc3c7; display: flex; align-items: center; justify-content: center; color: #7f8c8d; font-weight: bold; margin-top: 15px; }
     
-    /* FOOTER STYLES */
     .dashboard-footer { text-align: center; padding: 20px 0 10px 0; color: #95a5a6; font-size: 13px; border-top: 1px solid #ecf0f1; margin-top: auto; width: 100%; }
+    
+    .search-bar { display: flex; gap: 10px; margin-bottom: 15px; }
   </style>
   <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
 </head>
@@ -69,17 +73,23 @@
   <div class="sidebar">
     <h2>⚙️ Admin Panel</h2>
     <button class="nav-btn active" onclick="switchTab('dashboard')">🏠 Dashboard Utama</button>
+    
     <div class="menu-group">Manajemen Data</div>
-    <button class="nav-btn" onclick="switchTab('import')">📁 Import Data Users</button>
+    <button class="nav-btn" onclick="switchTab('data-siswa')">🎓 Data Siswa</button>
+    <button class="nav-btn" onclick="switchTab('data-guru')">👔 Data Guru</button>
+    <button class="nav-btn" onclick="switchTab('import')">📁 Import Data (CSV)</button>
+    
     <div class="menu-group">Pendaftaran Kredensial</div>
     <button class="nav-btn" onclick="switchTab('enrollment')">📸 Daftar Wajah (AI)</button>
     <button class="nav-btn" onclick="switchTab('fingerprint')">👆 Daftar Fingerprint</button>
     <button class="nav-btn" onclick="switchTab('rfid')">💳 Daftar RFID / NFC</button>
     <button class="nav-btn" onclick="switchTab('barcode')">🎫 Buat Barcode / QR</button>
+    
     <div class="menu-group">Sistem & Laporan</div>
     <button class="nav-btn" onclick="switchTab('laporan')">📊 Laporan Absensi</button>
     <button class="nav-btn" onclick="switchTab('setting')">🛠️ Pengaturan (Setting)</button>
     <button class="nav-btn" onclick="switchTab('backup')">💾 Backup & Restore</button>
+    
     <button class="logout-btn" onclick="window.location.href='login.html'">🚪 Keluar Sistem</button>
   </div>
 
@@ -108,6 +118,43 @@
       </div>
     </div>
 
+    <!-- DATA SISWA -->
+    <div id="data-siswa" class="section card">
+      <h2 class="section-title">🎓 Kelola Data Siswa</h2>
+      <p class="section-desc">Daftar seluruh siswa yang terdaftar di dalam sistem.</p>
+      <div class="search-bar">
+        <input type="text" placeholder="Cari Nama, NIS, atau Kelas..." style="max-width: 300px;">
+        <button class="btn-action">Cari</button>
+        <button class="btn-action btn-success" style="margin-left: auto;">+ Tambah Manual</button>
+      </div>
+      <table>
+        <thead><tr><th>NIS / ID</th><th>Nama Siswa</th><th>Kelas</th><th>Status Kredensial</th><th>Aksi</th></tr></thead>
+        <tbody>
+           <tr><td>SISWA-001</td><td>Andi Wijaya</td><td>XII IPA 1</td><td><span class="badge badge-success">Wajah, RFID</span></td><td><button class="btn-action btn-small">Edit</button> <button class="btn-action btn-small" style="background:#e74c3c;">Hapus</button></td></tr>
+           <tr><td>SISWA-002</td><td>Siska Aprilia</td><td>XI IPS 2</td><td><span class="badge badge-warning">Wajah Saja</span></td><td><button class="btn-action btn-small">Edit</button> <button class="btn-action btn-small" style="background:#e74c3c;">Hapus</button></td></tr>
+           <tr><td>SISWA-003</td><td>Reza Rahadian</td><td>X MIPA 3</td><td><span class="badge badge-danger">Belum Terdaftar</span></td><td><button class="btn-action btn-small">Edit</button> <button class="btn-action btn-small" style="background:#e74c3c;">Hapus</button></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- DATA GURU -->
+    <div id="data-guru" class="section card">
+      <h2 class="section-title">👔 Kelola Data Guru & Staf</h2>
+      <p class="section-desc">Daftar seluruh guru dan staf yang terdaftar di dalam sistem.</p>
+      <div class="search-bar">
+        <input type="text" placeholder="Cari Nama atau NIP..." style="max-width: 300px;">
+        <button class="btn-action">Cari</button>
+        <button class="btn-action btn-success" style="margin-left: auto;">+ Tambah Manual</button>
+      </div>
+      <table>
+        <thead><tr><th>NIP / ID</th><th>Nama Lengkap</th><th>Jabatan</th><th>Status Kredensial</th><th>Aksi</th></tr></thead>
+        <tbody>
+           <tr><td>GURU-012</td><td>Bapak Budi Santoso, S.Pd</td><td>Guru Matematika</td><td><span class="badge badge-success">Wajah, Fingerprint</span></td><td><button class="btn-action btn-small">Edit</button> <button class="btn-action btn-small" style="background:#e74c3c;">Hapus</button></td></tr>
+           <tr><td>GURU-015</td><td>Ibu Siti Aminah, M.Pd</td><td>Guru Bahasa Inggris</td><td><span class="badge badge-success">Wajah, Fingerprint</span></td><td><button class="btn-action btn-small">Edit</button> <button class="btn-action btn-small" style="background:#e74c3c;">Hapus</button></td></tr>
+        </tbody>
+      </table>
+    </div>
+
     <!-- TABS LAINNYA -->
     <div id="import" class="section card"><h2 class="section-title">📁 Import Data Pengguna (CSV)</h2><p class="section-desc">Unggah file .csv untuk memasukkan banyak data sekaligus ke database.</p><input type="file" id="csvFile" accept=".csv"><button class="btn-action btn-success" onclick="processCSV()">Mulai Import Data</button></div>
     <div id="enrollment" class="section card"><h2 class="section-title">📸 Pendaftaran Wajah Biometrik</h2><p class="section-desc">Pindai wajah untuk absensi menggunakan AI Face Recognition.</p><div style="font-weight: bold; color: #e67e22;" id="statusText">Menunggu kamera...</div><div id="video-container"><video id="video" width="480" height="360" autoplay muted playsinline></video></div><div class="form-group" style="margin-top: 15px;"><label>ID Pengguna</label><input type="text" id="userIdInput" placeholder="Contoh: SISWA-001"></div><button class="btn-action btn-success" id="btnEnroll" onclick="registerCurrentFace()" disabled>Simpan Wajah</button></div>
@@ -118,10 +165,10 @@
     <div id="setting" class="section card"><h2 class="section-title">🛠️ Pengaturan Sistem</h2><p class="section-desc">Konfigurasi dasar aplikasi dan batasan absensi (Geofencing).</p><div class="form-group"><label>Nama Sekolah / Instansi</label><input type="text" value="SMA Negeri 1 Contoh"></div><div class="form-group"><label>Waktu Batas Keterlambatan Masuk</label><input type="text" value="07:15"></div><div class="form-group"><label>Batas Radius Absen (Meter)</label><input type="text" value="50"></div><button class="btn-action btn-success">Simpan Pengaturan</button></div>
     <div id="backup" class="section card"><h2 class="section-title">💾 Backup & Restore Database</h2><p class="section-desc">Amankan data wajah, sidik jari, dan riwayat absensi secara berkala.</p><button class="btn-action">📥 Backup Sekarang (Download ZIP)</button> <button class="btn-action" style="background:#e74c3c;">📤 Restore Data (Upload)</button></div>
 
-    <!-- FOOTER DITAMBAHKAN DI SINI -->
+    <!-- FOOTER -->
     <div class="dashboard-footer">
       &copy; 2026 Sistem Informasi Siswa (SIS) - Absensi Multi-Biometrik.<br>
-      Dikembangkan oleh Guntoro untuk kemajuan pendidikan Indonesia | Versi 1.1.0
+      Dikembangkan untuk kemajuan pendidikan Indonesia | Versi 1.1.0
     </div>
 
   </div>
