@@ -13,9 +13,8 @@
       padding: 0;
     }
     body { 
-      font-family: 'Inter', Tahoma, sans-serif; 
-      /* Warna background hijau tosca sesuai gambar */
-      background-color: #88cebc; 
+      font-family: 'Inter', sans-serif; 
+      background-color: #80cbb7; 
       display: flex; 
       justify-content: center; 
       align-items: center; 
@@ -23,22 +22,22 @@
       padding: 20px;
     }
 
-    /* Container Utama (Split screen) */
+    /* Card Container Utama */
     .login-wrapper {
       display: flex;
       background: white;
       border-radius: 20px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.08);
       width: 100%;
       max-width: 900px;
-      min-height: 550px;
+      min-height: 540px;
       overflow: hidden;
     }
 
-    /* Bagian Kiri (Form) */
+    /* Panel Kiri (Form Login) */
     .left-panel {
       flex: 1;
-      padding: 40px 50px;
+      padding: 45px 50px;
       display: flex;
       flex-direction: column;
       justify-content: center;
@@ -55,30 +54,32 @@
     }
     .brand-logo svg {
       margin-right: 10px;
-      width: 24px;
-      height: 24px;
+      width: 26px;
+      height: 26px;
+      fill: #3b2667;
     }
 
     .left-panel h2 { 
-      color: #111; 
+      color: #111111; 
       font-size: 26px;
+      font-weight: 700;
       margin-bottom: 8px;
     }
     .left-panel p.subtitle {
-      color: #666;
-      font-size: 14px;
-      margin-bottom: 30px;
-      line-height: 1.5;
+      color: #666666;
+      font-size: 13.5px;
+      margin-bottom: 25px;
+      line-height: 1.4;
     }
 
     .input-group { 
-      margin-bottom: 18px; 
+      margin-bottom: 16px; 
       text-align: left; 
     }
     .input-group label { 
       display: block; 
-      font-size: 13px; 
-      color: #555; 
+      font-size: 12.5px; 
+      color: #555555; 
       margin-bottom: 6px; 
       font-weight: 500;
     }
@@ -86,147 +87,167 @@
     .input-wrapper {
       position: relative;
     }
-    .input-wrapper svg {
+    .input-wrapper .icon-left {
       position: absolute;
-      left: 12px;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 16px;
+      height: 16px;
+      fill: #888888;
+    }
+    .input-wrapper input { 
+      width: 100%; 
+      padding: 11px 40px 11px 38px; 
+      border: 1px solid #dcdcdc; 
+      border-radius: 8px; 
+      font-size: 13.5px; 
+      color: #333;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .input-wrapper input:focus {
+      border-color: #3b2667;
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(59, 38, 103, 0.1);
+    }
+    
+    /* Tombol Toggle Eye Password */
+    .toggle-password {
+      position: absolute;
+      right: 12px;
       top: 50%;
       transform: translateY(-50%);
       width: 18px;
       height: 18px;
-      fill: #888;
+      fill: #888888;
+      cursor: pointer;
+      transition: fill 0.2s;
     }
-    .input-wrapper input { 
-      width: 100%; 
-      padding: 12px 12px 12px 38px; /* Padding kiri untuk ikon */
-      border: 1px solid #ddd; 
-      border-radius: 8px; 
-      font-size: 14px; 
-      transition: all 0.2s;
-    }
-    .input-wrapper input:focus {
-      border-color: #3f2a7a;
-      outline: none;
-      box-shadow: 0 0 0 3px rgba(63, 42, 122, 0.1);
+    .toggle-password:hover {
+      fill: #3b2667;
     }
     
     .forgot-password {
       display: block;
       text-align: right;
       font-size: 12px;
-      color: #555;
+      color: #666666;
       text-decoration: none;
       margin-top: 6px;
     }
-    .forgot-password:hover { text-decoration: underline; }
+    .forgot-password:hover { 
+      text-decoration: underline; 
+    }
 
-    /* Tombol-tombol */
+    /* Tombol Utama */
     .btn-login { 
       width: 100%; 
-      padding: 12px; 
-      /* Warna ungu gelap sesuai gambar */
-      background-color: #342168; 
+      padding: 13px; 
+      background-color: #3b2667; 
       color: white; 
       border: none; 
-      border-radius: 25px; 
+      border-radius: 30px; 
       font-size: 15px; 
       font-weight: 600; 
       cursor: pointer; 
-      margin-top: 15px; 
-      transition: opacity 0.2s;
+      margin-top: 20px; 
+      transition: background-color 0.2s, opacity 0.2s;
     }
-    .btn-login:hover { opacity: 0.9; }
-    .btn-login:disabled { background-color: #897db0; cursor: not-allowed; }
-
-    .btn-google {
-      width: 100%;
-      padding: 12px;
-      background-color: white;
-      color: #333;
-      border: 1px solid #ddd;
-      border-radius: 25px;
-      font-size: 14px;
-      font-weight: 500;
-      cursor: pointer;
-      margin-top: 15px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: background 0.2s;
+    .btn-login:hover { 
+      opacity: 0.93; 
     }
-    .btn-google:hover { background-color: #f9f9f9; }
-    .btn-google img { width: 18px; margin-right: 10px; }
+    .btn-login:disabled { 
+      background-color: #8b79a5; 
+      cursor: not-allowed; 
+    }
 
     .error-text { 
       color: #dc3545; 
       font-size: 13px; 
       text-align: center; 
-      margin-top: 10px; 
+      margin-top: 12px; 
       display: none; 
       background: #ffe6e6;
-      padding: 8px;
+      padding: 8px 12px;
       border-radius: 6px;
     }
 
-    /* Footer / Bottom Links */
+    /* Link Bawah */
     .bottom-links {
       margin-top: 30px;
       text-align: center;
       font-size: 13px;
     }
-    .bottom-links a {
-      color: #333;
+    .bottom-links a.back-link {
+      color: #333333;
       text-decoration: none;
-      display: block;
-      margin-bottom: 5px;
+      display: inline-block;
+      margin-bottom: 8px;
       font-weight: 500;
     }
-    .bottom-links a:hover { text-decoration: underline; }
-    .register-text { color: #666; margin-top: 10px; }
-    .register-text a { display: inline; color: #342168; font-weight: 600; }
+    .bottom-links a.back-link:hover { 
+      text-decoration: underline; 
+    }
+    .register-text { 
+      color: #666666; 
+    }
+    .register-text a { 
+      color: #3b2667; 
+      font-weight: 700; 
+      text-decoration: none; 
+    }
+    .register-text a:hover { 
+      text-decoration: underline; 
+    }
 
-    /* Bagian Kanan (Ilustrasi) */
+    /* Panel Kanan (Ilustrasi Vector) */
     .right-panel {
       flex: 1;
-      background-color: #f4f0fa; /* Warna background ungu super muda */
+      background-color: #f3eefb;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      padding: 40px;
+      padding: 40px 30px;
       text-align: center;
     }
     .right-panel h3 {
       font-weight: 400;
-      color: #333;
-      font-size: 16px;
-      margin-bottom: 5px;
+      color: #444444;
+      font-size: 15px;
+      margin-bottom: 4px;
     }
     .right-panel h1 {
       font-size: 32px;
-      color: #111;
-      margin-bottom: 30px;
+      font-weight: 700;
+      color: #111111;
+      margin-bottom: 25px;
     }
-    .illustration {
-      max-width: 100%;
-      height: auto;
-      /* Anda bisa meletakkan URL gambar ilustrasi Anda di sini di tag <img> nanti */
+    .illustration-box {
+      width: 100%;
+      max-width: 320px;
+      display: flex;
+      justify-content: center;
     }
 
-    /* Responsif untuk layar HP */
+    /* Responsif Layar Smartphone */
     @media (max-width: 768px) {
       .login-wrapper { flex-direction: column; }
-      .right-panel { display: none; /* Sembunyikan ilustrasi di layar kecil agar fokus ke form */ }
-      .left-panel { padding: 30px; }
+      .right-panel { display: none; }
+      .left-panel { padding: 35px 25px; }
     }
   </style>
 </head>
 <body>
 
   <div class="login-wrapper">
+    <!-- Panel Kiri: Form Login -->
     <div class="left-panel">
       
       <div class="brand-logo">
-        <svg viewBox="0 0 24 24"><path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10zm0-12H5V6h14v2zm-7 5h5v5h-5z"/></svg>
+        <svg viewBox="0 0 24 24">
+          <path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10zm0-12H5V6h14v2zm-7 5h5v5h-5z"/>
+        </svg>
         SIS Absensi
       </div>
 
@@ -237,7 +258,9 @@
         <div class="input-group">
           <label>Username</label>
           <div class="input-wrapper">
-            <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+            <svg class="icon-left" viewBox="0 0 24 24">
+              <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+            </svg>
             <input type="text" id="username" placeholder="Masukkan Username" required autocomplete="off">
           </div>
         </div>
@@ -245,35 +268,79 @@
         <div class="input-group">
           <label>Password</label>
           <div class="input-wrapper">
-            <svg viewBox="0 0 24 24"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zM9 6c0-1.66 1.34-3 3-3s3 1.34 3 3v2H9V6zm9 14H6V10h12v10zm-6-3c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2z"/></svg>
+            <svg class="icon-left" viewBox="0 0 24 24">
+              <path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zM9 6c0-1.66 1.34-3 3-3s3 1.34 3 3v2H9V6zm9 14H6V10h12v10zm-6-3c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2z"/>
+            </svg>
             <input type="password" id="password" placeholder="Masukkan Password" required autocomplete="off">
+            <svg class="toggle-password" id="togglePassword" viewBox="0 0 24 24">
+              <path id="eyeIcon" d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/>
+            </svg>
           </div>
           <a href="#" class="forgot-password">Forgot Password?</a>
         </div>
 
         <button type="button" class="btn-login" id="btnLogin" onclick="processLogin()">Masuk</button>
-        
-        <button type="button" class="btn-google">
-          <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" alt="Google">
-          Sign in with Google
-        </button>
-
         <div class="error-text" id="errorMsg"></div>
       </form>
 
       <div class="bottom-links">
-        <a href="index.html">← Kembali ke Gerbang Utama</a>
+        <a href="index.html" class="back-link">← Kembali ke Gerbang Utama</a>
         <p class="register-text">Belum punya akun? <a href="#">Daftar</a></p>
       </div>
     </div>
 
+    <!-- Panel Kanan: Ilustrasi Vector Absensi -->
     <div class="right-panel">
       <h3>Senang melihat Anda kembali,</h3>
       <h1>Selamat Datang</h1>
-      <img class="illustration" src="https://i.ibb.co/3s67Cvw/illustration-placeholder.png" alt="Ilustrasi Absensi" style="width: 80%; max-width: 350px;">
+      <div class="illustration-box">
+        <svg viewBox="0 0 400 300" width="100%" height="auto">
+          <!-- Floor Base -->
+          <ellipse cx="200" cy="245" rx="145" ry="24" fill="#e2d8f3"/>
+          
+          <!-- Kiosk Machine -->
+          <rect x="175" y="130" width="46" height="100" rx="7" fill="#3b2667"/>
+          <rect x="182" y="140" width="32" height="40" rx="4" fill="#a48fd4"/>
+          <circle cx="198" cy="155" r="7" fill="#ffffff"/>
+          <rect x="191" y="166" width="14" height="4" rx="2" fill="#ffffff"/>
+          <rect x="186" y="195" width="24" height="16" rx="3" fill="#241445"/>
+          <circle cx="198" cy="203" r="4" fill="#80cbb7"/>
+          <rect x="191" y="230" width="14" height="15" fill="#241445"/>
+          <ellipse cx="198" cy="245" rx="25" ry="6" fill="#3b2667"/>
+
+          <!-- Female Student (Left) -->
+          <path d="M125 120 C120 110, 105 115, 105 130 C105 140, 110 155, 112 165 C115 160, 125 140, 125 120 Z" fill="#2b2d42"/>
+          <circle cx="128" cy="125" r="14" fill="#fec3a6"/>
+          <path d="M120 113 C125 110, 138 112, 138 122 C132 120, 124 122, 120 113 Z" fill="#2b2d42"/>
+          <path d="M120 138 L136 138 L142 175 L114 175 Z" fill="#8460be"/>
+          <path d="M114 175 L142 175 L148 198 L108 198 Z" fill="#3b2667"/>
+          <rect x="116" y="198" width="8" height="35" rx="4" fill="#fec3a6"/>
+          <rect x="132" y="198" width="8" height="35" rx="4" fill="#fec3a6"/>
+          <ellipse cx="120" cy="233" rx="7" ry="4" fill="#2b2d42"/>
+          <ellipse cx="136" cy="233" rx="7" ry="4" fill="#2b2d42"/>
+          <rect x="106" y="155" width="12" height="18" rx="2" transform="rotate(-15 106 155)" fill="#3b2667"/>
+
+          <!-- Male Student (Right) -->
+          <circle cx="270" cy="120" r="14" fill="#d08c6c"/>
+          <path d="M260 110 C265 104, 280 106, 280 116 C272 114, 264 115, 260 110 Z" fill="#1b1b1e"/>
+          <path d="M258 133 L282 133 L288 175 L252 175 Z" fill="#4d3280"/>
+          <rect x="255" y="175" width="12" height="55" rx="5" fill="#251648"/>
+          <rect x="273" y="175" width="12" height="55" rx="5" fill="#251648"/>
+          <ellipse cx="261" cy="230" rx="8" ry="4" fill="#1b1b1e"/>
+          <ellipse cx="279" cy="230" rx="8" ry="4" fill="#1b1b1e"/>
+          <rect x="282" y="140" width="10" height="24" rx="4" fill="#251648"/>
+          <path d="M258 142 L224 158" stroke="#d08c6c" stroke-width="7" stroke-linecap="round"/>
+          <rect x="214" y="152" width="14" height="9" rx="1.5" fill="#ffffff" stroke="#3b2667" stroke-width="1" transform="rotate(-10 214 152)"/>
+
+          <!-- Plant Decorative Accents -->
+          <path d="M75 240 C65 210, 85 190, 80 175 C95 185, 90 210, 95 240 Z" fill="#68489c"/>
+          <path d="M315 240 C325 210, 305 190, 310 175 C295 185, 300 210, 295 240 Z" fill="#8460be"/>
+        </svg>
+      </div>
     </div>
   </div>
 
+  <!-- Script Asli Tidak Ada yang Berubah Logic-nya -->
   <script>
     const GAS_URL = "https://script.google.com/macros/s/AKfycbxx3BLAOh7RZwF2vvukhDPhytbAPXfMP3H_RAJNeWgxLe2LNcCzojm-6HQ1kktPQMTQ/exec";
 
@@ -302,7 +369,7 @@
         const result = await response.json();
 
         if (result.success) {
-          btn.style.backgroundColor = "#342168"; // Disesuaikan dengan warna tema baru
+          btn.style.backgroundColor = "#3b2667";
           btn.innerText = "Halo, " + result.name + "!";
           
           setTimeout(function() {
@@ -312,7 +379,7 @@
               alert("Login Sukses! Anda masuk sebagai: " + result.role + ". Halaman ini belum dibuat.");
               btn.disabled = false;
               btn.innerText = "Masuk";
-              btn.style.backgroundColor = "#342168"; // Disesuaikan dengan warna tema baru
+              btn.style.backgroundColor = "#3b2667";
             }
           }, 1000);
 
@@ -333,6 +400,20 @@
       errMsg.innerText = text;
       errMsg.style.display = "block";
     }
+
+    // Toggle Password Visibility Logic
+    document.getElementById('togglePassword').addEventListener('click', function () {
+      const passwordInput = document.getElementById('password');
+      const eyeIcon = document.getElementById('eyeIcon');
+      
+      if (passwordInput.type === 'password') {
+        passwordInput.type = 'text';
+        eyeIcon.setAttribute('d', 'M11.83 9L15 12.16V12a3 3 0 0 0-3-3h-.17zm-4.3.8l1.55 1.55c-.05.21-.08.43-.08.65a3 3 0 0 0 3 3c.22 0 .44-.03.65-.08l1.55 1.55c-.67.33-1.41.53-2.2.53-2.76 0-5-2.24-5-5 0-.79.2-1.53.53-2.2zm4.3-3.8c4.29 0 7.97 2.34 9.66 5.99-.44.95-1 1.83-1.66 2.6l-1.46-1.46C19.14 11.82 19.85 10.7 20.31 9.5c-1.48-3.32-4.85-5.69-8.59-5.69-1.22 0-2.4.24-3.48.67l1.55 1.55c.61-.17 1.25-.26 1.93-.26zM2.81 2.81L1.39 4.22l3.4 3.4C3.17 8.87 1.55 10.74 1 12c1.73 4.39 6 7.5 11 7.5 1.55 0 3.03-.3 4.38-.84l2.4 2.4 1.41-1.41L2.81 2.81z');
+      } else {
+        passwordInput.type = 'password';
+        eyeIcon.setAttribute('d', 'M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z');
+      }
+    });
   </script>
 </body>
 </html>
