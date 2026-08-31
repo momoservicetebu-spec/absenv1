@@ -107,42 +107,40 @@
     }
 
     function startRealtimeDetection() {
-      video.addEventListener('play', () => {
-        const canvas = faceapi.createCanvasFromMedia(video);
-        document.getElementById('video-container').append(canvas);
-        const displaySize = { width: video.width, height: video.height };
-        faceapi.matchDimensions(canvas, displaySize);
+      // Langsung buat canvas tanpa menunggu event 'play' karena kamera sudah menyala
+      const canvas = faceapi.createCanvasFromMedia(video);
+      document.getElementById('video-container').append(canvas);
+      const displaySize = { width: video.width, height: video.height };
+      faceapi.matchDimensions(canvas, displaySize);
 
-        setInterval(async () => {
-          const detections = await faceapi.detectAllFaces(video, new faceapi.TinyFaceDetectorOptions())
-                                          .withFaceLandmarks()
-                                          .withFaceDescriptors();
-          
-          const resizedDetections = faceapi.resizeResults(detections, displaySize);
-          canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
+      setInterval(async () => {
+        const detections = await faceapi.detectAllFaces(video, new faceapi.TinyFaceDetectorOptions())
+                                        .withFaceLandmarks()
+                                        .withFaceDescriptors();
+        
+        const resizedDetections = faceapi.resizeResults(detections, displaySize);
+        canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
 
-          if (detections.length > 0) {
-            lastDescriptor = Array.from(detections[0].descriptor);
+        if (detections.length > 0) {
+          lastDescriptor = Array.from(detections[0].descriptor);
 
-            if (faceMatcher) {
-              const bestMatch = faceMatcher.findBestMatch(detections[0].descriptor);
-              const box = resizedDetections[0].detection.box;
-              const drawBox = new faceapi.draw.DrawBox(box, { label: bestMatch.toString() });
-              drawBox.draw(canvas);
+          if (faceMatcher) {
+            const bestMatch = faceMatcher.findBestMatch(detections[0].descriptor);
+            const box = resizedDetections[0].detection.box;
+            const drawBox = new faceapi.draw.DrawBox(box, { label: bestMatch.toString() });
+            drawBox.draw(canvas);
 
-              if (bestMatch.label !== 'unknown' && !isProcessingAbsen) {
-                triggerAutoAttendance(bestMatch.label);
-              }
-            } else {
-              faceapi.draw.drawDetections(canvas, resizedDetections);
+            if (bestMatch.label !== 'unknown' && !isProcessingAbsen) {
+              triggerAutoAttendance(bestMatch.label);
             }
           } else {
-            lastDescriptor = null;
+            faceapi.draw.drawDetections(canvas, resizedDetections);
           }
-        }, 200);
-      });
+        } else {
+          lastDescriptor = null;
+        }
+      }, 200);
     }
-
     async function triggerAutoAttendance(userId) {
       isProcessingAbsen = true;
       showAlert(`Wajah Dikenali: ID ${userId}. Mencatat Absen...`, "#d39e00");
