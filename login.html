@@ -10,10 +10,11 @@
     h2 { text-align: center; color: #333; margin-bottom: 25px; }
     .input-group { margin-bottom: 15px; text-align: left; }
     .input-group label { display: block; font-size: 14px; color: #555; margin-bottom: 5px; }
-    .input-group input, .input-group select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 15px; box-sizing: border-box; }
+    .input-group input { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 15px; box-sizing: border-box; }
     .btn-login { width: 100%; padding: 12px; background-color: #28a745; color: white; border: none; border-radius: 6px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 10px; }
-    .btn-login:hover { background-color: #218838; }
+    .btn-login:disabled { background-color: #94d3a2; cursor: not-allowed; }
     .back-link { display: block; text-align: center; margin-top: 20px; color: #007bff; text-decoration: none; font-size: 14px; }
+    .error-text { color: red; font-size: 13px; text-align: center; margin-top: 10px; display: none; }
   </style>
 </head>
 <body>
@@ -22,42 +23,79 @@
     <h2>Portal Akses</h2>
     <form id="loginForm">
       <div class="input-group">
-        <label>Hak Akses (Role)</label>
-        <select id="roleSelect">
-          <option value="admin">Administrator</option>
-          <option value="operator">Operator Gerbang</option>
-          <option value="user">Guru / Siswa</option>
-        </select>
-      </div>
-      <div class="input-group">
-        <label>Username / ID</label>
-        <input type="text" id="username" placeholder="Masukkan ID Anda" required>
+        <label>Username</label>
+        <input type="text" id="username" placeholder="Masukkan Username" required>
       </div>
       <div class="input-group">
         <label>Password</label>
         <input type="password" id="password" placeholder="Masukkan Password" required>
       </div>
-      <button type="button" class="btn-login" onclick="processLogin()">Masuk</button>
+      <button type="button" class="btn-login" id="btnLogin" onclick="processLogin()">Masuk</button>
+      <div class="error-text" id="errorMsg"></div>
     </form>
     <a href="index.html" class="back-link">← Kembali ke Gerbang Utama</a>
   </div>
 
   <script>
-    function processLogin() {
-      const role = document.getElementById('roleSelect').value;
-      const user = document.getElementById('username').value;
+    // GANTI DENGAN URL DEPLOYMENT GOOGLE APPS SCRIPT ANDA YANG TERBARU!
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbxx3BLAOh7RZwF2vvukhDPhytbAPXfMP3H_RAJNeWgxLe2LNcCzojm-6HQ1kktPQMTQ/exec";
+
+    async function processLogin() {
+      const user = document.getElementById('username').value.trim();
+      const pass = document.getElementById('password').value.trim();
+      const btn = document.getElementById('btnLogin');
+      const errMsg = document.getElementById('errorMsg');
       
-      if(user === "") {
-        alert("Username tidak boleh kosong!");
+      if(user === "" || pass === "") {
+        showError("Username dan Password wajib diisi!");
         return;
       }
 
-      // Routing / Pengalihan Otomatis Berdasarkan Role
-      if (role === "admin") {
-        window.location.href = "dashboard-admin.html";
-      } else {
-        alert(`Halaman untuk hak akses '${role}' belum dibuat. Silakan pilih 'Administrator' untuk uji coba.`);
+      btn.disabled = true;
+      btn.innerText = "Memverifikasi...";
+      errMsg.style.display = "none";
+
+      try {
+        const formData = new URLSearchParams();
+        formData.append("action", "login");
+        formData.append("username", user);
+        formData.append("password", pass);
+
+        const response = await fetch(GAS_URL, { method: "POST", body: formData });
+        const result = await response.json();
+
+        if (result.success) {
+          btn.style.backgroundColor = "#007bff";
+          btn.innerText = `Halo, ${result.name}!`;
+          
+          setTimeout(() => {
+            if (result.role === "admin") {
+              window.location.href = "dashboard-admin.html";
+            } else {
+              // Untuk role guru/siswa/operator ke depannya
+              alert(`Login Sukses! Anda masuk sebagai: ${result.role}. Halaman ini belum dibuat.`);
+              btn.disabled = false;
+              btn.innerText = "Masuk";
+              btn.style.backgroundColor = "#28a745";
+            }
+          }, 1000);
+
+        } else {
+          showError(result.message);
+          btn.disabled = false;
+          btn.innerText = "Masuk";
+        }
+      } catch (err) {
+        showError("Terjadi kesalahan jaringan.");
+        btn.disabled = false;
+        btn.innerText = "Masuk";
       }
+    }
+
+    function showError(text) {
+      const errMsg = document.getElementById('errorMsg');
+      errMsg.innerText = text;
+      errMsg.style.display = "block";
     }
   </script>
 </body>
