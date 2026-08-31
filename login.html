@@ -52,11 +52,12 @@
         return;
       }
 
-      // Simulasi Routing Berdasarkan Role
-      alert(`Simulasi Login Sukses!\nRole: ${role}\nMengalihkan ke dashboard-${role}.html...`);
-      
-      // Di tahap selanjutnya, kita akan mengganti alert ini dengan:
-      // window.location.href = `dashboard-${role}.html`;
+      // Routing / Pengalihan Otomatis Berdasarkan Role
+      if (role === "admin") {
+        window.location.href = "dashboard-admin.html";
+      } else {
+        alert(`Halaman untuk hak akses '${role}' belum dibuat. Silakan pilih 'Administrator' untuk uji coba.`);
+      }
     }
   </script>
 </body>
