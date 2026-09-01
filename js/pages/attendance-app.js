@@ -14,7 +14,6 @@ let currentMFAUser = null;
 let verificationInterval = null;
 let isProcessing = false;
 
-// 1. Inisialisasi AI menggunakan CONFIG dari config.js
 Promise.all([
   faceapi.nets.tinyFaceDetector.loadFromUri(CONFIG.MODEL_URL),
   faceapi.nets.faceLandmark68Net.loadFromUri(CONFIG.MODEL_URL),
@@ -38,7 +37,6 @@ function startVideo() {
     .catch(err => console.error(err));
 }
 
-// 2. Load Database Wajah
 async function loadFaceDatabase() {
   console.log("Mencoba mengunduh data wajah...");
   const result = await fetchAPI("getFaceReferences");
@@ -64,7 +62,6 @@ async function loadFaceDatabase() {
   }
 }
 
-// 3. Listener UI MFA
 nfcInput.addEventListener('keypress', function (e) {
   if (e.key === 'Enter') {
     const inputID = this.value.trim();
@@ -94,7 +91,6 @@ function simulateFingerprintBridge() {
   }, 1500);
 }
 
-// 4. Verifikasi Wajah AI
 function startVerificationState(userID) {
   if(isProcessing) return;
   isProcessing = true;
@@ -151,7 +147,6 @@ function startVerificationState(userID) {
   }, 10000);
 }
 
-// 5. Eksekusi Absensi via API
 async function executeAttendance(userID) {
   showAlert(`✅ Verifikasi MFA Sukses! Mencatat Absen...`, "#d39e00");
   statusText.innerText = "Mengirim Data...";
@@ -171,7 +166,6 @@ async function executeAttendance(userID) {
   setTimeout(resetToStandby, 3000);
 }
 
-// 6. UI Helpers
 function resetToStandby() {
   clearInterval(verificationInterval);
   verificationInterval = null;
@@ -197,5 +191,4 @@ function showAlert(text, color) {
   alertBox.style.backgroundColor = color;
   alertBox.innerText = text;
 }
-
 function hideAlert() { alertBox.style.display = "none"; }

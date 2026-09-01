@@ -1,8 +1,10 @@
 <!DOCTYPE html>
-<html>
+<html lang="id">
 <head>
+  <meta charset="UTF-8">
   <title>Gate Masuk - MFA Absensi</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" href="data:,">
   <style>
     body { font-family: sans-serif; text-align: center; background-color: #f4f7f6; margin: 0; padding: 20px; }
     .card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); max-width: 600px; margin: auto; position: relative; }
@@ -15,30 +17,23 @@
     button.fp-btn:disabled { background-color: #ccc; cursor: not-allowed; }
     .alert-box { padding: 15px; margin-top: 15px; border-radius: 8px; display: none; font-weight: bold; color: white; }
     .method-box { background: #e9ecef; padding: 15px; border-radius: 8px; margin-bottom: 15px; }
-    
-    /* Tombol Login Admin */
     .login-btn { display: inline-block; margin-top: 25px; padding: 10px 20px; background-color: #343a40; color: white; text-decoration: none; border-radius: 5px; font-size: 14px; font-weight: bold; transition: 0.3s; }
     .login-btn:hover { background-color: #495057; }
     hr { border: 0; height: 1px; background: #ddd; margin-top: 25px; }
   </style>
   <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
-  <link rel="icon" href="data:,">
 </head>
 <body>
-
   <div class="card">
     <h2>Terminal Absensi MFA</h2>
     <div class="status" id="statusText" style="color: orange;">Memuat Engine AI...</div>
     
-    <!-- STATE 1: STANDBY -->
     <div id="standby-ui">
       <p><b>Pilih Metode Faktor Pertama:</b></p>
-      
       <div class="method-box">
         <p style="margin: 0 0 10px 0; font-size: 14px;">📡 Tap Kartu NFC / Scan Barcode</p>
         <input type="text" id="nfcSimulator" placeholder="Fokus di sini & Ketik ID -> Enter" disabled autocomplete="off">
       </div>
-
       <div class="method-box">
         <p style="margin: 0 0 10px 0; font-size: 14px;">👆 Fingerprint (Localhost Bridge)</p>
         <button id="btnFingerprint" class="fp-btn" onclick="simulateFingerprintBridge()" disabled>Simulasikan Tempel Jari</button>
@@ -46,19 +41,16 @@
       </div>
     </div>
 
-    <!-- STATE 2: VERIFICATION -->
     <div id="video-container">
       <video id="video" width="480" height="360" autoplay muted playsinline></video>
     </div>
 
     <div class="alert-box" id="alertBox"></div>
     <hr>
-  <hr>
-    <!-- Link Menuju Halaman Login -->
     <a href="login.html" class="login-btn">⚙️ Masuk ke Dashboard Login</a>
   </div>
 
-  <!-- Urutan wajib: config.js HARUS paling atas -->
+  <!-- PEMANGGILAN SCRIPT WAJIB DI SINI -->
   <script src="./js/config.js"></script>
   <script src="./js/api.js"></script>
   <script src="./js/pages/attendance-app.js"></script>
