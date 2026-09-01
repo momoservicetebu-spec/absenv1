@@ -113,6 +113,8 @@
     <button class="nav-btn" onclick="switchTab('laporan', this)">📊 Laporan Absensi</button>
     <button class="nav-btn" onclick="switchTab('setting', this)">🛠️ Pengaturan (Setting)</button>
     <button class="nav-btn" onclick="switchTab('backup', this)">💾 Backup & Restore</button>
+    <button class="nav-btn" onclick="switchTab('whatsapp-settings', this)">💬 Notifikasi WhatsApp</button>
+    <button class="nav-btn" onclick="switchTab('geofencing', this)">📍 Lokasi & Geofencing</button>
     
     <button class="logout-btn" onclick="window.location.href='login.html'">🚪 Keluar Sistem</button>
   </div>
@@ -296,6 +298,51 @@
       <button class="btn-action">📥 Backup Sekarang (Download ZIP)</button> 
       <button class="btn-action" style="background:#ff6b6b;">📤 Restore Data (Upload)</button>
     </div>
+    <!-- 12. WHATSAPP GATEWAY -->
+    <div id="whatsapp" class="section card">
+      <h2 class="section-title">💬 Konfigurasi WhatsApp Gateway</h2>
+      <p class="section-desc">Hubungkan API (misal: Fonnte/Watzap) agar sistem di Srv_WhatsApp.gs dapat mengirim notif ke orang tua.</p>
+      
+      <div class="form-group">
+        <label>API Key WhatsApp Gateway</label>
+        <input type="text" placeholder="Masukkan Token API Anda..." style="max-width: 500px;">
+      </div>
+      <div class="form-group">
+        <label>Template Pesan Kehadiran (Tepat Waktu)</label>
+        <input type="text" value="Bapak/Ibu, anak Anda {nama} telah HADIR di sekolah pada {waktu}." style="max-width: 600px;">
+      </div>
+      <div class="form-group">
+        <label>Template Pesan Keterlambatan</label>
+        <input type="text" value="Bapak/Ibu, anak Anda {nama} TERLAMBAT masuk sekolah pada {waktu}." style="max-width: 600px;">
+      </div>
+      <button class="btn-action btn-success">Simpan Konfigurasi WA</button>
+      <button class="btn-action" style="background:#54a0ff;">Tes Kirim Pesan</button>
+    </div>
+
+    <!-- 12. GEOFENCING & GPS -->
+    <div id="geofencing" class="section card">
+      <h2 class="section-title">📍 Pengaturan Titik GPS Absensi</h2>
+      <p class="section-desc">Tentukan kordinat utama sekolah untuk validasi Haversine di Srv_Attendance.gs.</p>
+      
+      <div class="search-bar" style="margin-bottom: 20px;">
+        <button class="btn-action" onclick="getCurrentLocation()" style="background:#f39c12;">🎯 Deteksi Lokasi Saat Ini</button>
+      </div>
+      
+      <div class="form-group">
+        <label>Latitude (Garis Lintang)</label>
+        <input type="text" id="latInput" placeholder="Contoh: -6.200000" style="max-width: 300px;">
+      </div>
+      <div class="form-group">
+        <label>Longitude (Garis Bujur)</label>
+        <input type="text" id="lngInput" placeholder="Contoh: 106.816666" style="max-width: 300px;">
+      </div>
+      <div class="form-group">
+        <label>Radius Toleransi Absensi (Meter)</label>
+        <input type="text" value="50" style="max-width: 150px;">
+      </div>
+      
+      <button class="btn-action btn-success">Simpan Kordinat GPS</button>
+    </div>
 
     <!-- FOOTER -->
     <div class="dashboard-footer">
@@ -306,6 +353,45 @@
   </div>
 
   <script>
+    // file: /js/api.js
+
+      const GAS_URL = "https://script.google.com/macros/s/AKfycbxx3BLAOh7RZwF2vvukhDPhytbAPXfMP3H_RAJNeWgxLe2LNcCzojm-6HQ1kktPQMTQ/exec";
+
+      /**
+       * Fungsi pembungkus (wrapper) untuk melakukan HTTP POST ke Google Apps Script
+       * @param {string} action - Nama action (sesuai case di 1_Router.gs)
+       * @param {object} payload - Data yang dikirim (misal: JSON wajah, koordinat GPS)
+       */
+      async function fetchAPI(action, payload = {}) {
+        try {
+          // GAS menerima data POST dengan Content-Type: application/x-www-form-urlencoded
+          const formData = new URLSearchParams();
+          formData.append('action', action);
+          formData.append('data', JSON.stringify(payload)); // Kirim data kompleks sebagai string JSON
+
+          const response = await fetch(GAS_URL, {
+            method: 'POST',
+            body: formData
+          });
+
+          const result = await response.json();
+          
+          if (!result.success) {
+            console.error("API Error:", result.message);
+          }
+          
+          return result;
+        } catch (error) {
+          console.error("Fetch failed:", error);
+          return { success: false, message: "Koneksi ke server gagal. Cek jaringan Anda." };
+        }
+      }
+
+      // Contoh pemakaian untuk tombol "Tes Ping"
+      async function testConnection() {
+        const res = await fetchAPI('ping');
+        console.log(res); // Output: { success: true, message: "API Berhasil Terhubung!", data: { status: "Online" } }
+      }
     // FUNGSI PERPINDAHAN TAB NAVIGASI
     function switchTab(tabId, btnElement) {
       document.querySelectorAll('.section').forEach(sec => sec.classList.remove('active'));
@@ -442,6 +528,19 @@
         options: chartOptions
       });
     });
+    function getCurrentLocation() {
+        if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition((position) => {
+            document.getElementById('latInput').value = position.coords.latitude;
+            document.getElementById('lngInput').value = position.coords.longitude;
+            alert("📍 Kordinat berhasil didapatkan dari GPS perangkat!");
+          }, (error) => {
+            alert("Gagal mendapatkan lokasi. Pastikan izin GPS aktif di browser.");
+          });
+        } else {
+          alert("Geolokasi tidak didukung oleh browser ini.");
+        }
+      }
   </script>
 </body>
 </html>
