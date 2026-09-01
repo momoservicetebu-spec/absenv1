@@ -1,108 +1,201 @@
 // ==========================================
-// FILE: /js/pages/attendance-app.js
-// TUGAS: Mesin Utama Absensi Kamera & Pengiriman API
+// FILE: js/pages/attendance-app.js
 // ==========================================
-
 const video = document.getElementById('video');
-let labeledFaceDescriptors = []; // Data referensi wajah dari backend
-let faceMatcher = null;
-let scanCooldown = new Map(); // Mencegah frontend mengirim API berulang untuk orang yang sama
+const videoContainer = document.getElementById('video-container');
+const standbyUI = document.getElementById('standby-ui');
+const nfcInput = document.getElementById('nfcSimulator');
+const btnFingerprint = document.getElementById('btnFingerprint');
+const statusText = document.getElementById('statusText');
+const alertBox = document.getElementById('alertBox');
 
-// 1. Inisialisasi Kamera dan AI
-async function initSystem() {
-  uiManager.showLoading("Memuat Model AI & Data Wajah...");
+let databaseWajah = []; 
+let currentMFAUser = null; 
+let verificationInterval = null;
+let isProcessing = false;
+
+// 1. Inisialisasi AI menggunakan CONFIG dari config.js
+Promise.all([
+  faceapi.nets.tinyFaceDetector.loadFromUri(CONFIG.MODEL_URL),
+  faceapi.nets.faceLandmark68Net.loadFromUri(CONFIG.MODEL_URL),
+  faceapi.nets.faceRecognitionNet.loadFromUri(CONFIG.MODEL_URL),
+  loadFaceDatabase()
+]).then(() => {
+  statusText.innerText = "Sistem Siap";
+  statusText.style.color = "green";
+  nfcInput.disabled = false;
+  btnFingerprint.disabled = false;
+  nfcInput.focus();
+  startVideo();
+}).catch(err => {
+  statusText.innerText = "Gagal memuat AI";
+  console.error(err);
+});
+
+function startVideo() {
+  navigator.mediaDevices.getUserMedia({ video: true })
+    .then(stream => { video.srcObject = stream; })
+    .catch(err => console.error(err));
+}
+
+// 2. Load Database Wajah
+async function loadFaceDatabase() {
+  console.log("Mencoba mengunduh data wajah...");
+  const result = await fetchAPI("getFaceReferences");
   
-  // Load model Face-API (Pastikan path folder /assets/models benar)
-  await Promise.all([
-    faceapi.nets.ssdMobilenetv1.loadFromUri('/assets/models'),
-    faceapi.nets.faceLandmark68Net.loadFromUri('/assets/models'),
-    faceapi.nets.faceRecognitionNet.loadFromUri('/assets/models')
-  ]);
-
-  // Ambil data referensi dari backend (Sheet 'FaceReference')
-  await loadFaceReferences();
-
-  uiManager.hideLoading();
-  startCamera();
-}
-
-// 2. Mengambil referensi dari backend dan membuat FaceMatcher
-async function loadFaceReferences() {
-  const response = await fetchAPI('getFaceReferences');
-  if (response.success && response.data.length > 0) {
-    labeledFaceDescriptors = response.data.map(user => {
-      const descriptorArray = new Float32Array(JSON.parse(user.FaceDescriptor));
-      return new faceapi.LabeledFaceDescriptors(user.UserID, [descriptorArray]);
-    });
-    faceMatcher = new faceapi.FaceMatcher(labeledFaceDescriptors, 0.6); // Toleransi 60%
-  }
-}
-
-// 3. Menjalankan Kamera
-function startCamera() {
-  navigator.mediaDevices.getUserMedia({ video: true, audio: false })
-    .then(stream => {
-      video.srcObject = stream;
-      video.play();
-      detectFaces(); // Mulai scanning loop
-    })
-    .catch(err => console.error("Kamera tidak diizinkan atau tidak ditemukan:", err));
-}
-
-// 4. Scanning Loop 
-async function detectFaces() {
-  setInterval(async () => {
-    if (!faceMatcher) return;
-
-    const detections = await faceapi.detectAllFaces(video)
-      .withFaceLandmarks()
-      .withFaceDescriptors();
-
-    detections.forEach(fd => {
-      const bestMatch = faceMatcher.findBestMatch(fd.descriptor);
+  if (result.success && Array.isArray(result.data)) {
+    result.data.forEach(item => {
+      const keys = Object.keys(item);
+      const embedKey = keys.find(k => k.toLowerCase().includes('embed') || k.toLowerCase().includes('vektor') || k.toLowerCase().includes('face'));
+      const userKey = keys.find(k => k.toLowerCase().includes('id') || k.toLowerCase().includes('user'));
       
-      if (bestMatch.label !== 'unknown') {
-        const userId = bestMatch.label;
-        processAttendance(userId);
+      if(embedKey && userKey) {
+        const rawEmbed = item[embedKey];
+        const userID = String(item[userKey]).trim();
+        if (rawEmbed && rawEmbed !== "undefined") {
+          try {
+            const parsed = typeof rawEmbed === 'string' ? JSON.parse(rawEmbed) : rawEmbed;
+            const descriptor = new Float32Array(parsed);
+            databaseWajah.push({ id: userID, descriptor: descriptor });
+          } catch(e){}
+        }
       }
     });
-  }, 1000); // Cek setiap 1 detik
-}
-
-// 5. Eksekusi API Absensi dengan Cooldown & GPS
-async function processAttendance(userId) {
-  const now = Date.now();
-  const lastScan = scanCooldown.get(userId) || 0;
-
-  // Frontend Cooldown: Jangan panggil API jika user ini sudah discan dalam 10 detik terakhir
-  if (now - lastScan < 10000) return; 
-  scanCooldown.set(userId, now);
-
-  // Ambil lokasi GPS (Haversine di backend yang akan memvalidasi)
-  const coords = await LocationEngine.getCurrentCoords().catch(() => null);
-
-  const payload = {
-    userId: userId,
-    checkType: 'IN', // Bisa dibuat dinamis berdasarkan jam
-    lat: coords ? coords.lat : null,
-    lng: coords ? coords.lng : null
-  };
-
-  // Tembak ke 1_Router.gs
-  const res = await fetchAPI('submitAutoAttendance', payload);
-
-  if (res.success) {
-    if (res.data.isDuplicate) {
-      uiManager.showToast(`Warning: ${userId} sudah absen hari ini.`, 'warning');
-      uiManager.playSound('already_scanned');
-    } else {
-      uiManager.showToast(`Sukses! ${userId} berhasil absen.`, 'success');
-      uiManager.playSound('success');
-    }
-  } else {
-    uiManager.showToast(`Gagal: ${res.message}`, 'error');
   }
 }
 
-// Jalankan sistem saat halaman dimuat
-window.addEventListener('DOMContentLoaded', initSystem);
+// 3. Listener UI MFA
+nfcInput.addEventListener('keypress', function (e) {
+  if (e.key === 'Enter') {
+    const inputID = this.value.trim();
+    this.value = ''; 
+    if (inputID !== '') startVerificationState(inputID);
+  }
+});
+
+function simulateFingerprintBridge() {
+  if(isProcessing) return;
+  const fpStatus = document.getElementById('fingerprintStatus');
+  
+  btnFingerprint.disabled = true;
+  nfcInput.disabled = true;
+  fpStatus.innerText = "Menunggu mesin fingerprint memproses...";
+  fpStatus.style.color = "blue";
+
+  setTimeout(() => {
+    const detectedUserID = "FACE-1787924439928"; 
+    fpStatus.innerText = `Sidik jari terdeteksi: ID ${detectedUserID}! Mengaktifkan Kamera...`;
+    fpStatus.style.color = "green";
+
+    setTimeout(() => {
+      fpStatus.innerText = "";
+      startVerificationState(detectedUserID);
+    }, 1500);
+  }, 1500);
+}
+
+// 4. Verifikasi Wajah AI
+function startVerificationState(userID) {
+  if(isProcessing) return;
+  isProcessing = true;
+
+  const targetUser = databaseWajah.find(u => u.id === userID);
+  
+  if (!targetUser) {
+    showAlert(`ID ${userID} tidak ditemukan di database wajah.`, "red");
+    setTimeout(resetToStandby, 3000);
+    return;
+  }
+
+  currentMFAUser = targetUser;
+  standbyUI.style.display = 'none';
+  videoContainer.style.display = 'flex';
+  statusText.innerText = `Halo ${userID}, Verifikasi Wajah Anda...`;
+  statusText.style.color = "blue";
+
+  let canvas = document.querySelector('canvas');
+  if(!canvas){
+    canvas = faceapi.createCanvasFromMedia(video);
+    videoContainer.append(canvas);
+  }
+  const displaySize = { width: video.width, height: video.height };
+  faceapi.matchDimensions(canvas, displaySize);
+
+  verificationInterval = setInterval(async () => {
+    const detections = await faceapi.detectSingleFace(video, new faceapi.TinyFaceDetectorOptions())
+                                    .withFaceLandmarks()
+                                    .withFaceDescriptor();
+    
+    canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
+
+    if (detections) {
+      const resized = faceapi.resizeResults(detections, displaySize);
+      faceapi.draw.drawDetections(canvas, resized);
+
+      const distance = faceapi.euclideanDistance(detections.descriptor, currentMFAUser.descriptor);
+      
+      if (distance < 0.5) { 
+        clearInterval(verificationInterval);
+        canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
+        executeAttendance(currentMFAUser.id);
+      }
+    }
+  }, 200);
+
+  setTimeout(() => {
+    if(isProcessing && verificationInterval) {
+      clearInterval(verificationInterval);
+      showAlert(`Verifikasi Wajah Gagal. Anda bukan ID ${userID}.`, "red");
+      setTimeout(resetToStandby, 3000);
+    }
+  }, 10000);
+}
+
+// 5. Eksekusi Absensi via API
+async function executeAttendance(userID) {
+  showAlert(`✅ Verifikasi MFA Sukses! Mencatat Absen...`, "#d39e00");
+  statusText.innerText = "Mengirim Data...";
+
+  const result = await fetchAPI("submitAutoAttendance", {
+    userId: userID,
+    role: "GURU", 
+    checkType: "IN"
+  });
+
+  if (result.success) {
+    showAlert(`✅ ABSEN BERHASIL: ${userID}`, "green");
+  } else {
+    showAlert(`❌ Gagal Server: ${result.message}`, "red");
+  }
+
+  setTimeout(resetToStandby, 3000);
+}
+
+// 6. UI Helpers
+function resetToStandby() {
+  clearInterval(verificationInterval);
+  verificationInterval = null;
+  currentMFAUser = null;
+  isProcessing = false;
+  
+  const canvas = document.querySelector('canvas');
+  if(canvas) canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
+
+  hideAlert();
+  videoContainer.style.display = 'none';
+  standbyUI.style.display = 'block';
+  statusText.innerText = "Sistem Siap";
+  statusText.style.color = "green";
+  
+  nfcInput.disabled = false;
+  btnFingerprint.disabled = false;
+  nfcInput.focus();
+}
+
+function showAlert(text, color) {
+  alertBox.style.display = "block";
+  alertBox.style.backgroundColor = color;
+  alertBox.innerText = text;
+}
+
+function hideAlert() { alertBox.style.display = "none"; }
