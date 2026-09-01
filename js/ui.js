@@ -66,25 +66,44 @@ function parseCSVFile(file) {
 }
 
 // ==========================================
-// FUNGSI UNDUH TEMPLATE CSV (FIX EXCEL COLUMN)
+// FITUR IMPORT CSV (TEMPLATE, PREVIEW, SUBMIT)
 // ==========================================
-// Fungsi Unduh Template Asli (Otomatis Generate File CSV)
+
+// 1. FUNGSI UNDUH TEMPLATE (DENGAN PETUNJUK ATURAN & CONTOH DATA)
 function downloadTemplate(type) {
   let csvContent = "";
   let fileName = "";
 
   if (type === 'guru') {
-    // Header CSV untuk Data Guru
-    csvContent = "GuruID,NIP,Nama,JK,TmpLahir,TglLahir,HPWA,Email,Alamat,Jabatan,Status,NFC_UID,QR_Token,BarcodeID,FingerprintID,FotoURL,TglMasuk,Role_Sistem,Face_Registered\n";
+    csvContent = 
+      "# ==========================================================================\n" +
+      "# ATURAN PENGISIAN TEMPLATE DATA GURU (BISA LANGSUNG DIISI DI BAWAH)\n" +
+      "# 1. JANGAN MENGUBAH / MENGHAPUS NAMA HEADER PADA BARIS KE-9.\n" +
+      "# 2. Format Tanggal (TglLahir & TglMasuk): YYYY-MM-DD (Contoh: 1990-05-20).\n" +
+      "# 3. Jenis Kelamin (JK): 'L' (Laki-Laki) atau 'P' (Perempuan).\n" +
+      "# 4. Status: 'Aktif', 'Cuti', atau 'Non-Aktif'.\n" +
+      "# 5. Role_Sistem: 'Admin', 'Kepsek', atau 'Guru'.\n" +
+      "# 6. Face_Registered: 'TRUE' atau 'FALSE'.\n" +
+      "# ==========================================================================\n" +
+      "GuruID;NIP;Nama;JK;TmpLahir;TglLahir;HPWA;Email;Alamat;Jabatan;Status;NFC_UID;QR_Token;BarcodeID;FingerprintID;FotoURL;TglMasuk;Role_Sistem;Face_Registered\n" +
+      "GURU-001;199001012015011001;Ahmad Dahlan M.Pd;L;Jakarta;1990-01-01;081234567890;ahmad@sekolah.sch.id;Jl. Merdeka No. 123;Guru Matematika;Aktif;UID991;QR-GURU-001;BC-GURU-001;F-01;https://link-foto.com/guru.jpg;2015-01-10;Guru;FALSE\n";
     fileName = "Template_Import_Guru.csv";
   } else {
-    // Header CSV untuk Data Siswa
-    csvContent = "SiswaID,NIS,NISN,Nama,JK,TmpLahir,TglLahir,HPWA,NamaOrtu,WA_Ortu,KelasID,JurusanID,Angkatan,Status,NFC_UID,QR_Token,BarcodeID,FingerprintID,FotoURL\n";
+    csvContent = 
+      "# ==========================================================================\n" +
+      "# ATURAN PENGISIAN TEMPLATE DATA SISWA (BISA LANGSUNG DIISI DI BAWAH)\n" +
+      "# 1. JANGAN MENGUBAH / MENGHAPUS NAMA HEADER PADA BARIS KE-8.\n" +
+      "# 2. Format Tanggal (TglLahir): YYYY-MM-DD (Contoh: 2007-11-15).\n" +
+      "# 3. Jenis Kelamin (JK): 'L' (Laki-Laki) atau 'P' (Perempuan).\n" +
+      "# 4. Angkatan: Tahun masuk 4 digit (Contoh: 2024).\n" +
+      "# 5. Status: 'Aktif', 'Mutasi', atau 'Lulus'.\n" +
+      "# ==========================================================================\n" +
+      "SiswaID;NIS;NISN;Nama;JK;TmpLahir;TglLahir;HPWA;NamaOrtu;WA_Ortu;KelasID;JurusanID;Angkatan;Status;NFC_UID;QR_Token;BarcodeID;FingerprintID;FotoURL\n" +
+      "SISWA-001;23001;0050012345;Alfa Romeo Prasetya;L;Jakarta;2007-01-01;082100001111;Budi Prasetya;083100002222;X-A;RPL;2023;Aktif;UID001;QR-SISWA-001;BC-SISWA-001;F-11;https://link-foto.com/siswa.jpg\n";
     fileName = "Template_Import_Siswa.csv";
   }
 
-  // Proses pembuatan file dan auto-download
-  const blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8;' }); // \uFEFF memastikan Excel membaca UTF-8 dengan benar
+  const blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8;' }); 
   const link = document.createElement("a");
   const url = URL.createObjectURL(blob);
   
@@ -97,8 +116,122 @@ function downloadTemplate(type) {
   document.body.removeChild(link);
 }
 
+// 2. FUNGSI MEMECAH TEKS CSV MENJADI TABEL PRATINJAU
+function processCSV(text) {
+  // 1. Hapus karakter tersembunyi BOM (Byte Order Mark) dari Excel
+  text = text.replace(/^\uFEFF/, '');
+  
+  // 2. Pisahkan baris, abaikan baris kosong DAN abaikan baris petunjuk yang diawali '#'
+  const lines = text.split('\n')
+    .map(line => line.trim())
+    .filter(line => line !== '' && !line.startsWith('#'));
+
+  if (lines.length < 2) {
+    alert("❌ File CSV kosong atau hanya berisi header/petunjuk.");
+    return;
+  }
+
+  // 3. Deteksi pemisah secara otomatis: titik koma (;) atau koma (,)
+  const separator = lines[0].includes(';') ? ';' : ',';
+
+  // Ambil header di baris pertama dan bersihkan tanda kutip/spasi
+  const headers = lines[0].split(separator).map(h => h.replace(/^"|"$/g, '').trim());
+  
+  // Deteksi otomatis apakah ini data Guru atau Siswa
+  if (headers.includes('GuruID') || headers.includes('NIP')) {
+    csvTargetSheet = 'Guru';
+  } else if (headers.includes('SiswaID') || headers.includes('NIS')) {
+    csvTargetSheet = 'Siswa';
+  } else {
+    alert("❌ Format CSV tidak dikenali.\nHeader yang terbaca: " + headers.join(", "));
+    return resetCsvUpload();
+  }
+
+  parsedCsvData = [];
+  let theadHTML = "<tr>" + headers.map(h => `<th>${h}</th>`).join('') + "</tr>";
+  let tbodyHTML = "";
+
+  // 4. Regex dinamis berdasarkan pemisah yang terdeteksi
+  const regex = new RegExp(`${separator}(?=(?:(?:[^"]*"){2})*[^"]*$)`);
+
+  // Looping isi data mulai dari baris kedua (index 1)
+  for (let i = 1; i < lines.length; i++) {
+    const values = lines[i].split(regex).map(v => v.replace(/^"|"$/g, '').trim());
+    
+    let rowObj = {};
+    let trContent = "";
+    
+    headers.forEach((h, index) => {
+      rowObj[h] = values[index] || "";
+      trContent += `<td>${rowObj[h]}</td>`;
+    });
+    
+    parsedCsvData.push(rowObj);
+    tbodyHTML += `<tr>${trContent}</tr>`;
+  }
+
+  // Tampilkan ke antarmuka HTML
+  document.getElementById('csvPreviewHead').innerHTML = theadHTML;
+  document.getElementById('csvPreviewBody').innerHTML = tbodyHTML;
+  document.getElementById('rowCount').innerText = parsedCsvData.length;
+  document.getElementById('csvPreviewContainer').style.display = 'block';
+}
+
+// 3. FUNGSI BATAL / HAPUS FILE
+function resetCsvUpload() {
+  document.getElementById('csvFileInput').value = "";
+  document.getElementById('csvPreviewContainer').style.display = 'none';
+  document.getElementById('csvPreviewHead').innerHTML = "";
+  document.getElementById('csvPreviewBody').innerHTML = "";
+  parsedCsvData = [];
+  csvTargetSheet = "";
+}
+
+// 4. FUNGSI SUBMIT ASLI KE DATABASE GOOGLE SHEETS
+async function submitCsvData() {
+  if (parsedCsvData.length === 0) return;
+  
+  const btn = document.getElementById('btnSubmitCsv');
+  btn.innerText = "⏳ Sedang Menyimpan ke Spreadsheet...";
+  btn.disabled = true;
+
+  // Tentukan endpoint aksi berdasarkan jenis data
+  const action = csvTargetSheet === 'Guru' ? 'saveGuru' : 'saveSiswa';
+  
+  let successCount = 0;
+  let failCount = 0;
+
+  try {
+    // Looping untuk mengirim setiap baris data CSV ke Apps Script
+    for (const rowData of parsedCsvData) {
+      const response = await fetchAPI(action, rowData);
+      
+      // Cek apakah response berhasil
+      if (response && (response.success || response.status === 'success' || response.data || response.id)) {
+        successCount++;
+      } else {
+        failCount++;
+      }
+    }
+
+    if (successCount > 0) {
+      alert(`✅ Berhasil menyimpan ${successCount} data ${csvTargetSheet} ke Google Sheets!` + (failCount > 0 ? ` (${failCount} gagal)` : ''));
+      resetCsvUpload();
+      if (typeof loadAllData === 'function') loadAllData();
+    } else {
+      alert(`❌ Gagal menyimpan data ke Google Sheets. Silakan periksa koneksi atau deployment Apps Script.`);
+    }
+  } catch (error) {
+    console.error("Error submit CSV:", error);
+    alert("❌ Terjadi kesalahan saat mengirim data ke database.");
+  } finally {
+    btn.innerText = "🚀 Submit Data ke Database";
+    btn.disabled = false;
+  }
+}
+
 // ==========================================
-// FITUR IMPORT CSV (DRAG & DROP + PREVIEW)
+// FITUR IMPORT CSV (DRAG & DROP )
 // ==========================================
 let parsedCsvData = [];
 let csvTargetSheet = ""; 
@@ -148,116 +281,6 @@ function handleFileSelect(event) {
   reader.readAsText(file);
 }
 
-// Fungsi Memecah Teks CSV Menjadi Tabel Pratinjau
-function processCSV(text) {
-  // 1. Hapus karakter tersembunyi BOM (Byte Order Mark) dari Excel
-  text = text.replace(/^\uFEFF/, '');
-  
-  // Pisahkan baris dan hapus baris yang kosong
-  const lines = text.split('\n').filter(line => line.trim() !== '');
-  if (lines.length < 2) {
-    alert("❌ File CSV kosong atau hanya berisi header.");
-    return;
-  }
-
-  // 2. Deteksi pemisah secara otomatis: titik koma (;) atau koma (,)
-  const separator = lines[0].includes(';') ? ';' : ',';
-
-  // Ambil header di baris pertama dan bersihkan tanda kutip/spasi
-  const headers = lines[0].split(separator).map(h => h.replace(/^"|"$/g, '').trim());
-  
-  // Deteksi otomatis apakah ini data Guru atau Siswa
-  if (headers.includes('GuruID') || headers.includes('NIP')) {
-    csvTargetSheet = 'Guru';
-  } else if (headers.includes('SiswaID') || headers.includes('NIS')) {
-    csvTargetSheet = 'Siswa';
-  } else {
-    alert("❌ Format CSV tidak dikenali.\nHeader yang terbaca: " + headers.join(", "));
-    return resetCsvUpload();
-  }
-
-  parsedCsvData = [];
-  let theadHTML = "<tr>" + headers.map(h => `<th>${h}</th>`).join('') + "</tr>";
-  let tbodyHTML = "";
-
-  // 3. Regex dinamis berdasarkan pemisah yang terdeteksi
-  const regex = new RegExp(`${separator}(?=(?:(?:[^"]*"){2})*[^"]*$)`);
-
-  // Looping isi data mulai dari baris kedua (index 1)
-  for (let i = 1; i < lines.length; i++) {
-    const values = lines[i].split(regex).map(v => v.replace(/^"|"$/g, '').trim());
-    
-    let rowObj = {};
-    let trContent = "";
-    
-    headers.forEach((h, index) => {
-      rowObj[h] = values[index] || "";
-      trContent += `<td>${rowObj[h]}</td>`;
-    });
-    
-    parsedCsvData.push(rowObj);
-    tbodyHTML += `<tr>${trContent}</tr>`;
-  }
-
-  // Tampilkan ke antarmuka HTML
-  document.getElementById('csvPreviewHead').innerHTML = theadHTML;
-  document.getElementById('csvPreviewBody').innerHTML = tbodyHTML;
-  document.getElementById('rowCount').innerText = parsedCsvData.length;
-  document.getElementById('csvPreviewContainer').style.display = 'block';
-}
-
-// Fungsi Batal / Hapus File
-function resetCsvUpload() {
-  document.getElementById('csvFileInput').value = "";
-  document.getElementById('csvPreviewContainer').style.display = 'none';
-  document.getElementById('csvPreviewHead').innerHTML = "";
-  document.getElementById('csvPreviewBody').innerHTML = "";
-  parsedCsvData = [];
-  csvTargetSheet = "";
-}
-
-// Fungsi Submit Asli ke Database Google Sheets
-async function submitCsvData() {
-  if (parsedCsvData.length === 0) return;
-  
-  const btn = document.getElementById('btnSubmitCsv');
-  btn.innerText = "⏳ Sedang Menyimpan ke Spreadsheet...";
-  btn.disabled = true;
-
-  // Tentukan endpoint aksi berdasarkan jenis data
-  const action = csvTargetSheet === 'Guru' ? 'saveGuru' : 'saveSiswa';
-  
-  let successCount = 0;
-  let failCount = 0;
-
-  try {
-    // Looping untuk mengirim setiap baris data CSV ke Apps Script
-    for (const rowData of parsedCsvData) {
-      const response = await fetchAPI(action, rowData);
-      
-      // Cek apakah response berhasil
-      if (response && (response.success || response.status === 'success' || response.data || response.id)) {
-        successCount++;
-      } else {
-        failCount++;
-      }
-    }
-
-    if (successCount > 0) {
-      alert(`✅ Berhasil menyimpan ${successCount} data ${csvTargetSheet} ke Google Sheets!` + (failCount > 0 ? ` (${failCount} gagal)` : ''));
-      resetCsvUpload();
-      if (typeof loadAllData === 'function') loadAllData();
-    } else {
-      alert(`❌ Gagal menyimpan data ke Google Sheets. Silakan periksa koneksi atau deployment Apps Script.`);
-    }
-  } catch (error) {
-    console.error("Error submit CSV:", error);
-    alert("❌ Terjadi kesalahan saat mengirim data ke database.");
-  } finally {
-    btn.innerText = "🚀 Submit Data ke Database";
-    btn.disabled = false;
-  }
-}
 // ==========================================
 // FUNGSI KONTROL MODAL (TAMBAH & EDIT)
 // ==========================================
