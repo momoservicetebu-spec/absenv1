@@ -103,50 +103,130 @@
       </div>
     </div> <!-- TAG DASHBOARD DITUTUP DENGAN BENAR -->
 
-    <!-- 2. DATA SISWA -->
-    <div id="data-siswa" class="section card">
-      <h2 class="section-title">🎓 Kelola Data Siswa</h2>
-      <p class="section-desc">Daftar seluruh siswa yang terdaftar di dalam sistem.</p>
-      <div class="search-bar">
-        <input type="text" placeholder="Cari Nama, NIS, atau Kelas..." style="max-width: 300px;">
-        <button class="btn-action">Cari</button>
-        <button class="btn-action btn-success" style="margin-left: auto;">+ Tambah Manual</button>
-      </div>
+    <!-- AREA KONTEN UTAMA -->
+<div class="main-content">
+
+  <!-- 2. DATA SISWA -->
+  <div id="data-siswa" class="section card">
+    <h2 class="section-title">🎓 Kelola Data Siswa</h2>
+    <p class="section-desc">Daftar seluruh siswa yang terdaftar di dalam sistem.</p>
+    
+    <div class="search-bar">
+      <input type="text" placeholder="Cari Nama, NIS, atau Kelas..." style="max-width: 300px;">
+      <button class="btn-action">Cari</button>
+      <button class="btn-action btn-success" style="margin-left: auto;">+ Tambah Manual</button>
+    </div>
+
+    <!-- Gunakan wrapper bawaan Anda agar scrollbar rapi -->
+    <div class="analytics-table-wrap" style="height: auto; max-height: 400px;">
       <table>
-        <thead><tr><th>NIS / ID</th><th>Nama Siswa</th><th>Kelas</th><th>Status Kredensial</th><th>Aksi</th></tr></thead>
+        <thead>
+          <tr>
+            <th>NIS / ID</th>
+            <th>NAMA SISWA</th>
+            <th>KELAS</th>
+            <th>STATUS KREDENSIAL</th>
+            <th>AKSI</th>
+          </tr>
+        </thead>
         <tbody>
-           <tr><td>SISWA-001</td><td>Andi Wijaya</td><td>XII IPA 1</td><td><span class="badge badge-success">Wajah, RFID</span></td><td><button class="btn-action btn-small">Edit</button> <button class="btn-action btn-small" style="background:#ff6b6b;">Hapus</button></td></tr>
-           <tr><td>SISWA-002</td><td>Siska Aprilia</td><td>XI IPS 2</td><td><span class="badge badge-warning">Wajah Saja</span></td><td><button class="btn-action btn-small">Edit</button> <button class="btn-action btn-small" style="background:#ff6b6b;">Hapus</button></td></tr>
-           <tr><td>SISWA-003</td><td>Reza Rahadian</td><td>X MIPA 3</td><td><span class="badge badge-danger">Belum Terdaftar</span></td><td><button class="btn-action btn-small">Edit</button> <button class="btn-action btn-small" style="background:#ff6b6b;">Hapus</button></td></tr>
+          <tr>
+            <td>SISWA-001</td>
+            <td>Andi Wijaya</td>
+            <td>XII IPA 1</td>
+            <td><span class="badge badge-success">Wajah, RFID</span></td>
+            <td>
+              <button class="btn-action btn-small">Edit</button>
+              <button class="btn-action btn-small badge-danger" style="border:none;">Hapus</button>
+            </td>
+          </tr>
+          <tr>
+            <td>SISWA-002</td>
+            <td>Siska Aprilia</td>
+            <td>XI IPS 2</td>
+            <td><span class="badge badge-warning">Wajah Saja</span></td>
+            <td>
+              <button class="btn-action btn-small">Edit</button>
+              <button class="btn-action btn-small badge-danger" style="border:none;">Hapus</button>
+            </td>
+          </tr>
+          <tr>
+            <td>SISWA-003</td>
+            <td>Reza Rahadian</td>
+            <td>X MIPA 3</td>
+            <td><span class="badge badge-danger">Belum Terdaftar</span></td>
+            <td>
+              <button class="btn-action btn-small">Edit</button>
+              <button class="btn-action btn-small badge-danger" style="border:none;">Hapus</button>
+            </td>
+          </tr>
         </tbody>
       </table>
     </div>
+  </div>
 
-    <!-- 3. DATA GURU -->
-    <div id="data-guru" class="section card">
-      <h2 class="section-title">👔 Kelola Data Guru & Staf</h2>
-      <p class="section-desc">Daftar seluruh guru dan staf yang terdaftar di dalam sistem.</p>
-      <div class="search-bar">
-        <input type="text" placeholder="Cari Nama atau NIP..." style="max-width: 300px;">
-        <button class="btn-action">Cari</button>
-        <button class="btn-action btn-success" style="margin-left: auto;">+ Tambah Manual</button>
-      </div>
+  <!-- 3. DATA GURU -->
+  <div id="data-guru" class="section card">
+    <h2 class="section-title">👔 Kelola Data Guru & Staf</h2>
+    <p class="section-desc">Daftar seluruh guru dan staf yang terdaftar di dalam sistem.</p>
+    
+    <div class="search-bar">
+      <input type="text" placeholder="Cari Nama atau NIP..." style="max-width: 300px;">
+      <button class="btn-action">Cari</button>
+      <button class="btn-action btn-success" style="margin-left: auto;">+ Tambah Manual</button>
+    </div>
+
+    <div class="analytics-table-wrap" style="height: auto; max-height: 400px;">
       <table>
-        <thead><tr><th>NIP / ID</th><th>Nama Lengkap</th><th>Jabatan</th><th>Status Kredensial</th><th>Aksi</th></tr></thead>
+        <thead>
+          <tr>
+            <th>NIP / ID</th>
+            <th>NAMA LENGKAP</th>
+            <th>JABATAN</th>
+            <th>STATUS KREDENSIAL</th>
+            <th>AKSI</th>
+          </tr>
+        </thead>
         <tbody>
-           <tr><td>GURU-012</td><td>Bapak Budi Santoso, S.Pd</td><td>Guru Matematika</td><td><span class="badge badge-success">Wajah, Fingerprint</span></td><td><button class="btn-action btn-small">Edit</button> <button class="btn-action btn-small" style="background:#ff6b6b;">Hapus</button></td></tr>
-           <tr><td>GURU-015</td><td>Ibu Siti Aminah, M.Pd</td><td>Guru Bahasa Inggris</td><td><span class="badge badge-success">Wajah, Fingerprint</span></td><td><button class="btn-action btn-small">Edit</button> <button class="btn-action btn-small" style="background:#ff6b6b;">Hapus</button></td></tr>
+          <tr>
+            <td>GURU-012</td>
+            <td>Bapak Budi Santoso, S.Pd</td>
+            <td>Guru Matematika</td>
+            <td><span class="badge badge-success">Wajah, Fingerprint</span></td>
+            <td>
+              <button class="btn-action btn-small">Edit</button>
+              <button class="btn-action btn-small badge-danger" style="border:none;">Hapus</button>
+            </td>
+          </tr>
+          <tr>
+            <td>GURU-015</td>
+            <td>Ibu Siti Aminah, M.Pd</td>
+            <td>Guru Bahasa Inggris</td>
+            <td><span class="badge badge-success">Wajah, Fingerprint</span></td>
+            <td>
+              <button class="btn-action btn-small">Edit</button>
+              <button class="btn-action btn-small badge-danger" style="border:none;">Hapus</button>
+            </td>
+          </tr>
         </tbody>
       </table>
     </div>
+  </div>
 
-    <!-- 4. IMPORT DATA -->
-    <div id="import" class="section card">
-      <h2 class="section-title">📁 Import Data Pengguna (CSV)</h2>
-      <p class="section-desc">Unggah file .csv untuk memasukkan banyak data sekaligus ke database.</p>
-      <div class="form-group"><input type="file" id="csvFile" accept=".csv"></div>
-      <button class="btn-action btn-success" onclick="processCSV()">Mulai Import Data</button>
+  <!-- 4. IMPORT DATA -->
+  <div id="import" class="section card">
+    <h2 class="section-title">📁 Import Data Pengguna (CSV)</h2>
+    <p class="section-desc">Unggah file .csv untuk memasukkan banyak data sekaligus ke database.</p>
+    
+    <div class="form-group">
+      <label for="csvFile">Pilih File CSV (.csv)</label>
+      <input type="file" id="csvFile" accept=".csv">
     </div>
+    
+    <button class="btn-action btn-success" onclick="processCSV()">Mulai Import Data</button>
+  </div>
+
+</div>
 
     <!-- 5. ENROLLMENT WAJAH -->
     <div id="enrollment" class="section card">
