@@ -216,23 +216,47 @@ function resetCsvUpload() {
   csvTargetSheet = "";
 }
 
-// Fungsi Submit (Proses Penyimpanan ke Database Apps Script)
+// Fungsi Submit Asli ke Database Google Sheets
 async function submitCsvData() {
   if (parsedCsvData.length === 0) return;
   
   const btn = document.getElementById('btnSubmitCsv');
-  btn.innerText = "⏳ Sedang Menyimpan...";
+  btn.innerText = "⏳ Sedang Menyimpan ke Spreadsheet...";
   btn.disabled = true;
 
-  console.log(`Mengirim ${parsedCsvData.length} data ke sheet ${csvTargetSheet}...`, parsedCsvData);
+  // Tentukan endpoint aksi berdasarkan jenis data
+  const action = csvTargetSheet === 'Guru' ? 'saveGuru' : 'saveSiswa';
   
-  setTimeout(() => {
-    alert(`✅ ${parsedCsvData.length} Data ${csvTargetSheet} berhasil dikirim!`);
-    resetCsvUpload();
+  let successCount = 0;
+  let failCount = 0;
+
+  try {
+    // Looping untuk mengirim setiap baris data CSV ke Apps Script
+    for (const rowData of parsedCsvData) {
+      const response = await fetchAPI(action, rowData);
+      
+      // Cek apakah response berhasil
+      if (response && (response.success || response.status === 'success' || response.data || response.id)) {
+        successCount++;
+      } else {
+        failCount++;
+      }
+    }
+
+    if (successCount > 0) {
+      alert(`✅ Berhasil menyimpan ${successCount} data ${csvTargetSheet} ke Google Sheets!` + (failCount > 0 ? ` (${failCount} gagal)` : ''));
+      resetCsvUpload();
+      if (typeof loadAllData === 'function') loadAllData();
+    } else {
+      alert(`❌ Gagal menyimpan data ke Google Sheets. Silakan periksa koneksi atau deployment Apps Script.`);
+    }
+  } catch (error) {
+    console.error("Error submit CSV:", error);
+    alert("❌ Terjadi kesalahan saat mengirim data ke database.");
+  } finally {
     btn.innerText = "🚀 Submit Data ke Database";
     btn.disabled = false;
-    if (typeof loadAllData === 'function') loadAllData();
-  }, 1500);
+  }
 }
 // ==========================================
 // FUNGSI KONTROL MODAL (TAMBAH & EDIT)
