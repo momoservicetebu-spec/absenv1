@@ -3,15 +3,27 @@
 // ==========================================
 async function fetchAPI(action, payload = {}) {
   try {
-    const formData = new URLSearchParams();
-    formData.append("action", action);
-    for (const key in payload) {
-      formData.append(key, payload[key]);
+    if (typeof CONFIG === 'undefined' || !CONFIG.SCRIPT_URL) {
+      throw new Error("URL API (CONFIG.SCRIPT_URL) belum dikonfigurasi.");
     }
-    const response = await fetch(CONFIG.GAS_URL, { method: "POST", body: formData });
-    return await response.json();
-  } catch (err) {
-    console.error("Gagal memanggil API:", err);
-    return { success: false, message: "Network Error" };
+
+    const url = `${CONFIG.SCRIPT_URL}?action=${action}`;
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'text/plain;charset=utf-8',
+      },
+      body: JSON.stringify(payload)
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`);
+    }
+
+    const result = await response.json();
+    return result;
+  } catch (error) {
+    console.error("Gagal memanggil API:", error);
+    return { status: 'error', message: error.message };
   }
-}r
+}
