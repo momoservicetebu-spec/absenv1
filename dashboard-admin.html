@@ -276,48 +276,5 @@
     <script src="./js/ui.js"></script>
     <script src="./js/charts.js"></script>
     <script src="./js/face-ai.js"></script>
-
-  <script>
-    // file: /js/api.js
-
-      const GAS_URL = "https://script.google.com/macros/s/AKfycbxx3BLAOh7RZwF2vvukhDPhytbAPXfMP3H_RAJNeWgxLe2LNcCzojm-6HQ1kktPQMTQ/exec";
-
-      /**
-       * Fungsi pembungkus (wrapper) untuk melakukan HTTP POST ke Google Apps Script
-       * @param {string} action - Nama action (sesuai case di 1_Router.gs)
-       * @param {object} payload - Data yang dikirim (misal: JSON wajah, koordinat GPS)
-       */
-      async function fetchAPI(action, payload = {}) {
-        try {
-          // GAS menerima data POST dengan Content-Type: application/x-www-form-urlencoded
-          const formData = new URLSearchParams();
-          formData.append('action', action);
-          formData.append('data', JSON.stringify(payload)); // Kirim data kompleks sebagai string JSON
-
-          const response = await fetch(GAS_URL, {
-            method: 'POST',
-            body: formData
-          });
-
-          const result = await response.json();
-          
-          if (!result.success) {
-            console.error("API Error:", result.message);
-          }
-          
-          return result;
-        } catch (error) {
-          console.error("Fetch failed:", error);
-          return { success: false, message: "Koneksi ke server gagal. Cek jaringan Anda." };
-        }
-      }
-
-      // Contoh pemakaian untuk tombol "Tes Ping"
-      async function testConnection() {
-        const res = await fetchAPI('ping');
-        console.log(res); // Output: { success: true, message: "API Berhasil Terhubung!", data: { status: "Online" } }
-      }
-    
-  </script>
 </body>
 </html>
