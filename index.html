@@ -53,19 +53,16 @@
     <div class="alert-box" id="alertBox"></div>
 
     <hr>
-    <!-- Link Menuju Halaman Login -->
-    <a href="login.html" class="login-btn">⚙️ Masuk ke Dashboard Login</a>
-        </div>
-        <!-- Load Face-API Library -->
-      <script src="/js/face-api.min.js"></script>
+      <!-- Load Face-API Library -->
+    <script src="/js/face-api.min.js"></script>
 
-      <!-- Load API Helper & Core Engine -->
-      <script src="/js/api.js"></script>
-      <script src="/js/modules/location.js"></script>
-      <script src="/js/modules/ui-manager.js"></script>
+    <!-- Load API Helper & Core Engine -->
+    <script src="/js/api.js"></script>
+    <script src="/js/modules/location.js"></script>
+    <script src="/js/modules/ui-manager.js"></script>
 
-      <!-- Load Main Attendance Logic -->
-      <script src="/js/pages/attendance-app.js"></script>
+    <!-- Load Main Attendance Logic -->
+    <script src="/js/pages/attendance-app.js"></script>
 
   <script>
     const GAS_URL = "https://script.google.com/macros/s/AKfycbxx3BLAOh7RZwF2vvukhDPhytbAPXfMP3H_RAJNeWgxLe2LNcCzojm-6HQ1kktPQMTQ/exec";
@@ -277,6 +274,7 @@
       alertBox.innerText = text;
     }
     function hideAlert() { alertBox.style.display = "none"; }
+    
   </script>
 </body>
 </html>
