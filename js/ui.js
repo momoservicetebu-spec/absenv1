@@ -68,69 +68,35 @@ function parseCSVFile(file) {
 // ==========================================
 // FUNGSI UNDUH TEMPLATE CSV (FIX EXCEL COLUMN)
 // ==========================================
+// Fungsi Unduh Template Asli (Otomatis Generate File CSV)
 function downloadTemplate(type) {
   let csvContent = "";
   let fileName = "";
-  
-  // Menggunakan titik koma (;) agar Excel Indonesia otomatis memisahkannya ke tabel A, B, C...
-  const SEP = ";";
 
   if (type === 'guru') {
-    const headers = [
-      "GuruID", "NIP", "Nama", "JK", "TmpLahir", "TglLahir", 
-      "HPWA", "Email", "Alamat", "Jabatan", "Status", "NFC_UID", 
-      "QR_Token", "BarcodeID", "FingerprintID", "FotoURL", "TglMasuk", 
-      "Role_Sistem", "Face_Registered"
-    ];
-
-    const sample1 = [
-      "GURU-012", "198501012010011001", "Bapak Budi Santoso, S.Pd", "L", "Jakarta", "1985-01-01",
-      "081234567890", "budi@email.com", "Jl. Merdeka No. 1", "Guru Matematika", "Aktif",
-      "", "", "", "", "", "2010-01-01", "Guru", "FALSE"
-    ];
-
-    const sample2 = [
-      "GURU-015", "199002022015022002", "Ibu Siti Aminah, M.Pd", "P", "Bandung", "1990-02-02",
-      "089876543210", "siti@email.com", "Jl. Mawar No. 5", "Guru Bahasa Inggris", "Aktif",
-      "", "", "", "", "", "2015-02-01", "Guru", "FALSE"
-    ];
-
-    csvContent = headers.join(SEP) + "\n" + sample1.join(SEP) + "\n" + sample2.join(SEP);
+    // Header CSV untuk Data Guru
+    csvContent = "GuruID,NIP,Nama,JK,TmpLahir,TglLahir,HPWA,Email,Alamat,Jabatan,Status,NFC_UID,QR_Token,BarcodeID,FingerprintID,FotoURL,TglMasuk,Role_Sistem,Face_Registered\n";
     fileName = "Template_Import_Guru.csv";
-
-  } else if (type === 'siswa') {
-    const headers = [
-      "SiswaID", "NIS", "NISN", "Nama", "JK", "TmpLahir", "TglLahir", 
-      "HPWA", "NamaOrtu", "WA_Ortu", "KelasID", "JurusanID", "Angkatan", 
-      "Status", "NFC_UID", "QR_Token", "BarcodeID", "FingerprintID", "FotoURL"
-    ];
-
-    const sample1 = [
-      "SISWA-001", "21221001", "0061234567", "Andi Wijaya", "L", "Jakarta", "2006-05-12",
-      "081299998888", "Bambang Wijaya", "081299998877", "KLS-12IPA1", "JUR-RPL", "2024",
-      "Aktif", "", "", "", "", ""
-    ];
-
-    const sample2 = [
-      "SISWA-002", "21221002", "0078765432", "Siska Aprilia", "P", "Surabaya", "2007-08-20",
-      "081277776666", "Surya Aprilia", "081277776655", "KLS-11IPS2", "JUR-TKJ", "2025",
-      "Aktif", "", "", "", "", ""
-    ];
-
-    csvContent = headers.join(SEP) + "\n" + sample1.join(SEP) + "\n" + sample2.join(SEP);
+  } else {
+    // Header CSV untuk Data Siswa
+    csvContent = "SiswaID,NIS,NISN,Nama,JK,TmpLahir,TglLahir,HPWA,NamaOrtu,WA_Ortu,KelasID,JurusanID,Angkatan,Status,NFC_UID,QR_Token,BarcodeID,FingerprintID,FotoURL\n";
     fileName = "Template_Import_Siswa.csv";
   }
 
-  const blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8;' });
+  // Proses pembuatan file dan auto-download
+  const blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8;' }); // \uFEFF memastikan Excel membaca UTF-8 dengan benar
   const link = document.createElement("a");
   const url = URL.createObjectURL(blob);
   
   link.setAttribute("href", url);
   link.setAttribute("download", fileName);
+  link.style.visibility = 'hidden';
+  
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
 }
+
 // ==========================================
 // FITUR IMPORT CSV (DRAG & DROP + PREVIEW)
 // ==========================================
