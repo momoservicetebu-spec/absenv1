@@ -13,6 +13,17 @@
     .logout-btn { color: #ff6b6b !important; margin-top: auto; border-top: 1px solid #2d2643; padding-top: 15px !important; border-radius: 0; }
     .logout-btn:hover { background-color: rgba(255,107,107,0.1) !important; color: #ff5252 !important; }
     
+    /* --- MAIN CONTENT CONTAINER --- */
+    .main-content { flex: 1; padding: 25px; overflow-y: auto; display: flex; flex-direction: column; background-color: #161224; }
+    .section { display: none; width: 100%; animation: fadeIn 0.3s ease-in-out; } 
+    .section.active { display: block; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+    
+    /* TEMA KARTU KONTEN MENUS */
+    .card { background: #201a35; padding: 25px; border-radius: 12px; border: 1px solid #30274e; margin-bottom: 25px; color: #dcdde1; }
+    .section-title { margin-top: 0; color: #fff; border-bottom: 2px solid #6c5ce7; padding-bottom: 8px; display: inline-block; font-size: 20px; margin-bottom: 15px; }
+    .section-desc { color: #a29bfe; font-size: 13px; margin-top: -5px; margin-bottom: 20px; }
+    
     /* --- ANALYTICS DASHBOARD --- */
     .analytics-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 15px; }
     .analytics-title { font-size: 20px; font-weight: bold; color: #fff; margin: 0; }
