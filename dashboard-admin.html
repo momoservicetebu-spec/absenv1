@@ -123,54 +123,22 @@
     </div>
 
     <!-- 3. DATA GURU -->
-      <div id="data-guru" class="section active">
-    <div class="card">
+    <div id="data-guru" class="section card">
       <h2 class="section-title">👔 Kelola Data Guru & Staf</h2>
       <p class="section-desc">Daftar seluruh guru dan staf yang terdaftar di dalam sistem.</p>
-      
       <div class="search-bar">
-        <input type="text" placeholder="Cari Nama atau NIP...">
+        <input type="text" placeholder="Cari Nama atau NIP..." style="max-width: 300px;">
         <button class="btn-action">Cari</button>
         <button class="btn-action btn-success" style="margin-left: auto;">+ Tambah Manual</button>
       </div>
-      
-      <div class="analytics-table-wrap" style="height: auto; max-height: 400px;">
-        <table>
-          <thead>
-            <tr>
-              <th>NIP / ID</th>
-              <th>NAMA LENGKAP</th>
-              <th>JABATAN</th>
-              <th>STATUS KREDENSIAL</th>
-              <th>AKSI</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>GURU-012</td>
-              <td>Bapak Budi Santoso, S.Pd</td>
-              <td>Guru Matematika</td>
-              <td><span class="badge badge-success">Wajah, Fingerprint</span></td>
-              <td>
-                <button class="btn-action btn-small">Edit</button> 
-                <button class="btn-action btn-small badge-danger" style="border:none;">Hapus</button>
-              </td>
-            </tr>
-            <tr>
-              <td>GURU-015</td>
-              <td>Ibu Siti Aminah, M.Pd</td>
-              <td>Guru Bahasa Inggris</td>
-              <td><span class="badge badge-success">Wajah, Fingerprint</span></td>
-              <td>
-                <button class="btn-action btn-small">Edit</button> 
-                <button class="btn-action btn-small badge-danger" style="border:none;">Hapus</button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+      <table>
+        <thead><tr><th>NIP / ID</th><th>Nama Lengkap</th><th>Jabatan</th><th>Status Kredensial</th><th>Aksi</th></tr></thead>
+        <tbody>
+           <tr><td>GURU-012</td><td>Bapak Budi Santoso, S.Pd</td><td>Guru Matematika</td><td><span class="badge badge-success">Wajah, Fingerprint</span></td><td><button class="btn-action btn-small">Edit</button> <button class="btn-action btn-small" style="background:#ff6b6b;">Hapus</button></td></tr>
+           <tr><td>GURU-015</td><td>Ibu Siti Aminah, M.Pd</td><td>Guru Bahasa Inggris</td><td><span class="badge badge-success">Wajah, Fingerprint</span></td><td><button class="btn-action btn-small">Edit</button> <button class="btn-action btn-small" style="background:#ff6b6b;">Hapus</button></td></tr>
+        </tbody>
+      </table>
     </div>
-  </div>
 
     <!-- 4. IMPORT DATA -->
     <div id="import" class="section card">
