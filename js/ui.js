@@ -216,15 +216,6 @@ function resetCsvUpload() {
   csvTargetSheet = "";
 }
 
-// Fungsi Unduh Template
-function downloadTemplate(type) {
-  if (type === 'guru') {
-    alert("Silakan gunakan file Template_Import_Guru.csv yang telah disediakan sebelumnya.");
-  } else {
-    alert("Silakan gunakan template CSV Siswa yang telah disediakan sebelumnya.");
-  }
-}
-
 // Fungsi Submit (Proses Penyimpanan ke Database Apps Script)
 async function submitCsvData() {
   if (parsedCsvData.length === 0) return;
