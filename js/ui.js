@@ -131,3 +131,128 @@ function downloadTemplate(type) {
   link.click();
   document.body.removeChild(link);
 }
+// ==========================================
+// FUNGSI KONTROL MODAL (TAMBAH & EDIT)
+// ==========================================
+
+function openModal(modalId) {
+  document.getElementById(modalId).classList.add('active');
+}
+
+function closeModal(modalId) {
+  document.getElementById(modalId).classList.remove('active');
+}
+
+// 1. Membuka Modal Guru (Mode Tambah/Edit)
+function openGuruModal(data = null) {
+  const form = document.getElementById('formGuru');
+  form.reset();
+
+  if (data) {
+    document.getElementById('modalGuruTitle').innerText = '✏️ Edit Data Guru';
+    document.getElementById('guru_GuruID').value = data.GuruID || '';
+    document.getElementById('guru_NIP').value = data.NIP || '';
+    document.getElementById('guru_Nama').value = data.Nama || '';
+    document.getElementById('guru_JK').value = data.JK || 'L';
+    document.getElementById('guru_TmpLahir').value = data.TmpLahir || '';
+    document.getElementById('guru_TglLahir').value = data.TglLahir || '';
+    document.getElementById('guru_HPWA').value = data.HPWA || '';
+    document.getElementById('guru_Email').value = data.Email || '';
+    document.getElementById('guru_Alamat').value = data.Alamat || '';
+    document.getElementById('guru_Jabatan').value = data.Jabatan || '';
+    document.getElementById('guru_Status').value = data.Status || 'Aktif';
+    document.getElementById('guru_TglMasuk').value = data.TglMasuk || '';
+    document.getElementById('guru_Role_Sistem').value = data.Role_Sistem || 'Guru';
+  } else {
+    document.getElementById('modalGuruTitle').innerText = '👔 Tambah Data Guru Manual';
+    document.getElementById('guru_GuruID').value = 'AUTO';
+  }
+
+  openModal('modalGuru');
+}
+
+// 2. Membuka Modal Siswa (Mode Tambah/Edit)
+function openSiswaModal(data = null) {
+  const form = document.getElementById('formSiswa');
+  form.reset();
+
+  if (data) {
+    document.getElementById('modalSiswaTitle').innerText = '✏️ Edit Data Siswa';
+    document.getElementById('siswa_SiswaID').value = data.SiswaID || '';
+    document.getElementById('siswa_NIS').value = data.NIS || '';
+    document.getElementById('siswa_NISN').value = data.NISN || '';
+    document.getElementById('siswa_Nama').value = data.Nama || '';
+    document.getElementById('siswa_JK').value = data.JK || 'L';
+    document.getElementById('siswa_TmpLahir').value = data.TmpLahir || '';
+    document.getElementById('siswa_TglLahir').value = data.TglLahir || '';
+    document.getElementById('siswa_HPWA').value = data.HPWA || '';
+    document.getElementById('siswa_NamaOrtu').value = data.NamaOrtu || '';
+    document.getElementById('siswa_WA_Ortu').value = data.WA_Ortu || '';
+    document.getElementById('siswa_KelasID').value = data.KelasID || '';
+    document.getElementById('siswa_JurusanID').value = data.JurusanID || '';
+    document.getElementById('siswa_Angkatan').value = data.Angkatan || '';
+    document.getElementById('siswa_Status').value = data.Status || 'Aktif';
+  } else {
+    document.getElementById('modalSiswaTitle').innerText = '🎓 Tambah Data Siswa Manual';
+    document.getElementById('siswa_SiswaID').value = 'AUTO';
+  }
+
+  openModal('modalSiswa');
+}
+
+// 3. Handler Submit Guru ke Database
+async function handleGuruSubmit(e) {
+  e.preventDefault();
+  const payload = {
+    GuruID: document.getElementById('guru_GuruID').value,
+    NIP: document.getElementById('guru_NIP').value,
+    Nama: document.getElementById('guru_Nama').value,
+    JK: document.getElementById('guru_JK').value,
+    TmpLahir: document.getElementById('guru_TmpLahir').value,
+    TglLahir: document.getElementById('guru_TglLahir').value,
+    HPWA: document.getElementById('guru_HPWA').value,
+    Email: document.getElementById('guru_Email').value,
+    Alamat: document.getElementById('guru_Alamat').value,
+    Jabatan: document.getElementById('guru_Jabatan').value,
+    Status: document.getElementById('guru_Status').value,
+    TglMasuk: document.getElementById('guru_TglMasuk').value,
+    Role_Sistem: document.getElementById('guru_Role_Sistem').value
+  };
+
+  const res = await fetchAPI('saveGuru', payload);
+  if (res.success) {
+    alert('✅ Data Guru Berhasil Disimpan!');
+    closeModal('modalGuru');
+  } else {
+    alert('❌ Gagal Menyimpan: ' + res.message);
+  }
+}
+
+// 4. Handler Submit Siswa ke Database
+async function handleSiswaSubmit(e) {
+  e.preventDefault();
+  const payload = {
+    SiswaID: document.getElementById('siswa_SiswaID').value,
+    NIS: document.getElementById('siswa_NIS').value,
+    NISN: document.getElementById('siswa_NISN').value,
+    Nama: document.getElementById('siswa_Nama').value,
+    JK: document.getElementById('siswa_JK').value,
+    TmpLahir: document.getElementById('siswa_TmpLahir').value,
+    TglLahir: document.getElementById('siswa_TglLahir').value,
+    HPWA: document.getElementById('siswa_HPWA').value,
+    NamaOrtu: document.getElementById('siswa_NamaOrtu').value,
+    WA_Ortu: document.getElementById('siswa_WA_Ortu').value,
+    KelasID: document.getElementById('siswa_KelasID').value,
+    JurusanID: document.getElementById('siswa_JurusanID').value,
+    Angkatan: document.getElementById('siswa_Angkatan').value,
+    Status: document.getElementById('siswa_Status').value
+  };
+
+  const res = await fetchAPI('saveSiswa', payload);
+  if (res.success) {
+    alert('✅ Data Siswa Berhasil Disimpan!');
+    closeModal('modalSiswa');
+  } else {
+    alert('❌ Gagal Menyimpan: ' + res.message);
+  }
+}
