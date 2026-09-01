@@ -665,3 +665,108 @@ async function loadAllData() {
     console.error("Gagal memuat data dari database:", error);
   }
 }
+// ==========================================
+// FUNGSI SUBMIT DENGAN ANIMASI LOADING PROGRESS BAR
+// ==========================================
+async function submitCsvData() {
+  if (parsedCsvData.length === 0) return;
+  
+  const btn = document.getElementById('btnSubmitCsv');
+  btn.innerText = "⏳ Sedang Menyimpan ke Spreadsheet...";
+  btn.disabled = true;
+
+  // 1. Buat / Ambil Elemen Progress Bar secara Otomatis
+  let progressContainer = document.getElementById('csvProgressContainer');
+  if (!progressContainer) {
+    progressContainer = document.createElement('div');
+    progressContainer.id = 'csvProgressContainer';
+    progressContainer.style.cssText = `
+      margin-top: 15px;
+      padding: 15px;
+      background: rgba(108, 92, 231, 0.12);
+      border: 1px solid rgba(108, 92, 231, 0.4);
+      border-radius: 8px;
+      text-align: left;
+    `;
+    progressContainer.innerHTML = `
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; color: #e0e0e0; font-size: 13px;">
+        <span id="csvProgressStatus">⏳ Mempersiapkan pengiriman...</span>
+        <span id="csvProgressPercent" style="font-weight: bold; color: #1dd1a1;">0%</span>
+      </div>
+      <div style="width: 100%; background-color: rgba(255, 255, 255, 0.1); border-radius: 10px; height: 10px; overflow: hidden;">
+        <div id="csvProgressBar" style="width: 0%; height: 100%; background: linear-gradient(90deg, #6c5ce7, #1dd1a1); transition: width 0.3s ease;"></div>
+      </div>
+    `;
+    btn.parentNode.insertBefore(progressContainer, btn.nextSibling);
+  }
+
+  progressContainer.style.display = 'block';
+
+  const action = csvTargetSheet === 'Guru' ? 'saveGuru' : 'saveSiswa';
+  const total = parsedCsvData.length;
+  let successCount = 0;
+  let failCount = 0;
+
+  try {
+    // 2. Looping Pengiriman Data Sambil Update Progress Bar
+    for (let i = 0; i < total; i++) {
+      const rowData = parsedCsvData[i];
+      const currentNum = i + 1;
+
+      // Update status & persentase awal baris
+      const startPercent = Math.round((i / total) * 100);
+      document.getElementById('csvProgressStatus').innerText = `⏳ Mengirim data ${currentNum} dari ${total} ke Google Sheets...`;
+      document.getElementById('csvProgressPercent').innerText = `${startPercent}%`;
+      document.getElementById('csvProgressBar').style.width = `${startPercent}%`;
+
+      // Kirim data ke API Apps Script
+      const response = await fetchAPI(action, rowData);
+      
+      if (response && (response.success || response.status === 'success' || response.data || response.id)) {
+        successCount++;
+      } else {
+        failCount++;
+      }
+
+      // Update persentase setelah baris selesai terkirim
+      const donePercent = Math.round((currentNum / total) * 100);
+      document.getElementById('csvProgressPercent').innerText = `${donePercent}%`;
+      document.getElementById('csvProgressBar').style.width = `${donePercent}%`;
+    }
+
+    // 3. Selesai
+    setTimeout(() => {
+      if (successCount > 0) {
+        alert(`✅ Berhasil menyimpan ${successCount} data ${csvTargetSheet} ke Google Sheets!` + (failCount > 0 ? ` (${failCount} gagal)` : ''));
+        resetCsvUpload();
+        if (typeof loadAllData === 'function') loadAllData();
+      } else {
+        alert(`❌ Gagal menyimpan data ke Google Sheets. Periksa koneksi atau deployment Apps Script.`);
+      }
+    }, 400);
+
+  } catch (error) {
+    console.error("Error submit CSV:", error);
+    alert("❌ Terjadi kesalahan saat mengirim data ke database.");
+  } finally {
+    btn.innerText = "🚀 Submit Data ke Database";
+    btn.disabled = false;
+  }
+}
+
+// FUNGSI BATAL / HAPUS FILE (TERMASUK SEMBUNYIKAN PROGRESS BAR)
+function resetCsvUpload() {
+  document.getElementById('csvFileInput').value = "";
+  document.getElementById('csvPreviewContainer').style.display = 'none';
+  document.getElementById('csvPreviewHead').innerHTML = "";
+  document.getElementById('csvPreviewBody').innerHTML = "";
+  
+  const progressContainer = document.getElementById('csvProgressContainer');
+  if (progressContainer) {
+    progressContainer.style.display = 'none';
+    document.getElementById('csvProgressBar').style.width = '0%';
+  }
+
+  parsedCsvData = [];
+  csvTargetSheet = "";
+}
