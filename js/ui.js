@@ -37,18 +37,45 @@ function getCurrentLocation() {
     alert("Geolokasi tidak didukung oleh browser ini.");
   }
 }
-// Variable global menyimpan data hasil parse CSV
-let parsedCsvData = [];
+function parseCSVFile(file) {
+  if (!file.name.endsWith('.csv')) {
+    alert("Mohon unggah file berformat .CSV!");
+    return;
+  }
+
+  const reader = new FileReader();
+  reader.onload = function (e) {
+    const text = e.target.result;
+    const lines = text.split(/\r\n|\n/).filter(line => line.trim() !== "");
+    
+    if (lines.length < 2) {
+      alert("File CSV kosong atau hanya berisi baris judul/header!");
+      return;
+    }
+
+    // Deteksi otomatis apakah file menggunakan pemisah titik koma (;) atau koma (,)
+    const delimiter = lines[0].includes(';') ? ';' : ',';
+
+    const headers = lines[0].split(delimiter).map(h => h.trim());
+    const dataRows = lines.slice(1).map(line => line.split(delimiter).map(d => d.trim()));
+
+    parsedCsvData = { headers, rows: dataRows };
+    renderPreviewTable(headers, dataRows);
+  };
+  reader.readAsText(file);
+}
 
 // ==========================================
-// FUNGSI UNDUH TEMPLATE CSV (SISWA & GURU)
+// FUNGSI UNDUH TEMPLATE CSV (FIX EXCEL COLUMN)
 // ==========================================
 function downloadTemplate(type) {
   let csvContent = "";
   let fileName = "";
+  
+  // Menggunakan titik koma (;) agar Excel Indonesia otomatis memisahkannya ke tabel A, B, C...
+  const SEP = ";";
 
   if (type === 'guru') {
-    // Header kolom disesuaikan presisi 1:1 dengan Database Guru (19 Kolom)
     const headers = [
       "GuruID", "NIP", "Nama", "JK", "TmpLahir", "TglLahir", 
       "HPWA", "Email", "Alamat", "Jabatan", "Status", "NFC_UID", 
@@ -56,50 +83,44 @@ function downloadTemplate(type) {
       "Role_Sistem", "Face_Registered"
     ];
 
-    // Baris Contoh Data Guru 1
     const sample1 = [
       "GURU-012", "198501012010011001", "Bapak Budi Santoso, S.Pd", "L", "Jakarta", "1985-01-01",
       "081234567890", "budi@email.com", "Jl. Merdeka No. 1", "Guru Matematika", "Aktif",
       "", "", "", "", "", "2010-01-01", "Guru", "FALSE"
     ];
 
-    // Baris Contoh Data Guru 2
     const sample2 = [
       "GURU-015", "199002022015022002", "Ibu Siti Aminah, M.Pd", "P", "Bandung", "1990-02-02",
       "089876543210", "siti@email.com", "Jl. Mawar No. 5", "Guru Bahasa Inggris", "Aktif",
       "", "", "", "", "", "2015-02-01", "Guru", "FALSE"
     ];
 
-    csvContent = headers.join(",") + "\n" + sample1.join(",") + "\n" + sample2.join(",");
+    csvContent = headers.join(SEP) + "\n" + sample1.join(SEP) + "\n" + sample2.join(SEP);
     fileName = "Template_Import_Guru.csv";
 
   } else if (type === 'siswa') {
-    // Header kolom disesuaikan presisi dengan Database Siswa (19 Kolom)
     const headers = [
       "SiswaID", "NIS", "NISN", "Nama", "JK", "TmpLahir", "TglLahir", 
       "HPWA", "NamaOrtu", "WA_Ortu", "KelasID", "JurusanID", "Angkatan", 
       "Status", "NFC_UID", "QR_Token", "BarcodeID", "FingerprintID", "FotoURL"
     ];
-    
-    // Baris Contoh Data Siswa 1
+
     const sample1 = [
       "SISWA-001", "21221001", "0061234567", "Andi Wijaya", "L", "Jakarta", "2006-05-12",
       "081299998888", "Bambang Wijaya", "081299998877", "KLS-12IPA1", "JUR-RPL", "2024",
       "Aktif", "", "", "", "", ""
     ];
 
-    // Baris Contoh Data Siswa 2
     const sample2 = [
       "SISWA-002", "21221002", "0078765432", "Siska Aprilia", "P", "Surabaya", "2007-08-20",
       "081277776666", "Surya Aprilia", "081277776655", "KLS-11IPS2", "JUR-TKJ", "2025",
       "Aktif", "", "", "", "", ""
     ];
 
-    csvContent = headers.join(",") + "\n" + sample1.join(",") + "\n" + sample2.join(",");
+    csvContent = headers.join(SEP) + "\n" + sample1.join(SEP) + "\n" + sample2.join(SEP);
     fileName = "Template_Import_Siswa.csv";
   }
 
-  // Menambahkan UTF-8 BOM (\uFEFF) agar Microsoft Excel langsung membuka CSV dengan kolom terpisah rapi
   const blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8;' });
   const link = document.createElement("a");
   const url = URL.createObjectURL(blob);
