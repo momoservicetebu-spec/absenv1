@@ -132,6 +132,146 @@ function downloadTemplate(type) {
   document.body.removeChild(link);
 }
 // ==========================================
+// FITUR IMPORT CSV (DRAG & DROP + PREVIEW)
+// ==========================================
+let parsedCsvData = [];
+let csvTargetSheet = ""; 
+
+document.addEventListener('DOMContentLoaded', () => {
+  const dropzone = document.getElementById('dropzone');
+  
+  if (dropzone) {
+    // Efek saat file diseret ke atas area dropzone
+    dropzone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      dropzone.style.borderColor = '#1dd1a1';s
+      dropzone.style.backgroundColor = 'rgba(29, 209, 161, 0.1)';
+    });
+
+    // Efek saat file keluar dari area dropzone
+    dropzone.addEventListener('dragleave', (e) => {
+      e.preventDefault();
+      dropzone.style.borderColor = '#6c5ce7';
+      dropzone.style.backgroundColor = 'transparent';
+    });
+
+    // Menangkap file saat dilepaskan (Drop)
+    dropzone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dropzone.style.borderColor = '#6c5ce7';
+      dropzone.style.backgroundColor = 'transparent';
+      
+      if (e.dataTransfer.files.length) {
+        document.getElementById('csvFileInput').files = e.dataTransfer.files;
+        handleFileSelect({ target: { files: e.dataTransfer.files } });
+      }
+    });
+  }
+});
+
+// Fungsi Membaca File CSV
+function handleFileSelect(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const text = e.target.result;
+    processCSV(text);
+  };
+  reader.readAsText(file);
+}
+
+// Fungsi Memecah Teks CSV Menjadi Tabel Pratinjau
+function processCSV(text) {
+  // Pisahkan baris dan hapus baris yang kosong
+  const lines = text.split('\n').filter(line => line.trim() !== '');
+  if (lines.length < 2) {
+    alert("❌ File CSV kosong atau hanya berisi header.");
+    return;
+  }
+
+  // Ambil header di baris pertama
+  const headers = lines[0].split(',').map(h => h.trim());
+  
+  // Deteksi otomatis apakah ini data Guru atau Siswa
+  if (headers.includes('GuruID') || headers.includes('NIP')) {
+    csvTargetSheet = 'Guru';
+  } else if (headers.includes('SiswaID') || headers.includes('NIS')) {
+    csvTargetSheet = 'Siswa';
+  } else {
+    alert("❌ Format CSV tidak dikenali. Pastikan Anda menggunakan Template_Import_Guru.csv atau template Siswa yang benar.");
+    return resetCsvUpload();
+  }
+
+  parsedCsvData = [];
+  let theadHTML = "<tr>" + headers.map(h => `<th>${h}</th>`).join('') + "</tr>";
+  let tbodyHTML = "";
+
+  // Looping isi data mulai dari baris kedua (index 1)
+  for (let i = 1; i < lines.length; i++) {
+    // Regex untuk memisahkan koma, tapi mengabaikan koma di dalam tanda kutip ganda
+    const values = lines[i].split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(v => v.replace(/^"|"$/g, '').trim());
+    
+    let rowObj = {};
+    let trContent = "";
+    
+    headers.forEach((h, index) => {
+      rowObj[h] = values[index] || "";
+      trContent += `<td>${rowObj[h]}</td>`;
+    });
+    
+    parsedCsvData.push(rowObj);
+    tbodyHTML += `<tr>${trContent}</tr>`;
+  }
+
+  // Tampilkan ke antarmuka HTML
+  document.getElementById('csvPreviewHead').innerHTML = theadHTML;
+  document.getElementById('csvPreviewBody').innerHTML = tbodyHTML;
+  document.getElementById('rowCount').innerText = parsedCsvData.length;
+  document.getElementById('csvPreviewContainer').style.display = 'block';
+}
+
+// Fungsi Batal / Hapus File
+function resetCsvUpload() {
+  document.getElementById('csvFileInput').value = "";
+  document.getElementById('csvPreviewContainer').style.display = 'none';
+  document.getElementById('csvPreviewHead').innerHTML = "";
+  document.getElementById('csvPreviewBody').innerHTML = "";
+  parsedCsvData = [];
+  csvTargetSheet = "";
+}
+
+// Fungsi Unduh Template
+function downloadTemplate(type) {
+  if (type === 'guru') {
+    alert("Silakan gunakan file Template_Import_Guru.csv yang telah disediakan sebelumnya.");
+  } else {
+    alert("Silakan gunakan template CSV Siswa yang telah disediakan sebelumnya.");
+  }
+}
+
+// Fungsi Submit (Simulasi - Nantinya dikirim ke Apps Script)
+async function submitCsvData() {
+  if (parsedCsvData.length === 0) return;
+  
+  const btn = document.getElementById('btnSubmitCsv');
+  btn.innerText = "⏳ Sedang Menyimpan...";
+  btn.disabled = true;
+
+  // CONTOH SEMENTARA: Anda bisa melooping parsedCsvData untuk mengirim fetchAPI('saveGuru' / 'saveSiswa') satu per satu
+  console.log(`Mengirim ${parsedCsvData.length} data ke sheet ${csvTargetSheet}...`, parsedCsvData);
+  
+  setTimeout(() => {
+    alert(`✅ ${parsedCsvData.length} Data ${csvTargetSheet} berhasil dikirim!`);
+    resetCsvUpload();
+    btn.innerText = "🚀 Submit Data ke Database";
+    btn.disabled = false;
+    // Panggil ulang loadAllData() agar tabel utama terupdate
+    if(typeof loadAllData === 'function') loadAllData();
+  }, 1500);
+}
+// ==========================================
 // FUNGSI KONTROL MODAL (TAMBAH & EDIT)
 // ==========================================
 
@@ -491,5 +631,27 @@ async function deleteSiswaByID(siswaID) {
     } else {
       alert('❌ Gagal menghapus: ' + res.message);
     }
+  }
+}
+// Jalankan saat halaman selesai dimuat
+document.addEventListener('DOMContentLoaded', () => {
+  loadAllData();
+});
+
+async function loadAllData() {
+  try {
+    // 1. Ambil Data Guru dari Database
+    const resGuru = await fetchAPI('getGuru');
+    if (resGuru.success && resGuru.data) {
+      renderGuruTable(resGuru.data);
+    }
+
+    // 2. Ambil Data Siswa dari Database
+    const resSiswa = await fetchAPI('getSiswa');
+    if (resSiswa.success && resSiswa.data) {
+      renderSiswaTable(resSiswa.data);
+    }
+  } catch (error) {
+    console.error("Gagal memuat data dari database:", error);
   }
 }
