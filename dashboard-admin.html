@@ -210,18 +210,48 @@
     </div>
   </div>
 
-  <!-- 4. IMPORT DATA -->
-  <div id="import" class="section card">
-    <h2 class="section-title">📁 Import Data Pengguna (CSV)</h2>
-    <p class="section-desc">Unggah file .csv untuk memasukkan banyak data sekaligus ke database.</p>
-    
-    <div class="form-group">
-      <label for="csvFile">Pilih File CSV (.csv)</label>
-      <input type="file" id="csvFile" accept=".csv">
-    </div>
-    
-    <button class="btn-action btn-success" onclick="processCSV()">Mulai Import Data</button>
-  </div>
+  <!-- 4. IMPORT DATA (CSV) -->
+      <div id="import" class="section card">
+        <h2 class="section-title">📁 Import Data Pengguna (CSV)</h2>
+        <p class="section-desc">Unggah file .csv untuk memasukkan banyak data sekaligus ke database.</p>
+        
+        <!-- 1. TOMBOL BANTUAN / TEMPLATE CSV -->
+        <div style="display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap;">
+          <button class="btn-action" onclick="downloadTemplate('siswa')" style="background-color: #161224; border: 1px solid #6c5ce7; color: #a29bfe;">
+            📥 Unduh Template CSV Siswa
+          </button>
+          <button class="btn-action" onclick="downloadTemplate('guru')" style="background-color: #161224; border: 1px solid #6c5ce7; color: #a29bfe;">
+            📥 Unduh Template CSV Guru
+          </button>
+        </div>
+
+        <!-- 2. AREA UPLOAD / DROPZONE -->
+        <div id="dropzone" class="dropzone-box" onclick="document.getElementById('csvFileInput').click()">
+          <div style="font-size: 40px; margin-bottom: 8px; color: #6c5ce7;">📤</div>
+          <div style="font-size: 14px; font-weight: bold; color: #fff;">Tarik & Lepas file CSV di sini, atau Klik untuk mencari file</div>
+          <div style="font-size: 12px; color: #a29bfe; margin-top: 6px;">Format yang didukung: .csv (Maksimal 5MB)</div>
+          <input type="file" id="csvFileInput" accept=".csv" style="display: none;" onchange="handleFileSelect(event)">
+        </div>
+
+        <!-- 3. TABEL PRATINJAU (PREVIEW) - Tersembunyi sebelum ada file -->
+        <div id="csvPreviewContainer" style="display: none; margin-top: 25px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <h4 style="margin: 0; color: #1dd1a1; font-size: 14px;">📋 Pratinjau Data CSV (<span id="rowCount">0</span> Baris Ditemukan)</h4>
+            <button class="btn-action btn-small badge-danger" onclick="resetCsvUpload()" style="border: none;">Batal / Hapus File</button>
+          </div>
+
+          <div class="analytics-table-wrap" style="height: auto; max-height: 300px;">
+            <table id="csvPreviewTable">
+              <thead id="csvPreviewHead"></thead>
+              <tbody id="csvPreviewBody"></tbody>
+            </table>
+          </div>
+
+          <div style="margin-top: 15px; text-align: right;">
+            <button class="btn-action btn-success" id="btnSubmitCsv" onclick="submitCsvData()">🚀 Submit Data ke Database</button>
+          </div>
+        </div>
+      </div>
 
     <!-- 5. ENROLLMENT WAJAH -->
     <div id="enrollment" class="section card">
