@@ -117,48 +117,13 @@
     <!-- Gunakan wrapper bawaan Anda agar scrollbar rapi -->
     <div class="analytics-table-wrap" style="height: auto; max-height: 400px;">
       <table>
-        <thead>
-          <tr>
-            <th>NIS / ID</th>
-            <th>NAMA SISWA</th>
-            <th>KELAS</th>
-            <th>STATUS KREDENSIAL</th>
-            <th>AKSI</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>SISWA-001</td>
-            <td>Andi Wijaya</td>
-            <td>XII IPA 1</td>
-            <td><span class="badge badge-success">Wajah, RFID</span></td>
-            <td>
-              <button class="btn-action btn-small">Edit</button>
-              <button class="btn-action btn-small badge-danger" style="border:none;">Hapus</button>
-            </td>
-          </tr>
-          <tr>
-            <td>SISWA-002</td>
-            <td>Siska Aprilia</td>
-            <td>XI IPS 2</td>
-            <td><span class="badge badge-warning">Wajah Saja</span></td>
-            <td>
-              <button class="btn-action btn-small">Edit</button>
-              <button class="btn-action btn-small badge-danger" style="border:none;">Hapus</button>
-            </td>
-          </tr>
-          <tr>
-            <td>SISWA-003</td>
-            <td>Reza Rahadian</td>
-            <td>X MIPA 3</td>
-            <td><span class="badge badge-danger">Belum Terdaftar</span></td>
-            <td>
-              <button class="btn-action btn-small">Edit</button>
-              <button class="btn-action btn-small badge-danger" style="border:none;">Hapus</button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+      <thead>
+        <tr><th>NIS / ID</th><th>NAMA SISWA</th><th>KELAS</th><th>STATUS KREDENSIAL</th><th>AKSI</th></tr>
+      </thead>
+      <tbody id="siswa-table-body">
+        <!-- Data dinamis dari database akan masuk ke sini -->
+      </tbody>
+     </table>
     </div>
   </div>
 
@@ -175,37 +140,12 @@
 
     <div class="analytics-table-wrap" style="height: auto; max-height: 400px;">
       <table>
-        <thead>
-          <tr>
-            <th>NIP / ID</th>
-            <th>NAMA LENGKAP</th>
-            <th>JABATAN</th>
-            <th>STATUS KREDENSIAL</th>
-            <th>AKSI</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>GURU-012</td>
-            <td>Bapak Budi Santoso, S.Pd</td>
-            <td>Guru Matematika</td>
-            <td><span class="badge badge-success">Wajah, Fingerprint</span></td>
-            <td>
-              <button class="btn-action btn-small">Edit</button>
-              <button class="btn-action btn-small badge-danger" style="border:none;">Hapus</button>
-            </td>
-          </tr>
-          <tr>
-            <td>GURU-015</td>
-            <td>Ibu Siti Aminah, M.Pd</td>
-            <td>Guru Bahasa Inggris</td>
-            <td><span class="badge badge-success">Wajah, Fingerprint</span></td>
-            <td>
-              <button class="btn-action btn-small">Edit</button>
-              <button class="btn-action btn-small badge-danger" style="border:none;">Hapus</button>
-            </td>
-          </tr>
-        </tbody>
+      <thead>
+        <tr><th>NIP / ID</th><th>NAMA LENGKAP</th><th>JABATAN</th><th>STATUS KREDENSIAL</th><th>AKSI</th></tr>
+      </thead>
+      <tbody id="guru-table-body">
+        <!-- Data dinamis dari database akan masuk ke sini -->
+      </tbody>
       </table>
     </div>
   </div>

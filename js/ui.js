@@ -256,3 +256,240 @@ async function handleSiswaSubmit(e) {
     alert('❌ Gagal Menyimpan: ' + res.message);
   }
 }
+// ==========================================
+// FUNGSI PENCARIAN (SEARCH) REAL-TIME
+// ==========================================
+document.addEventListener('DOMContentLoaded', () => {
+  // Listener Search Guru
+  const searchGuru = document.querySelector('#data-guru .search-bar input');
+  if (searchGuru) {
+    searchGuru.addEventListener('keyup', (e) => filterTable('data-guru', e.target.value));
+  }
+
+  // Listener Search Siswa
+  const searchSiswa = document.querySelector('#data-siswa .search-bar input');
+  if (searchSiswa) {
+    searchSiswa.addEventListener('keyup', (e) => filterTable('data-siswa', e.target.value));
+  }
+});
+
+function filterTable(sectionId, keyword) {
+  const lowerKeyword = keyword.toLowerCase();
+  const rows = document.querySelectorAll(`#${sectionId} tbody tr`);
+  
+  rows.forEach(row => {
+    // Mengecek seluruh teks di dalam satu baris (tr)
+    const textContent = row.textContent.toLowerCase();
+    row.style.display = textContent.includes(lowerKeyword) ? '' : 'none';
+  });
+}
+
+
+// ==========================================
+// FUNGSI EDIT & HAPUS (GURU)
+// ==========================================
+function editGuru(btnElement) {
+  const row = btnElement.closest('tr');
+  // Menarik data dari kolom tabel yang terlihat
+  const id = row.cells[0].innerText;
+  const namaLengkap = row.cells[1].innerText;
+  const jabatan = row.cells[2].innerText;
+  
+  // Membungkusnya menjadi objek untuk dikirim ke openGuruModal()
+  // Catatan: Kolom lain akan kosong sementara sampai dihubungkan dengan Database
+  const data = {
+    GuruID: id,
+    NIP: id, 
+    Nama: namaLengkap,
+    Jabatan: jabatan,
+    Status: 'Aktif'
+  };
+  
+  openGuruModal(data);
+}
+
+async function deleteGuru(btnElement) {
+  const row = btnElement.closest('tr');
+  const id = row.cells[0].innerText;
+  const nama = row.cells[1].innerText;
+  
+  if (confirm(`⚠️ PERINGATAN:\nApakah Anda yakin ingin menghapus data Guru:\n${nama} (${id})?`)) {
+    btnElement.innerText = "Menghapus...";
+    btnElement.disabled = true;
+    
+    // Nanti ini akan diganti dengan request ke API (fetchAPI)
+    // const res = await fetchAPI('deleteGuru', { GuruID: id });
+    
+    // Simulasi sukses untuk frontend saat ini
+    setTimeout(() => {
+      row.remove();
+      alert(`✅ Data ${nama} berhasil dihapus!`);
+    }, 600);
+  }
+}
+
+
+// ==========================================
+// FUNGSI EDIT & HAPUS (SISWA)
+// ==========================================
+function editSiswa(btnElement) {
+  const row = btnElement.closest('tr');
+  const id = row.cells[0].innerText;
+  const namaSiswa = row.cells[1].innerText;
+  const kelas = row.cells[2].innerText;
+  
+  const data = {
+    SiswaID: id,
+    NISN: id,
+    Nama: namaSiswa,
+    KelasID: kelas,
+    Status: 'Aktif'
+  };
+  
+  openSiswaModal(data);
+}
+
+async function deleteSiswa(btnElement) {
+  const row = btnElement.closest('tr');
+  const id = row.cells[0].innerText;
+  const nama = row.cells[1].innerText;
+  
+  if (confirm(`⚠️ PERINGATAN:\nApakah Anda yakin ingin menghapus data Siswa:\n${nama} (${id})?`)) {
+    btnElement.innerText = "Menghapus...";
+    btnElement.disabled = true;
+    
+    // Simulasi sukses untuk frontend
+    setTimeout(() => {
+      row.remove();
+      alert(`✅ Data ${nama} berhasil dihapus!`);
+    }, 600);
+  }
+}
+// Variable Global Penyimpan State Data dari Database
+let listDataGuru = [];
+let listDataSiswa = [];
+
+// ==========================================
+// 1. RENDER TABEL GURU DINAMIS
+// ==========================================
+function renderGuruTable(dataArray) {
+  listDataGuru = dataArray; // Simpan ke state global
+  const tbody = document.getElementById('guru-table-body');
+  if (!tbody) return;
+
+  if (dataArray.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:#a29bfe;">Belum ada data guru.</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = dataArray.map(guru => {
+    // Generate Badge Kredensial Otomatis
+    let badges = [];
+    if (guru.Face_Registered === "TRUE" || guru.Face_Registered === true) badges.push("Wajah");
+    if (guru.FingerprintID) badges.push("Fingerprint");
+    if (guru.NFC_UID) badges.push("RFID");
+    
+    const badgeHTML = badges.length > 0 
+      ? `<span class="badge badge-success">${badges.join(', ')}</span>`
+      : `<span class="badge badge-danger">Belum Terdaftar</span>`;
+
+    return `
+      <tr>
+        <td>${guru.NIP || guru.GuruID}</td>
+        <td>${guru.Nama}</td>
+        <td>${guru.Jabatan || '-'}</td>
+        <td>${badgeHTML}</td>
+        <td>
+          <button class="btn-action btn-small" onclick="editGuruByID('${guru.GuruID}')">Edit</button>
+          <button class="btn-action btn-small badge-danger" style="border:none;" onclick="deleteGuruByID('${guru.GuruID}')">Hapus</button>
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
+
+
+// ==========================================
+// 2. RENDER TABEL SISWA DINAMIS
+// ==========================================
+function renderSiswaTable(dataArray) {
+  listDataSiswa = dataArray; // Simpan ke state global
+  const tbody = document.getElementById('siswa-table-body');
+  if (!tbody) return;
+
+  if (dataArray.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:#a29bfe;">Belum ada data siswa.</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = dataArray.map(siswa => {
+    // Generate Badge Kredensial Otomatis
+    let badges = [];
+    if (siswa.FotoURL) badges.push("Wajah");
+    if (siswa.NFC_UID) badges.push("RFID");
+    if (siswa.FingerprintID) badges.push("Fingerprint");
+
+    const badgeHTML = badges.length > 0 
+      ? `<span class="badge badge-success">${badges.join(', ')}</span>`
+      : `<span class="badge badge-warning">Belum Terdaftar</span>`;
+
+    return `
+      <tr>
+        <td>${siswa.NIS || siswa.SiswaID}</td>
+        <td>${siswa.Nama}</td>
+        <td>${siswa.KelasID || '-'}</td>
+        <td>${badgeHTML}</td>
+        <td>
+          <button class="btn-action btn-small" onclick="editSiswaByID('${siswa.SiswaID}')">Edit</button>
+          <button class="btn-action btn-small badge-danger" style="border:none;" onclick="deleteSiswaByID('${siswa.SiswaID}')">Hapus</button>
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
+
+
+// ==========================================
+// 3. HANDLER EDIT & HAPUS BERDASARKAN ID UNIK
+// ==========================================
+
+function editGuruByID(guruID) {
+  const guru = listDataGuru.find(g => g.GuruID === guruID);
+  if (guru) openGuruModal(guru);
+}
+
+function editSiswaByID(siswaID) {
+  const siswa = listDataSiswa.find(s => s.SiswaID === siswaID);
+  if (siswa) openSiswaModal(siswa);
+}
+
+async function deleteGuruByID(guruID) {
+  const guru = listDataGuru.find(g => g.GuruID === guruID);
+  if (!guru) return;
+
+  if (confirm(`⚠️ PERINGATAN:\nHapus data Guru: ${guru.Nama} (${guru.NIP || guruID})?`)) {
+    const res = await fetchAPI('deleteGuru', { GuruID: guruID });
+    if (res.success) {
+      alert('✅ Data berhasil dihapus!');
+      // Refresh tabel dengan menghapus item dari list lokal
+      renderGuruTable(listDataGuru.filter(g => g.GuruID !== guruID));
+    } else {
+      alert('❌ Gagal menghapus: ' + res.message);
+    }
+  }
+}
+
+async function deleteSiswaByID(siswaID) {
+  const siswa = listDataSiswa.find(s => s.SiswaID === siswaID);
+  if (!siswa) return;
+
+  if (confirm(`⚠️ PERINGATAN:\nHapus data Siswa: ${siswa.Nama} (${siswa.NIS || siswaID})?`)) {
+    const res = await fetchAPI('deleteSiswa', { SiswaID: siswaID });
+    if (res.success) {
+      alert('✅ Data berhasil dihapus!');
+      renderSiswaTable(listDataSiswa.filter(s => s.SiswaID !== siswaID));
+    } else {
+      alert('❌ Gagal menghapus: ' + res.message);
+    }
+  }
+}
