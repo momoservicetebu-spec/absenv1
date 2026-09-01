@@ -144,7 +144,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Efek saat file diseret ke atas area dropzone
     dropzone.addEventListener('dragover', (e) => {
       e.preventDefault();
-      dropzone.style.borderColor = '#1dd1a1';s
+      dropzone.style.borderColor = '#1dd1a1';
       dropzone.style.backgroundColor = 'rgba(29, 209, 161, 0.1)';
     });
 
@@ -184,6 +184,9 @@ function handleFileSelect(event) {
 
 // Fungsi Memecah Teks CSV Menjadi Tabel Pratinjau
 function processCSV(text) {
+  // 1. Hapus karakter tersembunyi BOM (Byte Order Mark) dari Excel
+  text = text.replace(/^\uFEFF/, '');
+  
   // Pisahkan baris dan hapus baris yang kosong
   const lines = text.split('\n').filter(line => line.trim() !== '');
   if (lines.length < 2) {
@@ -191,8 +194,11 @@ function processCSV(text) {
     return;
   }
 
-  // Ambil header di baris pertama
-  const headers = lines[0].split(',').map(h => h.trim());
+  // 2. Deteksi pemisah secara otomatis: titik koma (;) atau koma (,)
+  const separator = lines[0].includes(';') ? ';' : ',';
+
+  // Ambil header di baris pertama dan bersihkan tanda kutip/spasi
+  const headers = lines[0].split(separator).map(h => h.replace(/^"|"$/g, '').trim());
   
   // Deteksi otomatis apakah ini data Guru atau Siswa
   if (headers.includes('GuruID') || headers.includes('NIP')) {
@@ -200,7 +206,7 @@ function processCSV(text) {
   } else if (headers.includes('SiswaID') || headers.includes('NIS')) {
     csvTargetSheet = 'Siswa';
   } else {
-    alert("❌ Format CSV tidak dikenali. Pastikan Anda menggunakan Template_Import_Guru.csv atau template Siswa yang benar.");
+    alert("❌ Format CSV tidak dikenali.\nHeader yang terbaca: " + headers.join(", "));
     return resetCsvUpload();
   }
 
@@ -208,10 +214,12 @@ function processCSV(text) {
   let theadHTML = "<tr>" + headers.map(h => `<th>${h}</th>`).join('') + "</tr>";
   let tbodyHTML = "";
 
+  // 3. Regex dinamis berdasarkan pemisah yang terdeteksi
+  const regex = new RegExp(`${separator}(?=(?:(?:[^"]*"){2})*[^"]*$)`);
+
   // Looping isi data mulai dari baris kedua (index 1)
   for (let i = 1; i < lines.length; i++) {
-    // Regex untuk memisahkan koma, tapi mengabaikan koma di dalam tanda kutip ganda
-    const values = lines[i].split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/).map(v => v.replace(/^"|"$/g, '').trim());
+    const values = lines[i].split(regex).map(v => v.replace(/^"|"$/g, '').trim());
     
     let rowObj = {};
     let trContent = "";
@@ -251,7 +259,7 @@ function downloadTemplate(type) {
   }
 }
 
-// Fungsi Submit (Simulasi - Nantinya dikirim ke Apps Script)
+// Fungsi Submit (Proses Penyimpanan ke Database Apps Script)
 async function submitCsvData() {
   if (parsedCsvData.length === 0) return;
   
@@ -259,7 +267,6 @@ async function submitCsvData() {
   btn.innerText = "⏳ Sedang Menyimpan...";
   btn.disabled = true;
 
-  // CONTOH SEMENTARA: Anda bisa melooping parsedCsvData untuk mengirim fetchAPI('saveGuru' / 'saveSiswa') satu per satu
   console.log(`Mengirim ${parsedCsvData.length} data ke sheet ${csvTargetSheet}...`, parsedCsvData);
   
   setTimeout(() => {
@@ -267,8 +274,7 @@ async function submitCsvData() {
     resetCsvUpload();
     btn.innerText = "🚀 Submit Data ke Database";
     btn.disabled = false;
-    // Panggil ulang loadAllData() agar tabel utama terupdate
-    if(typeof loadAllData === 'function') loadAllData();
+    if (typeof loadAllData === 'function') loadAllData();
   }, 1500);
 }
 // ==========================================
