@@ -2,6 +2,11 @@
 // FILE: js/ui.js
 // ==========================================
 
+// ==========================================
+// FUNGSI NAVIGASI TAB UTAMA & LOAD DATA
+// ==========================================
+
+
 function switchTab(tabId, btnElement) {
   document.querySelectorAll('.section').forEach(sec => sec.classList.remove('active'));
   document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
@@ -15,8 +20,20 @@ function switchTab(tabId, btnElement) {
     btnElement.classList.add('active');
   }
   
+  // --- Pemicu Fungsi Spesifik ---
+
+  // 1. Inisialisasi Face AI (Kode Asli)
   if(tabId === 'enrollment' && !window.aiLoaded) {
     initFaceAI();
+  }
+
+  // 2. Trigger Load Data Database (Kode Baru)
+  if (tabId === 'data-siswa') {
+    if (typeof loadDataSiswa === 'function') loadDataSiswa();
+  } else if (tabId === 'data-guru') {
+    if (typeof loadDataGuru === 'function') loadDataGuru();
+  } else if (tabId === 'admin-operator') {
+    if (typeof loadDataAdmin === 'function') loadDataAdmin();
   }
 }
 
@@ -769,4 +786,68 @@ function resetCsvUpload() {
 
   parsedCsvData = [];
   csvTargetSheet = "";
+}
+
+// ==========================================
+// FUNGSI LOAD DATA ADMIN & ROLE
+// ==========================================
+
+async function loadDataAdmin() {
+  const tbody = document.getElementById('table-body-admin');
+  tbody.innerHTML = `<tr><td colspan="5" style="text-align: center;">⏳ Mengambil data admin...</td></tr>`;
+
+  try {
+    const response = await fetchAPI('getAdmin'); 
+    
+    if (response && response.status === 'success') {
+      const data = response.data || [];
+      if (data.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" style="text-align: center;">Belum ada admin terdaftar.</td></tr>`;
+        return;
+      }
+
+      let html = '';
+      data.forEach(admin => {
+        html += `
+          <tr style="border-bottom: 1px solid #ddd;">
+            <td style="padding: 10px;">${admin.Username || '-'}</td>
+            <td style="padding: 10px;">${admin.Nama || '-'}</td>
+            <td style="padding: 10px;">${admin.Role || 'Operator'}</td>
+            <td style="padding: 10px;">${admin.Status || 'Aktif'}</td>
+            <td style="padding: 10px;">
+              <button onclick="editAdmin('${admin.Username}')" style="background: #f1c40f; border: none; padding: 5px 10px; cursor: pointer;">✏️ Edit</button>
+              <button onclick="hapusAdmin('${admin.Username}')" style="background: #e74c3c; color: white; border: none; padding: 5px 10px; cursor: pointer;">🗑️ Hapus</button>
+            </td>
+          </tr>
+        `;
+      });
+      tbody.innerHTML = html;
+    } else {
+      tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: red;">❌ Gagal memuat data admin.</td></tr>`;
+    }
+  } catch (error) {
+    console.error("Error load admin:", error);
+    tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: red;">❌ Terjadi kesalahan koneksi.</td></tr>`;
+  }
+}
+
+// Simulasi Fungsi CRUD (Tambah, Edit, Hapus)
+function tambahAdmin() {
+  alert("Menampilkan Modal / Form Tambah Admin Baru...");
+  // Logika memunculkan pop-up form bisa diletakkan di sini
+}
+
+function editAdmin(username) {
+  alert("Membuka form edit untuk Username: " + username);
+}
+
+function hapusAdmin(username) {
+  if(confirm("Apakah Anda yakin ingin menghapus admin " + username + "?")) {
+    alert("Proses hapus ke database untuk " + username + " berjalan...");
+    // Panggil fetchAPI('deleteAdmin', { username: username })
+  }
+}
+
+function tambahRole() {
+  alert("Menampilkan Modal / Form Tambah Role Baru...");
 }

@@ -31,6 +31,11 @@
     <button class="nav-btn" onclick="switchTab('rfid', this)">💳 Daftar RFID / NFC</button>
     <button class="nav-btn" onclick="switchTab('barcode', this)">🎫 Buat Barcode / QR</button>
     
+    <!-- TAMBAHAN MANAJEMEN USER -->
+    <div class="menu-group">Manajemen User</div>
+    <button class="nav-btn" onclick="switchTab('admin-operator', this)">🛡️ Admin & Operator</button>
+    <button class="nav-btn" onclick="switchTab('hak-akses', this)">🔐 Hak Akses (Role)</button>
+
     <div class="menu-group">Sistem & Laporan</div>
     <button class="nav-btn" onclick="switchTab('laporan', this)">📊 Laporan Absensi</button>
     <button class="nav-btn" onclick="switchTab('setting', this)">🛠️ Pengaturan (Setting)</button>
@@ -104,7 +109,9 @@
           <div class="chart-container"><canvas id="topStudentChart"></canvas></div>
         </div>
       </div>
-    </div> <!-- TAG DASHBOARD DITUTUP DENGAN BENAR -->
+    </div> 
+    
+  <!-- TAG DASHBOARD DITUTUP DENGAN BENAR -->
 
   <!-- 2. DATA SISWA -->
   <div id="data-siswa" class="section card">
@@ -234,6 +241,55 @@
       <button class="btn-action btn-success" style="margin-top:15px;">Cetak Kartu (Print)</button>
     </div>
 
+    <!-- KONTEN: ADMIN & OPERATOR -->
+    <div id="admin-operator" class="tab-content" style="display: none;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+        <h2>🛡️ Manajemen Admin & Operator</h2>
+        <button class="btn-action" onclick="tambahAdmin()" style="background: #1dd1a1; color: #161224; font-weight: bold;">
+          ➕ Tambah Admin Baru
+        </button>
+      </div>
+      
+      <table class="data-table" style="width: 100%; text-align: left; border-collapse: collapse;">
+        <thead>
+          <tr style="background: rgba(108, 92, 231, 0.2);">
+            <th>Username</th>
+            <th>Nama Lengkap</th>
+            <th>Role</th>
+            <th>Status</th>
+            <th>Aksi</th>
+          </tr>
+        </thead>
+        <tbody id="table-body-admin">
+          <tr><td colspan="5" style="text-align: center;">Memuat data...</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- KONTEN: HAK AKSES (ROLE) -->
+    <div id="hak-akses" class="tab-content" style="display: none;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+        <h2>🔐 Pengaturan Hak Akses</h2>
+        <button class="btn-action" onclick="tambahRole()" style="background: #1dd1a1; color: #161224; font-weight: bold;">
+          ➕ Tambah Role Baru
+        </button>
+      </div>
+      
+      <table class="data-table" style="width: 100%; text-align: left; border-collapse: collapse;">
+        <thead>
+          <tr style="background: rgba(108, 92, 231, 0.2);">
+            <th>Nama Role</th>
+            <th>Deskripsi Akses</th>
+            <th>Total User</th>
+            <th>Aksi</th>
+          </tr>
+        </thead>
+        <tbody id="table-body-role">
+          <tr><td colspan="4" style="text-align: center;">Memuat data...</td></tr>
+        </tbody>
+      </table>
+    </div>
+    
     <!-- 9. LAPORAN -->
     <div id="laporan" class="section card">
       <h2 class="section-title">📊 Filter & Unduh Laporan</h2>
