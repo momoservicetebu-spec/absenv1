@@ -532,6 +532,32 @@
         </div>
       </div>
 
+      <!-- MODAL FORM ROLE -->
+      <div id="modal-role" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 9999; justify-content: center; align-items: center; backdrop-filter: blur(4px);">
+        <div style="background: #1e1b33; padding: 25px; border-radius: 10px; width: 400px; color: white; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
+          <h3 id="modal-role-title" style="margin-top: 0; color: #1dd1a1; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px;">Tambah Role Baru</h3>
+          
+          <form id="form-role" onsubmit="simpanRole(event)">
+            <label style="display: block; margin-top: 15px; font-size: 0.9em; opacity: 0.8;">Nama Role:</label>
+            <input type="text" id="role-nama" required style="width: 100%; padding: 10px; margin-top: 5px; background: #2a2640; color: white; border: 1px solid #4a4563; border-radius: 5px;">
+            
+            <label style="display: block; margin-top: 15px; font-size: 0.9em; opacity: 0.8;">Deskripsi Akses:</label>
+            <input type="text" id="role-deskripsi" required style="width: 100%; padding: 10px; margin-top: 5px; background: #2a2640; color: white; border: 1px solid #4a4563; border-radius: 5px;">
+            
+            <label style="display: block; margin-top: 15px; font-size: 0.9em; opacity: 0.8;">Status Aktif:</label>
+            <select id="role-status" style="width: 100%; padding: 10px; margin-top: 5px; background: #2a2640; color: white; border: 1px solid #4a4563; border-radius: 5px;">
+              <option value="TRUE">Aktif</option>
+              <option value="FALSE">Tidak Aktif</option>
+            </select>
+            
+            <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 25px;">
+              <button type="button" onclick="closeModalRole()" style="background: transparent; color: #ff7675; border: 1px solid #ff7675; padding: 8px 15px; border-radius: 5px; cursor: pointer;">Batal</button>
+              <button type="submit" id="btn-simpan-role" style="background: #1dd1a1; color: #161224; border: none; padding: 8px 15px; border-radius: 5px; font-weight: bold; cursor: pointer;">💾 Simpan</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
       <div class="modal-footer">
         <button type="button" class="btn-action badge-danger" style="border:none;" onclick="closeModal('modalSiswa')">Batal</button>
         <button type="submit" class="btn-action btn-success">Simpan Data Siswa</button>

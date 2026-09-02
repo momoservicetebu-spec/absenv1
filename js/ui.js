@@ -855,3 +855,74 @@ function tambahRole() {
   alert("Menampilkan Modal / Form Tambah Role Baru...");
 }
 
+// ==========================================
+// FUNGSI CRUD ROLE (HAK AKSES)
+// ==========================================
+function tambahRole() {
+  document.getElementById('modal-role-title').innerText = 'Tambah Role Baru';
+  document.getElementById('form-role').reset();
+  // Untuk Tambah, form 'Role' boleh diedit
+  document.getElementById('role-nama').readOnly = false; 
+  document.getElementById('modal-role').style.display = 'flex';
+}
+
+function closeModalRole() {
+  document.getElementById('modal-role').style.display = 'none';
+}
+
+async function simpanRole(e) {
+  e.preventDefault();
+  const btn = document.getElementById('btn-simpan-role');
+  btn.innerText = 'Menyimpan...';
+  btn.disabled = true;
+
+  const data = {
+    Role: document.getElementById('role-nama').value,
+    Description: document.getElementById('role-deskripsi').value,
+    IsActive: document.getElementById('role-status').value
+  };
+
+  try {
+    const res = await fetchAPI('saveRole', data);
+    if (res && res.success) {
+      alert('Data Role berhasil disimpan!');
+      closeModalRole();
+      loadDataRole(); // Refresh tabel otomatis
+    } else {
+      alert('Gagal: ' + (res ? res.message : 'Error server'));
+    }
+  } catch (error) {
+    alert('Terjadi kesalahan koneksi.');
+  }
+  
+  btn.innerText = '💾 Simpan';
+  btn.disabled = false;
+}
+
+// Untuk edit, ubah tombol edit di loadDataRole() sebelumnya menjadi:
+// onclick="editRole('${role.Role}', '${role.Description}', '${role.IsActive}')"
+function editRole(namaRole, deskripsi, status) {
+  document.getElementById('modal-role-title').innerText = 'Edit Role: ' + namaRole;
+  document.getElementById('role-nama').value = namaRole;
+  document.getElementById('role-nama').readOnly = true; // Kunci nama role agar tidak berubah saat edit
+  document.getElementById('role-deskripsi').value = deskripsi;
+  document.getElementById('role-status').value = status === 'TRUE' || status === true ? 'TRUE' : 'FALSE';
+  
+  document.getElementById('modal-role').style.display = 'flex';
+}
+
+async function hapusRole(namaRole) {
+  if (!confirm(`Anda yakin ingin menghapus role "${namaRole}"?`)) return;
+  
+  try {
+    const res = await fetchAPI('deleteRole', { Role: namaRole });
+    if (res && res.success) {
+      alert('Role berhasil dihapus!');
+      loadDataRole(); // Refresh tabel
+    } else {
+      alert('Gagal menghapus: ' + (res ? res.message : 'Error server'));
+    }
+  } catch (error) {
+    alert('Terjadi kesalahan saat menghapus data.');
+  }
+}
