@@ -839,10 +839,47 @@ function hapusAdmin(username) { alert("Proses hapus: " + username); }
 // ==========================================
 // FUNGSI CRUD ROLE (HAK AKSES)
 // ==========================================
+
+async function loadDataRole() {
+  const tbody = document.getElementById('table-body-role');
+  if (!tbody) return;
+  tbody.innerHTML = `<tr><td colspan="4" style="text-align: center;">⏳ Mengambil data hak akses...</td></tr>`;
+
+  try {
+    const response = await fetchAPI('getRole'); 
+    if (response && response.success) {
+      const data = response.data || [];
+      if (data.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="4" style="text-align: center;">Belum ada data role.</td></tr>`;
+        return;
+      }
+      let html = '';
+      data.forEach(role => {
+        const status = (role.IsActive === 'TRUE' || role.IsActive === true || role.IsActive === 'Yes' || role.IsActive === 'Aktif') ? '✅ Aktif' : role.IsActive || '-';
+        html += `
+          <tr style="border-bottom: 1px solid rgba(255,255,255,0.1);">
+            <td style="padding: 10px; font-weight: bold; color: #1dd1a1;">${role.Role || '-'}</td>
+            <td style="padding: 10px;">${role.Description || '-'}</td>
+            <td style="padding: 10px; text-align: center;">${status}</td>
+            <td style="padding: 10px;">
+              <button onclick="editRole('${role.Role}', '${role.Description}', '${role.IsActive}')" style="background: #f1c40f; border: none; padding: 5px 10px; cursor: pointer; color: #161224; font-weight: bold; border-radius: 4px;">✏️ Edit</button>
+              <button onclick="hapusRole('${role.Role}')" style="background: #e74c3c; color: white; border: none; padding: 5px 10px; cursor: pointer; font-weight: bold; border-radius: 4px;">🗑️ Hapus</button>
+            </td>
+          </tr>
+        `;
+      });
+      tbody.innerHTML = html;
+    } else {
+      tbody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: #ff7675;">❌ Gagal memuat data role.</td></tr>`;
+    }
+  } catch (error) {
+    tbody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: #ff7675;">❌ Terjadi kesalahan koneksi.</td></tr>`;
+  }
+}
+
 function tambahRole() {
   document.getElementById('modal-role-title').innerText = 'Tambah Role Baru';
   document.getElementById('form-role').reset();
-  // Untuk Tambah, form 'Role' boleh diedit
   document.getElementById('role-nama').readOnly = false; 
   document.getElementById('modal-role').style.display = 'flex';
 }
@@ -868,7 +905,7 @@ async function simpanRole(e) {
     if (res && res.success) {
       alert('Data Role berhasil disimpan!');
       closeModalRole();
-      loadDataRole(); // Refresh tabel otomatis
+      loadDataRole(); 
     } else {
       alert('Gagal: ' + (res ? res.message : 'Error server'));
     }
@@ -880,15 +917,12 @@ async function simpanRole(e) {
   btn.disabled = false;
 }
 
-// Untuk edit, ubah tombol edit di loadDataRole() sebelumnya menjadi:
-// onclick="editRole('${role.Role}', '${role.Description}', '${role.IsActive}')"
 function editRole(namaRole, deskripsi, status) {
   document.getElementById('modal-role-title').innerText = 'Edit Role: ' + namaRole;
   document.getElementById('role-nama').value = namaRole;
-  document.getElementById('role-nama').readOnly = true; // Kunci nama role agar tidak berubah saat edit
+  document.getElementById('role-nama').readOnly = true; 
   document.getElementById('role-deskripsi').value = deskripsi;
   document.getElementById('role-status').value = status === 'TRUE' || status === true ? 'TRUE' : 'FALSE';
-  
   document.getElementById('modal-role').style.display = 'flex';
 }
 
@@ -899,7 +933,7 @@ async function hapusRole(namaRole) {
     const res = await fetchAPI('deleteRole', { Role: namaRole });
     if (res && res.success) {
       alert('Role berhasil dihapus!');
-      loadDataRole(); // Refresh tabel
+      loadDataRole(); 
     } else {
       alert('Gagal menghapus: ' + (res ? res.message : 'Error server'));
     }
