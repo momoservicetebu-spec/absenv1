@@ -111,56 +111,62 @@
       </div>
     </div> 
     
-  <!-- TAG DASHBOARD DITUTUP DENGAN BENAR -->
+      <!-- TAG DASHBOARD DITUTUP DENGAN BENAR -->
 
-  <!-- 2. DATA SISWA -->
-  <div id="data-siswa" class="section card">
-    <h2 class="section-title">🎓 Kelola Data Siswa</h2>
-    <p class="section-desc">Daftar seluruh siswa yang terdaftar di dalam sistem.</p>
-    
-    <div class="search-bar">
-      <input type="text" placeholder="Cari Nama, NIS, atau Kelas..." style="max-width: 300px;">
-      <button class="btn-action">Cari</button>
-      <button class="btn-action btn-success" style="margin-left: auto;" onclick="openSiswaModal()">+ Tambah Manual</button>
-    </div>
+      <!-- 2. DATA SISWA -->
+      <div id="data-siswa" class="section card">
+        <h2 class="section-title">🎓 Kelola Data Siswa</h2>
+        <p class="section-desc">Daftar seluruh siswa yang terdaftar di dalam sistem.</p>
+        
+        <div class="search-bar">
+          <input type="text" placeholder="Cari Nama, NIS, atau Kelas..." style="max-width: 300px;">
+          <button class="btn-action">Cari</button>
+          <button class="btn-action btn-success" style="margin-left: auto;" onclick="openSiswaModal()">+ Tambah Manual</button>
+        </div>
 
-    <!-- Gunakan wrapper bawaan Anda agar scrollbar rapi -->
-    <div class="analytics-table-wrap" style="height: auto; max-height: 400px;">
-      <table>
-      <thead>
-        <tr><th>NIS / ID</th><th>NAMA SISWA</th><th>KELAS</th><th>STATUS KREDENSIAL</th><th>AKSI</th></tr>
-      </thead>
-      <tbody id="siswa-table-body">
-        <!-- Data dinamis dari database akan masuk ke sini -->
-      </tbody>
-     </table>
-    </div>
-  </div>
+        <!-- Gunakan wrapper bawaan Anda agar scrollbar rapi -->
+        <div class="analytics-table-wrap" style="height: auto; max-height: 400px;">
+          <table>
+          <thead>
+            <tr><th>NIS / ID</th><th>NAMA SISWA</th><th>KELAS</th><th>STATUS KREDENSIAL</th><th>AKSI</th></tr>
+          </thead>
+          <tbody id="siswa-table-body">
+            <!-- Data dinamis dari database akan masuk ke sini -->
+          </tbody>
+        </table>
+        </div>
+      </div>
 
-  <!-- 3. DATA GURU -->
-  <div id="data-guru" class="section card">
-    <h2 class="section-title">👔 Kelola Data Guru & Staf</h2>
-    <p class="section-desc">Daftar seluruh guru dan staf yang terdaftar di dalam sistem.</p>
-    
-    <div class="search-bar">
-      <input type="text" placeholder="Cari Nama atau NIP..." style="max-width: 300px;">
-      <button class="btn-action">Cari</button>
-      <button class="btn-action btn-success" style="margin-left: auto;" onclick="openGuruModal()">+ Tambah Manual</button>
-    </div>
+      <!-- 3. DATA GURU -->
+      <div id="data-guru" class="section card">
+        <h2 class="section-title">👔 Kelola Data Guru & Staf</h2>
+        <p class="section-desc">Daftar seluruh guru dan staf yang terdaftar di dalam sistem.</p>
+        
+        <div class="search-bar">
+          <input type="text" placeholder="Cari Nama atau NIP..." style="max-width: 300px;">
+          <button class="btn-action">Cari</button>
+          <button class="btn-action btn-success" style="margin-left: auto;" onclick="openGuruModal()">+ Tambah Manual</button>
+        </div>
 
-    <div class="analytics-table-wrap" style="height: auto; max-height: 400px;">
-      <table>
-      <thead>
-        <tr><th>NIP / ID</th><th>NAMA LENGKAP</th><th>JABATAN</th><th>STATUS KREDENSIAL</th><th>AKSI</th></tr>
-      </thead>
-      <tbody id="guru-table-body">
-        <!-- Data dinamis dari database akan masuk ke sini -->
-      </tbody>
-      </table>
-    </div>
-  </div>
+        <div class="analytics-table-wrap" style="height: auto; max-height: 400px;">
+          <table>
+          <thead>
+            <tr><th>NIP / ID</th><th>NAMA LENGKAP</th><th>JABATAN</th><th>STATUS KREDENSIAL</th><th>AKSI</th></tr>
+          </thead>
+          <tbody id="guru-table-body">
+            <!-- Data dinamis dari database akan masuk ke sini -->
+          </tbody>
+          </table>
+        </div>
+       </div>
 
-  <!-- 4. IMPORT DATA (CSV) -->
+        <!-- OVERLAY LOADING ANIMASI -->
+      <div id="loadingOverlay" class="loading-overlay hidden">
+        <div class="spinner"></div>
+        <p id="loadingText">Memproses data...</p>
+      </div>
+
+      <!-- 4. IMPORT DATA (CSV) -->
       <div id="import" class="section card">
         <h2 class="section-title">📁 Import Data Pengguna (CSV)</h2>
         <p class="section-desc">Unggah file .csv untuk memasukkan banyak data sekaligus ke database.</p>
@@ -459,7 +465,6 @@
         <div class="form-group">
           <label>Password (Isi untuk mereset)</label>
           <input type="password" id="guru_Password" placeholder="Biarkan kosong jika tidak diubah">
-        </div>
         </div>
 
       <div class="modal-footer">

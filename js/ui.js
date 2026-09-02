@@ -98,28 +98,30 @@ function downloadTemplate(type) {
     csvContent = 
       "# ==========================================================================\n" +
       "# ATURAN PENGISIAN TEMPLATE DATA GURU (BISA LANGSUNG DIISI DI BAWAH)\n" +
-      "# 1. JANGAN MENGUBAH / MENGHAPUS NAMA HEADER PADA BARIS KE-9.\n" +
+      "# 1. JANGAN MENGUBAH / MENGHAPUS NAMA HEADER PADA BARIS KE-10.\n" +
       "# 2. Format Tanggal (TglLahir & TglMasuk): YYYY-MM-DD (Contoh: 1990-05-20).\n" +
       "# 3. Jenis Kelamin (JK): 'L' (Laki-Laki) atau 'P' (Perempuan).\n" +
       "# 4. Status: 'Aktif', 'Cuti', atau 'Non-Aktif'.\n" +
       "# 5. Role_Sistem: 'Admin', 'Kepsek', atau 'Guru'.\n" +
       "# 6. Face_Registered: 'TRUE' atau 'FALSE'.\n" +
+      "# 7. Username & Password: Isi untuk akses login aplikasi (Contoh: pass123).\n" +
       "# ==========================================================================\n" +
-      "GuruID;NIP;Nama;JK;TmpLahir;TglLahir;HPWA;Email;Alamat;Jabatan;Status;NFC_UID;QR_Token;BarcodeID;FingerprintID;FotoURL;TglMasuk;Role_Sistem;Face_Registered\n" +
-      "GURU-001;199001012015011001;Ahmad Dahlan M.Pd;L;Jakarta;1990-01-01;081234567890;ahmad@sekolah.sch.id;Jl. Merdeka No. 123;Guru Matematika;Aktif;UID991;QR-GURU-001;BC-GURU-001;F-01;https://link-foto.com/guru.jpg;2015-01-10;Guru;FALSE\n";
+      "GuruID;NIP;Nama;JK;TmpLahir;TglLahir;HPWA;Email;Alamat;Jabatan;Status;NFC_UID;QR_Token;BarcodeID;FingerprintID;FotoURL;TglMasuk;Role_Sistem;Face_Registered;Username;Password\n" +
+      "GURU-001;199001012015011001;Ahmad Dahlan M.Pd;L;Jakarta;1990-01-01;081234567890;ahmad@sekolah.sch.id;Jl. Merdeka No. 123;Guru Matematika;Aktif;UID991;QR-GURU-001;BC-GURU-001;F-01;https://link-foto.com/guru.jpg;2015-01-10;Guru;FALSE;guru_ahmad;pass123\n";
     fileName = "Template_Import_Guru.csv";
   } else {
     csvContent = 
       "# ==========================================================================\n" +
       "# ATURAN PENGISIAN TEMPLATE DATA SISWA (BISA LANGSUNG DIISI DI BAWAH)\n" +
-      "# 1. JANGAN MENGUBAH / MENGHAPUS NAMA HEADER PADA BARIS KE-8.\n" +
+      "# 1. JANGAN MENGUBAH / MENGHAPUS NAMA HEADER PADA BARIS KE-9.\n" +
       "# 2. Format Tanggal (TglLahir): YYYY-MM-DD (Contoh: 2007-11-15).\n" +
       "# 3. Jenis Kelamin (JK): 'L' (Laki-Laki) atau 'P' (Perempuan).\n" +
       "# 4. Angkatan: Tahun masuk 4 digit (Contoh: 2024).\n" +
       "# 5. Status: 'Aktif', 'Mutasi', atau 'Lulus'.\n" +
+      "# 6. Username & Password: Isi untuk akses login aplikasi (Contoh: pass123).\n" +
       "# ==========================================================================\n" +
-      "SiswaID;NIS;NISN;Nama;JK;TmpLahir;TglLahir;HPWA;NamaOrtu;WA_Ortu;KelasID;JurusanID;Angkatan;Status;NFC_UID;QR_Token;BarcodeID;FingerprintID;FotoURL\n" +
-      "SISWA-001;23001;0050012345;Alfa Romeo Prasetya;L;Jakarta;2007-01-01;082100001111;Budi Prasetya;083100002222;X-A;RPL;2023;Aktif;UID001;QR-SISWA-001;BC-SISWA-001;F-11;https://link-foto.com/siswa.jpg\n";
+      "SiswaID;NIS;NISN;Nama;JK;TmpLahir;TglLahir;HPWA;NamaOrtu;WA_Ortu;KelasID;JurusanID;Angkatan;Status;NFC_UID;QR_Token;BarcodeID;FingerprintID;FotoURL;Face_Registered;Username;Password\n" +
+      "SISWA-001;23001;0050012345;Alfa Romeo Prasetya;L;Jakarta;2007-01-01;082100001111;Budi Prasetya;083100002222;X-A;RPL;2023;Aktif;UID001;QR-SISWA-001;BC-SISWA-001;F-11;https://link-foto.com/siswa.jpg;FALSE;siswa_alfa;pass123\n";
     fileName = "Template_Import_Siswa.csv";
   }
 
@@ -1029,5 +1031,26 @@ async function hapusRole(namaRole) {
     }
   } catch (error) {
     alert('Terjadi kesalahan saat menghapus data.');
+  }
+}
+
+// ==========================================
+// KONTROL LOADING OVERLAY (UI)
+// ==========================================
+
+function showLoading(pesan = "Memproses data...") {
+  const overlay = document.getElementById('loadingOverlay');
+  const text = document.getElementById('loadingText');
+  
+  if (overlay && text) {
+    text.innerText = pesan;
+    overlay.classList.remove('hidden');
+  }
+}
+
+function hideLoading() {
+  const overlay = document.getElementById('loadingOverlay');
+  if (overlay) {
+    overlay.classList.add('hidden');
   }
 }
