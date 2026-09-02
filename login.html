@@ -341,6 +341,7 @@
   </div>
 
   <!-- Script Asli Tidak Ada yang Berubah Logic-nya -->
+  <!-- Script Login Terupdate -->
   <script>
     const GAS_URL = "https://script.google.com/macros/s/AKfycbxx3BLAOh7RZwF2vvukhDPhytbAPXfMP3H_RAJNeWgxLe2LNcCzojm-6HQ1kktPQMTQ/exec";
 
@@ -372,8 +373,17 @@
           btn.style.backgroundColor = "#3b2667";
           btn.innerText = "Halo, " + result.name + "!";
           
+          // 1. Simpan Sesi Login ke Browser Storage
+          const userRole = result.role ? result.role.toLowerCase() : '';
+          localStorage.setItem('user_session', JSON.stringify({
+            isLoggedIn: true,
+            role: userRole,
+            name: result.name || user
+          }));
+
+          // 2. Pengalihan Halaman Sesuai Hak Akses
           setTimeout(function() {
-            if (result.role === "admin") {
+            if (userRole === "admin" || userRole === "superadmin") {
               window.location.href = "dashboard-admin.html";
             } else {
               alert("Login Sukses! Anda masuk sebagai: " + result.role + ". Halaman ini belum dibuat.");

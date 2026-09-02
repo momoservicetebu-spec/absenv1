@@ -1,6 +1,19 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
+  <!-- Pengecekan Keamanan Sesi -->
+  <script>
+    (function () {
+      const sessionData = localStorage.getItem('user_session');
+      const session = sessionData ? JSON.parse(sessionData) : null;
+
+      if (!session || !session.isLoggedIn || (session.role !== 'admin' && session.role !== 'superadmin')) {
+        alert("Akses ditolak! Anda harus login terlebih dahulu.");
+        window.location.href = "login.html";
+      }
+    })();
+  </script>
+  
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Dashboard Admin - SIS Absensi</title>
