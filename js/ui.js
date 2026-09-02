@@ -301,7 +301,7 @@ function handleFileSelect(event) {
   reader.readAsText(file);
 }
 
-// ==========================================
+/// ==========================================
 // FUNGSI KONTROL MODAL (TAMBAH & EDIT)
 // ==========================================
 
@@ -333,9 +333,15 @@ function openGuruModal(data = null) {
     document.getElementById('guru_Status').value = data.Status || 'Aktif';
     document.getElementById('guru_TglMasuk').value = data.TglMasuk || '';
     document.getElementById('guru_Role_Sistem').value = data.Role_Sistem || 'Guru';
+    
+    // Set field kredensial (Password selalu dikosongkan saat edit)
+    document.getElementById('guru_Username').value = data.Username || data.NIP || '';
+    document.getElementById('guru_Password').value = ''; 
   } else {
     document.getElementById('modalGuruTitle').innerText = '👔 Tambah Data Guru Manual';
     document.getElementById('guru_GuruID').value = 'AUTO';
+    document.getElementById('guru_Username').value = '';
+    document.getElementById('guru_Password').value = '';
   }
 
   openModal('modalGuru');
@@ -362,9 +368,15 @@ function openSiswaModal(data = null) {
     document.getElementById('siswa_JurusanID').value = data.JurusanID || '';
     document.getElementById('siswa_Angkatan').value = data.Angkatan || '';
     document.getElementById('siswa_Status').value = data.Status || 'Aktif';
+
+    // Set field kredensial
+    document.getElementById('siswa_Username').value = data.Username || data.NIS || '';
+    document.getElementById('siswa_Password').value = ''; 
   } else {
     document.getElementById('modalSiswaTitle').innerText = '🎓 Tambah Data Siswa Manual';
     document.getElementById('siswa_SiswaID').value = 'AUTO';
+    document.getElementById('siswa_Username').value = '';
+    document.getElementById('siswa_Password').value = '';
   }
 
   openModal('modalSiswa');
@@ -386,13 +398,17 @@ async function handleGuruSubmit(e) {
     Jabatan: document.getElementById('guru_Jabatan').value,
     Status: document.getElementById('guru_Status').value,
     TglMasuk: document.getElementById('guru_TglMasuk').value,
-    Role_Sistem: document.getElementById('guru_Role_Sistem').value
+    Role_Sistem: document.getElementById('guru_Role_Sistem').value,
+    // Menambahkan field kredensial
+    Username: document.getElementById('guru_Username').value,
+    Password: document.getElementById('guru_Password').value 
   };
 
   const res = await fetchAPI('saveGuru', payload);
   if (res.success) {
     alert('✅ Data Guru Berhasil Disimpan!');
     closeModal('modalGuru');
+    loadAllData(); // Pastikan tabel otomatis refresh
   } else {
     alert('❌ Gagal Menyimpan: ' + res.message);
   }
@@ -415,13 +431,17 @@ async function handleSiswaSubmit(e) {
     KelasID: document.getElementById('siswa_KelasID').value,
     JurusanID: document.getElementById('siswa_JurusanID').value,
     Angkatan: document.getElementById('siswa_Angkatan').value,
-    Status: document.getElementById('siswa_Status').value
+    Status: document.getElementById('siswa_Status').value,
+    // Menambahkan field kredensial
+    Username: document.getElementById('siswa_Username').value,
+    Password: document.getElementById('siswa_Password').value
   };
 
   const res = await fetchAPI('saveSiswa', payload);
   if (res.success) {
     alert('✅ Data Siswa Berhasil Disimpan!');
     closeModal('modalSiswa');
+    loadAllData(); // Pastikan tabel otomatis refresh
   } else {
     alert('❌ Gagal Menyimpan: ' + res.message);
   }
