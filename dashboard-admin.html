@@ -15,6 +15,15 @@
 
 <body>
 
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="loading-overlay hidden">
+      <div class="spinner"></div>
+      <div id="loadingText">Memuat Data...</div>
+    </div>
+
+    <!-- Tombol Contoh untuk Menguji (Opsional) -->
+    <button onclick="simulasiLoading()">Tampilkan Loading</button>
+
   <!-- SIDEBAR NAVIGASI -->
   <div class="sidebar">
     <h2>⚙️ Admin Panel</h2>
@@ -159,12 +168,6 @@
           </table>
         </div>
        </div>
-
-        <!-- OVERLAY LOADING ANIMASI -->
-      <div id="loadingOverlay" class="loading-overlay hidden">
-        <div class="spinner"></div>
-        <p id="loadingText">Memproses data...</p>
-      </div>
 
       <!-- 4. IMPORT DATA (CSV) -->
       <div id="import" class="section card">
