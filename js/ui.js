@@ -816,7 +816,7 @@ async function loadDataAdmin() {
             <td style="padding: 10px;">${admin.Role || '-'}</td>
             <td style="padding: 10px;">${admin.Status || 'Active'}</td>
             <td style="padding: 10px;">
-              <button onclick="editAdmin('${admin.Username}')" style="background: #f1c40f; border: none; padding: 5px 10px; cursor: pointer; color: #161224; font-weight: bold; border-radius: 4px;">✏️ Edit</button>
+              <button onclick="editAdmin('${admin.Username}', '${admin.Name}', '${admin.Role}', '${admin.Status}')" style="background: #f1c40f; border: none; padding: 5px 10px; cursor: pointer; color: #161224; font-weight: bold; border-radius: 4px;">✏️ Edit</button>
               <button onclick="hapusAdmin('${admin.Username}')" style="background: #e74c3c; color: white; border: none; padding: 5px 10px; cursor: pointer; font-weight: bold; border-radius: 4px;">🗑️ Hapus</button>
             </td>
           </tr>
@@ -831,10 +831,80 @@ async function loadDataAdmin() {
   }
 }
 
-// (Fungsi pop-up admin sementara)
-function tambahAdmin() { alert("Menampilkan Form Tambah Admin..."); }
-function editAdmin(username) { alert("Membuka edit untuk: " + username); }
-function hapusAdmin(username) { alert("Proses hapus: " + username); }
+function tambahAdmin() {
+  document.getElementById('modal-admin-title').innerText = 'Tambah Admin Baru';
+  document.getElementById('form-admin').reset();
+  document.getElementById('admin-username').readOnly = false; 
+  document.getElementById('modal-admin').style.display = 'flex';
+}
+
+function closeModalAdmin() {
+  document.getElementById('modal-admin').style.display = 'none';
+}
+
+async function simpanAdmin(e) {
+  e.preventDefault();
+  const btn = document.getElementById('btn-simpan-admin');
+  btn.innerText = 'Menyimpan...';
+  btn.disabled = true;
+
+  // Sesuai dengan DB.save('Users', e, 'UserID') di backend
+  const data = {
+    UserID: document.getElementById('admin-username').value, 
+    Username: document.getElementById('admin-username').value,
+    Name: document.getElementById('admin-nama').value,
+    Role: document.getElementById('admin-role').value,
+    Status: document.getElementById('admin-status').value
+  };
+
+  const pwd = document.getElementById('admin-password').value;
+  if (pwd) data.Password = pwd; // Kirim password hanya jika diisi
+
+  try {
+    const res = await fetchAPI('saveAdmin', data);
+    if (res && res.success) {
+      alert('Data Admin berhasil disimpan!');
+      closeModalAdmin();
+      loadDataAdmin(); // Refresh tabel
+    } else {
+      alert('Gagal: ' + (res ? res.message : 'Error server'));
+    }
+  } catch (error) {
+    alert('Terjadi kesalahan koneksi.');
+  }
+  
+  btn.innerText = '💾 Simpan';
+  btn.disabled = false;
+}
+
+function editAdmin(username, nama, role, status) {
+  document.getElementById('modal-admin-title').innerText = 'Edit Admin: ' + username;
+  document.getElementById('admin-username').value = username;
+  document.getElementById('admin-username').readOnly = true; // Username tidak boleh diubah
+  document.getElementById('admin-nama').value = nama;
+  document.getElementById('admin-role').value = role;
+  document.getElementById('admin-status').value = status;
+  document.getElementById('admin-password').value = ''; // Kosong agar password lama tidak tertimpa kecuali diisi
+  
+  document.getElementById('modal-admin').style.display = 'flex';
+}
+
+async function hapusAdmin(username) {
+  if (!confirm(`Anda yakin ingin menghapus admin "${username}"?`)) return;
+  
+  try {
+    // Sesuai dengan DB.delete('Users', e, 'UserID') di backend
+    const res = await fetchAPI('deleteAdmin', { UserID: username }); 
+    if (res && res.success) {
+      alert('Admin berhasil dihapus!');
+      loadDataAdmin(); 
+    } else {
+      alert('Gagal menghapus: ' + (res ? res.message : 'Error server'));
+    }
+  } catch (error) {
+    alert('Terjadi kesalahan saat menghapus data.');
+  }
+}
 
 // ==========================================
 // FUNGSI CRUD ROLE (HAK AKSES)
