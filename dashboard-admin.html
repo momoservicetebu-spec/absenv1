@@ -72,9 +72,8 @@
     <button class="nav-btn" onclick="switchTab('whatsapp-settings', this)">💬 Notifikasi WhatsApp</button>
     <button class="nav-btn" onclick="switchTab('geofencing', this)">📍 Lokasi & Geofencing</button>
     
-    <button class="logout-btn" onclick="window.location.href='login.html'">🚪 Keluar Sistem</button>
-  </div>
-
+    <button class="logout-btn" onclick="localStorage.removeItem('user_session'); window.location.href='login.html';">🚪 Keluar Sistem</button>
+    
   <!-- AREA KONTEN UTAMA -->
   <div class="main-content">
     
