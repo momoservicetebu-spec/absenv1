@@ -795,27 +795,24 @@ function resetCsvUpload() {
 // FUNGSI LOAD DATA ADMIN & ROLE
 // ==========================================
 
-async function loadDataAdmin() {
-  const tbody = document.getElementById('table-body-admin');
-  tbody.innerHTML = `<tr><td colspan="5" style="text-align: center;">⏳ Mengambil data admin...</td></tr>`;
+async function loadDataRole() {
+  const tbody = document.getElementById('table-body-role');
+  if (!tbody) return;
+
+  tbody.innerHTML = `<tr><td colspan="4" style="text-align: center;">⏳ Mengambil data hak akses...</td></tr>`;
 
   try {
-    const response = await fetchAPI('getAdmin'); 
-    
-    // PERBAIKAN: Gunakan response.success (menyesuaikan format responseJSON Apps Script)
+    const response = await fetchAPI('getRole'); 
     if (response && response.success) {
       const data = response.data || [];
-      
       if (data.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="5" style="text-align: center;">Belum ada admin terdaftar di database.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="4" style="text-align: center;">Belum ada data role di database.</td></tr>`;
         return;
       }
 
       let html = '';
       data.forEach(role => {
-        // Deteksi status aktif
         const status = (role.IsActive === 'TRUE' || role.IsActive === true || role.IsActive === 'Yes' || role.IsActive === 'Aktif') ? '✅ Aktif' : role.IsActive || '-';
-
         html += `
           <tr style="border-bottom: 1px solid rgba(255,255,255,0.1);">
             <td style="padding: 10px; font-weight: bold; color: #1dd1a1;">${role.Role || '-'}</td>
@@ -830,13 +827,12 @@ async function loadDataAdmin() {
       });
       tbody.innerHTML = html;
     } else {
-      // Menampilkan pesan error asli dari backend jika ada
       const errMsg = response ? response.message : 'Respons server tidak dikenali';
-      tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: #ff7675;">❌ Gagal memuat data: ${errMsg}</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: #ff7675;">❌ Gagal memuat data: ${errMsg}</td></tr>`;
     }
   } catch (error) {
-    console.error("Error load admin:", error);
-    tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: #ff7675;">❌ Terjadi kesalahan koneksi ke database.</td></tr>`;
+    console.error("Error load role:", error);
+    tbody.innerHTML = `<tr><td colspan="4" style="text-align: center; color: #ff7675;">❌ Terjadi kesalahan koneksi.</td></tr>`;
   }
 }
 
