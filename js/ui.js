@@ -799,10 +799,12 @@ async function loadDataAdmin() {
   try {
     const response = await fetchAPI('getAdmin'); 
     
-    if (response && response.status === 'success') {
+    // PERBAIKAN: Gunakan response.success (menyesuaikan format responseJSON Apps Script)
+    if (response && response.success) {
       const data = response.data || [];
+      
       if (data.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="5" style="text-align: center;">Belum ada admin terdaftar.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="5" style="text-align: center;">Belum ada admin terdaftar di database.</td></tr>`;
         return;
       }
 
@@ -815,26 +817,27 @@ async function loadDataAdmin() {
             <td style="padding: 10px;">${admin.Role || 'Operator'}</td>
             <td style="padding: 10px;">${admin.Status || 'Aktif'}</td>
             <td style="padding: 10px;">
-              <button onclick="editAdmin('${admin.Username}')" style="background: #f1c40f; border: none; padding: 5px 10px; cursor: pointer;">✏️ Edit</button>
-              <button onclick="hapusAdmin('${admin.Username}')" style="background: #e74c3c; color: white; border: none; padding: 5px 10px; cursor: pointer;">🗑️ Hapus</button>
+              <button onclick="editAdmin('${admin.Username}')" style="background: #f1c40f; border: none; padding: 5px 10px; cursor: pointer; color: #161224; font-weight: bold; border-radius: 4px;">✏️ Edit</button>
+              <button onclick="hapusAdmin('${admin.Username}')" style="background: #e74c3c; color: white; border: none; padding: 5px 10px; cursor: pointer; font-weight: bold; border-radius: 4px;">🗑️ Hapus</button>
             </td>
           </tr>
         `;
       });
       tbody.innerHTML = html;
     } else {
-      tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: red;">❌ Gagal memuat data admin.</td></tr>`;
+      // Menampilkan pesan error asli dari backend jika ada
+      const errMsg = response ? response.message : 'Respons server tidak dikenali';
+      tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: #ff7675;">❌ Gagal memuat data: ${errMsg}</td></tr>`;
     }
   } catch (error) {
     console.error("Error load admin:", error);
-    tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: red;">❌ Terjadi kesalahan koneksi.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: #ff7675;">❌ Terjadi kesalahan koneksi ke database.</td></tr>`;
   }
 }
 
 // Simulasi Fungsi CRUD (Tambah, Edit, Hapus)
 function tambahAdmin() {
   alert("Menampilkan Modal / Form Tambah Admin Baru...");
-  // Logika memunculkan pop-up form bisa diletakkan di sini
 }
 
 function editAdmin(username) {
@@ -844,7 +847,6 @@ function editAdmin(username) {
 function hapusAdmin(username) {
   if(confirm("Apakah Anda yakin ingin menghapus admin " + username + "?")) {
     alert("Proses hapus ke database untuk " + username + " berjalan...");
-    // Panggil fetchAPI('deleteAdmin', { username: username })
   }
 }
 
