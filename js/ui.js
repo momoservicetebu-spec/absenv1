@@ -28,12 +28,15 @@ function switchTab(tabId, btnElement) {
   }
 
   // 2. Trigger Load Data Database (Kode Baru)
+  // TRIGGER LOAD DATA DATABASE
   if (tabId === 'data-siswa') {
     if (typeof loadDataSiswa === 'function') loadDataSiswa();
   } else if (tabId === 'data-guru') {
     if (typeof loadDataGuru === 'function') loadDataGuru();
   } else if (tabId === 'admin-operator') {
     if (typeof loadDataAdmin === 'function') loadDataAdmin();
+  } else if (tabId === 'hak-akses') {
+    if (typeof loadDataRole === 'function') loadDataRole(); // <-- Tambahkan baris ini
   }
 }
 
@@ -853,3 +856,4 @@ function hapusAdmin(username) {
 function tambahRole() {
   alert("Menampilkan Modal / Form Tambah Role Baru...");
 }
+
