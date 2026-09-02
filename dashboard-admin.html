@@ -1,27 +1,23 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
+  <!-- Pengecekan Keamanan Sesi -->
+  <script>
+    (function () {
+      const sessionData = localStorage.getItem('user_session');
+      const session = sessionData ? JSON.parse(sessionData) : null;
+
+      if (!session || !session.isLoggedIn || (session.role !== 'admin' && session.role !== 'superadmin')) {
+        alert("Akses ditolak! Anda harus login terlebih dahulu.");
+        window.location.href = "login.html";
+      }
+    })();
+  </script>
+  
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Dashboard Admin - SIS Absensi</title>
   
-  <!-- SKRIP PROTEKSI UTAMA -->
-  <script>
-    (function() {
-      const sessionData = localStorage.getItem('user_session');
-      let session = null;
-      try {
-        session = sessionData ? JSON.parse(sessionData) : null;
-      } catch (e) {
-        session = null;
-      }
-      if (!session || !session.isLoggedIn || (session.role !== 'admin' && session.role !== 'superadmin')) {
-        localStorage.removeItem('user_session');
-        window.location.replace("login.html");
-      }
-    })();
-  </script>
-
   <!-- CDN CHART.JS & FACE-API -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
@@ -35,38 +31,36 @@
     <div id="loadingText">Memuat Data...</div>
   </div>
 
-  <!-- BUNGKUS KESELURUHAN UNTUK LAYOUT FLEXBOX -->
-  <div class="dashboard-container">
+  <!-- SIDEBAR NAVIGASI -->
+  <div class="sidebar">
+    <h2>⚙️ Admin Panel</h2>
+    <button class="nav-btn active" onclick="switchTab('dashboard', this)">🏠 Dashboard Utama</button>
+    
+    <div class="menu-group">Manajemen Data</div>
+    <button class="nav-btn" onclick="switchTab('data-siswa', this)">🎓 Data Siswa</button>
+    <button class="nav-btn" onclick="switchTab('data-guru', this)">👔 Data Guru</button>
+    <button class="nav-btn" onclick="switchTab('import', this)">📁 Import Data (CSV)</button>
+    
+    <div class="menu-group">Pendaftaran Kredensial</div>
+    <button class="nav-btn" onclick="switchTab('enrollment', this)">📸 Daftar Wajah (AI)</button>
+    <button class="nav-btn" onclick="switchTab('fingerprint', this)">👆 Daftar Fingerprint</button>
+    <button class="nav-btn" onclick="switchTab('rfid', this)">💳 Daftar RFID / NFC</button>
+    <button class="nav-btn" onclick="switchTab('barcode', this)">🎫 Buat Barcode / QR</button>
+    
+    <!-- TAMBAHAN MANAJEMEN USER -->
+    <div class="menu-group">Manajemen User</div>
+    <button class="nav-btn" onclick="switchTab('admin-operator', this)">🛡️ Admin & Operator</button>
+    <button class="nav-btn" onclick="switchTab('hak-akses', this)">🔐 Hak Akses (Role)</button>
 
-    <!-- 1. SIDEBAR NAVIGASI -->
-    <div class="sidebar">
-      <h2>⚙️ Admin Panel</h2>
-      <button class="nav-btn active" onclick="switchTab('dashboard', this)">🏠 Dashboard Utama</button>
-      
-      <div class="menu-group">Manajemen Data</div>
-      <button class="nav-btn" onclick="switchTab('data-siswa', this)">🎓 Data Siswa</button>
-      <button class="nav-btn" onclick="switchTab('data-guru', this)">👔 Data Guru</button>
-      <button class="nav-btn" onclick="switchTab('import', this)">📁 Import Data (CSV)</button>
-      
-      <div class="menu-group">Pendaftaran Kredensial</div>
-      <button class="nav-btn" onclick="switchTab('enrollment', this)">📸 Daftar Wajah (AI)</button>
-      <button class="nav-btn" onclick="switchTab('fingerprint', this)">👆 Daftar Fingerprint</button>
-      <button class="nav-btn" onclick="switchTab('rfid', this)">💳 Daftar RFID / NFC</button>
-      <button class="nav-btn" onclick="switchTab('barcode', this)">🎫 Buat Barcode / QR</button>
-      
-      <div class="menu-group">Manajemen User</div>
-      <button class="nav-btn" onclick="switchTab('admin-operator', this)">🛡️ Admin & Operator</button>
-      <button class="nav-btn" onclick="switchTab('hak-akses', this)">🔐 Hak Akses (Role)</button>
-
-      <div class="menu-group">Sistem & Laporan</div>
-      <button class="nav-btn" onclick="switchTab('laporan', this)">📊 Laporan Absensi</button>
-      <button class="nav-btn" onclick="switchTab('setting', this)">🛠️ Pengaturan (Setting)</button>
-      <button class="nav-btn" onclick="switchTab('backup', this)">💾 Backup & Restore</button>
-      <button class="nav-btn" onclick="switchTab('whatsapp-settings', this)">💬 Notifikasi WhatsApp</button>
-      <button class="nav-btn" onclick="switchTab('geofencing', this)">📍 Lokasi & Geofencing</button>
-      
-      <button class="logout-btn" onclick="localStorage.removeItem('user_session'); window.location.href='login.html';">🚪 Keluar Sistem</button>
-    </div> <!-- ✅ TAG PENUTUP SIDEBAR YANG SEBELUMNYA HILANG -->
+    <div class="menu-group">Sistem & Laporan</div>
+    <button class="nav-btn" onclick="switchTab('laporan', this)">📊 Laporan Absensi</button>
+    <button class="nav-btn" onclick="switchTab('setting', this)">🛠️ Pengaturan (Setting)</button>
+    <button class="nav-btn" onclick="switchTab('backup', this)">💾 Backup & Restore</button>
+    <button class="nav-btn" onclick="switchTab('whatsapp-settings', this)">💬 Notifikasi WhatsApp</button>
+    <button class="nav-btn" onclick="switchTab('geofencing', this)">📍 Lokasi & Geofencing</button>
+    
+    <button class="logout-btn" onclick="window.location.href='login.html'">🚪 Keluar Sistem</button>
+  </div>
 
   <!-- AREA KONTEN UTAMA -->
   <div class="main-content">
