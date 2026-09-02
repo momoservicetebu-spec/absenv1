@@ -10,7 +10,6 @@
   <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
   <link rel="stylesheet" href="./css/admin.css">
   <link rel="icon" href="data:,">
-
 </head>
 
 <body>
@@ -110,23 +109,20 @@
         </div>
       </div>
     </div> 
-    
-      <!-- TAG DASHBOARD DITUTUP DENGAN BENAR -->
 
-      <!-- 2. DATA SISWA -->
-      <div id="data-siswa" class="section card">
-        <h2 class="section-title">🎓 Kelola Data Siswa</h2>
-        <p class="section-desc">Daftar seluruh siswa yang terdaftar di dalam sistem.</p>
-        
-        <div class="search-bar">
-          <input type="text" placeholder="Cari Nama, NIS, atau Kelas..." style="max-width: 300px;">
-          <button class="btn-action">Cari</button>
-          <button class="btn-action btn-success" style="margin-left: auto;" onclick="openSiswaModal()">+ Tambah Manual</button>
-        </div>
+    <!-- 2. DATA SISWA -->
+    <div id="data-siswa" class="section card">
+      <h2 class="section-title">🎓 Kelola Data Siswa</h2>
+      <p class="section-desc">Daftar seluruh siswa yang terdaftar di dalam sistem.</p>
+      
+      <div class="search-bar">
+        <input type="text" placeholder="Cari Nama, NIS, atau Kelas..." style="max-width: 300px;">
+        <button class="btn-action">Cari</button>
+        <button class="btn-action btn-success" style="margin-left: auto;" onclick="openSiswaModal()">+ Tambah Manual</button>
+      </div>
 
-        <!-- Gunakan wrapper bawaan Anda agar scrollbar rapi -->
-        <div class="analytics-table-wrap" style="height: auto; max-height: 400px;">
-          <table>
+      <div class="analytics-table-wrap" style="height: auto; max-height: 400px;">
+        <table>
           <thead>
             <tr><th>NIS / ID</th><th>NAMA SISWA</th><th>KELAS</th><th>STATUS KREDENSIAL</th><th>AKSI</th></tr>
           </thead>
@@ -134,74 +130,71 @@
             <!-- Data dinamis dari database akan masuk ke sini -->
           </tbody>
         </table>
-        </div>
+      </div>
+    </div>
+
+    <!-- 3. DATA GURU -->
+    <div id="data-guru" class="section card">
+      <h2 class="section-title">👔 Kelola Data Guru & Staf</h2>
+      <p class="section-desc">Daftar seluruh guru dan staf yang terdaftar di dalam sistem.</p>
+      
+      <div class="search-bar">
+        <input type="text" placeholder="Cari Nama atau NIP..." style="max-width: 300px;">
+        <button class="btn-action">Cari</button>
+        <button class="btn-action btn-success" style="margin-left: auto;" onclick="openGuruModal()">+ Tambah Manual</button>
       </div>
 
-      <!-- 3. DATA GURU -->
-      <div id="data-guru" class="section card">
-        <h2 class="section-title">👔 Kelola Data Guru & Staf</h2>
-        <p class="section-desc">Daftar seluruh guru dan staf yang terdaftar di dalam sistem.</p>
-        
-        <div class="search-bar">
-          <input type="text" placeholder="Cari Nama atau NIP..." style="max-width: 300px;">
-          <button class="btn-action">Cari</button>
-          <button class="btn-action btn-success" style="margin-left: auto;" onclick="openGuruModal()">+ Tambah Manual</button>
-        </div>
-
-        <div class="analytics-table-wrap" style="height: auto; max-height: 400px;">
-          <table>
+      <div class="analytics-table-wrap" style="height: auto; max-height: 400px;">
+        <table>
           <thead>
             <tr><th>NIP / ID</th><th>NAMA LENGKAP</th><th>JABATAN</th><th>STATUS KREDENSIAL</th><th>AKSI</th></tr>
           </thead>
           <tbody id="guru-table-body">
             <!-- Data dinamis dari database akan masuk ke sini -->
           </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- 4. IMPORT DATA (CSV) -->
+    <div id="import" class="section card">
+      <h2 class="section-title">📁 Import Data Pengguna (CSV)</h2>
+      <p class="section-desc">Unggah file .csv untuk memasukkan banyak data sekaligus ke database.</p>
+      
+      <div style="display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap;">
+        <button class="btn-action" onclick="downloadTemplate('siswa')" style="background-color: #161224; border: 1px solid #6c5ce7; color: #a29bfe;">
+          📥 Unduh Template CSV Siswa
+        </button>
+        <button class="btn-action" onclick="downloadTemplate('guru')" style="background-color: #161224; border: 1px solid #6c5ce7; color: #a29bfe;">
+          📥 Unduh Template CSV Guru
+        </button>
+      </div>
+
+      <div id="dropzone" class="dropzone-box" onclick="document.getElementById('csvFileInput').click()">
+        <div style="font-size: 40px; margin-bottom: 8px; color: #6c5ce7;">📤</div>
+        <div style="font-size: 14px; font-weight: bold; color: #fff;">Tarik & Lepas file CSV di sini, atau Klik untuk mencari file</div>
+        <div style="font-size: 12px; color: #a29bfe; margin-top: 6px;">Format yang didukung: .csv (Maksimal 5MB)</div>
+        <input type="file" id="csvFileInput" accept=".csv" style="display: none;" onchange="handleFileSelect(event)">
+      </div>
+
+      <div id="csvPreviewContainer" style="display: none; margin-top: 25px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+          <h4 style="margin: 0; color: #1dd1a1; font-size: 14px;">📋 Pratinjau Data CSV (<span id="rowCount">0</span> Baris Ditemukan)</h4>
+          <button class="btn-action btn-small badge-danger" onclick="resetCsvUpload()" style="border: none;">Batal / Hapus File</button>
+        </div>
+
+        <div class="analytics-table-wrap" style="height: auto; max-height: 300px;">
+          <table id="csvPreviewTable">
+            <thead id="csvPreviewHead"></thead>
+            <tbody id="csvPreviewBody"></tbody>
           </table>
         </div>
-       </div>
 
-      <!-- 4. IMPORT DATA (CSV) -->
-      <div id="import" class="section card">
-        <h2 class="section-title">📁 Import Data Pengguna (CSV)</h2>
-        <p class="section-desc">Unggah file .csv untuk memasukkan banyak data sekaligus ke database.</p>
-        
-        <!-- 1. TOMBOL BANTUAN / TEMPLATE CSV -->
-        <div style="display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap;">
-          <button class="btn-action" onclick="downloadTemplate('siswa')" style="background-color: #161224; border: 1px solid #6c5ce7; color: #a29bfe;">
-            📥 Unduh Template CSV Siswa
-          </button>
-          <button class="btn-action" onclick="downloadTemplate('guru')" style="background-color: #161224; border: 1px solid #6c5ce7; color: #a29bfe;">
-            📥 Unduh Template CSV Guru
-          </button>
-        </div>
-
-        <!-- 2. AREA UPLOAD / DROPZONE -->
-        <div id="dropzone" class="dropzone-box" onclick="document.getElementById('csvFileInput').click()">
-          <div style="font-size: 40px; margin-bottom: 8px; color: #6c5ce7;">📤</div>
-          <div style="font-size: 14px; font-weight: bold; color: #fff;">Tarik & Lepas file CSV di sini, atau Klik untuk mencari file</div>
-          <div style="font-size: 12px; color: #a29bfe; margin-top: 6px;">Format yang didukung: .csv (Maksimal 5MB)</div>
-          <input type="file" id="csvFileInput" accept=".csv" style="display: none;" onchange="handleFileSelect(event)">
-        </div>
-
-        <!-- 3. TABEL PRATINJAU (PREVIEW) - Tersembunyi sebelum ada file -->
-        <div id="csvPreviewContainer" style="display: none; margin-top: 25px;">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-            <h4 style="margin: 0; color: #1dd1a1; font-size: 14px;">📋 Pratinjau Data CSV (<span id="rowCount">0</span> Baris Ditemukan)</h4>
-            <button class="btn-action btn-small badge-danger" onclick="resetCsvUpload()" style="border: none;">Batal / Hapus File</button>
-          </div>
-
-          <div class="analytics-table-wrap" style="height: auto; max-height: 300px;">
-            <table id="csvPreviewTable">
-              <thead id="csvPreviewHead"></thead>
-              <tbody id="csvPreviewBody"></tbody>
-            </table>
-          </div>
-
-          <div style="margin-top: 15px; text-align: right;">
-            <button class="btn-action btn-success" id="btnSubmitCsv" onclick="submitCsvData()">🚀 Submit Data ke Database</button>
-          </div>
+        <div style="margin-top: 15px; text-align: right;">
+          <button class="btn-action btn-success" id="btnSubmitCsv" onclick="submitCsvData()">🚀 Submit Data ke Database</button>
         </div>
       </div>
+    </div>
 
     <!-- 5. ENROLLMENT WAJAH -->
     <div id="enrollment" class="section card">
@@ -241,7 +234,7 @@
       <button class="btn-action btn-success" style="margin-top:15px;">Cetak Kartu (Print)</button>
     </div>
 
-   <!-- KONTEN: ADMIN & OPERATOR -->
+    <!-- KONTEN: ADMIN & OPERATOR -->
     <div id="admin-operator" class="section">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
         <h2>🛡️ Manajemen Admin & Operator</h2>
@@ -260,7 +253,6 @@
             <th>Aksi</th>
           </tr>
         </thead>
-        <!-- PERBAIKAN: Mengubah ID menjadi table-body-admin dan colspan menjadi 5 -->
         <tbody id="table-body-admin">
           <tr><td colspan="5" style="text-align: center;">Memuat data...</td></tr>
         </tbody>
@@ -285,7 +277,6 @@
             <th>Aksi</th>
           </tr>
         </thead>
-        <!-- Ini tetap table-body-role -->
         <tbody id="table-body-role">
           <tr><td colspan="4" style="text-align: center;">Memuat data...</td></tr>
         </tbody>
@@ -323,10 +314,11 @@
       <button class="btn-action">📥 Backup Sekarang (Download ZIP)</button> 
       <button class="btn-action" style="background:#ff6b6b;">📤 Restore Data (Upload)</button>
     </div>
+
     <!-- 12. WHATSAPP GATEWAY -->
     <div id="whatsapp" class="section card">
       <h2 class="section-title">💬 Konfigurasi WhatsApp Gateway</h2>
-      <p class="section-desc">Hubungkan API (misal: Fonnte/Watzap) agar sistem di Srv_WhatsApp.gs dapat mengirim notif ke orang tua.</p>
+      <p class="section-desc">Hubungkan API agar sistem dapat mengirim notif ke orang tua.</p>
       
       <div class="form-group">
         <label>API Key WhatsApp Gateway</label>
@@ -344,10 +336,10 @@
       <button class="btn-action" style="background:#54a0ff;">Tes Kirim Pesan</button>
     </div>
 
-    <!-- 12. GEOFENCING & GPS -->
+    <!-- 13. GEOFENCING & GPS -->
     <div id="geofencing" class="section card">
       <h2 class="section-title">📍 Pengaturan Titik GPS Absensi</h2>
-      <p class="section-desc">Tentukan kordinat utama sekolah untuk validasi Haversine di Srv_Attendance.gs.</p>
+      <p class="section-desc">Tentukan kordinat utama sekolah untuk validasi Haversine.</p>
       
       <div class="search-bar" style="margin-bottom: 20px;">
         <button class="btn-action" onclick="getCurrentLocation()" style="background:#f39c12;">🎯 Deteksi Lokasi Saat Ini</button>
@@ -375,259 +367,167 @@
       Dikembangkan Oleh Guntoro/Danish ShoOp untuk kemajuan pendidikan Indonesia | Versi 1.1.0
     </div>
     
-    <!-- MODAL FORM DATA GURU -->
-<div id="modalGuru" class="modal-overlay">
-  <div class="modal-card">
-    <div class="modal-header">
-      <h3 id="modalGuruTitle">👔 Form Data Guru</h3>
-      <button class="modal-close-btn" onclick="closeModal('modalGuru')">&times;</button>
-    </div>
-    
-    <form id="formGuru" onsubmit="handleGuruSubmit(event)">
-      <div class="form-grid">
-        <div class="form-group">
-          <label>ID Guru (Auto)</label>
-          <input type="text" id="guru_GuruID" placeholder="GURU-XXX" readonly style="opacity: 0.6;">
-        </div>
-        <div class="form-group">
-          <label>NIP / NUPTK</label>
-          <input type="text" id="guru_NIP" placeholder="Masukkan NIP" required>
-        </div>
-        <div class="form-group full-row">
-          <label>Nama Lengkap & Gelar</label>
-          <input type="text" id="guru_Nama" placeholder="Contoh: Budi Santoso, S.Pd" required style="max-width: 100%;">
-        </div>
-        <div class="form-group">
-          <label>Jenis Kelamin</label>
-          <select id="guru_JK" required>
-            <option value="L">Laki-laki</option>
-            <option value="P">Perempuan</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label>Tempat Lahir</label>
-          <input type="text" id="guru_TmpLahir" placeholder="Kota Lahir">
-        </div>
-        <div class="form-group">
-          <label>Tanggal Lahir</label>
-          <input type="date" id="guru_TglLahir">
-        </div>
-        <div class="form-group">
-          <label>No. HP / WhatsApp</label>
-          <input type="text" id="guru_HPWA" placeholder="08123456789">
-        </div>
-        <div class="form-group">
-          <label>Email Active</label>
-          <input type="text" id="guru_Email" placeholder="nama@sekolah.sch.id">
-        </div>
-        <div class="form-group">
-          <label>Jabatan</label>
-          <input type="text" id="guru_Jabatan" placeholder="Contoh: Guru Matematika">
-        </div>
-        <div class="form-group">
-          <label>Status Kepegawaian</label>
-          <select id="guru_Status">
-            <option value="Aktif">Aktif</option>
-            <option value="Cuti">Cuti</option>
-            <option value="Non-Aktif">Non-Aktif</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label>Tanggal Masuk</label>
-          <input type="date" id="guru_TglMasuk">
-        </div>
-        <div class="form-group">
-          <label>Role Sistem</label>
-          <select id="guru_Role_Sistem">
-            <option value="Guru">Guru</option>
-            <option value="Admin">Admin</option>
-            <option value="Kepsek">Kepala Sekolah</option>
-          </select>
-        </div>
-        <div class="form-group full-row">
-          <label>Alamat Lengkap</label>
-          <input type="text" id="guru_Alamat" placeholder="Alamat Domisili" style="max-width: 100%;">
-        </div>
-         <!-- MASUKKAN DI SINI: KELOMPOK AKUN LOGIN GURU -->
-        <div class="form-group full-row" style="margin-top: 15px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 15px;">
-          <h4 style="color: #1dd1a1; margin-top: 0; margin-bottom: 10px;">🔐 Kredensial Login</h4>
-        </div>
-        <div class="form-group">
-          <label>Username Login</label>
-          <input type="text" id="guru_Username" placeholder="Gunakan NIP/Email" required>
-        </div>
-        <div class="form-group">
-          <label>Password (Isi untuk mereset)</label>
-          <input type="password" id="guru_Password" placeholder="Biarkan kosong jika tidak diubah">
-        </div>
+  </div> <!-- PENUTUP MAIN CONTENT DITAMBAHKAN DI SINI -->
 
-      <div class="modal-footer">
-        <button type="button" class="btn-action badge-danger" style="border:none;" onclick="closeModal('modalGuru')">Batal</button>
-        <button type="submit" class="btn-action btn-success">Simpan Data Guru</button>
+  <!-- AREA MODAL (Berada di luar main-content) -->
+
+  <!-- MODAL FORM DATA GURU -->
+  <div id="modalGuru" class="modal-overlay">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 id="modalGuruTitle">👔 Form Data Guru</h3>
+        <button class="modal-close-btn" onclick="closeModal('modalGuru')">&times;</button>
       </div>
-    </form>
-  </div>
-</div>
+      
+      <form id="formGuru" onsubmit="handleGuruSubmit(event)">
+        <div class="form-grid">
+          <div class="form-group"><label>ID Guru (Auto)</label><input type="text" id="guru_GuruID" placeholder="GURU-XXX" readonly style="opacity: 0.6;"></div>
+          <div class="form-group"><label>NIP / NUPTK</label><input type="text" id="guru_NIP" placeholder="Masukkan NIP" required></div>
+          <div class="form-group full-row"><label>Nama Lengkap & Gelar</label><input type="text" id="guru_Nama" placeholder="Contoh: Budi Santoso, S.Pd" required style="max-width: 100%;"></div>
+          <div class="form-group"><label>Jenis Kelamin</label><select id="guru_JK" required><option value="L">Laki-laki</option><option value="P">Perempuan</option></select></div>
+          <div class="form-group"><label>Tempat Lahir</label><input type="text" id="guru_TmpLahir" placeholder="Kota Lahir"></div>
+          <div class="form-group"><label>Tanggal Lahir</label><input type="date" id="guru_TglLahir"></div>
+          <div class="form-group"><label>No. HP / WhatsApp</label><input type="text" id="guru_HPWA" placeholder="08123456789"></div>
+          <div class="form-group"><label>Email Active</label><input type="text" id="guru_Email" placeholder="nama@sekolah.sch.id"></div>
+          <div class="form-group"><label>Jabatan</label><input type="text" id="guru_Jabatan" placeholder="Contoh: Guru Matematika"></div>
+          <div class="form-group"><label>Status Kepegawaian</label><select id="guru_Status"><option value="Aktif">Aktif</option><option value="Cuti">Cuti</option><option value="Non-Aktif">Non-Aktif</option></select></div>
+          <div class="form-group"><label>Tanggal Masuk</label><input type="date" id="guru_TglMasuk"></div>
+          <div class="form-group"><label>Role Sistem</label><select id="guru_Role_Sistem"><option value="Guru">Guru</option><option value="Admin">Admin</option><option value="Kepsek">Kepala Sekolah</option></select></div>
+          <div class="form-group full-row"><label>Alamat Lengkap</label><input type="text" id="guru_Alamat" placeholder="Alamat Domisili" style="max-width: 100%;"></div>
+          
+          <div class="form-group full-row" style="margin-top: 15px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 15px;">
+            <h4 style="color: #1dd1a1; margin-top: 0; margin-bottom: 10px;">🔐 Kredensial Login</h4>
+          </div>
+          <div class="form-group"><label>Username Login</label><input type="text" id="guru_Username" placeholder="Gunakan NIP/Email" required></div>
+          <div class="form-group"><label>Password (Isi untuk mereset)</label><input type="password" id="guru_Password" placeholder="Biarkan kosong jika tidak diubah"></div>
+        </div> <!-- PENUTUP FORM-GRID DITAMBAHKAN DI SINI -->
 
-<!-- MODAL FORM DATA SISWA -->
-<div id="modalSiswa" class="modal-overlay">
-  <div class="modal-card">
-    <div class="modal-header">
-      <h3 id="modalSiswaTitle">🎓 Form Data Siswa</h3>
-      <button class="modal-close-btn" onclick="closeModal('modalSiswa')">&times;</button>
+        <div class="modal-footer">
+          <button type="button" class="btn-action badge-danger" style="border:none;" onclick="closeModal('modalGuru')">Batal</button>
+          <button type="submit" class="btn-action btn-success">Simpan Data Guru</button>
+        </div>
+      </form>
     </div>
-    
-    <form id="formSiswa" onsubmit="handleSiswaSubmit(event)">
-      <div class="form-grid">
-        <div class="form-group">
-          <label>ID Siswa (Auto)</label>
-          <input type="text" id="siswa_SiswaID" placeholder="SISWA-XXX" readonly style="opacity: 0.6;">
-        </div>
-        <div class="form-group">
-          <label>NIS</label>
-          <input type="text" id="siswa_NIS" placeholder="Nomor Induk Siswa" required>
-        </div>
-        <div class="form-group">
-          <label>NISN</label>
-          <input type="text" id="siswa_NISN" placeholder="NISN Nasional" required>
-        </div>
-        <div class="form-group full-row">
-          <label>Nama Lengkap Siswa</label>
-          <input type="text" id="siswa_Nama" placeholder="Nama Lengkap" required style="max-width: 100%;">
-        </div>
-        <div class="form-group">
-          <label>Jenis Kelamin</label>
-          <select id="siswa_JK" required>
-            <option value="L">Laki-laki</option>
-            <option value="P">Perempuan</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label>Tempat Lahir</label>
-          <input type="text" id="siswa_TmpLahir" placeholder="Kota Lahir">
-        </div>
-        <div class="form-group">
-          <label>Tanggal Lahir</label>
-          <input type="date" id="siswa_TglLahir">
-        </div>
-        <div class="form-group">
-          <label>HP/WA Siswa</label>
-          <input type="text" id="siswa_HPWA" placeholder="08xxxxxxxxxx">
-        </div>
-        <div class="form-group">
-          <label>Kelas ID</label>
-          <input type="text" id="siswa_KelasID" placeholder="Contoh: KLS-12IPA1">
-        </div>
-        <div class="form-group">
-          <label>Jurusan ID</label>
-          <input type="text" id="siswa_JurusanID" placeholder="Contoh: JUR-RPL">
-        </div>
-        <div class="form-group">
-          <label>Angkatan (Tahun)</label>
-          <input type="text" id="siswa_Angkatan" placeholder="Contoh: 2024">
-        </div>
-        <div class="form-group">
-          <label>Nama Orang Tua / Wali</label>
-          <input type="text" id="siswa_NamaOrtu" placeholder="Nama Ayah/Ibu">
-        </div>
-        <div class="form-group">
-          <label>WA Orang Tua (Notifikasi)</label>
-          <input type="text" id="siswa_WA_Ortu" placeholder="08xxxxxxxxxx">
-        </div>
-        <div class="form-group">
-          <label>Status Siswa</label>
-          <select id="siswa_Status">
-            <option value="Aktif">Aktif</option>
-            <option value="Lulus">Lulus</option>
-            <option value="Pindah">Pindah/Mutasi</option>
-            <option value="Non-Aktif">Non-Aktif</option>
-          </select>
-        </div>
-        <!-- MASUKKAN DI SINI: KELOMPOK AKUN LOGIN SISWA -->
-        <div class="form-group full-row" style="margin-top: 15px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 15px;">
-          <h4 style="color: #1dd1a1; margin-top: 0; margin-bottom: 10px;">🔐 Kredensial Login</h4>
-        </div>
-        <div class="form-group">
-          <label>Username Login</label>
-          <input type="text" id="siswa_Username" placeholder="Gunakan NIS" required>
-        </div>
-        <div class="form-group">
-          <label>Password (Isi untuk mereset)</label>
-          <input type="password" id="siswa_Password" placeholder="Biarkan kosong jika tidak diubah">
-        </div>
-        <!-- Loading Overlay -->
+  </div>
+
+  <!-- MODAL FORM DATA SISWA -->
+  <div id="modalSiswa" class="modal-overlay">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 id="modalSiswaTitle">🎓 Form Data Siswa</h3>
+        <button class="modal-close-btn" onclick="closeModal('modalSiswa')">&times;</button>
+      </div>
+      
+      <form id="formSiswa" onsubmit="handleSiswaSubmit(event)">
+        <div class="form-grid">
+          <div class="form-group"><label>ID Siswa (Auto)</label><input type="text" id="siswa_SiswaID" placeholder="SISWA-XXX" readonly style="opacity: 0.6;"></div>
+          <div class="form-group"><label>NIS</label><input type="text" id="siswa_NIS" placeholder="Nomor Induk Siswa" required></div>
+          <div class="form-group"><label>NISN</label><input type="text" id="siswa_NISN" placeholder="NISN Nasional" required></div>
+          <div class="form-group full-row"><label>Nama Lengkap Siswa</label><input type="text" id="siswa_Nama" placeholder="Nama Lengkap" required style="max-width: 100%;"></div>
+          <div class="form-group"><label>Jenis Kelamin</label><select id="siswa_JK" required><option value="L">Laki-laki</option><option value="P">Perempuan</option></select></div>
+          <div class="form-group"><label>Tempat Lahir</label><input type="text" id="siswa_TmpLahir" placeholder="Kota Lahir"></div>
+          <div class="form-group"><label>Tanggal Lahir</label><input type="date" id="siswa_TglLahir"></div>
+          <div class="form-group"><label>HP/WA Siswa</label><input type="text" id="siswa_HPWA" placeholder="08xxxxxxxxxx"></div>
+          <div class="form-group"><label>Kelas ID</label><input type="text" id="siswa_KelasID" placeholder="Contoh: KLS-12IPA1"></div>
+          <div class="form-group"><label>Jurusan ID</label><input type="text" id="siswa_JurusanID" placeholder="Contoh: JUR-RPL"></div>
+          <div class="form-group"><label>Angkatan (Tahun)</label><input type="text" id="siswa_Angkatan" placeholder="Contoh: 2024"></div>
+          <div class="form-group"><label>Nama Orang Tua / Wali</label><input type="text" id="siswa_NamaOrtu" placeholder="Nama Ayah/Ibu"></div>
+          <div class="form-group"><label>WA Orang Tua (Notifikasi)</label><input type="text" id="siswa_WA_Ortu" placeholder="08xxxxxxxxxx"></div>
+          <div class="form-group"><label>Status Siswa</label><select id="siswa_Status"><option value="Aktif">Aktif</option><option value="Lulus">Lulus</option><option value="Pindah">Pindah/Mutasi</option><option value="Non-Aktif">Non-Aktif</option></select></div>
+          
+          <div class="form-group full-row" style="margin-top: 15px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 15px;">
+            <h4 style="color: #1dd1a1; margin-top: 0; margin-bottom: 10px;">🔐 Kredensial Login</h4>
+          </div>
+          <div class="form-group"><label>Username Login</label><input type="text" id="siswa_Username" placeholder="Gunakan NIS" required></div>
+          <div class="form-group"><label>Password (Isi untuk mereset)</label><input type="password" id="siswa_Password" placeholder="Biarkan kosong jika tidak diubah"></div>
+        </div> <!-- PENUTUP FORM-GRID DITAMBAHKAN DI SINI -->
+
         <div id="loadingOverlay" class="loading-overlay hidden">
           <div class="spinner"></div>
           <div id="loadingText">Memuat Data...</div>
         </div>
        
         <div class="modal-footer">
-              <button type="button" class="btn-action badge-danger" style="border:none;" onclick="closeModal('modalSiswa')">Batal</button>
-              <button type="submit" class="btn-action btn-success">Simpan Data Siswa</button>
-            </div>
-          </form>
+          <button type="button" class="btn-action badge-danger" style="border:none;" onclick="closeModal('modalSiswa')">Batal</button>
+          <button type="submit" class="btn-action btn-success">Simpan Data Siswa</button>
         </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL FORM ADMIN (DIBUNGKUS DENGAN MODAL OVERLAY) -->
+  <div id="modalAdmin" class="modal-overlay" style="display: none;">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>🛡️ Form Admin / Operator</h3>
+        <button class="modal-close-btn" onclick="closeModalAdmin()">&times;</button>
       </div>
-      <!-- MODAL FORM ADMIN -->
       <form id="form-admin" onsubmit="simpanAdmin(event)">
-          <!-- INPUT HIDDEN UNTUK MENYIMPAN USERID SAAT EDIT -->
-          <input type="hidden" id="admin-id">
+        <input type="hidden" id="admin-id">
+        <label style="display: block; margin-top: 15px; font-size: 0.9em; opacity: 0.8;">Username:</label>
+        <input type="text" id="admin-username" required style="width: 100%; padding: 10px; margin-top: 5px; background: #2a2640; color: white; border: 1px solid #4a4563; border-radius: 5px;">
+        
+        <label style="display: block; margin-top: 15px; font-size: 0.9em; opacity: 0.8;">Nama Lengkap:</label>
+        <input type="text" id="admin-nama" required style="width: 100%; padding: 10px; margin-top: 5px; background: #2a2640; color: white; border: 1px solid #4a4563; border-radius: 5px;">
 
-          <label style="display: block; margin-top: 15px; font-size: 0.9em; opacity: 0.8;">Username:</label>
-          <input type="text" id="admin-username" required style="width: 100%; padding: 10px; margin-top: 5px; background: #2a2640; color: white; border: 1px solid #4a4563; border-radius: 5px;">
-          
-          <label style="display: block; margin-top: 15px; font-size: 0.9em; opacity: 0.8;">Nama Lengkap:</label>
-          <input type="text" id="admin-nama" required style="width: 100%; padding: 10px; margin-top: 5px; background: #2a2640; color: white; border: 1px solid #4a4563; border-radius: 5px;">
+        <label style="display: block; margin-top: 15px; font-size: 0.9em; opacity: 0.8;">Password:</label>
+        <input type="password" id="admin-password" style="width: 100%; padding: 10px; margin-top: 5px; background: #2a2640; color: white; border: 1px solid #4a4563; border-radius: 5px;" placeholder="Isi untuk admin baru, kosongkan jika edit">
+        
+        <label style="display: block; margin-top: 15px; font-size: 0.9em; opacity: 0.8;">Role (Pilih Hak Akses):</label>
+        <select id="admin-role" style="width: 100%; padding: 10px; margin-top: 5px; background: #2a2640; color: white; border: 1px solid #4a4563; border-radius: 5px;">
+          <option value="Superadmin">Superadmin</option>
+          <option value="Admin">Admin</option>
+          <option value="Operator">Operator</option>
+          <option value="Guru Piket">Guru Piket</option>
+        </select>
 
-          <label style="display: block; margin-top: 15px; font-size: 0.9em; opacity: 0.8;">Password:</label>
-          <input type="text" id="admin-password" style="width: 100%; padding: 10px; margin-top: 5px; background: #2a2640; color: white; border: 1px solid #4a4563; border-radius: 5px;" placeholder="Isi untuk admin baru, kosongkan jika edit">
-          
-          <label style="display: block; margin-top: 15px; font-size: 0.9em; opacity: 0.8;">Role (Pilih Hak Akses):</label>
-          <select id="admin-role" style="width: 100%; padding: 10px; margin-top: 5px; background: #2a2640; color: white; border: 1px solid #4a4563; border-radius: 5px;">
-            <option value="Superadmin">Superadmin</option>
-            <option value="Admin">Admin</option>
-            <option value="Operator">Operator</option>
-            <option value="Guru Piket">Guru Piket</option>
-          </select>
+        <label style="display: block; margin-top: 15px; font-size: 0.9em; opacity: 0.8;">Status Aktif:</label>
+        <select id="admin-status" style="width: 100%; padding: 10px; margin-top: 5px; background: #2a2640; color: white; border: 1px solid #4a4563; border-radius: 5px;">
+          <option value="Active">Aktif</option>
+          <option value="Inactive">Tidak Aktif</option>
+        </select>
+        
+        <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 25px;">
+          <button type="button" onclick="closeModalAdmin()" style="background: transparent; color: #ff7675; border: 1px solid #ff7675; padding: 8px 15px; border-radius: 5px; cursor: pointer;">Batal</button>
+          <button type="submit" id="btn-simpan-admin" style="background: #1dd1a1; color: #161224; border: none; padding: 8px 15px; border-radius: 5px; font-weight: bold; cursor: pointer;">💾 Simpan</button>
+        </div>
+      </form>
+    </div>
+  </div>
 
-          <label style="display: block; margin-top: 15px; font-size: 0.9em; opacity: 0.8;">Status Aktif:</label>
-          <select id="admin-status" style="width: 100%; padding: 10px; margin-top: 5px; background: #2a2640; color: white; border: 1px solid #4a4563; border-radius: 5px;">
-            <option value="Active">Aktif</option>
-            <option value="Inactive">Tidak Aktif</option>
-          </select>
-          
-          <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 25px;">
-            <button type="button" onclick="closeModalAdmin()" style="background: transparent; color: #ff7675; border: 1px solid #ff7675; padding: 8px 15px; border-radius: 5px; cursor: pointer;">Batal</button>
-            <button type="submit" id="btn-simpan-admin" style="background: #1dd1a1; color: #161224; border: none; padding: 8px 15px; border-radius: 5px; font-weight: bold; cursor: pointer;">💾 Simpan</button>
-          </div>
-          </form>
-            <form id="form-role" onsubmit="simpanRole(event)">
-          <!-- INPUT HIDDEN UNTUK MENYIMPAN ROLE LAMA SAAT EDIT -->
-          <input type="hidden" id="role-id-old">
+  <!-- MODAL FORM ROLE (DIBUNGKUS DENGAN MODAL OVERLAY) -->
+  <div id="modalRole" class="modal-overlay" style="display: none;">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>🔐 Form Hak Akses (Role)</h3>
+        <button class="modal-close-btn" onclick="closeModalRole()">&times;</button>
+      </div>
+      <form id="form-role" onsubmit="simpanRole(event)">
+        <input type="hidden" id="role-id-old">
+        <label style="display: block; margin-top: 15px; font-size: 0.9em; opacity: 0.8;">Nama Role:</label>
+        <input type="text" id="role-nama" required style="width: 100%; padding: 10px; margin-top: 5px; background: #2a2640; color: white; border: 1px solid #4a4563; border-radius: 5px;">
+        
+        <label style="display: block; margin-top: 15px; font-size: 0.9em; opacity: 0.8;">Deskripsi Akses:</label>
+        <input type="text" id="role-deskripsi" required style="width: 100%; padding: 10px; margin-top: 5px; background: #2a2640; color: white; border: 1px solid #4a4563; border-radius: 5px;">
+        
+        <label style="display: block; margin-top: 15px; font-size: 0.9em; opacity: 0.8;">Status Aktif:</label>
+        <select id="role-status" style="width: 100%; padding: 10px; margin-top: 5px; background: #2a2640; color: white; border: 1px solid #4a4563; border-radius: 5px;">
+          <option value="TRUE">Aktif</option>
+          <option value="FALSE">Tidak Aktif</option>
+        </select>
+        
+        <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 25px;">
+          <button type="button" onclick="closeModalRole()" style="background: transparent; color: #ff7675; border: 1px solid #ff7675; padding: 8px 15px; border-radius: 5px; cursor: pointer;">Batal</button>
+          <button type="submit" id="btn-simpan-role" style="background: #1dd1a1; color: #161224; border: none; padding: 8px 15px; border-radius: 5px; font-weight: bold; cursor: pointer;">💾 Simpan</button>
+        </div>
+      </form>
+    </div>
+  </div>
 
-          <label style="display: block; margin-top: 15px; font-size: 0.9em; opacity: 0.8;">Nama Role:</label>
-          <input type="text" id="role-nama" required style="width: 100%; padding: 10px; margin-top: 5px; background: #2a2640; color: white; border: 1px solid #4a4563; border-radius: 5px;">
-          
-          <label style="display: block; margin-top: 15px; font-size: 0.9em; opacity: 0.8;">Deskripsi Akses:</label>
-          <input type="text" id="role-deskripsi" required style="width: 100%; padding: 10px; margin-top: 5px; background: #2a2640; color: white; border: 1px solid #4a4563; border-radius: 5px;">
-          
-          <label style="display: block; margin-top: 15px; font-size: 0.9em; opacity: 0.8;">Status Aktif:</label>
-          <select id="role-status" style="width: 100%; padding: 10px; margin-top: 5px; background: #2a2640; color: white; border: 1px solid #4a4563; border-radius: 5px;">
-            <option value="TRUE">Aktif</option>
-            <option value="FALSE">Tidak Aktif</option>
-          </select>
-          
-          <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 25px;">
-            <button type="button" onclick="closeModalRole()" style="background: transparent; color: #ff7675; border: 1px solid #ff7675; padding: 8px 15px; border-radius: 5px; cursor: pointer;">Batal</button>
-            <button type="submit" id="btn-simpan-role" style="background: #1dd1a1; color: #161224; border: none; padding: 8px 15px; border-radius: 5px; font-weight: bold; cursor: pointer;">💾 Simpan</button>
-          </div>
-          </form>
-          
-<!-- Taruh di atas tag penutup </body> -->
-    <script src="./js/config.js?v=2.0"></script>
-    <script src="./js/api.js?v=2.0"></script>
-    <script src="./js/ui.js?v=2.0"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="./js/face-ai.js?v=2.0"></script>
+  <!-- SCRIPT FILES -->
+  <script src="./js/config.js?v=2.0"></script>
+  <script src="./js/api.js?v=2.0"></script>
+  <script src="./js/ui.js?v=2.0"></script>
+  <script src="./js/face-ai.js?v=2.0"></script>
 </body>
 </html>
