@@ -241,7 +241,7 @@
       <button class="btn-action btn-success" style="margin-top:15px;">Cetak Kartu (Print)</button>
     </div>
 
-    <!-- KONTEN: ADMIN & OPERATOR -->
+   <!-- KONTEN: ADMIN & OPERATOR -->
     <div id="admin-operator" class="section">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
         <h2>🛡️ Manajemen Admin & Operator</h2>
@@ -260,6 +260,7 @@
             <th>Aksi</th>
           </tr>
         </thead>
+        <!-- PERBAIKAN: Mengubah ID menjadi table-body-admin dan colspan menjadi 5 -->
         <tbody id="table-body-admin">
           <tr><td colspan="5" style="text-align: center;">Memuat data...</td></tr>
         </tbody>
@@ -284,8 +285,9 @@
             <th>Aksi</th>
           </tr>
         </thead>
+        <!-- Ini tetap table-body-role -->
         <tbody id="table-body-role">
-        <tr><td colspan="4" style="text-align: center;">Memuat data...</td></tr>
+          <tr><td colspan="4" style="text-align: center;">Memuat data...</td></tr>
         </tbody>
       </table>
     </div>
