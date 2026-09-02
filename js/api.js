@@ -1,7 +1,12 @@
 // ==========================================
 // FILE: js/api.js
 // ==========================================
-async function fetchAPI(action, payload = {}) {
+async function fetchAPI(action, payload = {}, loadingMessage = "Memproses data...") {
+  // 1. MUNCULKAN LOADING SEBELUM PROSES DIMULAI
+  if (typeof showLoading === 'function') {
+    showLoading(loadingMessage);
+  }
+
   try {
     if (typeof CONFIG === 'undefined' || !CONFIG.SCRIPT_URL) {
       throw new Error("URL API (CONFIG.SCRIPT_URL) belum dikonfigurasi.");
@@ -25,5 +30,10 @@ async function fetchAPI(action, payload = {}) {
   } catch (error) {
     console.error("Gagal memanggil API:", error);
     return { status: 'error', message: error.message };
+  } finally {
+    // 2. SEMBUNYIKAN LOADING SETELAH SELESAI (SUKSES MAUPUN ERROR)
+    if (typeof hideLoading === 'function') {
+      hideLoading();
+    }
   }
 }
