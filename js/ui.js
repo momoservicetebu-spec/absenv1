@@ -835,10 +835,14 @@ function hideLoading() {
   }
 }
 // ==========================================
-// FILTER DATA SEMUA GURU DAN SISWA
+// FILTER DATA SEMUA GURU DAN SISWA (DIPERBARUI)
 // ==========================================
- document.addEventListener("DOMContentLoaded", function() {
+document.addEventListener("DOMContentLoaded", function() {
   const filterBtns = document.querySelectorAll(".filter-btn");
+
+  // ⚠️ WAJIB GANTI: Masukkan URL Web App Google Apps Script Anda di sini
+  // URL ini sama dengan yang Anda gunakan di loadDashboardData()
+  const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxx3BLAOh7RZwF2vvukhDPhytbAPXfMP3H_RAJNeWgxLe2LNcCzojm-6HQ1kktPQMTQ/exec"; 
 
   filterBtns.forEach(btn => {
     btn.addEventListener("click", function() {
@@ -846,7 +850,7 @@ function hideLoading() {
       filterBtns.forEach(b => b.classList.remove("active"));
       this.classList.add("active");
       
-      // 2. Tangkap kata kunci filter
+      // 2. Tangkap kata kunci filter ("Semua", "Siswa", atau "Guru")
       const selectedFilter = this.innerText.trim();
       
       // 3. Tampilkan efek loading pada angka KPI
@@ -857,27 +861,30 @@ function hideLoading() {
       document.getElementById("kpi-izin").innerText = "...";
       document.getElementById("kpi-alpa").innerText = "...";
       
-      // 4. Kirim ke backend dan perbarui tampilan saat berhasil
-      google.script.run
-        .withSuccessHandler(function(dataFiltered) {
-          /* 
-             PENTING: Panggil fungsi render Anda di sini!
-             Ganti 'renderDashboardUI' dengan nama fungsi aktual yang biasa 
-             Anda gunakan di api.js untuk menggambar ulang chart dan tabel.
-          */
-          if (typeof renderDashboardUI === "function") {
-            renderDashboardUI(dataFiltered);
-          } else if (typeof initDashboard === "function") {
-            initDashboard(dataFiltered);
+      // 4. Kirim request ke GAS menggunakan API Fetch
+      const fetchURL = `${GAS_WEB_APP_URL}?action=getDashboardData&filterRole=${selectedFilter}`;
+      
+      fetch(fetchURL)
+        .then(response => response.json())
+        .then(res => {
+          // Cek apakah response sukses (sesuai format Router.gs)
+          if (res.status === true || res.data) {
+            let dataFiltered = res.data;
+            
+            // Panggil fungsi pembaruan UI master yang ada di api.js
+            if (typeof updateDashboardUI === "function") {
+              updateDashboardUI(dataFiltered);
+            } else {
+              console.warn("Fungsi updateDashboardUI belum ada di api.js!");
+            }
           } else {
-            console.warn("Fungsi render UI belum dikaitkan. Harap sesuaikan nama fungsinya.");
+            console.error("Gagal mendapatkan data:", res.message);
           }
         })
-        .withFailureHandler(function(err) {
+        .catch(function(err) {
           console.error("Gagal menerapkan filter:", err);
           alert("Gagal mengambil data filter. Periksa koneksi atau console log.");
-        })
-        .getDashboardKPI(selectedFilter); // Mengirim parameter ke Code.gs
+        });
     });
   });
 });
