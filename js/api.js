@@ -305,6 +305,9 @@ function renderBelumAbsen(dataBelum) {
 // ==========================================
 
 window.updateDashboardUI = function(data) {
+  console.log("Memulai update UI dengan data:", data);
+
+  // 1. Update teks angka KPI utama
   if (document.getElementById("kpi-total")) document.getElementById("kpi-total").innerText = data.totalUsers;
   if (document.getElementById("kpi-persen")) document.getElementById("kpi-persen").innerText = data.persentase + "%";
   if (document.getElementById("kpi-hadir")) document.getElementById("kpi-hadir").innerText = data.hadir;
@@ -312,6 +315,7 @@ window.updateDashboardUI = function(data) {
   if (document.getElementById("kpi-izin")) document.getElementById("kpi-izin").innerText = data.izin;
   if (document.getElementById("kpi-alpa")) document.getElementById("kpi-alpa").innerText = data.alpa;
 
+  // 2. Panggil semua grafik & tabel agar digambar ulang
   renderDonutChart(data);
   renderBarChart(data.angkatan);
   renderTableJurusan(data.jurusan);
@@ -325,7 +329,6 @@ window.updateDashboardUI = function(data) {
   renderSeringTelat(data.seringTelat);
   renderBelumAbsen(data.belumAbsen);
 };
-
 // ==========================================
 // PANGGILAN SAAT HALAMAN DIMUAT (Biarkan yang ini tetap ada)
 // ==========================================
