@@ -202,6 +202,112 @@ function renderTerajin(dataTerajin) {
     </li>`;
   });
 }
+function renderTerburuk(dataTerburuk) {
+  const ul = document.getElementById('list-terburuk');
+  if (!ul || !dataTerburuk) return;
+  ul.innerHTML = "";
+  
+  if (dataTerburuk.length === 0) {
+    ul.innerHTML = "<li style='text-align:center; color:#1dd1a1;'>Tidak ada data Alpa</li>";
+    return;
+  }
+
+  dataTerburuk.forEach(item => {
+    ul.innerHTML += `<li style="padding: 8px 0; border-bottom: 1px solid #333; display: flex; justify-content: space-between;">
+      <span>⚠️ ${item.nama}</span> <span style="color:#ff6b6b; font-weight:bold;">${item.alpa} Alpa</span>
+    </li>`;
+  });
+}
+
+function renderBulanan(dataBulanan) {
+  const chartElement = document.getElementById('barBulanChart');
+  if (!chartElement || !dataBulanan) return;
+  
+  const ctx = chartElement.getContext('2d');
+  if(window.myBulanChart) window.myBulanChart.destroy();
+
+  window.myBulanChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: dataBulanan.labels,
+      datasets: [{ label: 'Total Kehadiran', data: dataBulanan.data, backgroundColor: '#48dbfb', borderRadius: 4 }]
+    },
+    options: { responsive: true, maintainAspectRatio: false }
+  });
+}
+
+function renderTahunan(dataTahunan) {
+  const chartElement = document.getElementById('barTahunChart');
+  if (!chartElement || !dataTahunan) return;
+  
+  const ctx = chartElement.getContext('2d');
+  if(window.myTahunChart) window.myTahunChart.destroy();
+
+  window.myTahunChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: dataTahunan.labels,
+      datasets: [{ label: 'Total Kehadiran', data: dataTahunan.data, backgroundColor: '#a29bfe', borderRadius: 4 }]
+    },
+    options: { responsive: true, maintainAspectRatio: false }
+  });
+}
+function renderTableKelas(dataKelas) {
+  const tbody = document.getElementById('table-kelas-body');
+  if (!tbody || !dataKelas) return;
+  tbody.innerHTML = "";
+
+  if (dataKelas.length === 0) {
+    tbody.innerHTML = "<tr><td colspan='4' style='text-align:center;'>Belum ada data</td></tr>";
+    return;
+  }
+
+  dataKelas.forEach(item => {
+    tbody.innerHTML += `
+      <tr style="border-bottom: 1px solid #333;">
+        <td style="padding: 8px 0;">${item.nama}</td>
+        <td>${item.hadir}</td>
+        <td>${item.izin}</td>
+        <td style="color:#ff6b6b;">${item.alpa}</td>
+      </tr>
+    `;
+  });
+}
+
+function renderSeringTelat(dataTelat) {
+  const ul = document.getElementById('list-sering-telat');
+  if (!ul || !dataTelat) return;
+  ul.innerHTML = "";
+  
+  if (dataTelat.length === 0) {
+    ul.innerHTML = "<li style='text-align:center; color:#1dd1a1;'>Semua siswa tepat waktu!</li>";
+    return;
+  }
+
+  dataTelat.forEach(item => {
+    ul.innerHTML += `<li style="padding: 8px 0; border-bottom: 1px solid #333; display: flex; justify-content: space-between;">
+      <span>🐌 ${item.nama}</span> <span style="color:#feca57; font-weight:bold;">${item.jumlah}x Telat</span>
+    </li>`;
+  });
+}
+
+function renderBelumAbsen(dataBelum) {
+  const ul = document.getElementById('list-belum-absen');
+  if (!ul || !dataBelum) return;
+  ul.innerHTML = "";
+  
+  if (dataBelum.length === 0) {
+    ul.innerHTML = "<li style='text-align:center; color:#1dd1a1;'>Semua User Sudah Absen Hari Ini!</li>";
+    return;
+  }
+
+  dataBelum.forEach(item => {
+    // Tampilkan maksimal 15 orang saja agar kotak tidak terlalu panjang
+    ul.innerHTML += `<li style="padding: 8px 0; border-bottom: 1px solid #333; display: flex; justify-content: space-between;">
+      <span>❌ ${item.nama}</span> <span style="font-size: 11px; color:#aaa;">(${item.role})</span>
+    </li>`;
+  });
+}
 
 // Jalankan saat tab Dashboard aktif atau halaman dimuat
 document.addEventListener("DOMContentLoaded", () => {

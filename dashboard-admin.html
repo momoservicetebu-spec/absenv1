@@ -141,6 +141,70 @@
             </ul>
           </div>
         </div>
+        <!-- KOTAK 6: Kehadiran Terburuk -->
+        <div class="chart-box">
+          <h4>Kehadiran Terburuk (Banyak Alpa)</h4>
+          <div class="card-body">
+            <ul id="list-terburuk" style="list-style: none; padding: 0; color: #fff; margin: 0;">
+              <!-- Data dari JS akan masuk ke sini -->
+            </ul>
+          </div>
+        </div>
+
+        <!-- KOTAK 7: Distribusi Bulanan -->
+        <div class="chart-box">
+          <h4>Tren Bulanan</h4>
+          <div class="chart-container">
+            <canvas id="barBulanChart"></canvas>
+          </div>
+        </div>
+
+        <!-- KOTAK 8: Distribusi Tahunan -->
+        <div class="chart-box">
+          <h4>Tren Tahunan</h4>
+          <div class="chart-container">
+            <canvas id="barTahunChart"></canvas>
+          </div>
+        </div>
+        <!-- KOTAK 9: Matriks Rekap per Kelas -->
+        <div class="chart-box" style="grid-column: span 2;"> <!-- Dibuat lebih lebar agar tabel muat -->
+          <h4>Matriks Rekap per Kelas (Hari Ini)</h4>
+          <div class="card-body" style="max-height: 250px; overflow-y: auto;">
+            <table class="table" style="width: 100%; color: #fff; text-align: left;">
+              <thead>
+                <tr style="border-bottom: 1px solid #444;">
+                  <th>KELAS</th>
+                  <th>HADIR</th>
+                  <th>IZIN/SAKIT</th>
+                  <th>ALPA</th>
+                </tr>
+              </thead>
+              <tbody id="table-kelas-body">
+                <!-- Data dari JS akan masuk ke sini -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- KOTAK 10: Siswa Sering Terlambat -->
+        <div class="chart-box">
+          <h4>Top 5 Sering Terlambat</h4>
+          <div class="card-body">
+            <ul id="list-sering-telat" style="list-style: none; padding: 0; color: #fff; margin: 0;">
+              <!-- Data dari JS akan masuk ke sini -->
+            </ul>
+          </div>
+        </div>
+
+        <!-- KOTAK 11: Belum Absen Hari Ini -->
+        <div class="chart-box">
+          <h4>Belum Absen / Tidak Pakai Sistem (Hari Ini)</h4>
+          <div class="card-body" style="max-height: 200px; overflow-y: auto;">
+            <ul id="list-belum-absen" style="list-style: none; padding: 0; color: #fff; margin: 0;">
+              <!-- Data dari JS akan masuk ke sini -->
+            </ul>
+          </div>
+        </div>
         
       </div>
 
