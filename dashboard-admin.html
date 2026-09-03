@@ -111,8 +111,9 @@
           </div>
         </div>
       </div>
-
       <div class="analytics-grid">
+        
+        <!-- KOTAK 3: Top 5 Alasan -->
         <div class="chart-box">
           <h4>Top 5 Alasan Terlambat / Izin</h4>
           <div class="card-body">
@@ -120,19 +121,28 @@
               <!-- Data dari JS akan masuk ke sini -->
             </ul>
           </div>
+        </div> <!-- Tag penutup ini sebelumnya hilang -->
+
+        <!-- KOTAK 4: Tren Kehadiran -->
         <div class="chart-box">
           <h4>Tren Kehadiran (7 Hari Terakhir)</h4>
-          <div class="chart-container"><canvas id="lineTrendChart"></canvas></div>
+          <div class="chart-container">
+            <canvas id="lineTrendChart"></canvas>
+          </div>
         </div>
+
+        <!-- KOTAK 5: Siswa Terajin -->
         <div class="chart-box">
           <h4>Siswa Terajin (Kehadiran 100%)</h4>
           <div class="card-body">
-            <ul id="list-alasan" style="list-style: none; padding: 0; color: #fff; margin: 0;">
+            <!-- ID di bawah ini wajib list-terajin, bukan list-alasan -->
+            <ul id="list-terajin" style="list-style: none; padding: 0; color: #fff; margin: 0;">
               <!-- Data dari JS akan masuk ke sini -->
             </ul>
           </div>
+        </div>
+        
       </div>
-    </div> 
 
     <!-- 2. DATA SISWA -->
     <div id="data-siswa" class="section card">
