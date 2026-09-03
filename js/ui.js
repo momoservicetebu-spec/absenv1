@@ -837,25 +837,47 @@ function hideLoading() {
 // ==========================================
 // FILTER DATA SEMUA GURU DAN SISWA
 // ==========================================
-document.addEventListener("DOMContentLoaded", function() {
-  // 1. Ambil semua tombol filter di dashboard
+ document.addEventListener("DOMContentLoaded", function() {
   const filterBtns = document.querySelectorAll(".filter-btn");
 
-  // 2. Berikan aksi klik ke masing-masing tombol
   filterBtns.forEach(btn => {
     btn.addEventListener("click", function() {
-      // Hapus class 'active' dari semua tombol
+      // 1. Ubah warna tombol yang aktif
       filterBtns.forEach(b => b.classList.remove("active"));
-      
-      // Tambahkan class 'active' pada tombol yang diklik
       this.classList.add("active");
       
-      // Ambil teks (Semua, Siswa, Guru) untuk trigger data nanti
+      // 2. Tangkap kata kunci filter
       const selectedFilter = this.innerText.trim();
-      console.log("Filter aktif:", selectedFilter); 
       
-      // TODO: Panggil fungsi update data grafik/KPI di sini dari api.js
-      // Contoh: if(selectedFilter === "Siswa") { loadDataSiswaOnly(); }
+      // 3. Tampilkan efek loading pada angka KPI
+      document.getElementById("kpi-total").innerText = "...";
+      document.getElementById("kpi-persen").innerText = "...";
+      document.getElementById("kpi-hadir").innerText = "...";
+      document.getElementById("kpi-telat").innerText = "...";
+      document.getElementById("kpi-izin").innerText = "...";
+      document.getElementById("kpi-alpa").innerText = "...";
+      
+      // 4. Kirim ke backend dan perbarui tampilan saat berhasil
+      google.script.run
+        .withSuccessHandler(function(dataFiltered) {
+          /* 
+             PENTING: Panggil fungsi render Anda di sini!
+             Ganti 'renderDashboardUI' dengan nama fungsi aktual yang biasa 
+             Anda gunakan di api.js untuk menggambar ulang chart dan tabel.
+          */
+          if (typeof renderDashboardUI === "function") {
+            renderDashboardUI(dataFiltered);
+          } else if (typeof initDashboard === "function") {
+            initDashboard(dataFiltered);
+          } else {
+            console.warn("Fungsi render UI belum dikaitkan. Harap sesuaikan nama fungsinya.");
+          }
+        })
+        .withFailureHandler(function(err) {
+          console.error("Gagal menerapkan filter:", err);
+          alert("Gagal mengambil data filter. Periksa koneksi atau console log.");
+        })
+        .getDashboardKPI(selectedFilter); // Mengirim parameter ke Code.gs
     });
   });
 });
