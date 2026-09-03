@@ -872,8 +872,8 @@ document.addEventListener("DOMContentLoaded", function() {
             let dataFiltered = res.data;
             
             // Panggil fungsi pembaruan UI master yang ada di api.js
-            if (typeof updateDashboardUI === "function") {
-              updateDashboardUI(dataFiltered);
+            if (typeof window.updateDashboardUI === "function") {
+              window.updateDashboardUI(dataFiltered);
             } else {
               console.warn("Fungsi updateDashboardUI belum ada di api.js!");
             }
