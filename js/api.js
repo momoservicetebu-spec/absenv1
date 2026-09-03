@@ -348,3 +348,9 @@ document.addEventListener("DOMContentLoaded", () => {
   loadDashboardData();
 });
 
+// Tambahkan ini di api.js
+window.updateDashboardUI = function(data) {
+    console.log("Memulai update UI dengan data:", data);
+    // Masukkan logika DOM manipulation atau update chart Anda di sini
+};
+

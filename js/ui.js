@@ -835,13 +835,10 @@ function hideLoading() {
   }
 }
 // ==========================================
-// FILTER DATA SEMUA GURU DAN SISWA (DIPERBARUI)
+// FILTER DATA SEMUA GURU DAN SISWA (OPTIMIZED)
 // ==========================================
 document.addEventListener("DOMContentLoaded", function() {
   const filterBtns = document.querySelectorAll(".filter-btn");
-
-  // ⚠️ WAJIB GANTI: Masukkan URL Web App Google Apps Script Anda di sini
-  // URL ini sama dengan yang Anda gunakan di loadDashboardData()
   const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxx3BLAOh7RZwF2vvukhDPhytbAPXfMP3H_RAJNeWgxLe2LNcCzojm-6HQ1kktPQMTQ/exec"; 
 
   filterBtns.forEach(btn => {
@@ -850,35 +847,31 @@ document.addEventListener("DOMContentLoaded", function() {
       filterBtns.forEach(b => b.classList.remove("active"));
       this.classList.add("active");
       
-      // 2. Tangkap kata kunci filter ("Semua", "Siswa", atau "Guru")
-      const selectedFilter = this.innerText.trim();
+      // 2. Tangkap filter (Prioritaskan atribut data-filter jika ada, atau bersihkan teks)
+      const rawFilter = this.getAttribute("data-filter") || this.innerText.trim();
+      // Mengambil kata terakhir jika ada emoji (misal: "👨‍🎓 Siswa" -> "Siswa")
+      const selectedFilter = rawFilter.split(" ").pop(); 
       
       // 3. Tampilkan efek loading pada angka KPI
-      document.getElementById("kpi-total").innerText = "...";
-      document.getElementById("kpi-persen").innerText = "...";
-      document.getElementById("kpi-hadir").innerText = "...";
-      document.getElementById("kpi-telat").innerText = "...";
-      document.getElementById("kpi-izin").innerText = "...";
-      document.getElementById("kpi-alpa").innerText = "...";
+      const kpiIds = ["kpi-total", "kpi-persen", "kpi-hadir", "kpi-telat", "kpi-izin", "kpi-alpa"];
+      kpiIds.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.innerText = "...";
+      });
       
       // 4. Kirim request ke GAS menggunakan API Fetch
-      const fetchURL = `${GAS_WEB_APP_URL}?action=getDashboardData&filterRole=${selectedFilter}`;
+      const fetchURL = `${GAS_WEB_APP_URL}?action=getDashboardData&filterRole=${encodeURIComponent(selectedFilter)}`;
       
       fetch(fetchURL)
         .then(response => response.json())
         .then(res => {
-          // Cek apakah response sukses (sesuai format Router.gs)
-          if (res.status === true || res.data) {
-            let dataFiltered = res.data;
-            
-            // Panggil fungsi pembaruan UI master yang ada di api.js
-            if (typeof window.updateDashboardUI === "function") {
-              window.updateDashboardUI(dataFiltered);
-            } else {
-              console.warn("Fungsi updateDashboardUI belum ada di api.js!");
-            }
+          // Ambil data (mendukung format res.data maupun res langsung)
+          const dataFiltered = res.data || res;
+          
+          if (typeof window.updateDashboardUI === "function") {
+            window.updateDashboardUI(dataFiltered);
           } else {
-            console.error("Gagal mendapatkan data:", res.message);
+            console.error("Fungsi window.updateDashboardUI belum terdefinisi di api.js!");
           }
         })
         .catch(function(err) {
