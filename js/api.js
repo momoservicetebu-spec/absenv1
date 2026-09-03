@@ -75,31 +75,52 @@ window.loadDashboardData = loadDashboardData;
 // 2. FUNGSI MASTER UNTUK UPDATE UI & FILTER
 // ==========================================
 window.updateDashboardUI = function(data) {
-  console.log("Memulai update UI dengan data:", data);
   if (!data) return;
 
-  // Update Teks KPI Utama
-  if (document.getElementById("kpi-total")) document.getElementById("kpi-total").innerText = data.totalUsers ?? 0;
-  if (document.getElementById("kpi-persen")) document.getElementById("kpi-persen").innerText = (data.persentase ?? 0) + "%";
-  if (document.getElementById("kpi-hadir")) document.getElementById("kpi-hadir").innerText = data.hadir ?? 0;
-  if (document.getElementById("kpi-telat")) document.getElementById("kpi-telat").innerText = data.telat ?? 0;
-  if (document.getElementById("kpi-izin")) document.getElementById("kpi-izin").innerText = data.izin ?? 0;
-  if (document.getElementById("kpi-alpa")) document.getElementById("kpi-alpa").innerText = data.alpa ?? 0;
+  // Update Data Tabel & List Siswa
+  if (typeof renderTableKelas === "function") renderTableKelas(data.kelas || []);
+  if (typeof renderListSiswa === "function") {
+    renderListSiswa('list-terajin-siswa', data.terajinSiswa || []);
+    renderListSiswa('list-telat-siswa', data.seringTelatSiswa || []);
+    renderListSiswa('list-alpa-siswa', data.alpaSiswa || []);
+    renderListSiswa('list-belum-absen-siswa', data.belumAbsenSiswa || []);
+  }
 
-  // Gambar ulang semua grafik & tabel
-  if (typeof renderDonutChart === "function") renderDonutChart(data);
-  if (typeof renderBarChart === "function") renderBarChart(data.angkatan);
-  if (typeof renderTableJurusan === "function") renderTableJurusan(data.jurusan);
-  if (typeof renderTopAlasan === "function") renderTopAlasan(data.alasan);
-  if (typeof renderLineChart === "function") renderLineChart(data.tren);
-  if (typeof renderTerajin === "function") renderTerajin(data.terajin);
-  if (typeof renderTerburuk === "function") renderTerburuk(data.terburuk);
-  if (typeof renderBulanan === "function") renderBulanan(data.bulanan);
-  if (typeof renderTahunan === "function") renderTahunan(data.tahunan);
-  if (typeof renderTableKelas === "function") renderTableKelas(data.kelas);
-  if (typeof renderSeringTelat === "function") renderSeringTelat(data.seringTelat);
-  if (typeof renderBelumAbsen === "function") renderBelumAbsen(data.belumAbsen);
+  // Update Data Tabel & List Guru
+  if (typeof renderTableRumpun === "function") renderTableRumpun(data.rumpun || []);
+  if (typeof renderListGuru === "function") {
+    renderListGuru('list-terajin-guru', data.terajinGuru || []);
+    renderListGuru('list-telat-guru', data.seringTelatGuru || []);
+    renderListGuru('list-cuti-guru', data.cutiDinasGuru || []);
+    renderListGuru('list-kosong-guru', data.tanpaStatusGuru || []);
+  }
+
+  // Lempar data ke charts.js untuk dirender
+  if (typeof renderCharts === "function") renderCharts(data);
 };
+
+// Fungsi Universal Helper untuk List UI
+function renderListSiswa(id, arrayData) {
+  const ul = document.getElementById(id);
+  if (!ul) return;
+  ul.innerHTML = arrayData.length === 0 ? "<li style='text-align:center;'>Tidak ada data</li>" : "";
+  arrayData.forEach(item => {
+    ul.innerHTML += `<li style="padding: 8px 0; border-bottom: 1px solid #333; display: flex; justify-content: space-between;">
+      <span>${item.nama}</span> <span>${item.nilai || ''}</span>
+    </li>`;
+  });
+}
+
+function renderListGuru(id, arrayData) {
+  const ul = document.getElementById(id);
+  if (!ul) return;
+  ul.innerHTML = arrayData.length === 0 ? "<li style='text-align:center;'>Tidak ada data</li>" : "";
+  arrayData.forEach(item => {
+    ul.innerHTML += `<li style="padding: 8px 0; border-bottom: 1px solid #333; display: flex; justify-content: space-between;">
+      <span>${item.nama}</span> <span>${item.keterangan || ''}</span>
+    </li>`;
+  });
+}
 
 // ==========================================
 // 3. KUMPULAN FUNGSI RENDER KOMPONEN

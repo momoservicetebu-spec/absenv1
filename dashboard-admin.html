@@ -67,145 +67,159 @@
     
     <!-- 1. DASHBOARD ANALYTICS -->
     <div id="dashboard" class="section active">
-      <div class="analytics-header">
+      <div class="analytics-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
         <h2 class="analytics-title">📊 Absensi Analytics Dashboard</h2>
+        <!-- TABEL TOGGLE FILTER -->
         <div class="filter-tabs">
-          <button class="filter-btn active" data-filter="Semua">Semua</button>
-          <button class="filter-btn" data-filter="Siswa">Siswa</button>
-          <button class="filter-btn" data-filter="Guru">Guru</button>
+          <button class="filter-btn active" onclick="setDashboardMode('all')">Semua</button>
+          <button class="filter-btn" onclick="setDashboardMode('siswa')">Siswa</button>
+          <button class="filter-btn" onclick="setDashboardMode('guru')">Guru</button>
         </div>
       </div>
 
-      <div class="kpi-row">
-        <div class="kpi-card"><h5>Total User</h5><div id="kpi-total" class="kpi-num" style="color:#00d2d3;">-</div></div>
-        <div class="kpi-card"><h5>Kehadiran %</h5><div id="kpi-persen" class="kpi-num" style="color:#54a0ff;">-</div></div>
-        <div class="kpi-card"><h5>Hadir Hari Ini</h5><div id="kpi-hadir" class="kpi-num" style="color:#1dd1a1;">-</div></div>
-        <div class="kpi-card"><h5>Terlambat</h5><div id="kpi-telat" class="kpi-num" style="color:#feca57;">-</div></div>
-        <div class="kpi-card"><h5>Izin / Sakit</h5><div id="kpi-izin" class="kpi-num" style="color:#ff9ff3;">-</div></div>
-        <div class="kpi-card"><h5>Alpa</h5><div id="kpi-alpa" class="kpi-num" style="color:#ff6b6b;">-</div></div>
-      </div>
+      <!-- CONTAINER 12 WIDGET GRID -->
+      <div class="dashboard-grid" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px;">
 
-      <div class="analytics-grid">
-        <div class="chart-box">
-          <h4>Distribusi Kehadiran Hari Ini</h4>
-          <div class="chart-container"><canvas id="donutStatusChart"></canvas></div>
-        </div>
-        <div class="chart-box">
-          <h4>Tingkat Kehadiran per Angkatan</h4>
-          <div class="chart-container"><canvas id="barGradeChart"></canvas></div>
-        </div>
-        <div class="chart-box">
-          <h4>Matriks Rekap per Jurusan</h4>
-          <div class="analytics-table-wrap">
-            <div class="chart-box">
-              <h4>Matriks Rekap per Jurusan</h4>
-              <div class="analytics-table-wrap">
-                <table>
-                  <thead><tr><th>Jurusan</th><th>Hadir</th><th>Izin / Sakit</th><th>Alpa</th></tr></thead>
-                  <tbody id="table-jurusan-body">
-                    <!-- Data dinamis akan dirender dari JS -->
-                  </tbody>
-                </table>
-              </div>
-            </div>
+        <!-- 1. BARIS ATAS (KPI) -->
+        <div class="chart-box widget" data-role="siswa" style="grid-column: span 2;">
+          <h4>Statistik Harian Siswa</h4>
+          <div class="kpi-row" style="margin-top: 10px;">
+            <div class="kpi-card"><h5>Total</h5><div class="kpi-num" style="color:#00d2d3;">1.200</div></div>
+            <div class="kpi-card"><h5>Hadir</h5><div class="kpi-num" style="color:#1dd1a1;">95%</div></div>
+            <div class="kpi-card"><h5>Telat</h5><div class="kpi-num" style="color:#feca57;">32</div></div>
+            <div class="kpi-card"><h5>Alpa</h5><div class="kpi-num" style="color:#ff6b6b;">5</div></div>
           </div>
         </div>
-      </div>
-      <div class="analytics-grid">
-        
-        <!-- KOTAK 3: Top 5 Alasan -->
-        <div class="chart-box">
-          <h4>Top 5 Alasan Terlambat / Izin</h4>
-          <div class="card-body">
-            <ul id="list-alasan" style="list-style: none; padding: 0; color: #fff; margin: 0;">
-              <!-- Data dari JS akan masuk ke sini -->
-            </ul>
-          </div>
-        </div> <!-- Tag penutup ini sebelumnya hilang -->
-
-        <!-- KOTAK 4: Tren Kehadiran -->
-        <div class="chart-box">
-          <h4>Tren Kehadiran (7 Hari Terakhir)</h4>
-          <div class="chart-container">
-            <canvas id="lineTrendChart"></canvas>
+        <div class="chart-box widget" data-role="guru" style="grid-column: span 2;">
+          <h4>Statistik Harian Guru & Staf</h4>
+          <div class="kpi-row" style="margin-top: 10px;">
+            <div class="kpi-card"><h5>Total</h5><div class="kpi-num" style="color:#00d2d3;">85</div></div>
+            <div class="kpi-card"><h5>Hadir</h5><div class="kpi-num" style="color:#1dd1a1;">98%</div></div>
+            <div class="kpi-card"><h5>Telat</h5><div class="kpi-num" style="color:#feca57;">2</div></div>
+            <div class="kpi-card"><h5>Cuti/DL</h5><div class="kpi-num" style="color:#54a0ff;">3</div></div>
           </div>
         </div>
 
-        <!-- KOTAK 5: Siswa Terajin -->
-        <div class="chart-box">
-          <h4>Siswa Terajin (Kehadiran 100%)</h4>
-          <div class="card-body">
-            <!-- ID di bawah ini wajib list-terajin, bukan list-alasan -->
-            <ul id="list-terajin" style="list-style: none; padding: 0; color: #fff; margin: 0;">
-              <!-- Data dari JS akan masuk ke sini -->
-            </ul>
-          </div>
+        <!-- 2. KIRI ATAS (PIE CHART) -->
+        <div class="chart-box widget" data-role="siswa">
+          <h4>Distribusi Status Siswa</h4>
+          <div class="chart-container"><canvas id="chartStatusSiswa"></canvas></div>
         </div>
-        <!-- KOTAK 6: Kehadiran Terburuk -->
-        <div class="chart-box">
-          <h4>Kehadiran Terburuk (Banyak Alpa)</h4>
-          <div class="card-body">
-            <ul id="list-terburuk" style="list-style: none; padding: 0; color: #fff; margin: 0;">
-              <!-- Data dari JS akan masuk ke sini -->
-            </ul>
-          </div>
+        <div class="chart-box widget" data-role="guru">
+          <h4>Distribusi Status Guru</h4>
+          <div class="chart-container"><canvas id="chartStatusGuru"></canvas></div>
         </div>
 
-        <!-- KOTAK 7: Distribusi Bulanan -->
-        <div class="chart-box">
-          <h4>Tren Bulanan</h4>
-          <div class="chart-container">
-            <canvas id="barBulanChart"></canvas>
-          </div>
+        <!-- 3. TENGAH ATAS (LINE CHART) -->
+        <div class="chart-box widget" data-role="siswa" style="grid-column: span 2;">
+          <h4>Tren Kehadiran Mingguan Siswa</h4>
+          <div class="chart-container"><canvas id="chartTrenSiswa"></canvas></div>
+        </div>
+        <div class="chart-box widget" data-role="guru" style="grid-column: span 2;">
+          <h4>Konsistensi Kehadiran Guru</h4>
+          <div class="chart-container"><canvas id="chartTrenGuru"></canvas></div>
         </div>
 
-        <!-- KOTAK 8: Distribusi Tahunan -->
-        <div class="chart-box">
-          <h4>Tren Tahunan</h4>
-          <div class="chart-container">
-            <canvas id="barTahunChart"></canvas>
-          </div>
+        <!-- 4. KANAN ATAS (BAR CHART) -->
+        <div class="chart-box widget" data-role="siswa">
+          <h4>Kehadiran per Angkatan</h4>
+          <div class="chart-container"><canvas id="chartAngkatan"></canvas></div>
         </div>
-        <!-- KOTAK 9: Matriks Rekap per Kelas -->
-        <div class="chart-box" style="grid-column: span 2;"> <!-- Dibuat lebih lebar agar tabel muat -->
-          <h4>Matriks Rekap per Kelas (Hari Ini)</h4>
-          <div class="card-body" style="max-height: 250px; overflow-y: auto;">
+        <div class="chart-box widget" data-role="guru">
+          <h4>Kehadiran per Jabatan</h4>
+          <div class="chart-container"><canvas id="chartJabatanGuru"></canvas></div>
+        </div>
+
+        <!-- 5. KIRI TENGAH (TABLE) -->
+        <div class="chart-box widget" data-role="siswa" style="grid-column: span 2;">
+          <h4>Matriks Rekap per Kelas</h4>
+          <div class="card-body" style="max-height: 200px; overflow-y: auto;">
             <table class="table" style="width: 100%; color: #fff; text-align: left;">
-              <thead>
-                <tr style="border-bottom: 1px solid #444;">
-                  <th>KELAS</th>
-                  <th>HADIR</th>
-                  <th>IZIN/SAKIT</th>
-                  <th>ALPA</th>
-                </tr>
-              </thead>
-              <tbody id="table-kelas-body">
-                <!-- Data dari JS akan masuk ke sini -->
-              </tbody>
+              <thead><tr style="border-bottom: 1px solid #444;"><th>KELAS</th><th>HADIR</th><th>TELAT</th><th>ALPA</th></tr></thead>
+              <tbody id="table-kelas-body"></tbody>
+            </table>
+          </div>
+        </div>
+        <div class="chart-box widget" data-role="guru" style="grid-column: span 2;">
+          <h4>Matriks Rekap Rumpun Mapel</h4>
+          <div class="card-body" style="max-height: 200px; overflow-y: auto;">
+            <table class="table" style="width: 100%; color: #fff; text-align: left;">
+              <thead><tr style="border-bottom: 1px solid #444;"><th>RUMPUN</th><th>HADIR</th><th>DINAS</th><th>IZIN</th></tr></thead>
+              <tbody id="table-rumpun-body"></tbody>
             </table>
           </div>
         </div>
 
-        <!-- KOTAK 10: Siswa Sering Terlambat -->
-        <div class="chart-box">
-          <h4>Top 5 Sering Terlambat</h4>
-          <div class="card-body">
-            <ul id="list-sering-telat" style="list-style: none; padding: 0; color: #fff; margin: 0;">
-              <!-- Data dari JS akan masuk ke sini -->
-            </ul>
-          </div>
+        <!-- 6. TENGAH (HEATMAP / PLACEHOLDER) -->
+        <div class="chart-box widget" data-role="siswa">
+          <h4>Distribusi Jam Masuk (Siswa)</h4>
+          <div class="chart-container"><canvas id="chartHeatmapSiswa"></canvas></div>
+        </div>
+        <div class="chart-box widget" data-role="guru">
+          <h4>Distribusi Jam Masuk (Guru)</h4>
+          <div class="chart-container"><canvas id="chartHeatmapGuru"></canvas></div>
         </div>
 
-        <!-- KOTAK 11: Belum Absen Hari Ini -->
-        <div class="chart-box">
-          <h4>Belum Absen / Tidak Pakai Sistem (Hari Ini)</h4>
-          <div class="card-body" style="max-height: 200px; overflow-y: auto;">
-            <ul id="list-belum-absen" style="list-style: none; padding: 0; color: #fff; margin: 0;">
-              <!-- Data dari JS akan masuk ke sini -->
-            </ul>
-          </div>
+        <!-- 7. KANAN TENGAH (LIST TERAJIN) -->
+        <div class="chart-box widget" data-role="siswa">
+          <h4>Siswa Terajin (Tap-in Awal)</h4>
+          <div class="card-body"><ul id="list-terajin-siswa" style="list-style: none; padding: 0; color: #fff; margin: 0;"></ul></div>
         </div>
-        
+        <div class="chart-box widget" data-role="guru">
+          <h4>Guru Teladan (Tap-in Awal)</h4>
+          <div class="card-body"><ul id="list-terajin-guru" style="list-style: none; padding: 0; color: #fff; margin: 0;"></ul></div>
+        </div>
+
+        <!-- 8. KIRI BAWAH (LIST TELAT) -->
+        <div class="chart-box widget" data-role="siswa">
+          <h4>Top 5 Sering Terlambat</h4>
+          <div class="card-body"><ul id="list-telat-siswa" style="list-style: none; padding: 0; color: #feca57; margin: 0;"></ul></div>
+        </div>
+        <div class="chart-box widget" data-role="guru">
+          <h4>Top 5 Guru Sering Terlambat</h4>
+          <div class="card-body"><ul id="list-telat-guru" style="list-style: none; padding: 0; color: #feca57; margin: 0;"></ul></div>
+        </div>
+
+        <!-- 9. TENGAH BAWAH (LIST ALPA/CUTI) -->
+        <div class="chart-box widget" data-role="siswa">
+          <h4>Top 5 Sering Alpa/Izin</h4>
+          <div class="card-body"><ul id="list-alpa-siswa" style="list-style: none; padding: 0; color: #ff6b6b; margin: 0;"></ul></div>
+        </div>
+        <div class="chart-box widget" data-role="guru">
+          <h4>Rekap Dinas Luar & Cuti</h4>
+          <div class="card-body"><ul id="list-cuti-guru" style="list-style: none; padding: 0; color: #54a0ff; margin: 0;"></ul></div>
+        </div>
+
+        <!-- 10. BAWAH (GRAFIK METODE) -->
+        <div class="chart-box widget" data-role="siswa">
+          <h4>Metode Absensi</h4>
+          <div class="chart-container"><canvas id="chartMetodeSiswa"></canvas></div>
+        </div>
+        <div class="chart-box widget" data-role="guru">
+          <h4>Lokasi & Geofencing</h4>
+          <div class="chart-container"><canvas id="chartMetodeGuru"></canvas></div>
+        </div>
+
+        <!-- 11. KANAN BAWAH (TREN PANJANG) -->
+        <div class="chart-box widget" data-role="siswa">
+          <h4>Tren Telat Bulanan</h4>
+          <div class="chart-container"><canvas id="chartTelatBulanSiswa"></canvas></div>
+        </div>
+        <div class="chart-box widget" data-role="guru">
+          <h4>Tren Pulang Awal</h4>
+          <div class="chart-container"><canvas id="chartPulangAwalGuru"></canvas></div>
+        </div>
+
+        <!-- 12. SUDUT KANAN (ACTIONABLE LIST) -->
+        <div class="chart-box widget" data-role="siswa">
+          <h4>Belum Absen Hari Ini</h4>
+          <div class="card-body"><ul id="list-belum-absen-siswa" style="list-style: none; padding: 0; color: #a2a3b7; margin: 0;"></ul></div>
+        </div>
+        <div class="chart-box widget" data-role="guru">
+          <h4>Tanpa Status / Kelas Kosong</h4>
+          <div class="card-body"><ul id="list-kosong-guru" style="list-style: none; padding: 0; color: #a2a3b7; margin: 0;"></ul></div>
+        </div>
+
       </div>
     </div>
 

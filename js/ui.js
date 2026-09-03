@@ -835,35 +835,44 @@ function hideLoading() {
   }
 }
 // ==========================================
-// FILE: ui.js (FILTER ROLE SISWA & GURU)
+// KONTROL VISIBILITAS & FILTER DASHBOARD 12 WIDGET
 // ==========================================
 
-document.addEventListener("DOMContentLoaded", function() {
-  const filterBtns = document.querySelectorAll(".filter-btn");
-
+function setDashboardMode(role) {
+  // 1. Update status tombol aktif
+  const filterBtns = document.querySelectorAll('.filter-btn');
   filterBtns.forEach(btn => {
-    btn.addEventListener("click", function() {
-      // 1. Ubah warna/status tombol aktif
-      filterBtns.forEach(b => b.classList.remove("active"));
-      this.classList.add("active");
-      
-      // 2. Tangkap teks filter & ubah ke huruf kecil ('semua', 'siswa', 'guru')
-      const rawFilter = this.getAttribute("data-filter") || this.innerText.trim();
-      const selectedFilter = rawFilter.split(" ").pop().toLowerCase(); 
-      
-      // 3. Tampilkan efek loading pada KPI
-      const kpiIds = ["kpi-total", "kpi-persen", "kpi-hadir", "kpi-telat", "kpi-izin", "kpi-alpa"];
-      kpiIds.forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.innerText = "...";
-      });
-      
-      // 4. Panggil fungsi pengambilan data utama dengan filter yang dipilih
-      if (typeof window.loadDashboardData === "function") {
-        window.loadDashboardData(selectedFilter);
-      } else {
-        console.error("Fungsi window.loadDashboardData tidak ditemukan di api.js!");
-      }
-    });
+    btn.classList.remove('active');
+    const btnText = btn.innerText.trim().toLowerCase();
+    if (
+      (role === 'all' && btnText.includes('semua')) ||
+      (role === 'siswa' && btnText.includes('siswa')) ||
+      (role === 'guru' && btnText.includes('guru'))
+    ) {
+      btn.classList.add('active');
+    }
   });
-});
+
+  // 2. Filter Tampilan 12 Kotak Widget berdasarkan data-role
+  const widgets = document.querySelectorAll('.dashboard-grid .widget');
+  widgets.forEach(widget => {
+    const widgetRole = widget.getAttribute('data-role');
+    
+    if (role === 'all' || widgetRole === role) {
+      widget.style.display = 'block';
+    } else {
+      widget.style.display = 'none';
+    }
+  });
+
+  // 3. Tampilkan efek loading cepat pada KPI
+  const kpiNums = document.querySelectorAll('.kpi-num');
+  kpiNums.forEach(el => el.innerText = '...');
+
+  // 4. Panggil ulang fungsi fetch data dari backend (api.js)
+  if (typeof window.loadDashboardData === 'function') {
+    window.loadDashboardData(role);
+  } else {
+    console.error("Fungsi window.loadDashboardData tidak ditemukan di api.js!");
+  }
+}
