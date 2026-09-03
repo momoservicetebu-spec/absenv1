@@ -300,6 +300,40 @@ function renderBelumAbsen(dataBelum) {
     ul.innerHTML = "<li style='text-align:center; color:#1dd1a1;'>Semua User Sudah Absen Hari Ini!</li>";
     return;
   }
+// ==========================================
+// FUNGSI MASTER UNTUK MEMPERBARUI SEMUA UI
+// ==========================================
+function updateDashboardUI(data) {
+  // 1. Update teks angka KPI utama
+  if (document.getElementById("kpi-total")) document.getElementById("kpi-total").innerText = data.totalUsers;
+  if (document.getElementById("kpi-persen")) document.getElementById("kpi-persen").innerText = data.persentase + "%";
+  if (document.getElementById("kpi-hadir")) document.getElementById("kpi-hadir").innerText = data.hadir;
+  if (document.getElementById("kpi-telat")) document.getElementById("kpi-telat").innerText = data.telat;
+  if (document.getElementById("kpi-izin")) document.getElementById("kpi-izin").innerText = data.izin;
+  if (document.getElementById("kpi-alpa")) document.getElementById("kpi-alpa").innerText = data.alpa;
+
+  // 2. Panggil semua grafik & tabel agar digambar ulang
+  renderDonutChart(data);
+  renderBarChart(data.angkatan);
+  renderTableJurusan(data.jurusan);
+  renderTopAlasan(data.alasan);
+  renderLineChart(data.tren);
+  renderTerajin(data.terajin);
+  renderTerburuk(data.terburuk);
+  renderBulanan(data.bulanan);
+  renderTahunan(data.tahunan);
+  renderTableKelas(data.kelas);
+  renderSeringTelat(data.seringTelat);
+  renderBelumAbsen(data.belumAbsen);
+}
+
+// ==========================================
+// PANGGILAN SAAT HALAMAN DIMUAT (Biarkan yang ini tetap ada)
+// ==========================================
+document.addEventListener("DOMContentLoaded", () => {
+  console.log("DOM selesai dimuat, memanggil loadDashboardData..."); 
+  loadDashboardData();
+});
 
   dataBelum.forEach(item => {
     // Tampilkan maksimal 15 orang saja agar kotak tidak terlalu panjang
