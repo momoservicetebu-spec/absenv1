@@ -39,43 +39,28 @@ async function fetchAPI(action, payload = {}, loadingMessage = "Memproses data..
 }
 
 // ==========================================
-// FILE: DASBOARD ANALYTYC
+// FILE: js/api.js (BERSIH & TERPERBAIKI)
 // ==========================================
 
-console.log("File JS Analytics berhasil dimuat oleh browser!"); // CEK 1
+console.log("File JS Analytics berhasil dimuat oleh browser!");
 
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxx3BLAOh7RZwF2vvukhDPhytbAPXfMP3H_RAJNeWgxLe2LNcCzojm-6HQ1kktPQMTQ/exec";
 
+// 1. FUNGSI UTAMA AMBIL DATA DARI SERVER
 async function loadDashboardData() {
-  console.log("Fungsi loadDashboardData mulai berjalan..."); // CEK 2
+  console.log("Fungsi loadDashboardData mulai berjalan...");
 
   try {
-    console.log("Mencoba menghubungi Google Apps Script..."); // CEK 3
+    console.log("Mencoba menghubungi Google Apps Script...");
     const response = await fetch(`${SCRIPT_URL}?action=getDashboardData`);
-    
     const result = await response.json();
-    console.log("Data berhasil diterima dari GAS:", result); // CEK 4
+    console.log("Data berhasil diterima dari GAS:", result);
 
-    if (result.success) {
-      // 1. Update Angka KPI Utama
-      document.getElementById('kpi-total').innerText = result.data.totalUsers || 0;
-      document.getElementById('kpi-persen').innerText = (result.data.persentase || 0) + '%';
-      document.getElementById('kpi-hadir').innerText = result.data.hadir || 0;
-      document.getElementById('kpi-telat').innerText = result.data.telat || 0;
-      document.getElementById('kpi-izin').innerText = result.data.izin || 0;
-      document.getElementById('kpi-alpa').innerText = result.data.alpa || 0;
-      console.log("Angka KPI berhasil diupdate!"); // CEK 5
-
-      // 2. Panggil semua fungsi render di SINI (di dalam blok success)
-      renderDonutChart(result.data);
-      renderBarChart(result.data.angkatan);
-      renderTableJurusan(result.data.jurusan);
-      renderTopAlasan(result.data.alasan);
-      renderLineChart(result.data.tren);
-      renderTerajin(result.data.terajin);
-      
+    if (result.success || result.status === true) {
+      const data = result.data || result;
+      window.updateDashboardUI(data);
     } else {
-      console.log("Respon diterima, tapi success = false", result);
+      console.warn("Respon diterima tapi status gagal:", result);
     }
   } catch (error) {
     console.error("Gagal memuat data (Error Catch):", error);
@@ -83,15 +68,45 @@ async function loadDashboardData() {
 }
 
 // ==========================================
-// KUMPULAN FUNGSI RENDER KOMPONEN
+// 2. FUNGSI MASTER UNTUK UPDATE UI & FILTER
+// ==========================================
+window.updateDashboardUI = function(data) {
+  console.log("Memulai update UI dengan data:", data);
+  if (!data) return;
+
+  // Update Teks KPI Utama
+  if (document.getElementById("kpi-total")) document.getElementById("kpi-total").innerText = data.totalUsers ?? 0;
+  if (document.getElementById("kpi-persen")) document.getElementById("kpi-persen").innerText = (data.persentase ?? 0) + "%";
+  if (document.getElementById("kpi-hadir")) document.getElementById("kpi-hadir").innerText = data.hadir ?? 0;
+  if (document.getElementById("kpi-telat")) document.getElementById("kpi-telat").innerText = data.telat ?? 0;
+  if (document.getElementById("kpi-izin")) document.getElementById("kpi-izin").innerText = data.izin ?? 0;
+  if (document.getElementById("kpi-alpa")) document.getElementById("kpi-alpa").innerText = data.alpa ?? 0;
+
+  // Gambar ulang semua grafik & tabel
+  if (typeof renderDonutChart === "function") renderDonutChart(data);
+  if (typeof renderBarChart === "function") renderBarChart(data.angkatan);
+  if (typeof renderTableJurusan === "function") renderTableJurusan(data.jurusan);
+  if (typeof renderTopAlasan === "function") renderTopAlasan(data.alasan);
+  if (typeof renderLineChart === "function") renderLineChart(data.tren);
+  if (typeof renderTerajin === "function") renderTerajin(data.terajin);
+  if (typeof renderTerburuk === "function") renderTerburuk(data.terburuk);
+  if (typeof renderBulanan === "function") renderBulanan(data.bulanan);
+  if (typeof renderTahunan === "function") renderTahunan(data.tahunan);
+  if (typeof renderTableKelas === "function") renderTableKelas(data.kelas);
+  if (typeof renderSeringTelat === "function") renderSeringTelat(data.seringTelat);
+  if (typeof renderBelumAbsen === "function") renderBelumAbsen(data.belumAbsen);
+};
+
+// ==========================================
+// 3. KUMPULAN FUNGSI RENDER KOMPONEN
 // ==========================================
 
 function renderDonutChart(data) {
   const chartElement = document.getElementById('donutStatusChart');
-  if (!chartElement) return;
+  if (!chartElement || !data) return;
 
   const ctx = chartElement.getContext('2d');
-  if(window.myDonutChart) window.myDonutChart.destroy();
+  if (window.myDonutChart) window.myDonutChart.destroy();
 
   window.myDonutChart = new Chart(ctx, {
     type: 'doughnut',
@@ -111,7 +126,7 @@ function renderBarChart(dataAngkatan) {
   if (!chartElement || !dataAngkatan) return;
   
   const ctx = chartElement.getContext('2d');
-  if(window.myBarChart) window.myBarChart.destroy();
+  if (window.myBarChart) window.myBarChart.destroy();
 
   window.myBarChart = new Chart(ctx, {
     type: 'bar',
@@ -135,8 +150,7 @@ function renderBarChart(dataAngkatan) {
 function renderTableJurusan(dataJurusan) {
   const tbody = document.getElementById('table-jurusan-body');
   if (!tbody) return;
-  
-  tbody.innerHTML = ""; // Bersihkan isi tabel
+  tbody.innerHTML = "";
 
   if (!dataJurusan || dataJurusan.length === 0) {
     tbody.innerHTML = "<tr><td colspan='4' style='text-align:center;'>Belum ada data</td></tr>";
@@ -172,7 +186,7 @@ function renderLineChart(dataTren) {
   if (!chartElement || !dataTren) return;
   
   const ctx = chartElement.getContext('2d');
-  if(window.myLineChart) window.myLineChart.destroy();
+  if (window.myLineChart) window.myLineChart.destroy();
 
   window.myLineChart = new Chart(ctx, {
     type: 'line',
@@ -202,6 +216,7 @@ function renderTerajin(dataTerajin) {
     </li>`;
   });
 }
+
 function renderTerburuk(dataTerburuk) {
   const ul = document.getElementById('list-terburuk');
   if (!ul || !dataTerburuk) return;
@@ -224,13 +239,13 @@ function renderBulanan(dataBulanan) {
   if (!chartElement || !dataBulanan) return;
   
   const ctx = chartElement.getContext('2d');
-  if(window.myBulanChart) window.myBulanChart.destroy();
+  if (window.myBulanChart) window.myBulanChart.destroy();
 
   window.myBulanChart = new Chart(ctx, {
     type: 'bar',
     data: {
-      labels: dataBulanan.labels,
-      datasets: [{ label: 'Total Kehadiran', data: dataBulanan.data, backgroundColor: '#48dbfb', borderRadius: 4 }]
+      labels: dataBulanan.labels || [],
+      datasets: [{ label: 'Total Kehadiran', data: dataBulanan.data || [], backgroundColor: '#48dbfb', borderRadius: 4 }]
     },
     options: { responsive: true, maintainAspectRatio: false }
   });
@@ -241,17 +256,18 @@ function renderTahunan(dataTahunan) {
   if (!chartElement || !dataTahunan) return;
   
   const ctx = chartElement.getContext('2d');
-  if(window.myTahunChart) window.myTahunChart.destroy();
+  if (window.myTahunChart) window.myTahunChart.destroy();
 
   window.myTahunChart = new Chart(ctx, {
     type: 'bar',
     data: {
-      labels: dataTahunan.labels,
-      datasets: [{ label: 'Total Kehadiran', data: dataTahunan.data, backgroundColor: '#a29bfe', borderRadius: 4 }]
+      labels: dataTahunan.labels || [],
+      datasets: [{ label: 'Total Kehadiran', data: dataTahunan.data || [], backgroundColor: '#a29bfe', borderRadius: 4 }]
     },
     options: { responsive: true, maintainAspectRatio: false }
   });
 }
+
 function renderTableKelas(dataKelas) {
   const tbody = document.getElementById('table-kelas-body');
   if (!tbody || !dataKelas) return;
@@ -300,60 +316,16 @@ function renderBelumAbsen(dataBelum) {
     ul.innerHTML = "<li style='text-align:center; color:#1dd1a1;'>Semua User Sudah Absen Hari Ini!</li>";
     return;
   }
-// ==========================================
-// FUNGSI MASTER UNTUK MEMPERBARUI SEMUA UI
-// ==========================================
-
-window.updateDashboardUI = function(data) {
-  console.log("Memulai update UI dengan data:", data);
-
-  // 1. Update teks KPI
-  if (document.getElementById("kpi-total")) document.getElementById("kpi-total").innerText = data.totalUsers;
-  if (document.getElementById("kpi-persen")) document.getElementById("kpi-persen").innerText = data.persentase + "%";
-  if (document.getElementById("kpi-hadir")) document.getElementById("kpi-hadir").innerText = data.hadir;
-  if (document.getElementById("kpi-telat")) document.getElementById("kpi-telat").innerText = data.telat;
-  if (document.getElementById("kpi-izin")) document.getElementById("kpi-izin").innerText = data.izin;
-  if (document.getElementById("kpi-alpa")) document.getElementById("kpi-alpa").innerText = data.alpa;
-
-  // 2. Gambar ulang semua grafik & tabel
-  if (typeof renderDonutChart === "function") renderDonutChart(data);
-  if (typeof renderBarChart === "function") renderBarChart(data.angkatan);
-  if (typeof renderTableJurusan === "function") renderTableJurusan(data.jurusan);
-  if (typeof renderTopAlasan === "function") renderTopAlasan(data.alasan);
-  if (typeof renderLineChart === "function") renderLineChart(data.tren);
-  if (typeof renderTerajin === "function") renderTerajin(data.terajin);
-  if (typeof renderTerburuk === "function") renderTerburuk(data.terburuk);
-  if (typeof renderBulanan === "function") renderBulanan(data.bulanan);
-  if (typeof renderTahunan === "function") renderTahunan(data.tahunan);
-  if (typeof renderTableKelas === "function") renderTableKelas(data.kelas);
-  if (typeof renderSeringTelat === "function") renderSeringTelat(data.seringTelat);
-  if (typeof renderBelumAbsen === "function") renderBelumAbsen(data.belumAbsen);
-};
-// ==========================================
-// PANGGILAN SAAT HALAMAN DIMUAT (Biarkan yang ini tetap ada)
-// ==========================================
-document.addEventListener("DOMContentLoaded", () => {
-  console.log("DOM selesai dimuat, memanggil loadDashboardData..."); 
-  loadDashboardData();
-});
 
   dataBelum.forEach(item => {
-    // Tampilkan maksimal 15 orang saja agar kotak tidak terlalu panjang
     ul.innerHTML += `<li style="padding: 8px 0; border-bottom: 1px solid #333; display: flex; justify-content: space-between;">
       <span>❌ ${item.nama}</span> <span style="font-size: 11px; color:#aaa;">(${item.role})</span>
     </li>`;
   });
 }
 
-// Jalankan saat tab Dashboard aktif atau halaman dimuat
+// Jalankan load data otomatis saat pertama kali halaman dimuat
 document.addEventListener("DOMContentLoaded", () => {
-  console.log("DOM selesai dimuat, memanggil loadDashboardData..."); // CEK 7
+  console.log("DOM selesai dimuat, memanggil loadDashboardData...");
   loadDashboardData();
 });
-
-// Tambahkan ini di api.js
-window.updateDashboardUI = function(data) {
-    console.log("Memulai update UI dengan data:", data);
-    // Masukkan logika DOM manipulation atau update chart Anda di sini
-};
-
