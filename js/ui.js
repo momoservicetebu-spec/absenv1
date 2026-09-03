@@ -835,49 +835,35 @@ function hideLoading() {
   }
 }
 // ==========================================
-// FILTER DATA SEMUA GURU DAN SISWA (OPTIMIZED)
+// FILE: ui.js (FILTER ROLE SISWA & GURU)
 // ==========================================
+
 document.addEventListener("DOMContentLoaded", function() {
   const filterBtns = document.querySelectorAll(".filter-btn");
-  const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxx3BLAOh7RZwF2vvukhDPhytbAPXfMP3H_RAJNeWgxLe2LNcCzojm-6HQ1kktPQMTQ/exec"; 
 
   filterBtns.forEach(btn => {
     btn.addEventListener("click", function() {
-      // 1. Ubah warna tombol yang aktif
+      // 1. Ubah warna/status tombol aktif
       filterBtns.forEach(b => b.classList.remove("active"));
       this.classList.add("active");
       
-      // 2. Tangkap filter (Prioritaskan atribut data-filter jika ada, atau bersihkan teks)
+      // 2. Tangkap teks filter & ubah ke huruf kecil ('semua', 'siswa', 'guru')
       const rawFilter = this.getAttribute("data-filter") || this.innerText.trim();
-      // Mengambil kata terakhir jika ada emoji (misal: "👨‍🎓 Siswa" -> "Siswa")
-      const selectedFilter = rawFilter.split(" ").pop(); 
+      const selectedFilter = rawFilter.split(" ").pop().toLowerCase(); 
       
-      // 3. Tampilkan efek loading pada angka KPI
+      // 3. Tampilkan efek loading pada KPI
       const kpiIds = ["kpi-total", "kpi-persen", "kpi-hadir", "kpi-telat", "kpi-izin", "kpi-alpa"];
       kpiIds.forEach(id => {
         const el = document.getElementById(id);
         if (el) el.innerText = "...";
       });
       
-      // 4. Kirim request ke GAS menggunakan API Fetch
-      const fetchURL = `${GAS_WEB_APP_URL}?action=getDashboardData&filterRole=${encodeURIComponent(selectedFilter)}`;
-      
-      fetch(fetchURL)
-        .then(response => response.json())
-        .then(res => {
-          // Ambil data (mendukung format res.data maupun res langsung)
-          const dataFiltered = res.data || res;
-          
-          if (typeof window.updateDashboardUI === "function") {
-            window.updateDashboardUI(dataFiltered);
-          } else {
-            console.error("Fungsi window.updateDashboardUI belum terdefinisi di api.js!");
-          }
-        })
-        .catch(function(err) {
-          console.error("Gagal menerapkan filter:", err);
-          alert("Gagal mengambil data filter. Periksa koneksi atau console log.");
-        });
+      // 4. Panggil fungsi pengambilan data utama dengan filter yang dipilih
+      if (typeof window.loadDashboardData === "function") {
+        window.loadDashboardData(selectedFilter);
+      } else {
+        console.error("Fungsi window.loadDashboardData tidak ditemukan di api.js!");
+      }
     });
   });
 });

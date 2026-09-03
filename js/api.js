@@ -46,13 +46,14 @@ console.log("File JS Analytics berhasil dimuat oleh browser!");
 
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxx3BLAOh7RZwF2vvukhDPhytbAPXfMP3H_RAJNeWgxLe2LNcCzojm-6HQ1kktPQMTQ/exec";
 
-// 1. FUNGSI UTAMA AMBIL DATA DARI SERVER
-async function loadDashboardData() {
-  console.log("Fungsi loadDashboardData mulai berjalan...");
+// Tambahkan parameter 'role' di fungsi loadDashboardData
+async function loadDashboardData(role = 'semua') {
+  const cleanRole = role.toLowerCase();
+  console.log(`Mencari data analitik untuk filter: ${cleanRole}...`);
 
   try {
-    console.log("Mencoba menghubungi Google Apps Script...");
-    const response = await fetch(`${SCRIPT_URL}?action=getDashboardData`);
+    // Kirim parameter role dan filterRole sekaligus
+    const response = await fetch(`${SCRIPT_URL}?action=getDashboardData&role=${cleanRole}&filterRole=${cleanRole}`);
     const result = await response.json();
     console.log("Data berhasil diterima dari GAS:", result);
 
@@ -66,6 +67,9 @@ async function loadDashboardData() {
     console.error("Gagal memuat data (Error Catch):", error);
   }
 }
+
+// Pastikan fungsi ini bisa diakses secara global oleh ui.js
+window.loadDashboardData = loadDashboardData;
 
 // ==========================================
 // 2. FUNGSI MASTER UNTUK UPDATE UI & FILTER
