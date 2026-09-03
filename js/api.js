@@ -307,7 +307,7 @@ function renderBelumAbsen(dataBelum) {
 window.updateDashboardUI = function(data) {
   console.log("Memulai update UI dengan data:", data);
 
-  // 1. Update teks angka KPI utama
+  // 1. Update teks KPI
   if (document.getElementById("kpi-total")) document.getElementById("kpi-total").innerText = data.totalUsers;
   if (document.getElementById("kpi-persen")) document.getElementById("kpi-persen").innerText = data.persentase + "%";
   if (document.getElementById("kpi-hadir")) document.getElementById("kpi-hadir").innerText = data.hadir;
@@ -315,19 +315,19 @@ window.updateDashboardUI = function(data) {
   if (document.getElementById("kpi-izin")) document.getElementById("kpi-izin").innerText = data.izin;
   if (document.getElementById("kpi-alpa")) document.getElementById("kpi-alpa").innerText = data.alpa;
 
-  // 2. Panggil semua grafik & tabel agar digambar ulang
-  renderDonutChart(data);
-  renderBarChart(data.angkatan);
-  renderTableJurusan(data.jurusan);
-  renderTopAlasan(data.alasan);
-  renderLineChart(data.tren);
-  renderTerajin(data.terajin);
-  renderTerburuk(data.terburuk);
-  renderBulanan(data.bulanan);
-  renderTahunan(data.tahunan);
-  renderTableKelas(data.kelas);
-  renderSeringTelat(data.seringTelat);
-  renderBelumAbsen(data.belumAbsen);
+  // 2. Gambar ulang semua grafik & tabel
+  if (typeof renderDonutChart === "function") renderDonutChart(data);
+  if (typeof renderBarChart === "function") renderBarChart(data.angkatan);
+  if (typeof renderTableJurusan === "function") renderTableJurusan(data.jurusan);
+  if (typeof renderTopAlasan === "function") renderTopAlasan(data.alasan);
+  if (typeof renderLineChart === "function") renderLineChart(data.tren);
+  if (typeof renderTerajin === "function") renderTerajin(data.terajin);
+  if (typeof renderTerburuk === "function") renderTerburuk(data.terburuk);
+  if (typeof renderBulanan === "function") renderBulanan(data.bulanan);
+  if (typeof renderTahunan === "function") renderTahunan(data.tahunan);
+  if (typeof renderTableKelas === "function") renderTableKelas(data.kelas);
+  if (typeof renderSeringTelat === "function") renderSeringTelat(data.seringTelat);
+  if (typeof renderBelumAbsen === "function") renderBelumAbsen(data.belumAbsen);
 };
 // ==========================================
 // PANGGILAN SAAT HALAMAN DIMUAT (Biarkan yang ini tetap ada)
