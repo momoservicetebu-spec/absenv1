@@ -303,8 +303,8 @@ function renderBelumAbsen(dataBelum) {
 // ==========================================
 // FUNGSI MASTER UNTUK MEMPERBARUI SEMUA UI
 // ==========================================
-  window.updateDashboardUI = function(data) {
-  // 1. Update teks angka KPI utama
+
+window.updateDashboardUI = function(data) {
   if (document.getElementById("kpi-total")) document.getElementById("kpi-total").innerText = data.totalUsers;
   if (document.getElementById("kpi-persen")) document.getElementById("kpi-persen").innerText = data.persentase + "%";
   if (document.getElementById("kpi-hadir")) document.getElementById("kpi-hadir").innerText = data.hadir;
@@ -312,7 +312,6 @@ function renderBelumAbsen(dataBelum) {
   if (document.getElementById("kpi-izin")) document.getElementById("kpi-izin").innerText = data.izin;
   if (document.getElementById("kpi-alpa")) document.getElementById("kpi-alpa").innerText = data.alpa;
 
-  // 2. Panggil semua grafik & tabel agar digambar ulang
   renderDonutChart(data);
   renderBarChart(data.angkatan);
   renderTableJurusan(data.jurusan);
