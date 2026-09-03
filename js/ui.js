@@ -834,3 +834,28 @@ function hideLoading() {
     overlay.classList.add('hidden');
   }
 }
+// ==========================================
+// FILTER DATA SEMUA GURU DAN SISWA
+// ==========================================
+document.addEventListener("DOMContentLoaded", function() {
+  // 1. Ambil semua tombol filter di dashboard
+  const filterBtns = document.querySelectorAll(".filter-btn");
+
+  // 2. Berikan aksi klik ke masing-masing tombol
+  filterBtns.forEach(btn => {
+    btn.addEventListener("click", function() {
+      // Hapus class 'active' dari semua tombol
+      filterBtns.forEach(b => b.classList.remove("active"));
+      
+      // Tambahkan class 'active' pada tombol yang diklik
+      this.classList.add("active");
+      
+      // Ambil teks (Semua, Siswa, Guru) untuk trigger data nanti
+      const selectedFilter = this.innerText.trim();
+      console.log("Filter aktif:", selectedFilter); 
+      
+      // TODO: Panggil fungsi update data grafik/KPI di sini dari api.js
+      // Contoh: if(selectedFilter === "Siswa") { loadDataSiswaOnly(); }
+    });
+  });
+});
