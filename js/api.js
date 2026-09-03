@@ -57,18 +57,23 @@ async function loadDashboardData() {
     console.log("Data berhasil diterima dari GAS:", result); // CEK 4
 
     if (result.success) {
-      // Update Angka KPI
-      document.getElementById('kpi-total').innerText = result.data.totalUsers;
-      document.getElementById('kpi-persen').innerText = result.data.persentase + '%';
-      document.getElementById('kpi-hadir').innerText = result.data.hadir;
-      document.getElementById('kpi-telat').innerText = result.data.telat;
-      document.getElementById('kpi-izin').innerText = result.data.izin;
-      document.getElementById('kpi-alpa').innerText = result.data.alpa;
-
+      // 1. Update Angka KPI Utama
+      document.getElementById('kpi-total').innerText = result.data.totalUsers || 0;
+      document.getElementById('kpi-persen').innerText = (result.data.persentase || 0) + '%';
+      document.getElementById('kpi-hadir').innerText = result.data.hadir || 0;
+      document.getElementById('kpi-telat').innerText = result.data.telat || 0;
+      document.getElementById('kpi-izin').innerText = result.data.izin || 0;
+      document.getElementById('kpi-alpa').innerText = result.data.alpa || 0;
       console.log("Angka KPI berhasil diupdate!"); // CEK 5
 
-      // Render Chart
+      // 2. Panggil semua fungsi render di SINI (di dalam blok success)
       renderDonutChart(result.data);
+      renderBarChart(result.data.angkatan);
+      renderTableJurusan(result.data.jurusan);
+      renderTopAlasan(result.data.alasan);
+      renderLineChart(result.data.tren);
+      renderTerajin(result.data.terajin);
+      
     } else {
       console.log("Respon diterima, tapi success = false", result);
     }
@@ -77,12 +82,13 @@ async function loadDashboardData() {
   }
 }
 
+// ==========================================
+// KUMPULAN FUNGSI RENDER KOMPONEN
+// ==========================================
+
 function renderDonutChart(data) {
   const chartElement = document.getElementById('donutStatusChart');
-  if (!chartElement) {
-    console.error("Elemen Canvas donutStatusChart tidak ditemukan di HTML!");
-    return;
-  }
+  if (!chartElement) return;
 
   const ctx = chartElement.getContext('2d');
   if(window.myDonutChart) window.myDonutChart.destroy();
@@ -92,40 +98,28 @@ function renderDonutChart(data) {
     data: {
       labels: ['Hadir', 'Terlambat', 'Izin', 'Alpa'],
       datasets: [{
-        data: [data.hadir, data.telat, data.izin, data.alpa],
+        data: [data.hadir || 0, data.telat || 0, data.izin || 0, data.alpa || 0],
         backgroundColor: ['#1dd1a1', '#feca57', '#ff9ff3', '#ff6b6b']
       }]
     },
     options: { responsive: true, maintainAspectRatio: false }
   });
-  console.log("Grafik berhasil dirender!"); // CEK 6
 }
 
-// Jalankan saat tab Dashboard aktif atau halaman dimuat
-document.addEventListener("DOMContentLoaded", () => {
-  console.log("DOM selesai dimuat, memanggil loadDashboardData..."); // CEK 7
-  loadDashboardData();
-});
-
-// Tambahkan di dalam loadDashboardData(), tepat di bawah renderDonutChart(result.data);
-renderBarChart(result.data.angkatan);
-renderTableJurusan(result.data.jurusan);
-
-// ==========================================
-// FUNGSI RENDER CHART & TABEL
-// ==========================================
 function renderBarChart(dataAngkatan) {
-  const ctx = document.getElementById('barGradeChart').getContext('2d');
+  const chartElement = document.getElementById('barGradeChart');
+  if (!chartElement || !dataAngkatan) return;
+  
+  const ctx = chartElement.getContext('2d');
   if(window.myBarChart) window.myBarChart.destroy();
 
-  // Asumsi dataAngkatan formatnya: { labels: ['Kelas 10', 'Kelas 11', 'Kelas 12'], hadir: [90, 85, 95] }
   window.myBarChart = new Chart(ctx, {
     type: 'bar',
     data: {
-      labels: dataAngkatan.labels,
+      labels: dataAngkatan.labels || [],
       datasets: [{
         label: '% Kehadiran',
-        data: dataAngkatan.persentase,
+        data: dataAngkatan.persentase || [],
         backgroundColor: '#54a0ff',
         borderRadius: 4
       }]
@@ -140,6 +134,8 @@ function renderBarChart(dataAngkatan) {
 
 function renderTableJurusan(dataJurusan) {
   const tbody = document.getElementById('table-jurusan-body');
+  if (!tbody) return;
+  
   tbody.innerHTML = ""; // Bersihkan isi tabel
 
   if (!dataJurusan || dataJurusan.length === 0) {
@@ -158,4 +154,58 @@ function renderTableJurusan(dataJurusan) {
     tbody.appendChild(tr);
   });
 }
+
+function renderTopAlasan(dataAlasan) {
+  const ul = document.getElementById('list-alasan');
+  if (!ul || !dataAlasan) return;
+  
+  ul.innerHTML = "";
+  dataAlasan.forEach(item => {
+    ul.innerHTML += `<li style="padding: 8px 0; border-bottom: 1px solid #333; display: flex; justify-content: space-between;">
+      <span>${item.alasan}</span> <span style="color:#feca57;">${item.jumlah} kasus</span>
+    </li>`;
+  });
+}
+
+function renderLineChart(dataTren) {
+  const chartElement = document.getElementById('lineTrendChart');
+  if (!chartElement || !dataTren) return;
+  
+  const ctx = chartElement.getContext('2d');
+  if(window.myLineChart) window.myLineChart.destroy();
+
+  window.myLineChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: dataTren.labels || [],
+      datasets: [{ 
+        label: 'Tingkat Kehadiran', 
+        data: dataTren.hadir || [], 
+        borderColor: '#1dd1a1', 
+        tension: 0.3,
+        fill: true,
+        backgroundColor: 'rgba(29, 209, 161, 0.1)'
+      }]
+    },
+    options: { responsive: true, maintainAspectRatio: false }
+  });
+}
+
+function renderTerajin(dataTerajin) {
+  const ul = document.getElementById('list-terajin');
+  if (!ul || !dataTerajin) return;
+  
+  ul.innerHTML = "";
+  dataTerajin.forEach(item => {
+    ul.innerHTML += `<li style="padding: 8px 0; border-bottom: 1px solid #333; display: flex; justify-content: space-between;">
+      <span>👤 ${item.nama}</span> <span style="color:#1dd1a1;">${item.kelas}</span>
+    </li>`;
+  });
+}
+
+// Jalankan saat tab Dashboard aktif atau halaman dimuat
+document.addEventListener("DOMContentLoaded", () => {
+  console.log("DOM selesai dimuat, memanggil loadDashboardData..."); // CEK 7
+  loadDashboardData();
+});
 
