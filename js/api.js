@@ -106,3 +106,56 @@ document.addEventListener("DOMContentLoaded", () => {
   console.log("DOM selesai dimuat, memanggil loadDashboardData..."); // CEK 7
   loadDashboardData();
 });
+
+// Tambahkan di dalam loadDashboardData(), tepat di bawah renderDonutChart(result.data);
+renderBarChart(result.data.angkatan);
+renderTableJurusan(result.data.jurusan);
+
+// ==========================================
+// FUNGSI RENDER CHART & TABEL
+// ==========================================
+function renderBarChart(dataAngkatan) {
+  const ctx = document.getElementById('barGradeChart').getContext('2d');
+  if(window.myBarChart) window.myBarChart.destroy();
+
+  // Asumsi dataAngkatan formatnya: { labels: ['Kelas 10', 'Kelas 11', 'Kelas 12'], hadir: [90, 85, 95] }
+  window.myBarChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: dataAngkatan.labels,
+      datasets: [{
+        label: '% Kehadiran',
+        data: dataAngkatan.persentase,
+        backgroundColor: '#54a0ff',
+        borderRadius: 4
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: { y: { beginAtZero: true, max: 100 } }
+    }
+  });
+}
+
+function renderTableJurusan(dataJurusan) {
+  const tbody = document.getElementById('table-jurusan-body');
+  tbody.innerHTML = ""; // Bersihkan isi tabel
+
+  if (!dataJurusan || dataJurusan.length === 0) {
+    tbody.innerHTML = "<tr><td colspan='4' style='text-align:center;'>Belum ada data</td></tr>";
+    return;
+  }
+
+  dataJurusan.forEach(item => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${item.nama}</td>
+      <td>${item.hadir}</td>
+      <td>${item.izin}</td>
+      <td>${item.alpa}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+

@@ -97,16 +97,17 @@
         <div class="chart-box">
           <h4>Matriks Rekap per Jurusan</h4>
           <div class="analytics-table-wrap">
-            <table>
-              <thead><tr><th>Jurusan</th><th>Hadir</th><th>Izin</th><th>Alpa</th></tr></thead>
-              <tbody>
-                <tr><td>MIPA 1</td><td>34</td><td>1</td><td>0</td></tr>
-                <tr><td>MIPA 2</td><td>32</td><td>2</td><td>1</td></tr>
-                <tr><td>IPS 1</td><td>35</td><td>0</td><td>0</td></tr>
-                <tr><td>IPS 2</td><td>30</td><td>3</td><td>2</td></tr>
-                <tr><td>Bahasa</td><td>28</td><td>1</td><td>0</td></tr>
-              </tbody>
-            </table>
+            <div class="chart-box">
+              <h4>Matriks Rekap per Jurusan</h4>
+              <div class="analytics-table-wrap">
+                <table>
+                  <thead><tr><th>Jurusan</th><th>Hadir</th><th>Izin / Sakit</th><th>Alpa</th></tr></thead>
+                  <tbody id="table-jurusan-body">
+                    <!-- Data dinamis akan dirender dari JS -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
           </div>
         </div>
       </div>
