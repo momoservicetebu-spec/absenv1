@@ -54,47 +54,21 @@ body {
 .section-title { margin-top: 0; color: #fff; border-bottom: 2px solid #6c5ce7; padding-bottom: 8px; display: inline-block; font-size: 20px; margin-bottom: 15px; }
 .section-desc { color: #a29bfe; font-size: 13px; margin-top: -5px; margin-bottom: 20px; }
 
-/* --- ANALYTICS DASHBOARD & 12 WIDGET GRID --- */
+/* --- ANALYTICS DASHBOARD --- */
 .analytics-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 15px; }
 .analytics-title { font-size: 20px; font-weight: bold; color: #fff; margin: 0; }
 .filter-tabs { display: flex; gap: 8px; flex-wrap: wrap; }
-.filter-btn { background: #201a35; border: 1px solid #30274e; color: #a29bfe; padding: 8px 14px; border-radius: 6px; cursor: pointer; font-size: 13px; transition: 0.2s; }
+.filter-btn { background: #201a35; border: 1px solid #30274e; color: #a29bfe; padding: 8px 14px; border-radius: 6px; cursor: pointer; font-size: 13px; }
 .filter-btn.active { background: #6c5ce7; color: #fff; border-color: #a29bfe; }
 
-.kpi-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 10px; margin-bottom: 0; width: 100%; }
-.kpi-card { background: #161224; border: 1px solid #30274e; border-radius: 8px; padding: 10px; text-align: center; }
-.kpi-card h5 { margin: 0 0 4px 0; color: #a29bfe; font-size: 10px; text-transform: uppercase; }
-.kpi-card .kpi-num { font-size: 20px; font-weight: bold; }
+.kpi-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; margin-bottom: 20px; width: 100%; }
+.kpi-card { background: #201a35; border: 1px solid #30274e; border-radius: 8px; padding: 12px; text-align: center; }
+.kpi-card h5 { margin: 0 0 6px 0; color: #a29bfe; font-size: 11px; text-transform: uppercase; }
+.kpi-card .kpi-num { font-size: 22px; font-weight: bold; }
 
-/* System Grid Dinamis 12 Kolom untuk PC */
-.dashboard-grid, .analytics-grid { 
-  display: grid; 
-  grid-template-columns: repeat(12, 1fr); 
-  gap: 16px; 
-  margin-bottom: 20px; 
-  width: 100%; 
-}
-
-/* Base Widget & Chart Box */
-.widget, .chart-box { 
-  background: #201a35; 
-  border: 1px solid #30274e; 
-  border-radius: 10px; 
-  padding: 15px; 
-  min-height: 260px; 
-  display: flex; 
-  flex-direction: column; 
-  grid-column: span 4; /* Default 3 widget per baris di PC */
-}
-
-/* Utility Span untuk Variasi Ukuran Widget di PC */
-.col-12, .col-span-12 { grid-column: span 12 !important; }
-.col-8,  .col-span-8  { grid-column: span 8 !important; }
-.col-6,  .col-span-6  { grid-column: span 6 !important; }
-.col-4,  .col-span-4  { grid-column: span 4 !important; }
-.col-3,  .col-span-3  { grid-column: span 3 !important; }
-
-.chart-box h4, .widget h4 { margin: 0 0 10px 0; font-size: 13px; color: #dcdde1; border-bottom: 1px solid #30274e; padding-bottom: 6px; }
+.analytics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 15px; margin-bottom: 20px; width: 100%; }
+.chart-box { background: #201a35; border: 1px solid #30274e; border-radius: 10px; padding: 15px; min-height: 260px; display: flex; flex-direction: column; }
+.chart-box h4 { margin: 0 0 10px 0; font-size: 13px; color: #dcdde1; border-bottom: 1px solid #30274e; padding-bottom: 6px; }
 .chart-container { flex-grow: 1; position: relative; width: 100%; min-height: 200px; }
 
 /* TABEL & BADGES */
@@ -121,7 +95,7 @@ input[type="file"], input[type="text"], input[type="date"], select {
   max-width: 100%; 
   box-sizing: border-box; 
   font-size: 14px; 
-  min-height: 42px; 
+  min-height: 42px; /* Sentuhan optimal di HP */
 }
 .btn-action { padding: 10px 16px; font-size: 13px; background-color: #6c5ce7; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; transition: 0.2s; display: inline-block; min-height: 40px; }
 .btn-action:hover { background-color: #574b90; }
@@ -215,27 +189,14 @@ canvas { position: absolute; top: 0; left: 0; }
 #loadingText { color: white; margin-top: 15px; font-size: 15px; font-weight: bold; letter-spacing: 1px; }
 
 /* ========================================================= */
-/* --- RESPONSIVE BREAKPOINTS (TABLET & SMARTPHONE) ---      */
+/* --- MEDIA QUERIES PENYESUAIAN SMARTPHONE & TABLET ---     */
 /* ========================================================= */
 
 /* 1. TABLET (Max-width: 992px) */
 @media (max-width: 992px) {
-  .dashboard-grid, .analytics-grid {
-    grid-template-columns: repeat(12, 1fr);
-    gap: 12px;
+  .analytics-grid {
+    grid-template-columns: repeat(2, 1fr);
   }
-  
-  /* Widget di Tablet menjadi 2 Kolom (Span 6) */
-  .widget, .chart-box,
-  .col-8, .col-6, .col-4, .col-3,
-  .col-span-8, .col-span-6, .col-span-4, .col-span-3 {
-    grid-column: span 6 !important;
-  }
-  
-  .col-12, .col-span-12 {
-    grid-column: span 12 !important;
-  }
-
   .modal-card {
     padding: 20px;
   }
@@ -249,7 +210,7 @@ canvas { position: absolute; top: 0; left: 0; }
     height: auto; 
   }
   
-  /* Sidebar diubah menjadi Horizontal Navigation */
+  /* Sidebar diubah menjadi Navbar Atas Scrollable */
   .sidebar { 
     width: 100%; 
     padding: 10px 12px; 
@@ -264,16 +225,15 @@ canvas { position: absolute; top: 0; left: 0; }
     background-color: #1e1b2e;
     -webkit-overflow-scrolling: touch;
   }
-  .sidebar::-webkit-scrollbar { display: none; }
+  .sidebar::-webkit-scrollbar { display: none; } /* Sembunyikan scrollbar liar */
   .sidebar h2, .menu-group { display: none; }
   .sidebar button { 
     width: auto; 
-    flex-shrink: 0; /* Mencegah tombol gepeng */
     margin-right: 6px; 
     margin-bottom: 0; 
     padding: 8px 14px; 
     font-size: 13px; 
-    border-radius: 20px; 
+    border-radius: 20px; /* Style tab pill agar lebih modern */
     background: #161224;
   }
   .logout-btn { 
@@ -300,25 +260,25 @@ canvas { position: absolute; top: 0; left: 0; }
     gap: 10px;
   }
 
-  /* KPI Cards di HP (2 Kolom) */
+  /* Grid Susunan KPI (2 Kolom di HP) */
   .kpi-row { 
     grid-template-columns: repeat(2, 1fr); 
-    gap: 8px;
+    gap: 10px;
+  }
+  .kpi-card {
+    padding: 10px;
+  }
+  .kpi-card .kpi-num {
+    font-size: 18px;
   }
 
-  /* Semua Widget di HP Menjadi 1 Kolom Penuh (Span 12) */
-  .dashboard-grid, .analytics-grid {
-    grid-template-columns: 1fr;
+  /* Grid Grafik menjadi 1 Kolom Vertikal */
+  .analytics-grid { 
+    grid-template-columns: 1fr; 
     gap: 12px;
   }
-
-  .widget, .chart-box,
-  .col-12, .col-8, .col-6, .col-4, .col-3,
-  .col-span-12, .col-span-8, .col-span-6, .col-span-4, .col-span-3 {
-    grid-column: span 1 !important;
-  }
   
-  .chart-box, .widget {
+  .chart-box {
     padding: 12px;
     min-height: 240px;
   }
@@ -329,7 +289,7 @@ canvas { position: absolute; top: 0; left: 0; }
     max-height: 92vh;
   }
   .form-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr; /* Form menjadi 1 kolom di HP */
   }
   .modal-footer {
     flex-direction: column;
@@ -350,10 +310,10 @@ canvas { position: absolute; top: 0; left: 0; }
 /* 3. HP LAYAR KECIL (Max-width: 480px) */
 @media (max-width: 480px) {
   .kpi-row {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(2, 1fr); /* Tetap 2 kolom agar ringkas */
   }
   .kpi-card h5 {
-    font-size: 9px;
+    font-size: 10px;
   }
   .kpi-card .kpi-num {
     font-size: 16px;
