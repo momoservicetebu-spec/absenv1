@@ -1,8 +1,8 @@
 // ==========================================
-// FILE: js/charts.js (VERSI PERBAIKAN FILTER)
+// FILE: js/charts.js (OPTIMIZED FOR MOBILE & TABLET)
 // ==========================================
 
-// 1. Variabel Global untuk menyimpan instance Chart agar bisa di-destroy saat filter diklik
+// 1. Variabel Global untuk menyimpan instance Chart
 let donutChartInstance = null;
 let barGradeChartInstance = null;
 let horizontalReasonChartInstance = null;
@@ -43,7 +43,6 @@ window.updateDashboardUI = function(data) {
   if (data.kpi) {
     updateKPICards(data.kpi);
   } else {
-    // Fallback jika format data dari Apps Script tidak menggunakan pembungkus .kpi
     updateKPICards({
       total: data.totalUsers ?? data.total ?? 0,
       persen: typeof data.persentase === 'number' ? data.persentase + '%' : (data.persen ?? "0%"),
@@ -62,7 +61,6 @@ window.updateDashboardUI = function(data) {
 function updateKPICards(kpi) {
   if (!kpi) return;
 
-  // Update via ID jika ada di HTML
   if (document.getElementById("kpi-total")) document.getElementById("kpi-total").innerText = kpi.total;
   if (document.getElementById("kpi-persen")) document.getElementById("kpi-persen").innerText = kpi.persen;
   if (document.getElementById("kpi-hadir")) document.getElementById("kpi-hadir").innerText = kpi.hadir;
@@ -70,7 +68,6 @@ function updateKPICards(kpi) {
   if (document.getElementById("kpi-izin")) document.getElementById("kpi-izin").innerText = kpi.izin;
   if (document.getElementById("kpi-alpa")) document.getElementById("kpi-alpa").innerText = kpi.alpa;
 
-  // Update via class .kpi-num
   const kpiElements = document.querySelectorAll('.kpi-num');
   if (kpiElements.length >= 6) {
     kpiElements[0].innerText = kpi.total;
@@ -82,27 +79,54 @@ function updateKPICards(kpi) {
   }
 }
 
-// 4. Fungsi Menggambar Grafik (Dengan Proteksi Destroy)
+// 4. Fungsi Menggambar Grafik (Dengan Proteksi Destroy & Mobile Responsive)
 function renderCharts(data) {
   if (!data) return;
 
-  const chartOptions = { 
+  // Detect Lebar Layar untuk penyesuaian font dinamis
+  const isMobile = window.innerWidth <= 768;
+
+  // Opsi Umum (Base Configuration)
+  const baseChartOptions = { 
     responsive: true, 
     maintainAspectRatio: false, 
-    plugins: { legend: { labels: { color: '#dcdde1', font: { size: 10 } } } } 
+    layout: {
+      padding: { top: 5, bottom: 5, left: 5, right: 5 }
+    },
+    plugins: { 
+      legend: { 
+        position: 'top',
+        labels: { 
+          color: '#dcdde1', 
+          font: { size: isMobile ? 9 : 11 },
+          boxWidth: isMobile ? 10 : 12,
+          padding: isMobile ? 6 : 10
+        } 
+      } 
+    } 
   };
 
   // 1. Donut Chart Status Absen
   const donutEl = document.getElementById('donutStatusChart');
   if (donutEl && data.statusAbsen) {
-    if (donutChartInstance) donutChartInstance.destroy(); // Hancurkan grafik lama jika ada
+    if (donutChartInstance) donutChartInstance.destroy();
     donutChartInstance = new Chart(donutEl, {
       type: 'doughnut',
       data: {
         labels: ['Hadir', 'Terlambat', 'Izin', 'Alpa'],
         datasets: [{ data: data.statusAbsen, backgroundColor: ['#1dd1a1', '#feca57', '#ff9ff3', '#ff6b6b'] }]
       },
-      options: chartOptions
+      options: {
+        ...baseChartOptions,
+        plugins: {
+          ...baseChartOptions.plugins,
+          // Pindahkan legend ke bawah di HP agar lingkaran donut tidak mengecil
+          legend: {
+            ...baseChartOptions.plugins.legend,
+            position: isMobile ? 'bottom' : 'top'
+          }
+        }
+      }
     });
   }
 
@@ -116,7 +140,19 @@ function renderCharts(data) {
         labels: ['Kelas X', 'Kelas XI', 'Kelas XII'],
         datasets: [{ label: 'Hadir (%)', data: data.kehadiranAngkatan, backgroundColor: '#54a0ff' }]
       },
-      options: { ...chartOptions, scales: { y: { ticks: { color: '#a29bfe' } }, x: { ticks: { color: '#a29bfe' } } } }
+      options: { 
+        ...baseChartOptions, 
+        scales: { 
+          y: { 
+            ticks: { color: '#a29bfe', font: { size: isMobile ? 9 : 11 } },
+            grid: { color: 'rgba(255,255,255,0.05)' }
+          }, 
+          x: { 
+            ticks: { color: '#a29bfe', font: { size: isMobile ? 9 : 11 } },
+            grid: { display: false }
+          } 
+        } 
+      }
     });
   }
 
@@ -131,7 +167,13 @@ function renderCharts(data) {
         labels: data.alasan.labels,
         datasets: [{ label: 'Jumlah', data: data.alasan.data, backgroundColor: '#ff9ff3' }]
       },
-      options: chartOptions
+      options: {
+        ...baseChartOptions,
+        scales: {
+          x: { ticks: { color: '#a29bfe', font: { size: isMobile ? 9 : 11 } } },
+          y: { ticks: { color: '#a29bfe', font: { size: isMobile ? 8 : 10 } } } // Font nama alasan lebih kecil agar tidak terpotong
+        }
+      }
     });
   }
 
@@ -145,7 +187,13 @@ function renderCharts(data) {
         labels: data.tren.labels,
         datasets: [{ label: 'Jumlah Hadir', data: data.tren.data, borderColor: '#00d2d3', fill: true, backgroundColor: 'rgba(0,210,211,0.1)' }]
       },
-      options: chartOptions
+      options: {
+        ...baseChartOptions,
+        scales: {
+          x: { ticks: { color: '#a29bfe', font: { size: isMobile ? 9 : 11 }, autoSkip: true, maxTicksLimit: 7 } },
+          y: { ticks: { color: '#a29bfe', font: { size: isMobile ? 9 : 11 } } }
+        }
+      }
     });
   }
 
@@ -160,7 +208,13 @@ function renderCharts(data) {
         labels: data.topSiswa.labels,
         datasets: [{ label: 'Total Kehadiran', data: data.topSiswa.data, backgroundColor: '#1dd1a1' }]
       },
-      options: chartOptions
+      options: {
+        ...baseChartOptions,
+        scales: {
+          x: { ticks: { color: '#a29bfe', font: { size: isMobile ? 9 : 11 } } },
+          y: { ticks: { color: '#a29bfe', font: { size: isMobile ? 8 : 10 } } }
+        }
+      }
     });
   }
 }
