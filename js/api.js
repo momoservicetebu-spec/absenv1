@@ -42,12 +42,19 @@ async function fetchAPI(action, payload = {}, loadingMessage = "Memproses data..
 // FILE: DASBOARD ANALYTYC
 // ==========================================
 
+console.log("File JS Analytics berhasil dimuat oleh browser!"); // CEK 1
+
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxx3BLAOh7RZwF2vvukhDPhytbAPXfMP3H_RAJNeWgxLe2LNcCzojm-6HQ1kktPQMTQ/exec";
 
 async function loadDashboardData() {
+  console.log("Fungsi loadDashboardData mulai berjalan..."); // CEK 2
+
   try {
+    console.log("Mencoba menghubungi Google Apps Script..."); // CEK 3
     const response = await fetch(`${SCRIPT_URL}?action=getDashboardData`);
+    
     const result = await response.json();
+    console.log("Data berhasil diterima dari GAS:", result); // CEK 4
 
     if (result.success) {
       // Update Angka KPI
@@ -58,16 +65,26 @@ async function loadDashboardData() {
       document.getElementById('kpi-izin').innerText = result.data.izin;
       document.getElementById('kpi-alpa').innerText = result.data.alpa;
 
+      console.log("Angka KPI berhasil diupdate!"); // CEK 5
+
       // Render Chart
       renderDonutChart(result.data);
+    } else {
+      console.log("Respon diterima, tapi success = false", result);
     }
   } catch (error) {
-    console.error("Gagal memuat data:", error);
+    console.error("Gagal memuat data (Error Catch):", error);
   }
 }
 
 function renderDonutChart(data) {
-  const ctx = document.getElementById('donutStatusChart').getContext('2d');
+  const chartElement = document.getElementById('donutStatusChart');
+  if (!chartElement) {
+    console.error("Elemen Canvas donutStatusChart tidak ditemukan di HTML!");
+    return;
+  }
+
+  const ctx = chartElement.getContext('2d');
   if(window.myDonutChart) window.myDonutChart.destroy();
 
   window.myDonutChart = new Chart(ctx, {
@@ -81,7 +98,11 @@ function renderDonutChart(data) {
     },
     options: { responsive: true, maintainAspectRatio: false }
   });
+  console.log("Grafik berhasil dirender!"); // CEK 6
 }
 
 // Jalankan saat tab Dashboard aktif atau halaman dimuat
-document.addEventListener("DOMContentLoaded", loadDashboardData);
+document.addEventListener("DOMContentLoaded", () => {
+  console.log("DOM selesai dimuat, memanggil loadDashboardData..."); // CEK 7
+  loadDashboardData();
+});
