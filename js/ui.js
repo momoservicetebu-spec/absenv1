@@ -884,3 +884,26 @@ function setDashboardMode(role) {
     window.loadDashboardData(role);
   }
 }
+
+// ==========================================
+// TOGGLE MENU SMARTPHONE
+// ==========================================
+document.addEventListener("DOMContentLoaded", () => {
+  const menuBtn = document.getElementById("mobileMenuBtn");
+  const sidebar = document.querySelector(".sidebar");
+  const overlay = document.getElementById("sidebarOverlay");
+
+  if(menuBtn && sidebar && overlay) {
+    // Fungsi buka/tutup menu
+    const toggleMenu = () => {
+      sidebar.classList.toggle("show-sidebar");
+      overlay.classList.toggle("show-overlay");
+    };
+
+    // Klik tombol hamburger
+    menuBtn.addEventListener("click", toggleMenu);
+    
+    // Klik area gelap untuk menutup menu
+    overlay.addEventListener("click", toggleMenu);
+  }
+});

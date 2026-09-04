@@ -226,7 +226,11 @@ canvas { position: absolute; top: 0; left: 0; }
 /* --- MEDIA QUERIES PENYESUAIAN SMARTPHONE & TABLET ---     */
 /* ========================================================= */
 
-/* 1. TABLET (Max-width: 992px) */
+/* 1. ELEMEN KHUSUS MOBILE DISEMBUNYIKAN DI PC */
+.mobile-header { display: none; }
+.sidebar-overlay { display: none; }
+
+/* 2. TABLET (Max-width: 992px) */
 @media (max-width: 992px) {
   .analytics-grid, .dashboard-grid {
     display: grid !important;
@@ -248,33 +252,9 @@ canvas { position: absolute; top: 0; left: 0; }
   }
 }
 
-/* 2. SMARTPHONE (Max-width: 768px) */
-/* 1. PERBAIKAN TOMBOL FILTER AGAR BISA DIKLIK */
-  .analytics-header, .filter-tabs {
-    position: relative !important;
-    z-index: 10 !important; /* Memaksa tombol maju ke depan agar tidak tertutup elemen lain */
-  }
-  
-  .filter-btn {
-    position: relative;
-    z-index: 11; 
-    pointer-events: auto !important; /* Memastikan klik terdeteksi */
-  }
-
-  /* 2. PERBAIKAN BINGKAI/BOX WIDGET YANG HILANG */
-  .analytics-grid > div, 
-  .dashboard-grid > div, 
-  .chart-box, 
-  .widget {
-    background-color: #201a35 !important; /* Mengembalikan warna kotak */
-    border: 1px solid #30274e !important; /* Mengembalikan garis pinggir */
-    border-radius: 10px !important;
-    padding: 15px !important;
-    width: 100% !important;
-    box-sizing: border-box !important;
-    margin-bottom: 10px !important;
-  }
+/* 3. SMARTPHONE (Max-width: 768px) */
 @media (max-width: 768px) {
+  /* --- LAYOUT UTAMA --- */
   body { 
     flex-direction: column !important; 
     overflow-x: hidden !important; 
@@ -282,48 +262,117 @@ canvas { position: absolute; top: 0; left: 0; }
     height: auto !important; 
   }
   
-  /* Sidebar Navbar Atas */
-  .sidebar { 
-    width: 100% !important; 
-    padding: 12px !important; 
-    flex-direction: row !important; 
-    overflow-x: auto !important; 
-    white-space: nowrap !important; 
-    border-right: none !important; 
-    border-bottom: 1px solid #2d2643 !important; 
-    position: sticky !important;
-    top: 0;
-    z-index: 1000;
-    background-color: #1e1b2e !important;
-    -webkit-overflow-scrolling: touch;
-  }
-  .sidebar::-webkit-scrollbar { display: none; }
-  .sidebar h2, .menu-group { display: none !important; }
-  .sidebar button { 
-    width: auto !important; 
-    flex-shrink: 0 !important; 
-    margin-right: 8px !important; 
-    margin-bottom: 0 !important; 
-    padding: 8px 16px !important; 
-    font-size: 13px !important; 
-    border-radius: 20px !important; 
-    background: #161224 !important;
-  }
-
   .main-content { 
     padding: 15px 12px !important; 
     overflow-x: hidden !important;
   }
 
-  /* KUNCI PERBAIKAN: Paksa semua widget grafik menjadi 1 baris ke bawah */
+  /* --- MENU SIDEBAR OFF-CANVAS (HAMBURGER) --- */
+  .mobile-header {
+    display: flex !important;
+    justify-content: space-between;
+    align-items: center;
+    background: #1e1b2e;
+    padding: 12px 15px;
+    border-bottom: 1px solid #2d2643;
+    position: sticky;
+    top: 0;
+    z-index: 999;
+  }
+
+  .sidebar { 
+    position: fixed !important;
+    top: 0 !important;
+    left: -300px !important; /* Tersembunyi di luar layar */
+    width: 260px !important; 
+    height: 100vh !important;
+    flex-direction: column !important; 
+    overflow-y: auto !important; 
+    white-space: normal !important; 
+    background-color: #1e1b2e !important;
+    z-index: 1050 !important;
+    padding: 20px 15px !important;
+    transition: left 0.3s ease-in-out !important; 
+    box-shadow: 4px 0 15px rgba(0,0,0,0.7) !important;
+    border-right: 1px solid #2d2643 !important;
+  }
+
+  .sidebar.show-sidebar {
+    left: 0 !important; /* Muncul saat class ditambahkan via JS */
+  }
+
+  .sidebar h2, .menu-group { 
+    display: block !important; 
+    margin-bottom: 12px !important; 
+  }
+  
+  .sidebar button { 
+    width: 100% !important; 
+    margin-bottom: 6px !important; 
+    text-align: left !important;
+    border-radius: 6px !important; 
+    padding: 12px 15px !important;
+  }
+
+  .sidebar-overlay {
+    display: block !important;
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    z-index: 1040;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+  }
+  
+  .sidebar-overlay.show-overlay {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  /* --- PERBAIKAN WIDGET, FILTER & KOTAK GRAFIK --- */
+  .analytics-header {
+    position: relative !important;
+    z-index: 10 !important; 
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 12px !important;
+  }
+  
+  .filter-tabs {
+    display: flex !important;
+    width: 100% !important;
+    gap: 8px !important;
+    position: relative !important;
+    z-index: 10 !important;
+  }
+
+  .filter-btn {
+    position: relative;
+    z-index: 11; 
+    pointer-events: auto !important; /* Memastikan bisa diklik */
+    flex: 1 !important;
+    text-align: center !important;
+  }
+
+  /* Paksa semua widget grafik menjadi 1 baris ke bawah */
   .analytics-grid, .dashboard-grid { 
     display: flex !important;
     flex-direction: column !important;
     gap: 16px !important;
     width: 100% !important;
   }
-  
-  .chart-box, .widget, .card, [class*="col-"] {
+
+  /* Kembalikan warna dan bentuk kotak yang hilang */
+  .analytics-grid > div, 
+  .dashboard-grid > div, 
+  .chart-box, 
+  .widget, 
+  .card, 
+  [class*="col-"] {
+    background-color: #201a35 !important; 
+    border: 1px solid #30274e !important; 
+    border-radius: 10px !important;
     width: 100% !important;
     max-width: 100% !important;
     min-width: unset !important;
@@ -331,6 +380,7 @@ canvas { position: absolute; top: 0; left: 0; }
     grid-column: 1 / -1 !important;
     min-height: auto !important;
     padding: 15px !important;
+    box-sizing: border-box !important;
   }
 
   /* Grid Susunan KPI (2 Kolom di HP) */
@@ -341,25 +391,14 @@ canvas { position: absolute; top: 0; left: 0; }
     width: 100% !important;
   }
 
-  .analytics-header, .search-bar, .modal-footer {
+  .search-bar, .modal-footer {
     flex-direction: column !important;
     align-items: stretch !important;
     gap: 12px !important;
   }
-  
-  .filter-tabs {
-    display: flex !important;
-    width: 100% !important;
-    gap: 8px !important;
-  }
-  
-  .filter-btn {
-    flex: 1 !important;
-    text-align: center !important;
-  }
 }
 
-/* 3. HP LAYAR KECIL (Max-width: 480px) */
+/* 4. HP LAYAR KECIL (Max-width: 480px) */
 @media (max-width: 480px) {
   .kpi-row {
     grid-template-columns: 1fr !important; /* Diubah ke 1 kolom agar teks tidak terpotong */
