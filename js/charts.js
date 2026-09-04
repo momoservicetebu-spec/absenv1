@@ -92,13 +92,19 @@ window.updateDashboardUI = function(data) {
   renderChart('chartPulangAwalGuru', 'line', ['M1', 'M2', 'M3', 'M4'], [{ label: 'Pulang Awal / Dinas', data: data.pulangAwalGuru || [0,0,0,0], borderColor: '#ff6b6b', tension: 0.3 }]);
 };
 
+// ------------------------------------------
+// 2. FUNGSI UPDATE TABEL & LIST UI
+// ------------------------------------------
 window.updateListsUI = function(data) {
   if (!data) return;
 
+  // Helper merender isi tabel HTML (dengan proteksi data non-array)
   const fillTable = (elementId, list, cols) => {
     const el = document.getElementById(elementId);
     if (!el) return;
-    if (!list || list.length === 0) {
+    
+    // Jika list bukan array atau array kosong / bernilai "N/A"
+    if (!Array.isArray(list) || list.length === 0) {
       el.innerHTML = `<tr><td colspan="${cols.length}" style="text-align:center; color:#888; padding:15px;">Data Kosong / Nihil</td></tr>`;
       return;
     }
@@ -109,21 +115,25 @@ window.updateListsUI = function(data) {
     `).join('');
   };
 
+  // Helper merender isi list UL HTML (dengan proteksi data non-array)
   const fillList = (elementId, list, keyVal = 'nilai', emptyText = 'Nihil') => {
     const el = document.getElementById(elementId);
     if (!el) return;
-    if (!list || list.length === 0) {
+
+    // Jika list bernilai "N/A", null, atau bukan Array, anggap data Kosong
+    if (!Array.isArray(list) || list.length === 0) {
       el.innerHTML = `<li style="padding: 10px 0; color: #888; text-align: center;">${emptyText}</li>`;
       return;
     }
     el.innerHTML = list.map(item => `
       <li style="display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 1px dashed rgba(255,255,255,0.1);">
-        <span>${item.nama}</span>
+        <span>${item.nama ?? item.label ?? '-'}</span>
         <strong>${item[keyVal] ?? item.keterangan ?? ''}</strong>
       </li>
     `).join('');
   };
 
+  // --- RENDERING TABEL & LIST ---
   fillTable('table-kelas-body', data.kelasSiswa, ['nama', 'hadir', 'kedua', 'ketiga']);
   fillTable('table-rumpun-body', data.rumpunGuru, ['nama', 'hadir', 'kedua', 'ketiga']);
 
@@ -134,5 +144,5 @@ window.updateListsUI = function(data) {
   fillList('list-alpa-siswa', data.alpaSiswa, 'nilai', 'Nihil');
   fillList('list-cuti-guru', data.cutiGuru, 'nilai', 'Nihil');
   fillList('list-belum-absen-siswa', data.belumAbsenSiswa, 'keterangan', 'Semua Sudah Tap');
-  fillList('list-kosong-guru', data.kosongGuru, 'keterangan', 'Semua Sudah Tap');
+  fillList('list-kosong-guru', data.kosongGuru, 'keterangan', 'Semua Kelas Terisi');
 };
