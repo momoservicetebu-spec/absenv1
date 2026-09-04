@@ -21,16 +21,30 @@ async function loadDashboardData(role = 'semua') {
   try {
     const response = await fetch(`${SCRIPT_URL}?action=getDashboardData&role=${role}`);
     const result = await response.json();
-    if (result && (result.success || result.status)) {
+    
+    // Evaluasi result yang lebih fleksibel, mencakup responseJSON dari Apps Script
+    if (result) {
+      // Ambil payload utama (jika dibungkus responseJSON, gunakan result.data)
       const data = result.data || result;
-      if (typeof window.updateDashboardUI === "function") window.updateDashboardUI(data);
-      updateListsUI(data);
+      
+      // Update Chart dan KPI Utama
+      if (typeof window.updateDashboardUI === "function") {
+        window.updateDashboardUI(data);
+      } else {
+        console.error("Fungsi updateDashboardUI belum siap! Pastikan charts.js dimuat sebelum api.js");
+      }
+      
+      // Update List/Daftar Tabel (Siswa Terajin, Telat, dll)
+      if (typeof window.updateListsUI === "function") {
+        window.updateListsUI(data);
+      } else if (typeof updateListsUI === "function") {
+        updateListsUI(data);
+      }
     }
   } catch (error) {
-    console.error("Gagal load data:", error);
+    console.error("Gagal memuat data dari server:", error);
   }
 }
-window.loadDashboardData = loadDashboardData;
 
 function updateListsUI(data) {
   if (!data) return;
