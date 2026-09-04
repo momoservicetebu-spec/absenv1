@@ -106,7 +106,7 @@ function downloadTemplate(type) {
       "# 6. Face_Registered: 'TRUE' atau 'FALSE'.\n" +
       "# 7. Username & Password: Isi untuk akses login aplikasi (Contoh: pass123).\n" +
       "# ==========================================================================\n" +
-      "GuruID;NIP;Nama;JK;TmpLahir;TglLahir;HPWA;Email;Alamat;Jabatan;Status;NFC_UID;QR_Token;BarcodeID;FingerprintID;FotoURL;TglMasuk;Role_Sistem;Face_Registered;Username;Password\n" +
+      "GuruID;NIP;Nama;JK;TmpLahir;TglLahir;HPWA;Email;Alamat;Jabatan;Mapel;Status;NFC_UID;QR_Token;BarcodeID;FingerprintID;FotoURL;TglMasuk;Role_Sistem;Face_Registered;Username;Password\n" +
       "GURU-001;199001012015011001;Ahmad Dahlan M.Pd;L;Jakarta;1990-01-01;081234567890;ahmad@sekolah.sch.id;Jl. Merdeka No. 123;Guru Matematika;Aktif;UID991;QR-GURU-001;BC-GURU-001;F-01;https://link-foto.com/guru.jpg;2015-01-10;Guru;FALSE;guru_ahmad;pass123\n";
     fileName = "Template_Import_Guru.csv";
   } else {
@@ -332,6 +332,7 @@ function openGuruModal(data = null) {
     document.getElementById('guru_Email').value = data.Email || '';
     document.getElementById('guru_Alamat').value = data.Alamat || '';
     document.getElementById('guru_Jabatan').value = data.Jabatan || '';
+    document.getElementById('guru_Mapel').value = data.Mapel || '';
     document.getElementById('guru_Status').value = data.Status || 'Aktif';
     document.getElementById('guru_TglMasuk').value = data.TglMasuk || '';
     document.getElementById('guru_Role_Sistem').value = data.Role_Sistem || 'Guru';
