@@ -249,6 +249,31 @@ canvas { position: absolute; top: 0; left: 0; }
 }
 
 /* 2. SMARTPHONE (Max-width: 768px) */
+/* 1. PERBAIKAN TOMBOL FILTER AGAR BISA DIKLIK */
+  .analytics-header, .filter-tabs {
+    position: relative !important;
+    z-index: 10 !important; /* Memaksa tombol maju ke depan agar tidak tertutup elemen lain */
+  }
+  
+  .filter-btn {
+    position: relative;
+    z-index: 11; 
+    pointer-events: auto !important; /* Memastikan klik terdeteksi */
+  }
+
+  /* 2. PERBAIKAN BINGKAI/BOX WIDGET YANG HILANG */
+  .analytics-grid > div, 
+  .dashboard-grid > div, 
+  .chart-box, 
+  .widget {
+    background-color: #201a35 !important; /* Mengembalikan warna kotak */
+    border: 1px solid #30274e !important; /* Mengembalikan garis pinggir */
+    border-radius: 10px !important;
+    padding: 15px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    margin-bottom: 10px !important;
+  }
 @media (max-width: 768px) {
   body { 
     flex-direction: column !important; 
