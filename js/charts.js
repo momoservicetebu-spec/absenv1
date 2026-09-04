@@ -1,5 +1,5 @@
 // ==========================================
-// FILE: js/charts.js - FULL RENDERING DASHBOARD (REVISI DATA KOSONG)
+// FILE: js/charts.js - REVISI PIE/DOUGHNUT KOSONG
 // ==========================================
 
 const chartInstances = {};
@@ -12,6 +12,24 @@ function renderChart(canvasId, type, labels, datasets, options = {}) {
     chartInstances[canvasId].destroy();
   }
 
+  // LOGIKA FIX PIE/DOUGHNUT KOSONG:
+  // Jika tipe grafik pie/doughnut dan total datanya 0, buat ring abu-abu transparan
+  let finalLabels = labels;
+  let finalDatasets = datasets;
+
+  if ((type === 'doughnut' || type === 'pie') && datasets && datasets[0]) {
+    const totalSum = datasets[0].data.reduce((acc, curr) => acc + (Number(curr) || 0), 0);
+    if (totalSum === 0) {
+      finalLabels = ['Belum Ada Data'];
+      finalDatasets = [{
+        data: [1],
+        backgroundColor: ['rgba(255, 255, 255, 0.08)'], // Warna ring abu-abu transparan
+        borderColor: 'rgba(255, 255, 255, 0.15)',
+        borderWidth: 1
+      }];
+    }
+  }
+
   const defaultOptions = {
     responsive: true,
     maintainAspectRatio: false,
@@ -20,14 +38,13 @@ function renderChart(canvasId, type, labels, datasets, options = {}) {
     },
     scales: (type !== 'doughnut' && type !== 'pie') ? {
       x: { ticks: { color: '#a2a3b7' }, grid: { color: 'rgba(255,255,255,0.05)' } },
-      // PERBAIKAN: Tambah stepSize dan suggestedMax agar grid grafik tetap tergambar walau data 0
       y: { ticks: { color: '#a2a3b7', stepSize: 1 }, grid: { color: 'rgba(255,255,255,0.05)' }, beginAtZero: true, suggestedMax: 5 }
     } : {}
   };
 
   chartInstances[canvasId] = new Chart(ctx, {
     type: type,
-    data: { labels: labels, datasets: datasets },
+    data: { labels: finalLabels, datasets: finalDatasets },
     options: { ...defaultOptions, ...options }
   });
 }
@@ -50,10 +67,10 @@ window.updateDashboardUI = function(data) {
   }
 
   // 2. PIE CHARTS
-  if (data.statusSiswa) renderChart('chartStatusSiswa', 'doughnut', ['Hadir', 'Telat', 'Izin/Sakit', 'Alpa'], [{ data: data.statusSiswa, backgroundColor: ['#1dd1a1', '#feca57', '#54a0ff', '#ff6b6b'] }]);
-  if (data.statusGuru) renderChart('chartStatusGuru', 'doughnut', ['Hadir', 'Telat', 'Cuti/Izin', 'Dinas'], [{ data: data.statusGuru, backgroundColor: ['#1dd1a1', '#feca57', '#54a0ff', '#ff9ff3'] }]);
+  renderChart('chartStatusSiswa', 'doughnut', ['Hadir', 'Telat', 'Izin/Sakit', 'Alpa'], [{ data: data.statusSiswa || [0,0,0,0], backgroundColor: ['#1dd1a1', '#feca57', '#54a0ff', '#ff6b6b'] }]);
+  renderChart('chartStatusGuru', 'doughnut', ['Hadir', 'Telat', 'Cuti/Izin', 'Dinas'], [{ data: data.statusGuru || [0,0,0,0], backgroundColor: ['#1dd1a1', '#feca57', '#54a0ff', '#ff9ff3'] }]);
 
-  // 3. TREN MINGGUAN (LINE) - Hapus fake data 95, 92, dst ganti dengan [0,0,0,0,0] jika kosong
+  // 3. TREN MINGGUAN (LINE)
   renderChart('chartTrenSiswa', 'line', ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat'], [{ label: 'Kehadiran Siswa (%)', data: data.trenSiswa || [0,0,0,0,0], borderColor: '#1dd1a1', tension: 0.3, fill: false }]);
   renderChart('chartTrenGuru', 'line', ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat'], [{ label: 'Konsistensi Guru (%)', data: data.trenGuru || [0,0,0,0,0], borderColor: '#54a0ff', tension: 0.3, fill: false }]);
 
@@ -63,11 +80,10 @@ window.updateDashboardUI = function(data) {
 
   // 6. DISTRIBUSI JAM MASUK (BAR)
   const jamLabels = ['< 06:30', '06:30-07:00', '07:01-07:30', '07:31-08:00', '> 08:00'];
-  // PERBAIKAN: Selalu render chart dengan data [0,0,0,0,0] jika dari database kosong
   renderChart('chartHeatmapSiswa', 'bar', jamLabels, [{ label: 'Siswa Tap-In', data: data.distribusiJamSiswa || [0,0,0,0,0], backgroundColor: '#1dd1a1' }]);
   renderChart('chartHeatmapGuru', 'bar', jamLabels, [{ label: 'Guru Tap-In', data: data.distribusiJamGuru || [0,0,0,0,0], backgroundColor: '#54a0ff' }]);
 
-  // 10. METODE ABSENSI
+  // 10. METODE ABSENSI (PIE / DOUGHNUT)
   renderChart('chartMetodeSiswa', 'doughnut', ['Wajah AI', 'RFID', 'Fingerprint', 'Manual'], [{ data: data.metodeSiswa || [0,0,0,0], backgroundColor: ['#ff9ff3', '#feca57', '#1dd1a1', '#54a0ff'] }]);
   renderChart('chartMetodeGuru', 'doughnut', ['Wajah AI (GPS)', 'Manual Admin'], [{ data: data.metodeGuru || [0,0], backgroundColor: ['#00d2d3', '#ff6b6b'] }]);
 
@@ -82,7 +98,6 @@ window.updateListsUI = function(data) {
   const fillTable = (elementId, list, cols) => {
     const el = document.getElementById(elementId);
     if (!el) return;
-    // PERBAIKAN: Ganti pesan N/A di tabel
     if (!list || list.length === 0) {
       el.innerHTML = `<tr><td colspan="${cols.length}" style="text-align:center; color:#888; padding:15px;">Data Kosong / Nihil</td></tr>`;
       return;
@@ -94,7 +109,6 @@ window.updateListsUI = function(data) {
     `).join('');
   };
 
-  // PERBAIKAN: Default parameter emptyText diubah dari 'N/A' menjadi 'Nihil'
   const fillList = (elementId, list, keyVal = 'nilai', emptyText = 'Nihil') => {
     const el = document.getElementById(elementId);
     if (!el) return;
@@ -113,7 +127,6 @@ window.updateListsUI = function(data) {
   fillTable('table-kelas-body', data.kelasSiswa, ['nama', 'hadir', 'kedua', 'ketiga']);
   fillTable('table-rumpun-body', data.rumpunGuru, ['nama', 'hadir', 'kedua', 'ketiga']);
 
-  // PERBAIKAN: Pesan kustom untuk setiap list agar tidak cuma bertuliskan N/A
   fillList('list-terajin-siswa', data.terajinSiswa, 'nilai', 'Belum ada tap-in');
   fillList('list-terajin-guru', data.terajinGuru, 'nilai', 'Belum ada tap-in');
   fillList('list-telat-siswa', data.telatSiswa, 'nilai', 'Nihil');
