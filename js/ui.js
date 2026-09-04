@@ -854,14 +854,14 @@ function setDashboardMode(role) {
   });
 
   // 2. Filter Tampilan 12 Kotak Widget berdasarkan data-role
-  const widgets = document.querySelectorAll('.dashboard-grid .widget');
+  const widgets = document.querySelectorAll('.dashboard-grid .widget, .analytics-grid > div'); // Pastikan selector mencakup semua kotak
   widgets.forEach(widget => {
     const widgetRole = widget.getAttribute('data-role');
     
     if (role === 'all' || widgetRole === role) {
-      widget.style.display = 'block';
+      widget.style.display = ''; // Dikosongkan agar kembali mengikuti aturan CSS bawaan (flex/grid)
     } else {
-      widget.style.display = 'none';
+      widget.style.display = 'none'; // Sembunyikan elemen
     }
   });
 
