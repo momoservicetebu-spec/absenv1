@@ -19,22 +19,28 @@ async function fetchAPI(action, payload = {}) {
 
 async function loadDashboardData(role = 'semua') {
   try {
-    const response = await fetch(`${SCRIPT_URL}?action=getDashboardData&role=${role}`);
-    const result = await response.json();
+    console.log("1. Memulai fetch data dashboard untuk role:", role);
     
-    // Evaluasi result yang lebih fleksibel, mencakup responseJSON dari Apps Script
+    const response = await fetch(`${SCRIPT_URL}?action=getDashboardData&role=${role}`);
+    console.log("2. Status Response HTTP:", response.status);
+    
+    const result = await response.json();
+    console.log("3. Hasil mentah dari server (result):", result);
+    
     if (result) {
-      // Ambil payload utama (jika dibungkus responseJSON, gunakan result.data)
+      // Mengambil payload utama dari responseJSON
       const data = result.data || result;
+      console.log("4. Data yang siap dikirim ke Chart/UI (data):", data);
       
       // Update Chart dan KPI Utama
       if (typeof window.updateDashboardUI === "function") {
         window.updateDashboardUI(data);
+        console.log("5. Eksekusi updateDashboardUI SELESAI.");
       } else {
-        console.error("Fungsi updateDashboardUI belum siap! Pastikan charts.js dimuat sebelum api.js");
+        console.error("GAGAL: Fungsi updateDashboardUI tidak ditemukan! Cek urutan script di HTML.");
       }
       
-      // Update List/Daftar Tabel (Siswa Terajin, Telat, dll)
+      // Update List/Daftar Tabel
       if (typeof window.updateListsUI === "function") {
         window.updateListsUI(data);
       } else if (typeof updateListsUI === "function") {
@@ -42,7 +48,7 @@ async function loadDashboardData(role = 'semua') {
       }
     }
   } catch (error) {
-    console.error("Gagal memuat data dari server:", error);
+    console.error("GAGAL FETCH SCRIPT: Pastikan SCRIPT_URL benar dan sudah di-Deploy ulang.", error);
   }
 }
 
