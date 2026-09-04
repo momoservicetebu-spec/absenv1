@@ -835,7 +835,7 @@ function hideLoading() {
   }
 }
 // ==========================================
-// KONTROL VISIBILITAS & FILTER DASHBOARD 12 WIDGET
+// KONTROL VISIBILITAS & FILTER DASHBOARD
 // ==========================================
 
 function setDashboardMode(role) {
@@ -853,15 +853,25 @@ function setDashboardMode(role) {
     }
   });
 
-  // 2. Filter Tampilan 12 Kotak Widget berdasarkan data-role
-  const widgets = document.querySelectorAll('.dashboard-grid .widget, .analytics-grid > div'); // Pastikan selector mencakup semua kotak
+  // 2. Filter Tampilan Widget dan Cangkang Pembungkusnya
+  const widgets = document.querySelectorAll('[data-role]');
   widgets.forEach(widget => {
     const widgetRole = widget.getAttribute('data-role');
     
+    // Deteksi otomatis jika widget berada di dalam <div> kolom pembungkus
+    let wrapper = widget;
+    if (widget.parentElement && 
+       !widget.parentElement.classList.contains('analytics-grid') && 
+       !widget.parentElement.classList.contains('dashboard-grid') &&
+       !widget.parentElement.classList.contains('kpi-row')) {
+        wrapper = widget.parentElement; // Targetkan div cangkang luarnya
+    }
+    
     if (role === 'all' || widgetRole === role) {
-      widget.style.display = ''; // Dikosongkan agar kembali mengikuti aturan CSS bawaan (flex/grid)
+      wrapper.style.display = ''; // Munculkan cangkang luar
+      widget.style.display = '';  // Munculkan isi grafik
     } else {
-      widget.style.display = 'none'; // Sembunyikan elemen
+      wrapper.style.display = 'none'; // Sembunyikan cangkang secara utuh agar grid merapat
     }
   });
 
@@ -869,10 +879,8 @@ function setDashboardMode(role) {
   const kpiNums = document.querySelectorAll('.kpi-num');
   kpiNums.forEach(el => el.innerText = '...');
 
-  // 4. Panggil ulang fungsi fetch data dari backend (api.js)
+  // 4. Panggil ulang fungsi fetch data
   if (typeof window.loadDashboardData === 'function') {
     window.loadDashboardData(role);
-  } else {
-    console.error("Fungsi window.loadDashboardData tidak ditemukan di api.js!");
   }
 }
