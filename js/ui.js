@@ -908,3 +908,140 @@ document.addEventListener("DOMContentLoaded", () => {
     overlay.addEventListener("click", toggleMenu);
   }
 });
+
+// ==========================================
+// FILE: js/dashboard.js - KONTROLER FILTER & DATA
+// ==========================================
+
+document.addEventListener('DOMContentLoaded', () => {
+  let currentPeriod = 'harian';
+
+  const btnPeriods = document.querySelectorAll('.btn-period');
+  const filterHarian = document.getElementById('filterHarian');
+  const filterBulanan = document.getElementById('filterBulanan');
+  const filterTahunan = document.getElementById('filterTahunan');
+  const btnApplyFilter = document.getElementById('btnApplyFilter');
+
+  // 1. TOGGLE PERIODE SWITCHER
+  btnPeriods.forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      btnPeriods.forEach(b => b.classList.remove('active'));
+      e.target.classList.add('active');
+
+      currentPeriod = e.target.getAttribute('data-period');
+      
+      // Sembunyikan semua input filter terlebih dahulu
+      filterHarian.classList.add('hidden');
+      filterBulanan.classList.add('hidden');
+      filterTahunan.classList.add('hidden');
+
+      // Tampilkan input filter sesuai periode aktif
+      if (currentPeriod === 'harian') {
+        filterHarian.classList.remove('hidden');
+      } else if (currentPeriod === 'bulanan') {
+        filterBulanan.classList.remove('hidden');
+      } else if (currentPeriod === 'tahunan') {
+        filterTahunan.classList.remove('hidden');
+      }
+
+      // Ambil data otomatis saat periode diganti
+      loadDashboardData();
+    });
+  });
+
+  // 2. TOMBOL TAPAPKAN FILTER
+  if (btnApplyFilter) {
+    btnApplyFilter.addEventListener('click', () => {
+      loadDashboardData();
+    });
+  }
+
+  // 3. FUNGSI FETCH / AMBIL DATA DASHBOARD
+  async function loadDashboardData() {
+    let queryParams = `periode=${currentPeriod}`;
+
+    if (currentPeriod === 'harian') {
+      queryParams += `&tanggal=${filterHarian.value}`;
+    } else if (currentPeriod === 'bulanan') {
+      queryParams += `&bulan=${filterBulanan.value}`;
+    } else if (currentPeriod === 'tahunan') {
+      queryParams += `&tahun=${filterTahunan.value}`;
+    }
+
+    try {
+      // Contoh pemanggilan API (sesuaikan URL endpoint backend Anda)
+      // const response = await fetch(`/api/dashboard-analytics?${queryParams}`);
+      // const result = await response.json();
+
+      // MOCK DATA UNTUK PENGUJIAN TAMPILAN
+      const mockData = generateMockData(currentPeriod);
+
+      // Panggil fungsi render UI yang ada di js/charts.js
+      if (window.updateDashboardUI) window.updateDashboardUI(mockData);
+      if (window.updateListsUI) window.updateListsUI(mockData);
+
+    } catch (error) {
+      console.error('Gagal memuat data dashboard:', error);
+    }
+  }
+
+  // 4. MOCK DATA GENERATOR (SESUAI PERIODE)
+  function generateMockData(periode) {
+    if (periode === 'bulanan') {
+      return {
+        kpiSiswa: { total: 320, hadir: 94.5, telat: 42, alpa: 8 },
+        kpiGuru: { total: 45, hadir: 97.2, telat: 5, cuti: 3 },
+        statusSiswa: [280, 25, 10, 5],
+        statusGuru: [42, 2, 1, 0],
+        trenSiswa: [92, 95, 96, 94, 93], // Persentase rata-rata mingguan M1-M5
+        trenGuru: [98, 97, 99, 96, 97],
+        angkatanSiswa: [105, 98, 95],
+        jabatanGuru: [20, 12, 8, 5],
+        distribusiJamSiswa: [120, 150, 30, 15, 5],
+        distribusiJamGuru: [25, 15, 3, 2, 0],
+        metodeSiswa: [210, 80, 20, 10],
+        metodeGuru: [40, 5],
+        telatBulanSiswa: [15, 12, 8, 7],
+        pulangAwalGuru: [1, 2, 0, 1]
+      };
+    } else if (periode === 'tahunan') {
+      return {
+        kpiSiswa: { total: 320, hadir: 92.8, telat: 310, alpa: 64 },
+        kpiGuru: { total: 45, hadir: 96.5, telat: 32, cuti: 18 },
+        statusSiswa: [2700, 210, 120, 50],
+        statusGuru: [410, 18, 12, 5],
+        trenSiswa: [88, 91, 94, 92, 95], // Persentase per semester/bulan
+        trenGuru: [96, 97, 95, 98, 97],
+        angkatanSiswa: [100, 95, 90],
+        jabatanGuru: [20, 12, 8, 5],
+        distribusiJamSiswa: [110, 140, 40, 20, 10],
+        distribusiJamGuru: [22, 18, 3, 2, 0],
+        metodeSiswa: [200, 85, 25, 10],
+        metodeGuru: [38, 7],
+        telatBulanSiswa: [80, 75, 90, 65],
+        pulangAwalGuru: [5, 4, 6, 3]
+      };
+    } else {
+      // Data Harian
+      return {
+        kpiSiswa: { total: 10, hadir: 60.0, telat: 4, alpa: 0 },
+        kpiGuru: { total: 10, hadir: 90.0, telat: 1, cuti: 1 },
+        statusSiswa: [6, 4, 0, 0],
+        statusGuru: [8, 1, 1, 0],
+        trenSiswa: [60, 70, 80, 75, 90],
+        trenGuru: [90, 90, 100, 90, 90],
+        angkatanSiswa: [2, 2, 2],
+        jabatanGuru: [3, 2, 3, 1],
+        distribusiJamSiswa: [2, 4, 2, 1, 1],
+        distribusiJamGuru: [4, 4, 1, 0, 0],
+        metodeSiswa: [4, 2, 0, 0],
+        metodeGuru: [8, 1],
+        telatBulanSiswa: [2, 3, 1, 4],
+        pulangAwalGuru: [0, 1, 0, 0]
+      };
+    }
+  }
+
+  // Load data awal (default: Harian)
+  loadDashboardData();
+});

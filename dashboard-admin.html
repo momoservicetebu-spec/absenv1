@@ -67,6 +67,35 @@
     <button id="mobileMenuBtn" style="background: none; border: none; color: #fff; font-size: 24px; cursor: pointer;">☰</button>
   </div>
 
+  <!-- ========================================== -->
+<!-- HEADER CONTROL BAR: FILTER PERIODE DASHBOARD -->
+<!-- ========================================== -->
+<div class="dashboard-header-controls">
+  <!-- Toggle Mode Periode -->
+  <div class="period-toggle-group">
+    <button type="button" class="btn-period active" data-period="harian">Harian</button>
+    <button type="button" class="btn-period" data-period="bulanan">Bulanan</button>
+    <button type="button" class="btn-period" data-period="tahunan">Tahunan</button>
+  </div>
+
+  <!-- Input Filter Dinamis -->
+  <div class="filter-input-group">
+    <!-- Input Harian -->
+    <input type="date" id="filterHarian" class="filter-control" value="2026-09-06">
+    
+    <!-- Input Bulanan -->
+    <input type="month" id="filterBulanan" class="filter-control hidden" value="2026-09">
+    
+    <!-- Input Tahunan -->
+    <select id="filterTahunan" class="filter-control hidden">
+      <option value="2026" selected>Tahun 2026</option>
+      <option value="2025">Tahun 2025</option>
+    </select>
+
+    <button id="btnApplyFilter" class="btn-apply">Tampilkan Data</button>
+  </div>
+</div>
+
   <!-- Latar gelap transparan saat menu terbuka -->
   <div id="sidebarOverlay" class="sidebar-overlay"></div>
 
