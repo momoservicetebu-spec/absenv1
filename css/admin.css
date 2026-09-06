@@ -411,75 +411,57 @@ canvas { position: absolute; top: 0; left: 0; }
   }
 }
 
-//* ========================================= */
+/* ========================================= */
 /* CSS FILTER TEMA GELAP (DARK MODE)         */
 /* ========================================= */
 
-/* 1. Grup Tombol Toggle (Harian/Bulanan/Tahunan) */
-.period-toggle-group {
+/* 1. Paksa Container Utama Berjejer Horizontal */
+.dashboard-header-controls {
   display: flex;
-  background-color: #1a192f; /* Menyamai warna background card */
-  border-radius: 8px;
-  padding: 4px;
-  border: 1px solid #33334d;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 15px; 
+  padding: 0 0 20px 0; /* Hilangkan background, cukup beri jarak bawah */
+  width: 100%;
 }
 
-.btn-period {
-  background: transparent;
-  color: #8f8fb5; /* Warna teks abu-abu redup */
-  border: none;
-  padding: 8px 16px;
-  font-size: 14px;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: all 0.3s ease;
+/* 2. Pastikan Input & Tombol Tampilkan Data Sejajar */
+.filter-input-group {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
 }
 
-.btn-period:hover {
-  color: #ffffff;
-}
-
-/* Tombol Toggle yang sedang Aktif */
-.btn-period.active {
-  background-color: #5b4af1; /* Ungu selaras dengan tombol Semua/Siswa/Guru */
-  color: #ffffff;
-  font-weight: 600;
-}
-
-/* 2. Input Tanggal, Bulan, dan Dropdown */
+/* 3. Batasi Lebar Kotak Input (Kunci Perbaikan Ruang Kosong) */
 .filter-control {
-  background-color: #1a192f; /* Background gelap */
-  color: #e0e0e0; /* Teks putih terang */
-  border: 1px solid #33334d; /* Border tipis */
+  width: auto !important; /* Mencegah input melebar 100% dari bawaan framework */
+  min-width: 150px;
+  background-color: #1a192f;
+  color: #e0e0e0;
+  border: 1px solid #33334d;
   padding: 8px 12px;
   border-radius: 6px;
   font-size: 14px;
   outline: none;
-  font-family: inherit;
-  
-  /* PENTING: Memaksa popup kalender browser menjadi Dark Mode */
   color-scheme: dark; 
 }
 
-.filter-control:focus {
-  border-color: #5b4af1; /* Efek menyala ungu saat diklik */
-  box-shadow: 0 0 0 2px rgba(91, 74, 241, 0.2);
+/* 4. Sembunyikan Input yang Sedang Tidak Dipilih */
+.hidden {
+  display: none !important; 
 }
 
-/* 3. Tombol "Tampilkan Data" */
+/* Tombol Tampilkan Data */
 .btn-apply {
-  background-color: #00b894; /* Hijau tosca selaras dengan grafik Hadir */
+  background-color: #00b894;
   color: #ffffff;
   border: none;
-  padding: 8px 18px;
+  padding: 9px 18px;
   border-radius: 6px;
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-}
-
-.btn-apply:hover {
-  background-color: #00997a; /* Gelap sedikit saat dihover */
+  white-space: nowrap; /* Mencegah teks tombol turun ke baris baru */
 }
