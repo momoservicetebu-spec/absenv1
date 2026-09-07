@@ -1105,7 +1105,7 @@ function handleImportJadwal(event) {
             tableBody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: #feca57; padding: 20px;">Memproses dan mengirim ${dataJadwal.length} baris data ke database... ⏳</td></tr>`;
             
             // TODO: GANTI STRING INI DENGAN URL WEB APP GOOGLE APPS SCRIPT ANDA YANG BARU
-            const GAS_URL = "https://script.google.com/macros/s/AKfycb.../exec"; 
+            const GAS_URL = "https://script.google.com/macros/s/AKfycbxx3BLAOh7RZwF2vvukhDPhytbAPXfMP3H_RAJNeWgxLe2LNcCzojm-6HQ1kktPQMTQ/exec"; 
             
             // Kirim data ke Backend GAS
             fetch(GAS_URL, {
