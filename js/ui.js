@@ -1169,48 +1169,51 @@ function tutupModalJadwal() {
     document.getElementById('form-tambah-jadwal').reset();
 }
 
-// Event Listener Submit Form Tambah Manual
-document.getElementById('form-tambah-jadwal').addEventListener('submit', function(e) {
-    e.preventDefault();
+// Pastikan Event Listener dibungkus DOMContentLoaded agar berjalan HANYA setelah HTML selesai dimuat
+document.addEventListener('DOMContentLoaded', () => {
+    const formTambahJadwal = document.getElementById('form-tambah-jadwal');
     
-    // Ambil nilai dari input form
-    const dataManual = [{
-        hari: document.getElementById('input-hari').value,
-        jam_ke: document.getElementById('input-jam').value,
-        waktu_mulai: document.getElementById('input-mulai').value,
-        waktu_selesai: document.getElementById('input-selesai').value,
-        kelas: document.getElementById('input-kelas').value,
-        mata_pelajaran: document.getElementById('input-mapel').value,
-        kode_guru: document.getElementById('input-kodeguru').value
-    }];
+    if (formTambahJadwal) {
+        formTambahJadwal.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const dataManual = [{
+                hari: document.getElementById('input-hari').value,
+                jam_ke: document.getElementById('input-jam').value,
+                waktu_mulai: document.getElementById('input-mulai').value,
+                waktu_selesai: document.getElementById('input-selesai').value,
+                kelas: document.getElementById('input-kelas').value,
+                mata_pelajaran: document.getElementById('input-mapel').value,
+                kode_guru: document.getElementById('input-kodeguru').value
+            }];
 
-    // Gunakan URL GAS yang sama dengan fungsi import CSV
-    const GAS_URL = "https://script.google.com/macros/s/AKfycbxx3BLAOh7RZwF2vvukhDPhytbAPXfMP3H_RAJNeWgxLe2LNcCzojm-6HQ1kktPQMTQ/exec?action=importJadwal";
-    
-    const submitBtn = this.querySelector('button[type="submit"]');
-    submitBtn.innerText = "Menyimpan...";
-    submitBtn.disabled = true;
+            const GAS_URL = "https://script.google.com/macros/s/AKfycbxx3BLAOh7RZwF2vvukhDPhytbAPXfMP3H_RAJNeWgxLe2LNcCzojm-6HQ1kktPQMTQ/exec?action=importJadwal";
+            
+            const submitBtn = this.querySelector('button[type="submit"]');
+            submitBtn.innerText = "Menyimpan...";
+            submitBtn.disabled = true;
 
-    fetch(GAS_URL, {
-        method: "POST",
-        body: JSON.stringify(dataManual)
-    })
-    .then(response => response.json())
-    .then(result => {
-        if (result.status === true || result.success === true) {
-            alert("✅ Jadwal berhasil ditambahkan!");
-            tutupModalJadwal();
-            // Disini Anda bisa memanggil fungsi refresh tabel jadwal jika ada
-        } else {
-            alert("❌ Gagal menyimpan: " + result.message);
-        }
-    })
-    .catch(error => {
-        console.error("Error:", error);
-        alert("❌ Terjadi kesalahan koneksi saat menyimpan.");
-    })
-    .finally(() => {
-        submitBtn.innerText = "Simpan Jadwal";
-        submitBtn.disabled = false;
-    });
+            fetch(GAS_URL, {
+                method: "POST",
+                body: JSON.stringify(dataManual)
+            })
+            .then(response => response.json())
+            .then(result => {
+                if (result.status === true || result.success === true) {
+                    alert("✅ Jadwal berhasil ditambahkan!");
+                    window.tutupModalJadwal();
+                } else {
+                    alert("❌ Gagal menyimpan: " + result.message);
+                }
+            })
+            .catch(error => {
+                console.error("Error:", error);
+                alert("❌ Terjadi kesalahan koneksi saat menyimpan.");
+            })
+            .finally(() => {
+                submitBtn.innerText = "Simpan Jadwal";
+                submitBtn.disabled = false;
+            });
+        });
+    }
 });
