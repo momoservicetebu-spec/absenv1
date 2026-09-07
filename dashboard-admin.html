@@ -52,6 +52,11 @@
     <button class="nav-btn" onclick="switchTab('admin-operator', this)">🛡️ Admin & Operator</button>
     <button class="nav-btn" onclick="switchTab('hak-akses', this)">🔐 Hak Akses (Role)</button>
 
+    <!-- TAMBAHAN OPERASIONAL & ABSENSI (KODE BARU) -->
+    <div class="menu-group">Operasional & Absensi</div>
+    <button class="nav-btn" onclick="switchTab('gate-pass', this)">🎟️ Manajemen Gate Pass</button>
+    <button class="nav-btn" onclick="switchTab('absensi-kelas', this)">📝 Absensi Kelas</button>
+    
     <div class="menu-group">Sistem & Laporan</div>
     <button class="nav-btn" onclick="switchTab('laporan', this)">📊 Laporan Absensi</button>
     <button class="nav-btn" onclick="switchTab('setting', this)">🛠️ Pengaturan (Setting)</button>
@@ -432,6 +437,46 @@
           <tr><td colspan="4" style="text-align: center;">Memuat data...</td></tr>
         </tbody>
       </table>
+    </div>
+    <!-- KONTEN: MANAJEMEN GATE PASS -->
+    <div id="gate-pass" class="section card">
+      <h2 class="section-title">🎟️ Manajemen Gate Pass</h2>
+      <p class="section-desc">Persetujuan dan riwayat izin keluar/masuk (Gate Pass) siswa & guru.</p>
+      
+      <div class="search-bar">
+        <input type="text" placeholder="Cari Nama atau Alasan..." style="max-width: 300px;">
+        <button class="btn-action">Cari</button>
+        <button class="btn-action btn-success" style="margin-left: auto;">+ Buat Gate Pass</button>
+      </div>
+
+      <div class="analytics-table-wrap" style="height: auto; max-height: 400px;">
+        <table>
+          <thead>
+            <tr><th>NAMA</th><th>PERAN / KELAS</th><th>WAKTU KELUAR</th><th>ALASAN</th><th>STATUS</th><th>AKSI</th></tr>
+          </thead>
+          <tbody id="gate-pass-body">
+            <tr><td colspan="6" style="text-align: center; color: #a2a3b7; padding: 15px;">Belum ada data gate pass...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- KONTEN: ABSENSI KELAS -->
+    <div id="absensi-kelas" class="section card">
+      <h2 class="section-title">📝 Absensi Kelas</h2>
+      <p class="section-desc">Pencatatan absensi manual di dalam kelas oleh guru mapel atau guru piket.</p>
+      
+      <div style="margin-bottom: 20px;">
+        <label style="display: block; margin-bottom: 8px; font-weight: bold; color: #a29bfe;">Pilih Kelas</label>
+        <select style="max-width: 300px; padding: 10px; background: #2a2640; color: white; border: 1px solid #4a4563; border-radius: 5px;">
+          <option>-- Pilih Kelas --</option>
+          <option>10-A</option>
+          <option>10-B</option>
+          <option>11-A</option>
+          <option>12-A</option>
+        </select>
+        <button class="btn-action btn-success" style="margin-left: 10px;">Tampilkan Daftar Siswa</button>
+      </div>
     </div>
 
     <!-- 9. LAPORAN -->
