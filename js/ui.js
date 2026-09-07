@@ -1100,8 +1100,8 @@ function handleImportJadwal(event) {
             // Tampilkan status loading di tabel agar admin tahu proses sedang berjalan
             tableBody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: #feca57; padding: 20px;">Memproses dan mengirim ${dataJadwal.length} baris data ke database... ⏳</td></tr>`;
             
-            // TODO: GANTI STRING INI DENGAN URL WEB APP GOOGLE APPS SCRIPT ANDA YANG BARU
-            const GAS_URL = "https://script.google.com/macros/s/AKfycbxx3BLAOh7RZwF2vvukhDPhytbAPXfMP3H_RAJNeWgxLe2LNcCzojm-6HQ1kktPQMTQ/exec"; 
+            // PERBAIKAN 1: Tambahkan ?action=importJadwal pada akhir URL
+            const GAS_URL = "https://script.google.com/macros/s/AKfycbxx3BLAOh7RZwF2vvukhDPhytbAPXfMP3H_RAJNeWgxLe2LNcCzojm-6HQ1kktPQMTQ/exec?action=importJadwal"; 
             
             // Kirim data ke Backend GAS
             fetch(GAS_URL, {
@@ -1110,7 +1110,8 @@ function handleImportJadwal(event) {
             })
             .then(response => response.json())
             .then(result => {
-                if (result.status === "success") {
+                // PERBAIKAN 2: Sesuaikan pengecekan status menjadi boolean (true) menyesuaikan format router
+                if (result.status === true || result.success === true) {
                     alert("✅ " + result.message);
                     // Jika sukses, baru tampilkan baris HTML ke layar
                     tableBody.innerHTML = htmlContent; 
