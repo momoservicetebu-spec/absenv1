@@ -1174,33 +1174,135 @@ window.downloadTemplateJadwal = function() {
     document.body.removeChild(link);
 };
 
-// Fungsi Kontrol Modal Tambah Manual
-function bukaModalJadwal() {
-    document.getElementById('modal-tambah-jadwal').style.display = 'block';
-}
+// ==========================================
+// KODE UTAMA CRUD JADWAL PELAJARAN
+// ==========================================
 
-function tutupModalJadwal() {
-    document.getElementById('modal-tambah-jadwal').style.display = 'none';
-    document.getElementById('form-tambah-jadwal').reset();
-}
+const GAS_BASE_URL = "https://script.google.com/macros/s/AKfycbxx3BLAOh7RZwF2vvukhDPhytbAPXfMP3H_RAJNeWgxLe2LNcCzojm-6HQ1kktPQMTQ/exec";
+let dataJadwalGlobal = []; // Menyimpan data jadwal sementara di memori browser
 
-// Pastikan Event Listener dibungkus DOMContentLoaded agar berjalan HANYA setelah HTML selesai dimuat
-document.addEventListener('DOMContentLoaded', () => {
-    
-    // 1. EVENT LISTENER UNTUK TOMBOL BUKA MODAL
-    const btnTambahManual = document.getElementById('btn-tambah-manual');
-    if (btnTambahManual) {
-        btnTambahManual.addEventListener('click', () => {
-            const modal = document.getElementById('modal-tambah-jadwal');
-            if (modal) {
-                modal.style.display = 'block';
-            } else {
-                alert("HTML modal tidak ditemukan! Pastikan kode modal sudah ada di file HTML Anda.");
-            }
-        });
+// 1. READ: Memuat Data Jadwal dari Server
+window.loadJadwal = function() {
+    const tableBody = document.getElementById('jadwal-table-body');
+    if (!tableBody) return;
+
+    tableBody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: #feca57; padding: 20px;">Memuat data jadwal... ⏳</td></tr>';
+
+    fetch(`${GAS_BASE_URL}?action=getJadwal`)
+    .then(response => response.json())
+    .then(result => {
+        const data = result.data || result;
+        dataJadwalGlobal = Array.isArray(data) ? data : [];
+        renderTabelJadwal(dataJadwalGlobal);
+    })
+    .catch(error => {
+        console.error("Error load data:", error);
+        tableBody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: #ff6b6b; padding: 20px;">Gagal memuat data dari server.</td></tr>';
+    });
+};
+
+// Render Data ke Tabel HTML
+function renderTabelJadwal(data) {
+    const tableBody = document.getElementById('jadwal-table-body');
+    if (!tableBody) return;
+
+    if (data.length === 0) {
+        tableBody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: #a0a5ba; padding: 20px;">Belum ada data jadwal.</td></tr>';
+        return;
     }
 
-    // 2. TUTUP MODAL JIKA KLIK AREA LUAR (BACKGROUND GELAP)
+    let html = '';
+    data.forEach((item, index) => {
+        const rowId = item.id || index; // Gunakan item.id jika ada, atau fallback ke index
+        html += `
+        <tr>
+            <td>${item.hari || '-'}</td>
+            <td>${item.jam_ke || '-'}</td>
+            <td>${item.waktu_mulai || ''} - ${item.waktu_selesai || ''}</td>
+            <td>${item.kelas || '-'}</td>
+            <td>${item.mata_pelajaran || '-'}</td>
+            <td><span style="background:#6c5ce7; padding:2px 8px; border-radius:4px;">${item.kode_guru || item.guru_pengajar || '-'}</span></td>
+            <td style="text-align: center; white-space: nowrap;">
+                <button onclick="editJadwal('${rowId}')" style="background:#f1c40f; color:#1e202e; border:none; padding:4px 8px; border-radius:4px; cursor:pointer; font-size:12px; font-weight:bold; margin-right:4px;">
+                    ✏️ Edit
+                </button>
+                <button onclick="hapusJadwal('${rowId}')" style="background:#ff6b6b; color:white; border:none; padding:4px 8px; border-radius:4px; cursor:pointer; font-size:12px; font-weight:bold;">
+                    🗑️ Hapus
+                </button>
+            </td>
+        </tr>`;
+    });
+
+    tableBody.innerHTML = html;
+}
+
+// 2. UPDATE: Menampilkan Form Edit dengan Data Terisi
+window.editJadwal = function(id) {
+    const item = dataJadwalGlobal.find((j, idx) => (j.id == id || idx == id));
+    if (!item) return;
+
+    document.getElementById('modal-title').innerText = "Edit Jadwal Pelajaran";
+    document.getElementById('input-jadwal-id').value = id;
+    document.getElementById('input-hari').value = item.hari || 'Senin';
+    document.getElementById('input-jam').value = item.jam_ke || '';
+    document.getElementById('input-mulai').value = item.waktu_mulai || '';
+    document.getElementById('input-selesai').value = item.waktu_selesai || '';
+    document.getElementById('input-kelas').value = item.kelas || '';
+    document.getElementById('input-mapel').value = item.mata_pelajaran || '';
+    document.getElementById('input-kodeguru').value = item.kode_guru || item.guru_pengajar || '';
+
+    document.getElementById('modal-tambah-jadwal').style.display = 'block';
+};
+
+// Reset & Buka Modal Tambah Manual
+window.bukaModalJadwal = function() {
+    document.getElementById('modal-title').innerText = "Tambah Jadwal Manual";
+    document.getElementById('input-jadwal-id').value = "";
+    document.getElementById('form-tambah-jadwal').reset();
+    document.getElementById('modal-tambah-jadwal').style.display = 'block';
+};
+
+window.tutupModalJadwal = function() {
+    document.getElementById('modal-tambah-jadwal').style.display = 'none';
+    document.getElementById('form-tambah-jadwal').reset();
+};
+
+// 3. DELETE: Menghapus Data
+window.hapusJadwal = function(id) {
+    if (!confirm("Apakah Anda yakin ingin menghapus jadwal ini?")) return;
+
+    const GAS_URL = `${GAS_BASE_URL}?action=deleteJadwal`;
+    
+    fetch(GAS_URL, {
+        method: "POST",
+        body: JSON.stringify({ id: id })
+    })
+    .then(response => response.json())
+    .then(result => {
+        if (result.status === true || result.success === true) {
+            alert("✅ Jadwal berhasil dihapus!");
+            window.loadJadwal();
+        } else {
+            alert("❌ Gagal menghapus: " + (result.message || "Terjadi kesalahan."));
+        }
+    })
+    .catch(error => {
+        console.error("Error delete:", error);
+        alert("❌ Terjadi kesalahan koneksi saat menghapus.");
+    });
+};
+
+// 4. CREATE & UPDATE SUBMIT HANDLER
+document.addEventListener('DOMContentLoaded', () => {
+    // Muat data saat halaman pertama kali diakses
+    window.loadJadwal();
+
+    const btnTambahManual = document.getElementById('btn-tambah-manual');
+    if (btnTambahManual) {
+        btnTambahManual.addEventListener('click', window.bukaModalJadwal);
+    }
+
+    // Tutup Modal jika klik area luar
     const modalJadwal = document.getElementById('modal-tambah-jadwal');
     window.addEventListener('click', (event) => {
         if (event.target === modalJadwal) {
@@ -1208,14 +1310,18 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // 3. LOGIKA SUBMIT FORM TAMBAH JADWAL MANUAL
     const formTambahJadwal = document.getElementById('form-tambah-jadwal');
     if (formTambahJadwal) {
         formTambahJadwal.addEventListener('submit', function(e) {
             e.preventDefault();
-            
-            // Ambil data dari form
-            const dataManual = [{
+
+            const jadwalId = document.getElementById('input-jadwal-id').value;
+            const isEdit = jadwalId !== "";
+            // Jika ID kosong berarti tambah (importJadwal), jika ada ID berarti edit (updateJadwal)
+            const action = isEdit ? "updateJadwal" : "importJadwal";
+
+            const payload = {
+                id: jadwalId,
                 hari: document.getElementById('input-hari').value,
                 jam_ke: document.getElementById('input-jam').value,
                 waktu_mulai: document.getElementById('input-mulai').value,
@@ -1223,24 +1329,26 @@ document.addEventListener('DOMContentLoaded', () => {
                 kelas: document.getElementById('input-kelas').value,
                 mata_pelajaran: document.getElementById('input-mapel').value,
                 kode_guru: document.getElementById('input-kodeguru').value
-            }];
+            };
 
-            const GAS_URL = "https://script.google.com/macros/s/AKfycbxx3BLAOh7RZwF2vvukhDPhytbAPXfMP3H_RAJNeWgxLe2LNcCzojm-6HQ1kktPQMTQ/exec?action=importJadwal";
-            
-            const submitBtn = this.querySelector('button[type="submit"]');
+            // Backend menggunakan array untuk insert, dan object untuk update
+            const bodyData = isEdit ? payload : [payload];
+            const GAS_URL = `${GAS_BASE_URL}?action=${action}`;
+
+            const submitBtn = document.getElementById('btn-submit-modal') || this.querySelector('button[type="submit"]');
             submitBtn.innerText = "Menyimpan...";
             submitBtn.disabled = true;
 
-            // Kirim ke server
             fetch(GAS_URL, {
                 method: "POST",
-                body: JSON.stringify(dataManual)
+                body: JSON.stringify(bodyData)
             })
             .then(response => response.json())
             .then(result => {
                 if (result.status === true || result.success === true) {
-                    alert("✅ Jadwal berhasil ditambahkan!");
+                    alert(isEdit ? "✅ Jadwal berhasil diperbarui!" : "✅ Jadwal berhasil ditambahkan!");
                     window.tutupModalJadwal();
+                    window.loadJadwal(); // Refetch data terbaru ke tabel
                 } else {
                     alert("❌ Gagal menyimpan: " + result.message);
                 }
