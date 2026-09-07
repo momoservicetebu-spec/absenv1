@@ -957,13 +957,10 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // 3. FUNGSI FETCH / AMBIL DATA DASHBOARD
   // 3. FUNGSI FETCH / AMBIL DATA DASHBOARD DARI DATABASE APPS SCRIPT
   async function loadDashboardData() {
-    // PASTE URL WEB APP ANDA DI SINI
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxx3BLAOh7RZwF2vvukhDPhytbAPXfMP3H_RAJNeWgxLe2LNcCzojm-6HQ1kktPQMTQ/exec"; 
 
-    // Router.gs butuh parameter 'action' agar tahu fungsi mana yang dijalankan
     let queryParams = `action=getDashboardData&periode=${currentPeriod}`;
 
     if (currentPeriod === 'harian') {
@@ -978,9 +975,8 @@ document.addEventListener('DOMContentLoaded', () => {
       const response = await fetch(`${SCRIPT_URL}?${queryParams}`);
       const result = await response.json();
 
-      // Cek apakah balikan JSON dari Router.gs sukses (status: true)
-      if (result.status === true) {
-        // Data metrik grafik ada di dalam objek 'data' dari response JSON backend
+      // PERBAIKAN: Ubah pengecekan menjadi result.success === true
+      if (result.success === true || result.status === true) {
         const realData = result.data; 
 
         if (window.updateDashboardUI) window.updateDashboardUI(realData);
@@ -993,7 +989,7 @@ document.addEventListener('DOMContentLoaded', () => {
       console.error('Koneksi dashboard bermasalah:', error);
     }
   }
-
+  
   // 4. MOCK DATA GENERATOR (SESUAI PERIODE)
   function generateMockData(periode) {
     if (periode === 'bulanan') {
@@ -1054,11 +1050,9 @@ document.addEventListener('DOMContentLoaded', () => {
   // Load data awal (default: Harian)
   loadDashboardData();
 });
-
 // ==========================================
-// FILE: js/ui.js - Jadwal 
+// FILE: js/ui.js - Update Fungsi Jadwal 
 // ==========================================
-
 
 function handleImportJadwal(event) {
     const file = event.target.files[0];
@@ -1071,7 +1065,7 @@ function handleImportJadwal(event) {
         const tableBody = document.getElementById('jadwal-table-body');
         
         let htmlContent = '';
-        let dataJadwal = []; // Array untuk dikirim ke database
+        let dataJadwal = []; 
         
         for (let i = 1; i < rows.length; i++) {
             if (rows[i].trim() === '') continue;
@@ -1086,10 +1080,10 @@ function handleImportJadwal(event) {
                     waktu_selesai: cols[3].trim(),
                     kelas: cols[4].trim(),
                     mata_pelajaran: cols[5].trim(),
-                    kode_guru: cols[6].trim() // Kolom Kunci Penghubung
+                    kode_guru: cols[6].trim() 
                 });
 
-                // Render ke tabel sementara di layar Admin
+                // Siapkan elemen HTML untuk di-render nanti
                 htmlContent += `
                 <tr>
                     <td>${cols[0].trim()}</td>
@@ -1103,18 +1097,39 @@ function handleImportJadwal(event) {
         }
         
         if(dataJadwal.length > 0) {
-            tableBody.insertAdjacentHTML('beforeend', htmlContent);
+            // Tampilkan status loading di tabel agar admin tahu proses sedang berjalan
+            tableBody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: #feca57; padding: 20px;">Memproses dan mengirim ${dataJadwal.length} baris data ke database... ⏳</td></tr>`;
             
-            // TODO: Panggil fungsi API untuk kirim variabel 'dataJadwal' ke Backend di sini
-            // contoh: simpanJadwalMassal(dataJadwal);
+            // TODO: GANTI STRING INI DENGAN URL WEB APP GOOGLE APPS SCRIPT ANDA YANG BARU
+            const GAS_URL = "https://script.google.com/macros/s/AKfycbxx3BLAOh7RZwF2vvukhDPhytbAPXfMP3H_RAJNeWgxLe2LNcCzojm-6HQ1kktPQMTQ/exec"; 
             
-            alert(`✅ Berhasil membaca ${dataJadwal.length} baris jadwal. Siap diunggah ke database!`);
+            // Kirim data ke Backend GAS
+            fetch(GAS_URL, {
+                method: "POST",
+                body: JSON.stringify(dataJadwal)
+            })
+            .then(response => response.json())
+            .then(result => {
+                if (result.status === "success") {
+                    alert("✅ " + result.message);
+                    // Jika sukses, baru tampilkan baris HTML ke layar
+                    tableBody.innerHTML = htmlContent; 
+                } else {
+                    alert("❌ Gagal menyimpan: " + result.message);
+                    tableBody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #ff6b6b;">Gagal memuat data. Silakan coba lagi.</td></tr>';
+                }
+            })
+            .catch(error => {
+                console.error("Error:", error);
+                alert("❌ Terjadi kesalahan jaringan saat menghubungi server.");
+                tableBody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #ff6b6b;">Koneksi terputus.</td></tr>';
+            });
+
         } else {
             alert("❌ Gagal. Pastikan format CSV sesuai template.");
         }
     };
     
     reader.readAsText(file);
-    event.target.value = ''; // Reset input
+    event.target.value = ''; // Reset input agar bisa upload file yang sama jika perlu
 }
-
