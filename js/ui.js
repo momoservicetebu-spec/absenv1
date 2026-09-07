@@ -1067,10 +1067,17 @@ function handleImportJadwal(event) {
         let htmlContent = '';
         let dataJadwal = []; 
         
-        for (let i = 1; i < rows.length; i++) {
-            if (rows[i].trim() === '') continue;
+        for (let i = 0; i < rows.length; i++) {
+            const rowText = rows[i].trim();
             
-            const cols = rows[i].split(',');
+            // PENTING: Pengecekan header sekarang menggunakan 'Hari;' (titik koma)
+            if (rowText === '' || rowText.startsWith('#') || rowText.startsWith('Hari;')) {
+                continue;
+            }
+            
+            // PENTING: Split array sekarang memotong berdasarkan titik koma (;)
+            const cols = rowText.split(';');
+            
             if (cols.length >= 7) {
                 // Susun object data untuk backend
                 dataJadwal.push({
@@ -1083,7 +1090,7 @@ function handleImportJadwal(event) {
                     kode_guru: cols[6].trim() 
                 });
 
-                // Siapkan elemen HTML untuk di-render nanti
+                // Siapkan elemen HTML
                 htmlContent += `
                 <tr>
                     <td>${cols[0].trim()}</td>
