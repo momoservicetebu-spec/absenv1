@@ -1186,12 +1186,35 @@ function tutupModalJadwal() {
 
 // Pastikan Event Listener dibungkus DOMContentLoaded agar berjalan HANYA setelah HTML selesai dimuat
 document.addEventListener('DOMContentLoaded', () => {
-    const formTambahJadwal = document.getElementById('form-tambah-jadwal');
     
+    // 1. EVENT LISTENER UNTUK TOMBOL BUKA MODAL
+    const btnTambahManual = document.getElementById('btn-tambah-manual');
+    if (btnTambahManual) {
+        btnTambahManual.addEventListener('click', () => {
+            const modal = document.getElementById('modal-tambah-jadwal');
+            if (modal) {
+                modal.style.display = 'block';
+            } else {
+                alert("HTML modal tidak ditemukan! Pastikan kode modal sudah ada di file HTML Anda.");
+            }
+        });
+    }
+
+    // 2. TUTUP MODAL JIKA KLIK AREA LUAR (BACKGROUND GELAP)
+    const modalJadwal = document.getElementById('modal-tambah-jadwal');
+    window.addEventListener('click', (event) => {
+        if (event.target === modalJadwal) {
+            window.tutupModalJadwal();
+        }
+    });
+
+    // 3. LOGIKA SUBMIT FORM TAMBAH JADWAL MANUAL
+    const formTambahJadwal = document.getElementById('form-tambah-jadwal');
     if (formTambahJadwal) {
         formTambahJadwal.addEventListener('submit', function(e) {
             e.preventDefault();
             
+            // Ambil data dari form
             const dataManual = [{
                 hari: document.getElementById('input-hari').value,
                 jam_ke: document.getElementById('input-jam').value,
@@ -1208,6 +1231,7 @@ document.addEventListener('DOMContentLoaded', () => {
             submitBtn.innerText = "Menyimpan...";
             submitBtn.disabled = true;
 
+            // Kirim ke server
             fetch(GAS_URL, {
                 method: "POST",
                 body: JSON.stringify(dataManual)

@@ -460,8 +460,9 @@
         <button class="btn-action btn-success" onclick="document.getElementById('csvJadwalInput').click()">🚀 Import CSV Jadwal</button>
         <input type="file" id="csvJadwalInput" accept=".csv" style="display: none;" onchange="handleImportJadwal(event)">
         
-        <button class="btn-action" style="background:#f39c12;">+ Tambah Manual</button>
-      </div>
+       <button id="btn-tambah-manual" class="btn btn-warning">
+        <i class="fas fa-plus"></i> Tambah Manual
+       </button>
 
       <div class="analytics-table-wrap" style="height: auto; max-height: 400px;">
         <table>
