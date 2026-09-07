@@ -1134,3 +1134,83 @@ function handleImportJadwal(event) {
     reader.readAsText(file);
     event.target.value = ''; // Reset input agar bisa upload file yang sama jika perlu
 }
+
+// ==========================================
+// FITUR UNDUH TEMPLATE CSV & MODAL JADWAL
+// ==========================================
+
+// Fungsi Unduh Template CSV
+function downloadTemplateJadwal() {
+    // Header dan contoh data default
+    const csvContent = "Hari,Jam_Ke,Waktu_Mulai,Waktu_Selesai,Kelas,Mata_Pelajaran,Kode_Guru\n" +
+                       "Senin,1-2,07:15,08:45,10-A,Matematika,G-001\n" +
+                       "Selasa,3-4,08:45,10:15,11-B,Fisika,G-002";
+    
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement("a");
+    const url = URL.createObjectURL(blob);
+    
+    link.setAttribute("href", url);
+    link.setAttribute("download", "Template_Jadwal_Pelajaran.csv");
+    link.style.visibility = 'hidden';
+    
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+
+// Fungsi Kontrol Modal Tambah Manual
+function bukaModalJadwal() {
+    document.getElementById('modal-tambah-jadwal').style.display = 'block';
+}
+
+function tutupModalJadwal() {
+    document.getElementById('modal-tambah-jadwal').style.display = 'none';
+    document.getElementById('form-tambah-jadwal').reset();
+}
+
+// Event Listener Submit Form Tambah Manual
+document.getElementById('form-tambah-jadwal').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    // Ambil nilai dari input form
+    const dataManual = [{
+        hari: document.getElementById('input-hari').value,
+        jam_ke: document.getElementById('input-jam').value,
+        waktu_mulai: document.getElementById('input-mulai').value,
+        waktu_selesai: document.getElementById('input-selesai').value,
+        kelas: document.getElementById('input-kelas').value,
+        mata_pelajaran: document.getElementById('input-mapel').value,
+        kode_guru: document.getElementById('input-kodeguru').value
+    }];
+
+    // Gunakan URL GAS yang sama dengan fungsi import CSV
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbxx3BLAOh7RZwF2vvukhDPhytbAPXfMP3H_RAJNeWgxLe2LNcCzojm-6HQ1kktPQMTQ/exec?action=importJadwal";
+    
+    const submitBtn = this.querySelector('button[type="submit"]');
+    submitBtn.innerText = "Menyimpan...";
+    submitBtn.disabled = true;
+
+    fetch(GAS_URL, {
+        method: "POST",
+        body: JSON.stringify(dataManual)
+    })
+    .then(response => response.json())
+    .then(result => {
+        if (result.status === true || result.success === true) {
+            alert("✅ Jadwal berhasil ditambahkan!");
+            tutupModalJadwal();
+            // Disini Anda bisa memanggil fungsi refresh tabel jadwal jika ada
+        } else {
+            alert("❌ Gagal menyimpan: " + result.message);
+        }
+    })
+    .catch(error => {
+        console.error("Error:", error);
+        alert("❌ Terjadi kesalahan koneksi saat menyimpan.");
+    })
+    .finally(() => {
+        submitBtn.innerText = "Simpan Jadwal";
+        submitBtn.disabled = false;
+    });
+});
