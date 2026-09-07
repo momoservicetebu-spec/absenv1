@@ -1206,22 +1206,36 @@ function renderTabelJadwal(data) {
     const tableBody = document.getElementById('jadwal-table-body');
     if (!tableBody) return;
 
-    if (data.length === 0) {
+    // Filter jika ada objek kosong dari Sheet
+    const validData = data.filter(item => Object.values(item).some(val => val !== "" && val !== null));
+
+    if (validData.length === 0) {
         tableBody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: #a0a5ba; padding: 20px;">Belum ada data jadwal.</td></tr>';
         return;
     }
 
     let html = '';
-    data.forEach((item, index) => {
-        const rowId = item.id || index; // Gunakan item.id jika ada, atau fallback ke index
+    validData.forEach((item, index) => {
+        // Mendukung pembacaan huruf Kapital (dari Google Sheet) maupun huruf Kecil
+        const rowId = item.JadwalID || item.jadwalid || item.id || index;
+        const hari = item.Hari || item.hari || '-';
+        const jamKe = item.Jam_Ke || item.jam_ke || '-';
+        const waktuMulai = item.Waktu_Mulai || item.waktu_mulai || '';
+        const waktuSelesai = item.Waktu_Selesai || item.waktu_selesai || '';
+        const kelas = item.Kelas || item.kelas || '-';
+        const mapel = item.Mata_Pelajaran || item.mata_pelajaran || '-';
+        const kodeGuru = item.Kode_Guru || item.kode_guru || item.guru_pengajar || '-';
+
+        const waktuText = (waktuMulai || waktuSelesai) ? `${waktuMulai} - ${waktuSelesai}` : '-';
+
         html += `
         <tr>
-            <td>${item.hari || '-'}</td>
-            <td>${item.jam_ke || '-'}</td>
-            <td>${item.waktu_mulai || ''} - ${item.waktu_selesai || ''}</td>
-            <td>${item.kelas || '-'}</td>
-            <td>${item.mata_pelajaran || '-'}</td>
-            <td><span style="background:#6c5ce7; padding:2px 8px; border-radius:4px;">${item.kode_guru || item.guru_pengajar || '-'}</span></td>
+            <td>${hari}</td>
+            <td>${jamKe}</td>
+            <td>${waktuText}</td>
+            <td>${kelas}</td>
+            <td>${mapel}</td>
+            <td><span style="background:#6c5ce7; padding:2px 8px; border-radius:4px; color:white;">${kodeGuru}</span></td>
             <td style="text-align: center; white-space: nowrap;">
                 <button onclick="editJadwal('${rowId}')" style="background:#f1c40f; color:#1e202e; border:none; padding:4px 8px; border-radius:4px; cursor:pointer; font-size:12px; font-weight:bold; margin-right:4px;">
                     ✏️ Edit
@@ -1235,7 +1249,6 @@ function renderTabelJadwal(data) {
 
     tableBody.innerHTML = html;
 }
-
 // 2. UPDATE: Menampilkan Form Edit dengan Data Terisi
 window.editJadwal = function(id) {
     const item = dataJadwalGlobal.find((j, idx) => (j.id == id || idx == id));
