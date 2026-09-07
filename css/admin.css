@@ -465,3 +465,35 @@ canvas { position: absolute; top: 0; left: 0; }
   cursor: pointer;
   white-space: nowrap; /* Mencegah teks tombol turun ke baris baru */
 }
+/* Container untuk grup tombol Harian/Bulanan/Tahunan */
+.period-toggle-group {
+  display: flex;
+  background-color: #1a192f; /* Background gelap senada dengan kotak input */
+  border: 1px solid #33334d; /* Garis tepi tipis agar menyatu */
+  border-radius: 6px;
+  overflow: hidden; /* Memastikan sudut tombol mengikuti radius container */
+}
+
+/* Tampilan tombol standar (Tidak Aktif) */
+.btn-period {
+  background-color: transparent;
+  color: #8f8fb5; /* Warna teks keabu-abuan agar tidak terlalu mencolok */
+  border: none;
+  padding: 8px 16px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+/* Efek saat kursor diarahkan ke tombol */
+.btn-period:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+  color: #ffffff;
+}
+
+/* Tampilan tombol yang sedang dipilih (Aktif) - Menyesuaikan tombol nomor 2 */
+.btn-period.active {
+  background-color: #00b894; /* Hijau tosca yang sama dengan tombol Tampilkan Data */
+  color: #ffffff;
+  font-weight: 600;
+}
