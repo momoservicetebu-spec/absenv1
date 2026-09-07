@@ -910,7 +910,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 // ==========================================
-// FILE: js/dashboard.js - KONTROLER FILTER & DATA
+// FILE: js/ui.js - KONTROLER FILTER & DATA
 // ==========================================
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -957,8 +957,13 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // 3. FUNGSI FETCH / AMBIL DATA DASHBOARD
+  // 3. FUNGSI FETCH / AMBIL DATA DASHBOARD DARI DATABASE APPS SCRIPT
   async function loadDashboardData() {
-    let queryParams = `periode=${currentPeriod}`;
+    // PASTE URL WEB APP ANDA DI SINI
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxx3BLAOh7RZwF2vvukhDPhytbAPXfMP3H_RAJNeWgxLe2LNcCzojm-6HQ1kktPQMTQ/exec"; 
+
+    // Router.gs butuh parameter 'action' agar tahu fungsi mana yang dijalankan
+    let queryParams = `action=getDashboardData&periode=${currentPeriod}`;
 
     if (currentPeriod === 'harian') {
       queryParams += `&tanggal=${filterHarian.value}`;
@@ -969,19 +974,22 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     try {
-      // Contoh pemanggilan API (sesuaikan URL endpoint backend Anda)
-      // const response = await fetch(`/api/dashboard-analytics?${queryParams}`);
-      // const result = await response.json();
+      const response = await fetch(`${SCRIPT_URL}?${queryParams}`);
+      const result = await response.json();
 
-      // MOCK DATA UNTUK PENGUJIAN TAMPILAN
-      const mockData = generateMockData(currentPeriod);
+      // Cek apakah balikan JSON dari Router.gs sukses (status: true)
+      if (result.status === true) {
+        // Data metrik grafik ada di dalam objek 'data' dari response JSON backend
+        const realData = result.data; 
 
-      // Panggil fungsi render UI yang ada di js/charts.js
-      if (window.updateDashboardUI) window.updateDashboardUI(mockData);
-      if (window.updateListsUI) window.updateListsUI(mockData);
+        if (window.updateDashboardUI) window.updateDashboardUI(realData);
+        if (window.updateListsUI) window.updateListsUI(realData);
+      } else {
+        console.error("Gagal menarik data dari server:", result.message);
+      }
 
     } catch (error) {
-      console.error('Gagal memuat data dashboard:', error);
+      console.error('Koneksi dashboard bermasalah:', error);
     }
   }
 
