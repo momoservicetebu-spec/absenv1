@@ -1251,19 +1251,30 @@ function renderTabelJadwal(data) {
 }
 // 2. UPDATE: Menampilkan Form Edit dengan Data Terisi
 window.editJadwal = function(id) {
-    const item = dataJadwalGlobal.find((j, idx) => (j.id == id || idx == id));
-    if (!item) return;
+    // Cari data berdasarkan JadwalID (dari Google Sheet), id, atau index
+    const item = dataJadwalGlobal.find((j, idx) => 
+        (j.JadwalID == id || j.jadwalid == id || j.id == id || idx == id)
+    );
+    
+    if (!item) {
+        console.error("Data jadwal tidak ditemukan untuk ID:", id);
+        alert("Data tidak ditemukan di sistem.");
+        return;
+    }
 
     document.getElementById('modal-title').innerText = "Edit Jadwal Pelajaran";
-    document.getElementById('input-jadwal-id').value = id;
-    document.getElementById('input-hari').value = item.hari || 'Senin';
-    document.getElementById('input-jam').value = item.jam_ke || '';
-    document.getElementById('input-mulai').value = item.waktu_mulai || '';
-    document.getElementById('input-selesai').value = item.waktu_selesai || '';
-    document.getElementById('input-kelas').value = item.kelas || '';
-    document.getElementById('input-mapel').value = item.mata_pelajaran || '';
-    document.getElementById('input-kodeguru').value = item.kode_guru || item.guru_pengajar || '';
+    
+    // Mengisi form modal dengan data yang mendukung huruf besar/kecil
+    document.getElementById('input-jadwal-id').value = item.JadwalID || item.id || id;
+    document.getElementById('input-hari').value = item.Hari || item.hari || 'Senin';
+    document.getElementById('input-jam').value = item.Jam_Ke || item.jam_ke || '';
+    document.getElementById('input-mulai').value = item.Waktu_Mulai || item.waktu_mulai || '';
+    document.getElementById('input-selesai').value = item.Waktu_Selesai || item.waktu_selesai || '';
+    document.getElementById('input-kelas').value = item.Kelas || item.kelas || '';
+    document.getElementById('input-mapel').value = item.Mata_Pelajaran || item.mata_pelajaran || '';
+    document.getElementById('input-kodeguru').value = item.Kode_Guru || item.kode_guru || item.guru_pengajar || '';
 
+    // Buka modal edit
     document.getElementById('modal-tambah-jadwal').style.display = 'block';
 };
 
