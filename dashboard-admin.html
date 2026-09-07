@@ -441,42 +441,71 @@
     </div>
 
     <!-- KONTEN: MANAJEMEN JADWAL PELAJARAN -->
-    <div id="jadwal-pelajaran" class="section card">
-      <h2 class="section-title">📅 Manajemen Jadwal Pelajaran</h2>
-      <p class="section-desc">Input jadwal mengajar sekali untuk otomatisasi absensi kelas oleh guru.</p>
-      
-      <<div class="search-bar">
-        <select style="padding: 8px; border-radius: 5px; background: #2a2640; color: white; border: 1px solid #4a4563;">
-          <option value="Senin">Senin</option>
-          <option value="Selasa">Selasa</option>
-          <option value="Rabu">Rabu</option>
-          <option value="Kamis">Kamis</option>
-          <option value="Jumat">Jumat</option>
-        </select>
-        <button class="btn-action">Filter Hari</button>
-        
-        <!-- TOMBOL UNDUH TEMPLATE & IMPORT DENGAN INPUT HIDDEN -->
-        <button class="btn-action" onclick="downloadTemplateJadwal()" style="margin-left: auto; background-color: #161224; border: 1px solid #6c5ce7; color: #a29bfe;">📥 Unduh Template</button>
-        <button class="btn-action btn-success" onclick="document.getElementById('csvJadwalInput').click()">🚀 Import CSV Jadwal</button>
-        <input type="file" id="csvJadwalInput" accept=".csv" style="display: none;" onchange="handleImportJadwal(event)">
-        
-       <button id="btn-tambah-manual" class="btn btn-warning">
-        <i class="fas fa-plus"></i> Tambah Manual
-       </button>
+<div id="jadwal-pelajaran" class="section card">
+  <h2 class="section-title">📅 Manajemen Jadwal Pelajaran</h2>
+  <p class="section-desc">Input jadwal mengajar sekali untuk otomatisasi absensi kelas oleh guru.</p>
+  
+  <!-- BARIS FILTER & TOMBOL AKSI -->
+  <div class="search-bar" style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 20px;">
+    <select id="filter-hari-select" style="padding: 8px 12px; border-radius: 5px; background: #2a2640; color: white; border: 1px solid #4a4563; outline: none;">
+      <option value="Senin">Senin</option>
+      <option value="Selasa">Selasa</option>
+      <option value="Rabu">Rabu</option>
+      <option value="Kamis">Kamis</option>
+      <option value="Jumat">Jumat</option>
+      <option value="Sabtu">Sabtu</option>
+    </select>
+    <button class="btn-action">Filter Hari</button>
+    
+    <!-- TOMBOL AKSI SISI KANAN -->
+    <button class="btn-action" onclick="downloadTemplateJadwal()" style="margin-left: auto; background-color: #161224; border: 1px solid #6c5ce7; color: #a29bfe; cursor: pointer;">
+      📥 Unduh Template
+    </button>
+    
+    <button class="btn-action btn-success" onclick="document.getElementById('csvJadwalInput').click()" style="cursor: pointer;">
+      🚀 Import CSV Jadwal
+    </button>
+    <input type="file" id="csvJadwalInput" accept=".csv" style="display: none;" onchange="handleImportJadwal(event)">
+    
+    <button id="btn-tambah-manual" class="btn-action" style="background-color: #f1c40f; color: #1e202e; font-weight: 600; border: none; cursor: pointer;">
+      ➕ Tambah Manual
+    </button>
+  </div> <!-- PENUTUP SEARCH-BAR (PENTING) -->
 
-      <div class="analytics-table-wrap" style="height: auto; max-height: 400px;">
-        <table>
-          <thead>
-            <tr><th>HARI</th><th>JAM KE</th><th>WAKTU</th><th>KELAS</th><th>MATA PELAJARAN</th><th>GURU PENGAJAR</th></tr>
-          </thead>
-          <tbody id="jadwal-table-body">
-            <!-- Data Jadwal -->
-            <tr><td>Senin</td><td>1-2</td><td>07:15 - 08:45</td><td>10-A</td><td>Matematika</td><td>Budi Santoso, S.Pd</td></tr>
-            <tr><td>Senin</td><td>3-4</td><td>08:45 - 10:15</td><td>11-B</td><td>Fisika</td><td>Siti Aminah, M.Pd</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
+  <!-- TABEL DATA JADWAL -->
+  <div class="analytics-table-wrap" style="height: auto; max-height: 400px;">
+    <table>
+      <thead>
+        <tr>
+          <th>HARI</th>
+          <th>JAM KE</th>
+          <th>WAKTU</th>
+          <th>KELAS</th>
+          <th>MATA PELAJARAN</th>
+          <th>GURU PENGAJAR</th>
+        </tr>
+      </thead>
+      <tbody id="jadwal-table-body">
+        <!-- Data Jadwal -->
+        <tr>
+          <td>Senin</td>
+          <td>1-2</td>
+          <td>07:15 - 08:45</td>
+          <td>10-A</td>
+          <td>Matematika</td>
+          <td>Budi Santoso, S.Pd</td>
+        </tr>
+        <tr>
+          <td>Senin</td>
+          <td>3-4</td>
+          <td>08:45 - 10:15</td>
+          <td>11-B</td>
+          <td>Fisika</td>
+          <td>Siti Aminah, M.Pd</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
     <!-- KONTEN: MANAJEMEN GATE PASS -->
     <div id="gate-pass" class="section card">
       <h2 class="section-title">🎟️ Manajemen Gate Pass</h2>
@@ -775,54 +804,67 @@
   </div>
 
 
-<!-- MODAL TAMBAH JADWAL MANUAL -->
-<div id="modal-tambah-jadwal" class="modal" style="display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5);">
-    <div class="modal-content" style="background-color: #2c2f48; margin: 10% auto; padding: 20px; border-radius: 8px; width: 50%; color: white;">
-        <h3 style="margin-top: 0;">Tambah Jadwal Manual</h3>
-        <form id="form-tambah-jadwal">
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
-                <div>
-                    <label>Hari</label>
-                    <select id="input-hari" required style="width: 100%; padding: 8px; border-radius: 4px; background: #1a1c2d; color: white; border: 1px solid #444;">
-                        <option value="Senin">Senin</option>
-                        <option value="Selasa">Selasa</option>
-                        <option value="Rabu">Rabu</option>
-                        <option value="Kamis">Kamis</option>
-                        <option value="Jumat">Jumat</option>
-                        <option value="Sabtu">Sabtu</option>
-                    </select>
-                </div>
-                <div>
-                    <label>Jam Ke</label>
-                    <input type="text" id="input-jam" placeholder="Contoh: 1-2" required style="width: 100%; padding: 8px; border-radius: 4px; background: #1a1c2d; color: white; border: 1px solid #444;">
-                </div>
-                <div>
-                    <label>Waktu Mulai</label>
-                    <input type="time" id="input-mulai" required style="width: 100%; padding: 8px; border-radius: 4px; background: #1a1c2d; color: white; border: 1px solid #444;">
-                </div>
-                <div>
-                    <label>Waktu Selesai</label>
-                    <input type="time" id="input-selesai" required style="width: 100%; padding: 8px; border-radius: 4px; background: #1a1c2d; color: white; border: 1px solid #444;">
-                </div>
-                <div>
-                    <label>Kelas</label>
-                    <input type="text" id="input-kelas" placeholder="Contoh: 10-A" required style="width: 100%; padding: 8px; border-radius: 4px; background: #1a1c2d; color: white; border: 1px solid #444;">
-                </div>
-                <div>
-                    <label>Mata Pelajaran</label>
-                    <input type="text" id="input-mapel" placeholder="Contoh: Matematika" required style="width: 100%; padding: 8px; border-radius: 4px; background: #1a1c2d; color: white; border: 1px solid #444;">
-                </div>
-                <div style="grid-column: span 2;">
-                    <label>Kode Guru</label>
-                    <input type="text" id="input-kodeguru" placeholder="Contoh: G-001" required style="width: 100%; padding: 8px; border-radius: 4px; background: #1a1c2d; color: white; border: 1px solid #444;">
-                </div>
-            </div>
-            <div style="text-align: right;">
-                <button type="button" class="btn btn-secondary" onclick="tutupModalJadwal()" style="margin-right: 10px;">Batal</button>
-                <button type="submit" class="btn btn-primary">Simpan Jadwal</button>
-            </div>
-        </form>
+<!-- MODAL FORM TAMBAH MANUAL -->
+  <div id="modal-tambah-jadwal" style="display: none; position: fixed; z-index: 9999; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(10, 11, 18, 0.75); backdrop-filter: blur(4px);">
+    <div style="background-color: #252836; margin: 5% auto; padding: 24px; border-radius: 12px; width: 90%; max-width: 550px; color: white; border: 1px solid #3b3e54; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
+      
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #32364a; padding-bottom: 12px;">
+        <h3 style="margin: 0; font-size: 18px; font-weight: 600; color: #fff;">Tambah Jadwal Manual</h3>
+        <span onclick="tutupModalJadwal()" style="cursor: pointer; color: #a0a5ba; font-size: 24px;">&times;</span>
+      </div>
+
+      <form id="form-tambah-jadwal">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 20px;">
+          <div>
+            <label style="display: block; font-size: 12px; color: #a0a5ba; margin-bottom: 6px;">Hari</label>
+            <select id="input-hari" required style="width: 100%; padding: 10px; border-radius: 6px; background: #1e202e; color: white; border: 1px solid #3b3e54; outline: none;">
+              <option value="Senin">Senin</option>
+              <option value="Selasa">Selasa</option>
+              <option value="Rabu">Rabu</option>
+              <option value="Kamis">Kamis</option>
+              <option value="Jumat">Jumat</option>
+              <option value="Sabtu">Sabtu</option>
+            </select>
+          </div>
+          <div>
+            <label style="display: block; font-size: 12px; color: #a0a5ba; margin-bottom: 6px;">Jam Ke</label>
+            <input type="text" id="input-jam" placeholder="Contoh: 1-2" required style="width: 100%; padding: 10px; border-radius: 6px; background: #1e202e; color: white; border: 1px solid #3b3e54; outline: none;">
+          </div>
+          <div>
+            <label style="display: block; font-size: 12px; color: #a0a5ba; margin-bottom: 6px;">Waktu Mulai</label>
+            <input type="time" id="input-mulai" required style="width: 100%; padding: 10px; border-radius: 6px; background: #1e202e; color: white; border: 1px solid #3b3e54; outline: none; color-scheme: dark;">
+          </div>
+          <div>
+            <label style="display: block; font-size: 12px; color: #a0a5ba; margin-bottom: 6px;">Waktu Selesai</label>
+            <input type="time" id="input-selesai" required style="width: 100%; padding: 10px; border-radius: 6px; background: #1e202e; color: white; border: 1px solid #3b3e54; outline: none; color-scheme: dark;">
+          </div>
+          <div>
+            <label style="display: block; font-size: 12px; color: #a0a5ba; margin-bottom: 6px;">Kelas</label>
+            <input type="text" id="input-kelas" placeholder="Contoh: 10-A" required style="width: 100%; padding: 10px; border-radius: 6px; background: #1e202e; color: white; border: 1px solid #3b3e54; outline: none;">
+          </div>
+          <div>
+            <label style="display: block; font-size: 12px; color: #a0a5ba; margin-bottom: 6px;">Mata Pelajaran</label>
+            <input type="text" id="input-mapel" placeholder="Contoh: Matematika" required style="width: 100%; padding: 10px; border-radius: 6px; background: #1e202e; color: white; border: 1px solid #3b3e54; outline: none;">
+          </div>
+          <div style="grid-column: span 2;">
+            <label style="display: block; font-size: 12px; color: #a0a5ba; margin-bottom: 6px;">Kode Guru</label>
+            <input type="text" id="input-kodeguru" placeholder="Contoh: G-001" required style="width: 100%; padding: 10px; border-radius: 6px; background: #1e202e; color: white; border: 1px solid #3b3e54; outline: none;">
+          </div>
+        </div>
+
+        <div style="display: flex; justify-content: flex-end; gap: 10px; border-top: 1px solid #32364a; padding-top: 16px;">
+          <button type="button" onclick="tutupModalJadwal()" style="background: #2d3045; color: #a0a5ba; border: 1px solid #3f4361; padding: 9px 18px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 500;">
+            Batal
+          </button>
+          <button type="submit" style="background: #6c5ce7; color: white; border: none; padding: 9px 20px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 600;">
+            Simpan Jadwal
+          </button>
+        </div>
+      </form>
+
     </div>
+  </div>
+
 </div>
 
  <!-- SCRIPT FILES -->
