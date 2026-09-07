@@ -1139,25 +1139,33 @@ function handleImportJadwal(event) {
 // FITUR UNDUH TEMPLATE CSV & MODAL JADWAL
 // ==========================================
 
-// Fungsi Unduh Template CSV
-function downloadTemplateJadwal() {
-    // Header dan contoh data default
-    const csvContent = "Hari,Jam_Ke,Waktu_Mulai,Waktu_Selesai,Kelas,Mata_Pelajaran,Kode_Guru\n" +
-                       "Senin,1-2,07:15,08:45,10-A,Matematika,G-001\n" +
-                       "Selasa,3-4,08:45,10:15,11-B,Fisika,G-002";
+window.downloadTemplateJadwal = function() {
+    const csvContent = 
+        "# ==========================================================================\n" +
+        "# ATURAN PENGISIAN TEMPLATE JADWAL PELAJARAN (BISA LANGSUNG DIISI DI BAWAH)\n" +
+        "# 1. JANGAN MENGUBAH / MENGHAPUS NAMA HEADER PADA BARIS KE-7.\n" +
+        "# 2. Format Waktu Mulai & Selesai: HH:MM (Contoh: 07:15).\n" +
+        "# 3. Kolom Jam_Ke: Gunakan format angka atau range (Contoh: 1, atau 1-2).\n" +
+        "# 4. Kolom Kode_Guru: HARUS SESUAI dengan Kode Guru di data Master Server.\n" +
+        "# 5. Pemisah antar kolom WAJIB menggunakan tanda titik koma (;).\n" +
+        "# ==========================================================================\n" +
+        "Hari;Jam_Ke;Waktu_Mulai;Waktu_Selesai;Kelas;Mata_Pelajaran;Kode_Guru\n" +
+        "Senin;1-2;07:15;08:45;10-A;Matematika;G-001\n" +
+        "Selasa;3-4;08:45;10:15;11-B;Fisika;G-002\n";
     
+    const fileName = "Template_Jadwal_Pelajaran.csv";
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement("a");
     const url = URL.createObjectURL(blob);
     
     link.setAttribute("href", url);
-    link.setAttribute("download", "Template_Jadwal_Pelajaran.csv");
+    link.setAttribute("download", fileName);
     link.style.visibility = 'hidden';
     
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-}
+};
 
 // Fungsi Kontrol Modal Tambah Manual
 function bukaModalJadwal() {
