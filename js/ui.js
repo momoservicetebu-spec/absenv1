@@ -106,7 +106,7 @@ function downloadTemplate(type) {
       "# 6. Face_Registered: 'TRUE' atau 'FALSE'.\n" +
       "# 7. Username & Password: Isi untuk akses login aplikasi (Contoh: pass123).\n" +
       "# ==========================================================================\n" +
-      "GuruID;NIP;Nama;JK;TmpLahir;TglLahir;HPWA;Email;Alamat;Jabatan;Mapel;Status;NFC_UID;QR_Token;BarcodeID;FingerprintID;FotoURL;TglMasuk;Role_Sistem;Face_Registered;Username;Password\n" +
+      "GuruID;NIP;Nama;JK;TmpLahir;TglLahir;HPWA;Email;Alamat;Jabatan;Mapel;Status;NFC_UID;QR_Token;BarcodeID;FingerprintID;FotoURL;TglMasuk;Role_Sistem;Face_Registered;Username;Password;Kode_Guru\n" +
       "GURU-001;199001012015011001;Ahmad Dahlan M.Pd;L;Jakarta;1990-01-01;081234567890;ahmad@sekolah.sch.id;Jl. Merdeka No. 123;Guru Matematika;Matematika;Aktif;UID991;QR-GURU-001;BC-GURU-001;F-01;https://link-foto.com/guru.jpg;2015-01-10;Guru;FALSE;guru_ahmad;pass123\n";
     fileName = "Template_Import_Guru.csv";
   } else {
@@ -336,6 +336,7 @@ function openGuruModal(data = null) {
     document.getElementById('guru_Status').value = data.Status || 'Aktif';
     document.getElementById('guru_TglMasuk').value = data.TglMasuk || '';
     document.getElementById('guru_Role_Sistem').value = data.Role_Sistem || 'Guru';
+    document.getElementById('Kode_Guru').value = data.Kode_Guru || '';
     
     // Set field kredensial (Password selalu dikosongkan saat edit)
     document.getElementById('guru_Username').value = data.Username || data.NIP || '';
@@ -1053,3 +1054,86 @@ document.addEventListener('DOMContentLoaded', () => {
   // Load data awal (default: Harian)
   loadDashboardData();
 });
+// ==========================================
+// FILE: js/ui.js - Update Fungsi Jadwal 
+// ==========================================
+
+function handleImportJadwal(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const text = e.target.result;
+        const rows = text.split('\n');
+        const tableBody = document.getElementById('jadwal-table-body');
+        
+        let htmlContent = '';
+        let dataJadwal = []; 
+        
+        for (let i = 1; i < rows.length; i++) {
+            if (rows[i].trim() === '') continue;
+            
+            const cols = rows[i].split(',');
+            if (cols.length >= 7) {
+                // Susun object data untuk backend
+                dataJadwal.push({
+                    hari: cols[0].trim(),
+                    jam_ke: cols[1].trim(),
+                    waktu_mulai: cols[2].trim(),
+                    waktu_selesai: cols[3].trim(),
+                    kelas: cols[4].trim(),
+                    mata_pelajaran: cols[5].trim(),
+                    kode_guru: cols[6].trim() 
+                });
+
+                // Siapkan elemen HTML untuk di-render nanti
+                htmlContent += `
+                <tr>
+                    <td>${cols[0].trim()}</td>
+                    <td>${cols[1].trim()}</td>
+                    <td>${cols[2].trim()} - ${cols[3].trim()}</td>
+                    <td>${cols[4].trim()}</td>
+                    <td>${cols[5].trim()}</td>
+                    <td><span style="background:#6c5ce7; padding:2px 8px; border-radius:4px;">${cols[6].trim()}</span></td> 
+                </tr>`;
+            }
+        }
+        
+        if(dataJadwal.length > 0) {
+            // Tampilkan status loading di tabel agar admin tahu proses sedang berjalan
+            tableBody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: #feca57; padding: 20px;">Memproses dan mengirim ${dataJadwal.length} baris data ke database... ⏳</td></tr>`;
+            
+            // TODO: GANTI STRING INI DENGAN URL WEB APP GOOGLE APPS SCRIPT ANDA YANG BARU
+            const GAS_URL = "https://script.google.com/macros/s/AKfycb.../exec"; 
+            
+            // Kirim data ke Backend GAS
+            fetch(GAS_URL, {
+                method: "POST",
+                body: JSON.stringify(dataJadwal)
+            })
+            .then(response => response.json())
+            .then(result => {
+                if (result.status === "success") {
+                    alert("✅ " + result.message);
+                    // Jika sukses, baru tampilkan baris HTML ke layar
+                    tableBody.innerHTML = htmlContent; 
+                } else {
+                    alert("❌ Gagal menyimpan: " + result.message);
+                    tableBody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #ff6b6b;">Gagal memuat data. Silakan coba lagi.</td></tr>';
+                }
+            })
+            .catch(error => {
+                console.error("Error:", error);
+                alert("❌ Terjadi kesalahan jaringan saat menghubungi server.");
+                tableBody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #ff6b6b;">Koneksi terputus.</td></tr>';
+            });
+
+        } else {
+            alert("❌ Gagal. Pastikan format CSV sesuai template.");
+        }
+    };
+    
+    reader.readAsText(file);
+    event.target.value = ''; // Reset input agar bisa upload file yang sama jika perlu
+}
