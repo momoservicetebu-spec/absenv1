@@ -959,11 +959,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // 3. FUNGSI FETCH / AMBIL DATA DASHBOARD
   // 3. FUNGSI FETCH / AMBIL DATA DASHBOARD DARI DATABASE APPS SCRIPT
+ // 3. FUNGSI FETCH / AMBIL DATA DASHBOARD DARI DATABASE APPS SCRIPT
   async function loadDashboardData() {
-    // PASTE URL WEB APP ANDA DI SINI
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxx3BLAOh7RZwF2vvukhDPhytbAPXfMP3H_RAJNeWgxLe2LNcCzojm-6HQ1kktPQMTQ/exec"; 
 
-    // Router.gs butuh parameter 'action' agar tahu fungsi mana yang dijalankan
     let queryParams = `action=getDashboardData&periode=${currentPeriod}`;
 
     if (currentPeriod === 'harian') {
@@ -978,9 +977,8 @@ document.addEventListener('DOMContentLoaded', () => {
       const response = await fetch(`${SCRIPT_URL}?${queryParams}`);
       const result = await response.json();
 
-      // Cek apakah balikan JSON dari Router.gs sukses (status: true)
-      if (result.status === true) {
-        // Data metrik grafik ada di dalam objek 'data' dari response JSON backend
+      // PERBAIKAN: Ubah pengecekan menjadi result.success === true
+      if (result.success === true || result.status === true) {
         const realData = result.data; 
 
         if (window.updateDashboardUI) window.updateDashboardUI(realData);
@@ -993,7 +991,7 @@ document.addEventListener('DOMContentLoaded', () => {
       console.error('Koneksi dashboard bermasalah:', error);
     }
   }
-
+  
   // 4. MOCK DATA GENERATOR (SESUAI PERIODE)
   function generateMockData(periode) {
     if (periode === 'bulanan') {
