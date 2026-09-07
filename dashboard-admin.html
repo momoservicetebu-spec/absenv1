@@ -455,13 +455,22 @@
         </select>
         <button class="btn-action">Filter Hari</button>
         
-        <!-- TOMBOL UNDUH TEMPLATE & IMPORT DENGAN INPUT HIDDEN -->
-        <button class="btn-action" onclick="downloadTemplateJadwal()" style="margin-left: auto; background-color: #161224; border: 1px solid #6c5ce7; color: #a29bfe;">📥 Unduh Template</button>
-        <button class="btn-action btn-success" onclick="document.getElementById('csvJadwalInput').click()">🚀 Import CSV Jadwal</button>
-        <input type="file" id="csvJadwalInput" accept=".csv" style="display: none;" onchange="handleImportJadwal(event)">
+          <!-- KELOMPOK TOMBOL AKSI -->
+        <div class="action-buttons" style="display: flex; gap: 10px; margin-bottom: 20px;">
+            <button id="btn-download-template" class="btn btn-secondary" onclick="downloadTemplateJadwal()">
+                <i class="fas fa-download"></i> Unduh Template
+            </button>
+            <!-- Label ini berfungsi sebagai tombol yang memicu input file -->
+            <label for="input-csv-jadwal" class="btn btn-success" style="cursor: pointer; margin: 0;">
+                <i class="fas fa-file-csv"></i> Import CSV Jadwal
+            </label>
+            <input type="file" id="input-csv-jadwal" accept=".csv" style="display: none;" onchange="handleImportJadwal(event)">
+            <button id="btn-tambah-manual" class="btn btn-warning" onclick="bukaModalJadwal()">
+                <i class="fas fa-plus"></i> Tambah Manual
+            </button>
+        </div>
         
-        <button class="btn-action" style="background:#f39c12;">+ Tambah Manual</button>
-      </div>
+     
 
       <div class="analytics-table-wrap" style="height: auto; max-height: 400px;">
         <table>
@@ -773,20 +782,6 @@
     </div>
   </div>
 
-  <!-- KELOMPOK TOMBOL AKSI -->
-<div class="action-buttons" style="display: flex; gap: 10px; margin-bottom: 20px;">
-    <button id="btn-download-template" class="btn btn-secondary" onclick="downloadTemplateJadwal()">
-        <i class="fas fa-download"></i> Unduh Template
-    </button>
-    <!-- Label ini berfungsi sebagai tombol yang memicu input file -->
-    <label for="input-csv-jadwal" class="btn btn-success" style="cursor: pointer; margin: 0;">
-        <i class="fas fa-file-csv"></i> Import CSV Jadwal
-    </label>
-    <input type="file" id="input-csv-jadwal" accept=".csv" style="display: none;" onchange="handleImportJadwal(event)">
-    <button id="btn-tambah-manual" class="btn btn-warning" onclick="bukaModalJadwal()">
-        <i class="fas fa-plus"></i> Tambah Manual
-    </button>
-</div>
 
 <!-- MODAL TAMBAH JADWAL MANUAL -->
 <div id="modal-tambah-jadwal" class="modal" style="display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5);">
