@@ -54,9 +54,10 @@
 
     <!-- TAMBAHAN OPERASIONAL & ABSENSI (KODE BARU) -->
     <div class="menu-group">Operasional & Absensi</div>
+    <button class="nav-btn" onclick="switchTab('jadwal-pelajaran', this)">📅 Jadwal Pelajaran</button>
     <button class="nav-btn" onclick="switchTab('gate-pass', this)">🎟️ Manajemen Gate Pass</button>
     <button class="nav-btn" onclick="switchTab('absensi-kelas', this)">📝 Absensi Kelas</button>
-    
+
     <div class="menu-group">Sistem & Laporan</div>
     <button class="nav-btn" onclick="switchTab('laporan', this)">📊 Laporan Absensi</button>
     <button class="nav-btn" onclick="switchTab('setting', this)">🛠️ Pengaturan (Setting)</button>
@@ -438,6 +439,38 @@
         </tbody>
       </table>
     </div>
+
+    <!-- KONTEN: MANAJEMEN JADWAL PELAJARAN -->
+    <div id="jadwal-pelajaran" class="section card">
+      <h2 class="section-title">📅 Manajemen Jadwal Pelajaran</h2>
+      <p class="section-desc">Input jadwal mengajar sekali untuk otomatisasi absensi kelas oleh guru.</p>
+      
+      <div class="search-bar">
+        <select style="padding: 8px; border-radius: 5px; background: #2a2640; color: white; border: 1px solid #4a4563;">
+          <option value="Senin">Senin</option>
+          <option value="Selasa">Selasa</option>
+          <option value="Rabu">Rabu</option>
+          <option value="Kamis">Kamis</option>
+          <option value="Jumat">Jumat</option>
+        </select>
+        <button class="btn-action">Filter Hari</button>
+        <button class="btn-action btn-success" style="margin-left: auto;">📥 Import CSV Jadwal</button>
+        <button class="btn-action" style="background:#f39c12;">+ Tambah Manual</button>
+      </div>
+
+      <div class="analytics-table-wrap" style="height: auto; max-height: 400px;">
+        <table>
+          <thead>
+            <tr><th>HARI</th><th>JAM KE</th><th>WAKTU</th><th>KELAS</th><th>MATA PELAJARAN</th><th>GURU PENGAJAR</th></tr>
+          </thead>
+          <tbody id="jadwal-table-body">
+            <!-- Data Jadwal -->
+            <tr><td>Senin</td><td>1-2</td><td>07:15 - 08:45</td><td>10-A</td><td>Matematika</td><td>Budi Santoso, S.Pd</td></tr>
+            <tr><td>Senin</td><td>3-4</td><td>08:45 - 10:15</td><td>11-B</td><td>Fisika</td><td>Siti Aminah, M.Pd</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
     <!-- KONTEN: MANAJEMEN GATE PASS -->
     <div id="gate-pass" class="section card">
       <h2 class="section-title">🎟️ Manajemen Gate Pass</h2>
@@ -461,22 +494,35 @@
       </div>
     </div>
 
-    <!-- KONTEN: ABSENSI KELAS -->
+    <!-- KONTEN: ABSENSI KELAS (SMART DETECT) -->
     <div id="absensi-kelas" class="section card">
-      <h2 class="section-title">📝 Absensi Kelas</h2>
-      <p class="section-desc">Pencatatan absensi manual di dalam kelas oleh guru mapel atau guru piket.</p>
+      <h2 class="section-title">📝 Absensi Kelas Aktif</h2>
+      <p class="section-desc">Sistem otomatis mendeteksi jadwal mengajar Anda saat ini.</p>
       
-      <div style="margin-bottom: 20px;">
-        <label style="display: block; margin-bottom: 8px; font-weight: bold; color: #a29bfe;">Pilih Kelas</label>
-        <select style="max-width: 300px; padding: 10px; background: #2a2640; color: white; border: 1px solid #4a4563; border-radius: 5px;">
-          <option>-- Pilih Kelas --</option>
-          <option>10-A</option>
-          <option>10-B</option>
-          <option>11-A</option>
-          <option>12-A</option>
-        </select>
-        <button class="btn-action btn-success" style="margin-left: 10px;">Tampilkan Daftar Siswa</button>
+      <!-- Panel Info Jadwal Aktif -->
+      <div style="background: rgba(108, 92, 231, 0.1); border-left: 4px solid #6c5ce7; padding: 20px; border-radius: 5px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center;">
+        <div>
+          <h3 style="margin: 0 0 10px 0; color: #1dd1a1;">Saat ini: Matematika (Jam ke 1-2)</h3>
+          <p style="margin: 0; color: #a29bfe; font-size: 14px;">Waktu: 07:15 - 08:45 WIB | Kelas: <strong>10-A</strong></p>
+        </div>
+        <button class="btn-action btn-success" style="padding: 12px 24px; font-size: 16px;">Mulai Absensi Kelas 10-A</button>
       </div>
+
+      <!-- Opsi Manual (Jika Jadwal Berubah/Piket) -->
+      <details style="background: #2a2640; padding: 15px; border-radius: 5px; border: 1px solid #4a4563;">
+        <summary style="cursor: pointer; color: #feca57; font-weight: bold;">Buka Absensi Manual (Untuk Guru Piket / Pengganti)</summary>
+        <div style="margin-top: 15px; display: flex; gap: 10px;">
+          <select style="flex: 1; padding: 10px; background: #161224; color: white; border: 1px solid #4a4563; border-radius: 5px;">
+            <option>-- Pilih Kelas Manual --</option>
+            <option>10-A</option><option>10-B</option>
+          </select>
+          <select style="flex: 1; padding: 10px; background: #161224; color: white; border: 1px solid #4a4563; border-radius: 5px;">
+            <option>-- Pilih Mata Pelajaran --</option>
+            <option>Matematika</option><option>Bahasa Inggris</option>
+          </select>
+          <button class="btn-action">Buka Kelas</button>
+        </div>
+      </details>
     </div>
 
     <!-- 9. LAPORAN -->
