@@ -6,6 +6,7 @@
 // FUNGSI NAVIGASI TAB UTAMA & LOAD DATA
 // ==========================================
 
+const API_URL = "https://script.google.com/macros/s/AKfycbxx3BLAOh7RZwF2vvukhDPhytbAPXfMP3H_RAJNeWgxLe2LNcCzojm-6HQ1kktPQMTQ/exec";
 
 function switchTab(tabId, btnElement) {
   document.querySelectorAll('.section').forEach(sec => sec.classList.remove('active'));
@@ -1443,46 +1444,34 @@ function toggleGPFields() {
 }
 
 // 3. Mengirim Data Gate Pass ke Backend (Google Sheets)
-async function submitGatePass() {
-    const jenis = document.getElementById('gp-jenis').value;
-    const selectNama = document.getElementById('gp-nama');
-    const idPemohon = selectNama.value;
-    const namaText = selectNama.options[selectNama.selectedIndex] ? selectNama.options[selectNama.selectedIndex].text : '';
-    const alasan = document.getElementById('gp-alasan').value;
+async function submitGatePass(event) {
+    event.preventDefault(); // Mencegah halaman ter-refresh
     
-    if (!idPemohon || !alasan) {
-        alert("Pilih Nama dan isi Alasan terlebih dahulu!");
-        return;
-    }
-    
+    // Ambil nilai dari input HTML
     const payload = {
-        role: jenis,
-        id_user: idPemohon,
-        nama: namaText,
-        alasan: alasan
+        nama: document.getElementById('gp-nama').value,
+        alasan: document.getElementById('gp-alasan').value
     };
 
     try {
-        const res = await fetch(`${API_URL}?action=submitGatepass`, {
+        const response = await fetch(`${API_URL}/gatepass`, {
             method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
         });
-        
-        const result = await res.json();
-        
-        if (result.success || result.status === true) {
-            alert("✅ Gate Pass berhasil diterbitkan!");
-            closeModal('modal-gatepass');
-            loadGatepassData();
+
+        if (response.ok) {
+            alert("Gate Pass berhasil dibuat!");
+            document.getElementById('modal-gatepass').style.display = 'none'; // Tutup modal
+            // loadGatepassData(); // Panggil fungsi ini jika Anda ingin me-refresh tabel
         } else {
-            alert("❌ Gagal: " + (result.message || "Terjadi kesalahan server"));
+            alert("Gagal menyimpan Gate Pass.");
         }
-    } catch (e) {
-        alert("Error jaringan! Pastikan API_URL sudah benar.");
-        console.error(e);
+    } catch (error) {
+        console.error("Terjadi error:", error);
+        alert("Gagal terhubung ke server.");
     }
 }
-
 // 4. Memuat dan Menampilkan Data Tabel Gate Pass
 async function loadGatepassData() {
     const tbody = document.getElementById('gate-pass-body');
