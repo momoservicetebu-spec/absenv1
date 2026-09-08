@@ -1389,15 +1389,58 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-// Kirim data ke Google Sheets
+// ==========================================
+// FITUR MANAJEMEN GATE PASS
+// ==========================================
+
+// 1. Membuka Modal Gate Pass
+function openModalGatepass() {
+    document.getElementById('modal-gatepass').style.display = 'block';
+    loadGPOptions();
+}
+
+// 2. Memuat Pilihan Nama (Siswa / Guru) ke Dropdown
+async function loadGPOptions() {
+    const jenis = document.getElementById('gp-jenis').value;
+    const select = document.getElementById('gp-nama');
+    if (!select) return;
+    
+    select.innerHTML = '<option value="">Memuat data...</option>';
+    const action = (jenis === 'Siswa') ? 'getSiswa' : 'getGuru';
+    
+    try {
+        const res = await fetch(`${API_URL}?action=${action}`);
+        const data = await res.json();
+        
+        select.innerHTML = '<option value="">-- Pilih Nama --</option>';
+        if (data.success && data.data) {
+            data.data.forEach(item => {
+                const id = (jenis === 'Siswa') ? item.SiswaID : item.GuruID;
+                const nama = item.Nama;
+                const ket = (jenis === 'Siswa') ? `(Kelas ${item.Kelas || '-'})` : `(${item.Jabatan || 'Guru'})`;
+                select.innerHTML += `<option value="${id}">${nama} ${ket}</option>`;
+            });
+        }
+    } catch (error) {
+        select.innerHTML = '<option value="">Gagal memuat data</option>';
+    }
+}
+
+// Event switch jenis pemohon
+function toggleGPFields() {
+    loadGPOptions();
+}
+
+// 3. Mengirim Data Gate Pass ke Backend (Google Sheets)
 async function submitGatePass() {
     const jenis = document.getElementById('gp-jenis').value;
-    const idPemohon = document.getElementById('gp-nama').value;
-    const namaText = document.getElementById('gp-nama').options[document.getElementById('gp-nama').selectedIndex].text;
+    const selectNama = document.getElementById('gp-nama');
+    const idPemohon = selectNama.value;
+    const namaText = selectNama.options[selectNama.selectedIndex] ? selectNama.options[selectNama.selectedIndex].text : '';
     const alasan = document.getElementById('gp-alasan').value;
     
-    if(!idPemohon || !alasan) {
-        alert("Nama dan Alasan wajib diisi!");
+    if (!idPemohon || !alasan) {
+        alert("Pilih Nama dan isi Alasan terlebih dahulu!");
         return;
     }
     
@@ -1409,7 +1452,6 @@ async function submitGatePass() {
     };
 
     try {
-        // PERBAIKAN: Tambahkan parameter action langsung ke URL
         const res = await fetch(`${API_URL}?action=submitGatepass`, {
             method: 'POST',
             body: JSON.stringify(payload)
@@ -1417,15 +1459,51 @@ async function submitGatePass() {
         
         const result = await res.json();
         
-        if(result.success || result.status === true) {
+        if (result.success || result.status === true) {
             alert("✅ Gate Pass berhasil diterbitkan!");
             closeModal('modal-gatepass');
-            loadGatepassData(); // Refresh tabel
+            loadGatepassData();
         } else {
-            alert("❌ Gagal: " + result.message);
+            alert("❌ Gagal: " + (result.message || "Terjadi kesalahan server"));
         }
     } catch (e) {
-        alert("Error jaringan! Pastikan URL API sudah benar.");
+        alert("Error jaringan! Pastikan API_URL sudah benar.");
         console.error(e);
+    }
+}
+
+// 4. Memuat dan Menampilkan Data Tabel Gate Pass
+async function loadGatepassData() {
+    const tbody = document.getElementById('gate-pass-body');
+    if (!tbody) return;
+    
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #a2a3b7; padding: 15px;">Memuat data...</td></tr>';
+    
+    try {
+        const res = await fetch(`${API_URL}?action=getGatepass`);
+        const data = await res.json();
+        
+        if (data.success && data.data && data.data.length > 0) {
+            let html = '';
+            // Urutkan dari yang terbaru
+            const items = [...data.data].reverse();
+            
+            items.forEach(item => {
+                html += `
+                <tr>
+                    <td>${item.Nama || '-'}</td>
+                    <td>${item.Role || '-'}</td>
+                    <td>${item.Waktu_Keluar || '-'}</td>
+                    <td>${item.Alasan || '-'}</td>
+                    <td><span style="background:#2ecc71; color:#fff; padding:3px 8px; border-radius:4px; font-size:12px;">${item.Status || 'KELUAR'}</span></td>
+                    <td><button style="background:#e74c3c; color:#fff; border:none; padding:4px 8px; border-radius:4px; cursor:pointer;" onclick="akhiriGatepass('${item.GatepassID}')">Akhiri</button></td>
+                </tr>`;
+            });
+            tbody.innerHTML = html;
+        } else {
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #a2a3b7; padding: 15px;">Belum ada data gate pass...</td></tr>';
+        }
+    } catch (e) {
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #ff6b6b; padding: 15px;">Gagal mengambil data dari server.</td></tr>';
     }
 }
