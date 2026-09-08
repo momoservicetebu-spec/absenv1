@@ -854,6 +854,32 @@
     </div>
   </div>
 
+  <!-- Modal Buat Gate Pass -->
+  <div id="modal-gatepass" class="modal" style="display: none;">
+    <div class="modal-content" style="max-width: 500px;">
+      <h3 style="margin-bottom: 20px; color: #fff;">+ Buat Gate Pass Baru</h3>
+      
+      <label class="modal-label">Jenis Pemohon</label>
+      <select id="gp-jenis" class="modal-input" onchange="toggleGPFields()">
+        <option value="Siswa">Siswa</option>
+        <option value="Guru">Guru</option>
+      </select>
+      
+      <label class="modal-label">Pilih Nama</label>
+      <select id="gp-nama" class="modal-input">
+          <!-- Akan diisi otomatis oleh JS -->
+      </select>
+      
+      <label class="modal-label">Alasan Izin Keluar</label>
+      <textarea id="gp-alasan" class="modal-input" rows="3" placeholder="Contoh: Sakit, Urusan keluarga..."></textarea>
+      
+      <div style="display: flex; gap: 10px; margin-top: 20px;">
+        <button onclick="submitGatePass()" class="btn-action btn-success" style="flex:1;">Terbitkan Izin</button>
+        <button onclick="closeModal('modal-gatepass')" class="btn-action" style="flex:1; background:#4a4e69;">Batal</button>
+      </div>
+    </div>
+  </div>
+
  <!-- SCRIPT FILES -->
 <script src="./js/config.js?v=2.0"></script>
 <script src="./js/charts.js?v=1.0"></script>

@@ -1388,3 +1388,44 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 });
+
+// Kirim data ke Google Sheets
+async function submitGatePass() {
+    const jenis = document.getElementById('gp-jenis').value;
+    const idPemohon = document.getElementById('gp-nama').value;
+    const namaText = document.getElementById('gp-nama').options[document.getElementById('gp-nama').selectedIndex].text;
+    const alasan = document.getElementById('gp-alasan').value;
+    
+    if(!idPemohon || !alasan) {
+        alert("Nama dan Alasan wajib diisi!");
+        return;
+    }
+    
+    const payload = {
+        role: jenis,
+        id_user: idPemohon,
+        nama: namaText,
+        alasan: alasan
+    };
+
+    try {
+        // PERBAIKAN: Tambahkan parameter action langsung ke URL
+        const res = await fetch(`${API_URL}?action=submitGatepass`, {
+            method: 'POST',
+            body: JSON.stringify(payload)
+        });
+        
+        const result = await res.json();
+        
+        if(result.success || result.status === true) {
+            alert("✅ Gate Pass berhasil diterbitkan!");
+            closeModal('modal-gatepass');
+            loadGatepassData(); // Refresh tabel
+        } else {
+            alert("❌ Gagal: " + result.message);
+        }
+    } catch (e) {
+        alert("Error jaringan! Pastikan URL API sudah benar.");
+        console.error(e);
+    }
+}
