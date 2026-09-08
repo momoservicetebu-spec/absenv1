@@ -1507,3 +1507,28 @@ async function loadGatepassData() {
         tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #ff6b6b; padding: 15px;">Gagal mengambil data dari server.</td></tr>';
     }
 }
+
+// 5. Mengakhiri Gate Pass (Siswa/Guru Kembali ke Sekolah)
+async function akhiriGatepass(gatepassId) {
+    if (!confirm("Apakah pemohon sudah kembali ke sekolah?")) return;
+
+    try {
+        const payload = { gatepassId: gatepassId };
+
+        const res = await fetch(`${API_URL}?action=akhiriGatepass`, {
+            method: 'POST',
+            body: JSON.stringify(payload)
+        });
+
+        const result = await res.json();
+        if (result.success || result.status === true) {
+            alert("✅ Gate Pass berhasil diakhiri!");
+            loadGatepassData();
+        } else {
+            alert("❌ Gagal: " + (result.message || "Gagal mengakhiri Gate Pass"));
+        }
+    } catch (e) {
+        alert("Error jaringan saat mengakhiri Gate Pass!");
+        console.error(e);
+    }
+}
