@@ -1394,10 +1394,21 @@ document.addEventListener('DOMContentLoaded', () => {
 // ==========================================
 
 // 1. Membuka Modal Gate Pass
-function openModalGatepass() {
-    document.getElementById('modal-gatepass').style.display = 'block';
+window.openModalGatepass = function() {
+    const modal = document.getElementById('modal-gatepass');
+    if (!modal) {
+        alert("Peringatan: Elemen modal-gatepass belum dipasang di HTML!");
+        return;
+    }
+    modal.style.display = 'block';
     loadGPOptions();
-}
+};
+
+// Fungsi untuk menutup modal
+window.closeModal = function(modalId) {
+    const modal = document.getElementById(modalId);
+    if (modal) modal.style.display = 'none';
+};
 
 // 2. Memuat Pilihan Nama (Siswa / Guru) ke Dropdown
 async function loadGPOptions() {
