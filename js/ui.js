@@ -1293,26 +1293,24 @@ async function submitGatePass(event) {
   event.preventDefault(); 
   
   const payload = {
-    nama: document.getElementById('gp-nama').value,
+    userId: document.getElementById('gp-nama').value,
+    role: document.getElementById('gp-jenis').value, // 'Siswa' atau 'Guru'
     alasan: document.getElementById('gp-alasan').value
   };
 
-  try {
-    const response = await fetch(`${API_URL}/gatepass`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    });
+  if (!payload.userId || !payload.alasan) {
+    alert("Mohon pilih Nama dan isi Alasan terlebih dahulu!");
+    return;
+  }
 
-    if (response.ok) {
-      alert("Gate Pass berhasil dibuat!");
-      document.getElementById('modal-gatepass').style.display = 'none'; 
-    } else {
-      alert("Gagal menyimpan Gate Pass.");
-    }
-  } catch (error) {
-    console.error("Terjadi error:", error);
-    alert("Gagal terhubung ke server.");
+  const res = await fetchAPI('submitGatepass', payload);
+
+  if (res.success || res.status === true) {
+    alert("✅ Gate Pass berhasil dibuat!");
+    closeModal('modal-gatepass'); 
+    loadGatepassData(); // Refresh tabel
+  } else {
+    alert("❌ Gagal menyimpan Gate Pass: " + (res.message || "Terjadi kesalahan"));
   }
 }
 
