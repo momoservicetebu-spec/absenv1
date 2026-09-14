@@ -1415,3 +1415,137 @@ window.akhiriGatepass = async function(gatepassId) {
     console.error(e);
   }
 };
+
+// ==========================================
+// FITUR MANAJEMEN ABSEN CERDAS (PER MAPEL)
+// ==========================================
+
+// State penyimpan sesi absensi aktif
+let currentActiveAbsen = {
+  kelas: "",
+  mapel: "",
+  jamKe: ""
+};
+
+// 1. Membuka modal otomatis dari Jadwal Cerdas
+window.bukaModalAbsenJadwal = function() {
+  const kelas = document.getElementById('label-jadwal-kelas').innerText.trim();
+  const mapel = document.getElementById('label-jadwal-mapel').innerText.trim();
+  const jamKe = document.getElementById('label-jadwal-jam').innerText.trim();
+  
+  openModalAbsenProcess(kelas, mapel, jamKe);
+};
+
+// 2. Membuka modal dari Opsi Manual (Guru Piket / Pengganti)
+window.bukaModalAbsenManual = function() {
+  const kelas = document.getElementById('select-kelas-manual').value;
+  const mapel = document.getElementById('select-mapel-manual').value;
+  
+  if (!kelas || !mapel) {
+    alert("Mohon pilih Kelas dan Mata Pelajaran terlebih dahulu!");
+    return;
+  }
+  
+  openModalAbsenProcess(kelas, mapel, "Manual");
+};
+
+// 3. Alur proses pembukaan modal & pemicu fetch data siswa
+async function openModalAbsenProcess(kelas, mapel, jamKe) {
+  currentActiveAbsen = { kelas, mapel, jamKe };
+  
+  document.getElementById('modal-title-info').innerText = `${kelas} — ${mapel} (${jamKe})`;
+  document.getElementById('modal-absensi-kelas').style.display = 'block';
+  
+  await fetchDaftarSiswaAbsen(kelas, mapel);
+}
+
+// 4. Tutup Modal
+window.closeModalAbsen = function() {
+  document.getElementById('modal-absensi-kelas').style.display = 'none';
+};
+
+// 5. Fetch daftar siswa + status digital & status mapel
+async function fetchDaftarSiswaAbsen(kelas, mapel) {
+  const tbody = document.getElementById('tabel-absensi-kelas-body');
+  tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:20px;">Memuat daftar siswa & status digital...</td></tr>';
+  
+  try {
+    const res = await fetchAPI('getAbsensiKelas', { kelas: kelas, mapel: mapel });
+    
+    if (res.success && res.data && res.data.length > 0) {
+      let html = '';
+      res.data.forEach((siswa, index) => {
+        const isDigitalHadir = siswa.StatusDigital && siswa.StatusDigital.includes("Hadir");
+        const badgeBg = isDigitalHadir ? "#2ecc71" : "#e74c3c";
+        const textDigital = siswa.StatusDigital || "Belum Absen";
+
+        // Gunakan status mapel jika sudah pernah diabsen, jika belum default ke status digital
+        const statusSelected = siswa.StatusMapel || (isDigitalHadir ? "Hadir" : "Alpa");
+
+        html += `
+        <tr style="border-bottom: 1px solid #3a3553;">
+          <td style="padding: 10px;">${index + 1}</td>
+          <td style="padding: 10px; font-weight: bold;">${siswa.Nama}</td>
+          <td style="padding: 10px;">
+            <span style="background:${badgeBg}; color:white; padding:4px 8px; border-radius:4px; font-size:12px;">${textDigital}</span>
+          </td>
+          <td style="padding: 10px;">
+            <select class="absen-status-select" data-id="${siswa.SiswaID}" style="width: 100%; padding: 8px; background: #161224; color: white; border: 1px solid #4a4563; border-radius: 4px;">
+              <option value="Hadir" ${statusSelected === 'Hadir' ? 'selected' : ''}>✅ Hadir</option>
+              <option value="Sakit" ${statusSelected === 'Sakit' ? 'selected' : ''}>🏥 Sakit</option>
+              <option value="Izin" ${statusSelected === 'Izin' ? 'selected' : ''}>📩 Izin</option>
+              <option value="Alpa" ${statusSelected === 'Alpa' ? 'selected' : ''}>❌ Alpa</option>
+            </select>
+          </td>
+        </tr>`;
+      });
+      tbody.innerHTML = html;
+    } else {
+      tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:20px;">Tidak ada siswa di kelas ini.</td></tr>';
+    }
+  } catch (err) {
+    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:#ff6b6b; padding:20px;">Gagal memuat data siswa!</td></tr>';
+  }
+}
+
+// 6. Mengirim hasil input presensi per mapel ke backend
+window.simpanAbsensiMapel = async function() {
+  const btn = document.getElementById('btn-simpan-absensi');
+  const selects = document.querySelectorAll('.absen-status-select');
+  
+  if (selects.length === 0) return alert("Tidak ada data siswa untuk disimpan.");
+
+  let detailAbsen = [];
+  selects.forEach(sel => {
+    detailAbsen.push({
+      SiswaID: sel.getAttribute('data-id'),
+      Status: sel.value
+    });
+  });
+
+  const payload = {
+    kelas: currentActiveAbsen.kelas,
+    mapel: currentActiveAbsen.mapel,
+    jamKe: currentActiveAbsen.jamKe,
+    dataAbsen: detailAbsen
+  };
+
+  btn.innerText = "⏳ Menyimpan...";
+  btn.disabled = true;
+
+  try {
+    const res = await fetchAPI('saveAbsensiKelas', payload); 
+    
+    if (res.success || res.status === true) {
+      alert(`✅ Presensi ${currentActiveAbsen.mapel} (${currentActiveAbsen.kelas}) berhasil disimpan!`);
+      closeModalAbsen();
+    } else {
+      alert("❌ Gagal menyimpan: " + (res.message || "Terjadi kesalahan server."));
+    }
+  } catch (err) {
+    alert("Terjadi kesalahan jaringan.");
+  } finally {
+    btn.innerText = "💾 Simpan Presensi Mapel Ini";
+    btn.disabled = false;
+  }
+};
