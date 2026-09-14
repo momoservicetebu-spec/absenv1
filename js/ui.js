@@ -1296,17 +1296,23 @@ window.toggleGPFields = function() {
   loadGPOptions();
 };
 
-// Fungsi submit yang sudah diperbaiki dan diglobalkan
 window.submitGatePass = async function(event) {
   if (event) event.preventDefault(); 
   
+  // Ambil teks nama bersih (tanpa embel-embel kelas/jabatan di dalam kurung)
+  const selectElement = document.getElementById('gp-nama');
+  let namaLengkap = "-";
+  if (selectElement.selectedIndex >= 0) {
+     const teksOpsi = selectElement.options[selectElement.selectedIndex].text;
+     namaLengkap = teksOpsi.split('(')[0].trim(); 
+  }
+
   const payload = {
     userId: $('#gp-nama').val(),
+    nama: namaLengkap, // Mengirim nama langsung ke backend
     role: $('#gp-jenis').val(), 
     alasan: $('#gp-alasan').val()
   };
-
-  console.log("Payload yang dikirim:", payload);
 
   if (!payload.userId || !payload.alasan) {
     alert("Mohon pilih Nama dan isi Alasan terlebih dahulu!");
@@ -1317,7 +1323,6 @@ window.submitGatePass = async function(event) {
   btnSubmit.text('Mengirim...').prop('disabled', true);
 
   try {
-    // Pastikan fungsi fetchAPI Anda sudah dideklarasikan di tempat lain
     const res = await fetchAPI('submitGatepass', payload);
 
     if (res.success || res.status === true) {
@@ -1341,7 +1346,8 @@ window.loadGatepassData = async function() {
   const tbody = document.getElementById('gate-pass-body');
   if (!tbody) return;
   
-  tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #a2a3b7; padding: 15px;">Memuat data...</td></tr>';
+  // colspan diubah menjadi 7 karena ada tambahan kolom Waktu Kembali
+  tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: #a2a3b7; padding: 15px;">Memuat data...</td></tr>';
   
   try {
     const res = await fetch(`${API_URL}?action=getGatepass`);
@@ -1352,11 +1358,26 @@ window.loadGatepassData = async function() {
       const items = [...data.data].reverse();
       
       items.forEach(item => {
+        // Rapikan format Waktu Keluar jika dari Google formatnya ISO (mengandung 'T')
+        let wKeluar = item.WaktuKeluar || item.Waktu_Keluar || '-';
+        if(wKeluar.includes('T')) {
+           const d = new Date(wKeluar);
+           wKeluar = `${d.getDate().toString().padStart(2,'0')}/${(d.getMonth()+1).toString().padStart(2,'0')}/${d.getFullYear()} ${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')}`;
+        }
+        
+        // Rapikan format Waktu Kembali
+        let wKembali = item.WaktuKembali || item.Waktu_Kembali || '-';
+        if(wKembali.includes('T')) {
+           const dk = new Date(wKembali);
+           wKembali = `${dk.getHours().toString().padStart(2,'0')}:${dk.getMinutes().toString().padStart(2,'0')}`;
+        }
+
         html += `
         <tr>
           <td>${item.Nama || '-'}</td>
           <td>${item.Role || '-'}</td>
-          <td>${item.WaktuKeluar || item.Waktu_Keluar || '-'}</td>
+          <td>${wKeluar}</td>
+          <td><span style="color: #f1c40f; font-weight:bold;">${wKembali}</span></td>
           <td>${item.Alasan || '-'}</td>
           <td><span style="background:#2ecc71; color:#fff; padding:3px 8px; border-radius:4px; font-size:12px;">${item.Status || 'KELUAR'}</span></td>
           <td><button style="background:#e74c3c; color:#fff; border:none; padding:4px 8px; border-radius:4px; cursor:pointer;" onclick="akhiriGatepass('${item.GatepassID}')">Akhiri</button></td>
@@ -1364,10 +1385,10 @@ window.loadGatepassData = async function() {
       });
       tbody.innerHTML = html;
     } else {
-      tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #a2a3b7; padding: 15px;">Belum ada data gate pass...</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: #a2a3b7; padding: 15px;">Belum ada data gate pass...</td></tr>';
     }
   } catch (e) {
-    tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #ff6b6b; padding: 15px;">Gagal mengambil data dari server.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: #ff6b6b; padding: 15px;">Gagal mengambil data dari server.</td></tr>';
   }
 };
 
