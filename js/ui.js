@@ -1355,3 +1355,4 @@ async function akhiriGatepass(gatepassId) {
     console.error(e);
   }
 }
+}
