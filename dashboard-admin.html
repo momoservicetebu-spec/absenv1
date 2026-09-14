@@ -854,21 +854,30 @@
     </div>
   </div>
 
-  <!-- Modal Buat Gate Pass -->
-    <div id="modal-gatepass" class="modal" style="display: none;">
+<!-- Modal Buat Gate Pass -->
+<div id="modal-gatepass" class="modal" style="display: none;">
     <div class="modal-content">
         <!-- Tombol untuk menutup modal -->
-        <span class="close-btn" onclick="document.getElementById('modal-gatepass').style.display='none'">&times;</span>
+        <span class="close-btn" onclick="closeModal('modal-gatepass')" style="float: right; cursor: pointer; font-size: 24px;">&times;</span>
         
         <h2>Form Gate Pass</h2>
         <form id="form-gatepass" onsubmit="submitGatePass(event)">
+            
+            <label for="gp-jenis">Jenis:</label>
+            <select id="gp-jenis" onchange="toggleGPFields()" required style="width: 100%; padding: 8px; margin-bottom: 10px;">
+                <option value="Siswa">Siswa</option>
+                <option value="Guru">Guru</option>
+            </select>
+
             <label for="gp-nama">Nama:</label>
-            <input type="text" id="gp-nama" required>
+            <select id="gp-nama" required style="width: 100%; padding: 8px; margin-bottom: 10px;">
+                <option value="">-- Pilih Jenis Dahulu --</option>
+            </select>
             
             <label for="gp-alasan">Alasan Keluar:</label>
-            <input type="text" id="gp-alasan" required>
+            <input type="text" id="gp-alasan" placeholder="Contoh: Pulang karena sakit" required style="width: 100%; padding: 8px; margin-bottom: 15px;">
             
-            <button type="submit">Kirim Gate Pass</button>
+            <button type="submit" class="btn-primary" style="width: 100%;">Kirim Gate Pass</button>
         </form>
     </div>
 </div>
