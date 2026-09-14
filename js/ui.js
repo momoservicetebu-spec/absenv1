@@ -1285,7 +1285,7 @@ async function loadGPOptions() {
         allowClear: true,
         dropdownParent: $('#modal-gatepass') // Penting agar input pencarian bisa diklik di dalam modal
       });
-      
+
     }
   } catch (error) {
     select.innerHTML = '<option value="">Gagal memuat data</option>';
@@ -1297,29 +1297,6 @@ function toggleGPFields() {
 }
 
 async function submitGatePass(event) {
-  event.preventDefault(); 
-  
-  const payload = {
-    userId: document.getElementById('gp-nama').value,
-    role: document.getElementById('gp-jenis').value, // 'Siswa' atau 'Guru'
-    alasan: document.getElementById('gp-alasan').value
-  };
-
-  if (!payload.userId || !payload.alasan) {
-    alert("Mohon pilih Nama dan isi Alasan terlebih dahulu!");
-    return;
-  }
-
-  const res = await fetchAPI('submitGatepass', payload);
-
-  if (res.success || res.status === true) {
-    alert("✅ Gate Pass berhasil dibuat!");
-    closeModal('modal-gatepass'); 
-    loadGatepassData(); // Refresh tabel
-  } else {
-    alert("❌ Gagal menyimpan Gate Pass: " + (res.message || "Terjadi kesalahan"));
-  }
-}
 
 async function loadGatepassData() {
   const tbody = document.getElementById('gate-pass-body');
