@@ -1279,26 +1279,65 @@ async function loadGPOptions() {
         const ket = (jenis === 'Siswa') ? `(Kelas ${item.Kelas || '-'})` : `(${item.Jabatan || 'Guru'})`;
         select.innerHTML += `<option value="${id}">${nama} ${ket}</option>`;
       });
+
       // AKTIFKAN SELECT2 SETELAH DATA DIMUAT
       $('#gp-nama').select2({
         placeholder: "-- Ketik untuk mencari nama --",
         allowClear: true,
-        dropdownParent: $('#modal-gatepass') // Penting agar input pencarian bisa diklik di dalam modal
+        dropdownParent: $('#modal-gatepass')
       });
-
     }
   } catch (error) {
     select.innerHTML = '<option value="">Gagal memuat data</option>';
   }
 }
 
-function toggleGPFields() {
+window.toggleGPFields = function() {
   loadGPOptions();
-}
+};
 
-async function submitGatePass(event) {
+// Fungsi submit yang sudah diperbaiki dan diglobalkan
+window.submitGatePass = async function(event) {
+  if (event) event.preventDefault(); 
+  
+  const payload = {
+    userId: $('#gp-nama').val(),
+    role: $('#gp-jenis').val(), 
+    alasan: $('#gp-alasan').val()
+  };
 
-async function loadGatepassData() {
+  console.log("Payload yang dikirim:", payload);
+
+  if (!payload.userId || !payload.alasan) {
+    alert("Mohon pilih Nama dan isi Alasan terlebih dahulu!");
+    return;
+  }
+
+  const btnSubmit = $('#form-gatepass button');
+  btnSubmit.text('Mengirim...').prop('disabled', true);
+
+  try {
+    // Pastikan fungsi fetchAPI Anda sudah dideklarasikan di tempat lain
+    const res = await fetchAPI('submitGatepass', payload);
+
+    if (res.success || res.status === true) {
+      alert("✅ Gate Pass berhasil dibuat!");
+      closeModal('modal-gatepass'); 
+      $('#form-gatepass')[0].reset(); 
+      $('#gp-nama').val(null).trigger('change'); 
+      if (typeof loadGatepassData === 'function') loadGatepassData();
+    } else {
+      alert("❌ Gagal: " + (res.message || "Terjadi kesalahan server."));
+    }
+  } catch (error) {
+    alert("Terjadi kesalahan jaringan.");
+    console.error(error);
+  } finally {
+    btnSubmit.text('Kirim Gate Pass').prop('disabled', false);
+  }
+};
+
+window.loadGatepassData = async function() {
   const tbody = document.getElementById('gate-pass-body');
   if (!tbody) return;
   
@@ -1317,7 +1356,7 @@ async function loadGatepassData() {
         <tr>
           <td>${item.Nama || '-'}</td>
           <td>${item.Role || '-'}</td>
-          <td>${item.Waktu_Keluar || '-'}</td>
+          <td>${item.WaktuKeluar || item.Waktu_Keluar || '-'}</td>
           <td>${item.Alasan || '-'}</td>
           <td><span style="background:#2ecc71; color:#fff; padding:3px 8px; border-radius:4px; font-size:12px;">${item.Status || 'KELUAR'}</span></td>
           <td><button style="background:#e74c3c; color:#fff; border:none; padding:4px 8px; border-radius:4px; cursor:pointer;" onclick="akhiriGatepass('${item.GatepassID}')">Akhiri</button></td>
@@ -1330,9 +1369,9 @@ async function loadGatepassData() {
   } catch (e) {
     tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #ff6b6b; padding: 15px;">Gagal mengambil data dari server.</td></tr>';
   }
-}
+};
 
-async function akhiriGatepass(gatepassId) {
+window.akhiriGatepass = async function(gatepassId) {
   if (!confirm("Apakah pemohon sudah kembali ke sekolah?")) return;
 
   try {
@@ -1354,5 +1393,4 @@ async function akhiriGatepass(gatepassId) {
     alert("Error jaringan saat mengakhiri Gate Pass!");
     console.error(e);
   }
-}
-}
+};
