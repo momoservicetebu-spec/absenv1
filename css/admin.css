@@ -497,3 +497,103 @@ canvas { position: absolute; top: 0; left: 0; }
   color: #ffffff;
   font-weight: 600;
 }
+/* =========================================
+   CSS UNTUK MODAL GATE PASS
+========================================= */
+
+/* Latar belakang gelap transparan (Overlay) */
+.modal {
+    display: none; 
+    position: fixed; 
+    z-index: 9999; 
+    left: 0;
+    top: 0;
+    width: 100%; 
+    height: 100%; 
+    background-color: rgba(0, 0, 0, 0.6); 
+    backdrop-filter: blur(3px); /* Efek blur di belakang modal */
+    overflow: auto;
+}
+
+/* Kotak Form Modal */
+.modal-content {
+    background-color: #1e1e2d; /* Warna background kotak form menyesuaikan tema gelap */
+    margin: 8% auto; /* Jarak dari atas dan posisi tengah */
+    padding: 25px 30px;
+    border: 1px solid #323248;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 450px; /* Lebar maksimal form */
+    box-shadow: 0px 8px 20px rgba(0, 0, 0, 0.4);
+    color: #ffffff;
+}
+
+/* Tombol Tutup (X) */
+.close-btn {
+    color: #a2a3b7;
+    float: right;
+    font-size: 26px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: color 0.2s;
+}
+
+.close-btn:hover {
+    color: #ff6b6b;
+}
+
+/* Gaya Teks Judul */
+.modal-content h2 {
+    margin-top: 0;
+    margin-bottom: 20px;
+    font-size: 20px;
+    color: #ffffff;
+    border-bottom: 1px solid #323248;
+    padding-bottom: 10px;
+}
+
+/* Label Input */
+#form-gatepass label {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 14px;
+    color: #a2a3b7;
+}
+
+/* Kolom Input & Select */
+#form-gatepass select, 
+#form-gatepass input[type="text"] {
+    width: 100%;
+    padding: 10px 12px;
+    margin-bottom: 20px;
+    border-radius: 6px;
+    border: 1px solid #323248;
+    background-color: #151521; /* Background kolom lebih gelap */
+    color: #ffffff;
+    font-size: 14px;
+    box-sizing: border-box;
+}
+
+#form-gatepass select:focus, 
+#form-gatepass input[type="text"]:focus {
+    outline: none;
+    border-color: #6c5ce7; /* Warna aksen saat diklik */
+}
+
+/* Tombol Kirim */
+#form-gatepass button[type="submit"] {
+    width: 100%;
+    padding: 12px;
+    background-color: #6c5ce7;
+    color: #ffffff;
+    border: none;
+    border-radius: 6px;
+    font-weight: bold;
+    font-size: 15px;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+#form-gatepass button[type="submit"]:hover {
+    background-color: #5a4bcf;
+}
