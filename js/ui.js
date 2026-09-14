@@ -1279,6 +1279,13 @@ async function loadGPOptions() {
         const ket = (jenis === 'Siswa') ? `(Kelas ${item.Kelas || '-'})` : `(${item.Jabatan || 'Guru'})`;
         select.innerHTML += `<option value="${id}">${nama} ${ket}</option>`;
       });
+      // AKTIFKAN SELECT2 SETELAH DATA DIMUAT
+      $('#gp-nama').select2({
+        placeholder: "-- Ketik untuk mencari nama --",
+        allowClear: true,
+        dropdownParent: $('#modal-gatepass') // Penting agar input pencarian bisa diklik di dalam modal
+      });
+      
     }
   } catch (error) {
     select.innerHTML = '<option value="">Gagal memuat data</option>';

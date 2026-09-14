@@ -597,3 +597,34 @@ canvas { position: absolute; top: 0; left: 0; }
 #form-gatepass button[type="submit"]:hover {
     background-color: #5a4bcf;
 }
+
+/* =========================================
+   TEMA GELAP UNTUK SELECT2 (DROPDOWN CARI)
+========================================= */
+.select2-container--default .select2-selection--single {
+    background-color: #151521 !important;
+    border: 1px solid #323248 !important;
+    border-radius: 6px !important;
+    height: 40px !important;
+}
+.select2-container--default .select2-selection--single .select2-selection__rendered {
+    color: #ffffff !important;
+    line-height: 38px !important;
+}
+.select2-dropdown {
+    background-color: #1e1e2d !important;
+    border: 1px solid #323248 !important;
+}
+.select2-search--dropdown .select2-search__field {
+    background-color: #151521 !important;
+    color: #ffffff !important;
+    border: 1px solid #323248 !important;
+    border-radius: 4px;
+}
+.select2-results__option {
+    color: #a2a3b7 !important;
+}
+.select2-container--default .select2-results__option--highlighted.select2-results__option--selectable {
+    background-color: #6c5ce7 !important; /* Warna aksen ungu saat disorot */
+    color: white !important;
+}
