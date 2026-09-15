@@ -594,42 +594,45 @@
       </div>
     </div>
 
-    <!-- KONTEN: ABSENSI KELAS (SMART DETECT) -->
-      <div id="absensi-kelas" class="section card">
-        <h2 class="section-title">📝 Absensi Kelas Aktif</h2>
-        <p class="section-desc">Sistem otomatis mendeteksi jadwal mengajar Anda saat ini.</p>
-        
-        <!-- Panel Info Jadwal Aktif -->
-        <div style="background: rgba(108, 92, 231, 0.1); border-left: 4px solid #6c5ce7; padding: 20px; border-radius: 5px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center;">
-          <div>
-            <h3 style="margin: 0 0 10px 0; color: #1dd1a1;">Saat ini: <span id="label-jadwal-mapel">Matematika</span> (<span id="label-jadwal-jam">Jam ke 1-2</span>)</h3>
-            <p style="margin: 0; color: #a29bfe; font-size: 14px;">Waktu: 07:15 - 08:45 WIB | Kelas: <strong id="label-jadwal-kelas">10-A</strong></p>
-          </div>
-          <!-- Pemicu Absen Otomatis Sesuai Jadwal -->
-          <button class="btn-action btn-success" style="padding: 12px 24px; font-size: 16px;" onclick="bukaModalAbsenJadwal()">
-            Mulai Absensi Kelas <span id="btn-label-kelas">10-A</span>
-          </button>
+    <!-- KONTEN: ABSENSI KELAS (SUPER ADMIN VIEW) -->
+    <div id="absensi-kelas" class="section card">
+      <h2 class="section-title">📝 Daftar Seluruh Jadwal Pelajaran (Super Admin)</h2>
+      <p class="section-desc">Pilih kelas dari daftar jadwal di bawah ini untuk memulai presensi.</p>
+      
+      <!-- Container untuk memuat semua jadwal dari database -->
+      <div id="admin-jadwal-container" style="display: flex; flex-direction: column; gap: 15px; margin-bottom: 20px; max-height: 500px; overflow-y: auto; padding-right: 10px;">
+        <!-- Skeleton loader saat data sedang dimuat -->
+        <div style="text-align: center; color: #a29bfe; padding: 20px;">
+          ⏳ Memuat semua jadwal pelajaran dari database...
         </div>
-
-        <!-- Opsi Manual (Jika Guru Piket / Pengganti) -->
-        <details style="background: #2a2640; padding: 15px; border-radius: 5px; border: 1px solid #4a4563;">
-          <summary style="cursor: pointer; color: #feca57; font-weight: bold;">Buka Absensi Manual (Untuk Guru Piket / Pengganti)</summary>
-          <div style="margin-top: 15px; display: flex; gap: 10px;">
-            <select id="select-kelas-manual" style="flex: 1; padding: 10px; background: #161224; color: white; border: 1px solid #4a4563; border-radius: 5px;">
-              <option value="">-- Pilih Kelas Manual --</option>
-              <option value="10-A">10-A</option>
-              <option value="10-B">10-B</option>
-            </select>
-            <select id="select-mapel-manual" style="flex: 1; padding: 10px; background: #161224; color: white; border: 1px solid #4a4563; border-radius: 5px;">
-              <option value="">-- Pilih Mata Pelajaran --</option>
-              <option value="Matematika">Matematika</option>
-              <option value="Bahasa Inggris">Bahasa Inggris</option>
-              <option value="Fisika">Fisika</option>
-            </select>
-            <button class="btn-action" onclick="bukaModalAbsenManual()">Buka Kelas</button>
-          </div>
-        </details>
       </div>
+
+      <!-- Opsi Manual tetap dipertahankan jika admin ingin absen di luar jadwal -->
+      <details style="background: #2a2640; padding: 15px; border-radius: 5px; border: 1px solid #4a4563;">
+        <summary style="cursor: pointer; color: #feca57; font-weight: bold;">Buka Absensi Manual Khusus</summary>
+        <div style="margin-top: 15px; display: flex; gap: 10px;">
+          <select id="select-kelas-manual" style="flex: 1; padding: 10px; background: #161224; color: white; border: 1px solid #4a4563; border-radius: 5px;">
+            <option value="">-- Pilih Kelas --</option>
+            <option value="10-A">10-A</option>
+            <option value="10-B">10-B</option>
+            <option value="11-A">11-A</option>
+            <option value="11-B">11-B</option>
+            <option value="12-IPA">12-IPA</option>
+            <option value="12-IPS">12-IPS</option>
+          </select>
+          <select id="select-mapel-manual" style="flex: 1; padding: 10px; background: #161224; color: white; border: 1px solid #4a4563; border-radius: 5px;">
+            <option value="">-- Pilih Mata Pelajaran --</option>
+            <option value="Matematika">Matematika</option>
+            <option value="Bahasa Inggris">Bahasa Inggris</option>
+            <option value="Geografi">Geografi</option>
+            <option value="Fisika">Fisika</option>
+            <option value="Sejarah">Sejarah</option>
+            <option value="Seni Budaya">Seni Budaya</option>
+          </select>
+          <button class="btn-action" onclick="bukaModalAbsenManual()">Buka Kelas</button>
+        </div>
+      </details>
+    </div>
 
     <!-- 9. LAPORAN -->
     <div id="laporan" class="section card">

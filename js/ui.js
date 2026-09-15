@@ -1549,3 +1549,44 @@ window.simpanAbsensiMapel = async function() {
     btn.disabled = false;
   }
 };
+// Panggil fungsi ini saat halaman / menu "Absensi Kelas" diklik oleh Super Admin
+async function loadSemuaJadwalAdmin() {
+  const container = document.getElementById('admin-jadwal-container');
+  
+  try {
+    const res = await fetchAPI('getAllJadwalAdmin', {});
+    
+    if (res.success && res.data && res.data.length > 0) {
+      let html = '';
+      
+      // Mengelompokkan atau langsung menampilkan semua jadwal
+      res.data.forEach(jdwl => {
+        // Render setiap baris database menjadi sebuah card jadwal
+        html += `
+        <div style="background: rgba(108, 92, 231, 0.1); border-left: 4px solid #6c5ce7; padding: 15px 20px; border-radius: 5px; display: flex; justify-content: space-between; align-items: center;">
+          <div>
+            <h3 style="margin: 0 0 8px 0; color: #1dd1a1; font-size: 16px;">
+              ${jdwl.Hari} | ${jdwl.Mata_Pelajaran} (Jam ke ${jdwl.Jam_Ke})
+            </h3>
+            <p style="margin: 0; color: #a29bfe; font-size: 13px;">
+              Waktu: ${jdwl.Waktu_Mulai} - ${jdwl.Waktu_Selesai} WIB | Kelas: <strong style="color: #feca57;">${jdwl.Kelas}</strong> | Kode Guru: ${jdwl.Kode_Guru}
+            </p>
+          </div>
+          <button class="btn-action btn-success" style="padding: 10px 18px; font-size: 14px;" 
+                  onclick="openModalAbsenProcess('${jdwl.Kelas}', '${jdwl.Mata_Pelajaran}', '${jdwl.Jam_Ke}')">
+            Buka Presensi
+          </button>
+        </div>`;
+      });
+      
+      container.innerHTML = html;
+    } else {
+      container.innerHTML = '<div style="text-align:center; color:#ff6b6b; padding:20px;">Belum ada data jadwal di database.</div>';
+    }
+  } catch (error) {
+    container.innerHTML = '<div style="text-align:center; color:#ff6b6b; padding:20px;">Terjadi kesalahan saat memuat jadwal.</div>';
+    console.error(error);
+  }
+}
+
+// Catatan: Pastikan Anda memanggil loadSemuaJadwalAdmin() di dalam fungsi navigasi/inisialisasi halaman Anda!
