@@ -669,11 +669,17 @@
               <option value="Mingguan">Laporan Mingguan</option>
               <option value="Bulanan">Laporan Bulanan</option>
               <option value="Tahunan">Laporan Tahunan</option>
-              <option value="Kategori">Rekap Status (Alfa, Izin, Sakit, dll)</option>
+              <option value="Kategori">Rekap Status (Alfa, Izin, dll)</option>
             </select>
           </div>
           
-          <!-- 3. Input Tanggal (Dinamis berubah pakai JS nanti) -->
+          <!-- TAMBAHAN: 3. Filter Target / Nama (Untuk Laporan Per Individu) -->
+          <div>
+            <label style="color: #a29bfe; font-size: 13px; display: block; margin-bottom: 5px;">Spesifik Nama/ID (Opsional)</label>
+            <input type="text" id="lap-nama-target" placeholder="Kosongkan untuk Semua..." style="width: 100%; padding: 9px; background: #161224; color: white; border: 1px solid #4a4563; border-radius: 5px; outline:none;">
+          </div>
+
+          <!-- 4. Input Tanggal -->
           <div id="wadah-tanggal-1">
             <label id="label-tgl-1" style="color: #a29bfe; font-size: 13px; display: block; margin-bottom: 5px;">Pilih Tanggal</label>
             <input type="date" id="lap-tgl-mulai" style="width: 100%; padding: 9px; background: #161224; color: white; border: 1px solid #4a4563; border-radius: 5px; color-scheme: dark;">
