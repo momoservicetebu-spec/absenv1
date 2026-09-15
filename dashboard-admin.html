@@ -644,17 +644,73 @@
     </div>
 
     <!-- 9. LAPORAN -->
-    <div id="laporan" class="section card">
-      <h2 class="section-title">📊 Filter & Unduh Laporan</h2>
-      <p class="section-desc">Tarik data absensi berdasarkan rentang waktu dan peran.</p>
-      <div class="form-group"><label>Mulai Tanggal</label><input type="date"></div>
-      <div class="form-group"><label>Sampai Tanggal</label><input type="date"></div>
-      <div class="form-group">
-        <label>Tipe Pengguna</label>
-        <select><option>Semua (Siswa & Guru)</option><option>Hanya Siswa</option><option>Hanya Guru</option></select>
+   <!-- KONTEN: LAPORAN ABSENSI -->
+    <div id="laporan-absensi" class="section card">
+      <h2 class="section-title">📊 Pusat Laporan Absensi</h2>
+      <p class="section-desc">Tarik data absensi secara detail berdasarkan rentang waktu, peran, dan status.</p>
+      
+      <div style="background: #2a2640; padding: 20px; border-radius: 8px; border: 1px solid #4a4563; margin-bottom: 20px;">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 15px;">
+          
+          <!-- 1. Tipe Pengguna -->
+          <div>
+            <label style="color: #a29bfe; font-size: 13px; display: block; margin-bottom: 5px;">Tipe Pengguna</label>
+            <select id="lap-role" style="width: 100%; padding: 10px; background: #161224; color: white; border: 1px solid #4a4563; border-radius: 5px;">
+              <option value="Siswa">Siswa</option>
+              <option value="Guru">Guru</option>
+            </select>
+          </div>
+
+          <!-- 2. Jenis Laporan -->
+          <div>
+            <label style="color: #a29bfe; font-size: 13px; display: block; margin-bottom: 5px;">Jenis Laporan</label>
+            <select id="lap-jenis" onchange="aturInputTanggalLaporan()" style="width: 100%; padding: 10px; background: #161224; color: white; border: 1px solid #4a4563; border-radius: 5px;">
+              <option value="Harian">Laporan Harian</option>
+              <option value="Mingguan">Laporan Mingguan</option>
+              <option value="Bulanan">Laporan Bulanan</option>
+              <option value="Tahunan">Laporan Tahunan</option>
+              <option value="Kategori">Rekap Status (Alfa, Izin, Sakit, dll)</option>
+            </select>
+          </div>
+          
+          <!-- 3. Input Tanggal (Dinamis berubah pakai JS nanti) -->
+          <div id="wadah-tanggal-1">
+            <label id="label-tgl-1" style="color: #a29bfe; font-size: 13px; display: block; margin-bottom: 5px;">Pilih Tanggal</label>
+            <input type="date" id="lap-tgl-mulai" style="width: 100%; padding: 9px; background: #161224; color: white; border: 1px solid #4a4563; border-radius: 5px; color-scheme: dark;">
+          </div>
+
+          <div id="wadah-tanggal-2" style="display: none;">
+            <label style="color: #a29bfe; font-size: 13px; display: block; margin-bottom: 5px;">Sampai Tanggal</label>
+            <input type="date" id="lap-tgl-sampai" style="width: 100%; padding: 9px; background: #161224; color: white; border: 1px solid #4a4563; border-radius: 5px; color-scheme: dark;">
+          </div>
+
+        </div>
+
+        <!-- Tombol Aksi Laporan -->
+        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+          <button onclick="lihatPreviewLaporan()" style="background: #0984e3; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: bold;">
+            🔍 Tampilkan Preview
+          </button>
+          <button onclick="unduhLaporanCSV()" style="background: #00b894; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: bold;">
+            📥 Unduh Excel (CSV)
+          </button>
+          <button onclick="unduhLaporanPDF()" style="background: #d63031; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: bold;">
+            📄 Unduh PDF
+          </button>
+        </div>
       </div>
-      <button class="btn-action btn-success">Unduh PDF</button> 
-      <button class="btn-action">Unduh Excel (CSV)</button>
+
+      <!-- Area Tabel Preview -->
+      <div class="analytics-table-wrap" style="max-height: 400px; overflow-y: auto;">
+        <table id="tabel-preview-laporan">
+          <thead id="head-preview-laporan">
+            <!-- Header akan di-generate via JS -->
+            <tr><th>Pilih filter dan klik Tampilkan Preview untuk melihat data.</th></tr>
+          </thead>
+          <tbody id="body-preview-laporan">
+          </tbody>
+        </table>
+      </div>
     </div>
 
     <!-- 10. SETTING -->
