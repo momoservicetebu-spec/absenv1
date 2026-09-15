@@ -657,13 +657,14 @@
       <!-- 1. Tipe Pengguna -->
       <div>
         <label style="color: #a29bfe; font-size: 13px; display: block; margin-bottom: 6px; font-weight: 600;">Tipe Pengguna</label>
-        <select id="lap-role" style="width: 100%; padding: 10px; background: #161224; color: white; border: 1px solid #4a4563; border-radius: 6px; outline: none; box-sizing: border-box;">
+        <!-- KEMBALIKAN onchange="muatDaftarNamaLaporan()" -->
+        <select id="lap-role" onchange="muatDaftarNamaLaporan()" style="width: 100%; padding: 10px; background: #161224; color: white; border: 1px solid #4a4563; border-radius: 6px; outline: none; box-sizing: border-box;">
           <option value="Siswa">Siswa</option>
           <option value="Guru">Guru</option>
         </select>
       </div>
 
-      <!-- 2. Jenis Laporan -->
+      <!-- 2. Jenis Laporan (Sama seperti sebelumnya) -->
       <div>
         <label style="color: #a29bfe; font-size: 13px; display: block; margin-bottom: 6px; font-weight: 600;">Jenis Laporan</label>
         <select id="lap-jenis" onchange="aturInputTanggalLaporan()" style="width: 100%; padding: 10px; background: #161224; color: white; border: 1px solid #4a4563; border-radius: 6px; outline: none; box-sizing: border-box;">
@@ -675,10 +676,14 @@
         </select>
       </div>
       
-      <!-- 3. Spesifik Nama / ID (Mencegah Melenceng) -->
+      <!-- 3. Spesifik Nama / ID -->
       <div>
         <label style="color: #a29bfe; font-size: 13px; display: block; margin-bottom: 6px; font-weight: 600;">Spesifik Nama/ID (Opsional)</label>
-        <input type="text" id="lap-nama-target" placeholder="Ketik nama atau ID..." autocomplete="off" style="width: 100%; padding: 10px; background: #161224; color: white; border: 1px solid #4a4563; border-radius: 6px; outline: none; box-sizing: border-box;">
+        <!-- KEMBALIKAN list="list-nama-laporan" -->
+        <input list="list-nama-laporan" type="text" id="lap-nama-target" placeholder="Ketik nama atau ID..." autocomplete="off" style="width: 100%; padding: 10px; background: #161224; color: white; border: 1px solid #4a4563; border-radius: 6px; outline: none; box-sizing: border-box;">
+        
+        <!-- KEMBALIKAN datalist YANG DICARI JAVASCRIPT -->
+        <datalist id="list-nama-laporan"></datalist>
       </div>
 
       <!-- 4. Tanggal Mulai -->
