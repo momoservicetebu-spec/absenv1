@@ -1619,3 +1619,241 @@ function filterJadwalAdmin() {
   }
 }
 
+// Variable global untuk menyimpan data laporan yang sedang ditampilkan (untuk kebutuhan eksport CSV/PDF)
+let dataLaporanAktif = [];
+
+// 1. Mengatur Tampilan Input Tanggal Sesuai Jenis Laporan
+function aturInputTanggalLaporan() {
+  const jenis = document.getElementById('lap-jenis').value;
+  const wadahTgl2 = document.getElementById('wadah-tanggal-2');
+  const labelTgl1 = document.getElementById('label-tgl-1');
+
+  if (jenis === 'Harian') {
+    labelTgl1.innerText = "Pilih Tanggal";
+    wadahTgl2.style.display = 'none';
+  } else {
+    labelTgl1.innerText = "Mulai Tanggal";
+    wadahTgl2.style.display = 'block';
+  }
+}
+
+// Setel tampilan awal saat halaman dimuat
+document.addEventListener('DOMContentLoaded', () => {
+  if (document.getElementById('lap-jenis')) {
+    aturInputTanggalLaporan();
+  }
+});
+
+// 2. Mengambil Data Laporan dari Server & Memunculkan Preview
+async function lihatPreviewLaporan() {
+  const role = document.getElementById('lap-role').value;
+  const jenis = document.getElementById('lap-jenis').value;
+  const tglMulai = document.getElementById('lap-tgl-mulai').value;
+  const tglSampai = document.getElementById('lap-tgl-sampai').value;
+
+  if (!tglMulai) {
+    alert("Mohon tentukan Tanggal Mulai terlebih dahulu!");
+    return;
+  }
+
+  if (jenis !== 'Harian' && !tglSampai) {
+    alert("Mohon tentukan Tanggal Sampai!");
+    return;
+  }
+
+  const tbody = document.getElementById('body-preview-laporan');
+  const thead = document.getElementById('head-preview-laporan');
+  
+  tbody.innerHTML = '<tr><td colspan="10" style="text-align:center; padding:20px;">⏳ Memuat laporan, silakan tunggu...</td></tr>';
+
+  const payload = {
+    role: role,
+    jenis: jenis,
+    tglMulai: tglMulai,
+    tglSampai: tglSampai
+  };
+
+  try {
+    const res = await fetchAPI('tarikLaporan', payload);
+
+    if (res.success && res.data && res.data.length > 0) {
+      dataLaporanAktif = res.data; // Simpan ke memori lokal
+      renderTabelLaporan(jenis, res.data);
+    } else {
+      dataLaporanAktif = [];
+      thead.innerHTML = '';
+      tbody.innerHTML = `<tr><td colspan="10" style="text-align:center; color:#ff6b6b; padding:20px;">
+        ${res.message || "Tidak ada data absensi ditemukan pada rentang waktu ini."}
+      </td></tr>`;
+    }
+  } catch (err) {
+    console.error(err);
+    tbody.innerHTML = '<tr><td colspan="10" style="text-align:center; color:#ff6b6b; padding:20px;">Terjadi kesalahan koneksi saat memuat laporan.</td></tr>';
+  }
+}
+
+// 3. Render Header dan Isi Tabel Laporan secara Dinamis
+function renderTabelLaporan(jenis, data) {
+  const thead = document.getElementById('head-preview-laporan');
+  const tbody = document.getElementById('body-preview-laporan');
+
+  let headHtml = '';
+  let bodyHtml = '';
+
+  if (jenis === 'Kategori') {
+    // Tampilan Tabel Rekap Kategori
+    headHtml = `
+      <tr>
+        <th>NO</th>
+        <th>NAMA</th>
+        <th style="color:#2ecc71;">HADIR</th>
+        <th style="color:#f1c40f;">SAKIT</th>
+        <th style="color:#e67e22;">IZIN</th>
+        <th style="color:#e74c3c;">ALFA</th>
+        <th style="color:#9b59b6;">DISPEN</th>
+        <th style="color:#ff7675;">BOLOS</th>
+        <th style="color:#00cec9;">CUTI</th>
+      </tr>`;
+
+    data.forEach((item, i) => {
+      bodyHtml += `
+        <tr style="border-bottom: 1px solid #3a3553;">
+          <td>${i + 1}</td>
+          <td><strong>${item.Nama || '-'}</strong></td>
+          <td style="color:#2ecc71; font-weight:bold;">${item.Hadir || 0}</td>
+          <td>${item.Sakit || 0}</td>
+          <td>${item.Izin || 0}</td>
+          <td style="color:#e74c3c; font-weight:bold;">${item.Alfa || 0}</td>
+          <td>${item.Dispensasi || 0}</td>
+          <td>${item.Bolos || 0}</td>
+          <td>${item.Cuti || 0}</td>
+        </tr>`;
+    });
+
+  } else {
+    // Tampilan Tabel Transaksi Log Absensi Harian / Mgg / Bln / Thn
+    headHtml = `
+      <tr>
+        <th>NO</th>
+        <th>TANGGAL</th>
+        <th>NAMA</th>
+        <th>KELAS/ROLE</th>
+        <th>MAPEL / JENIS</th>
+        <th>STATUS</th>
+        <th>WAKTU</th>
+      </tr>`;
+
+    data.forEach((item, i) => {
+      bodyHtml += `
+        <tr style="border-bottom: 1px solid #3a3553;">
+          <td>${i + 1}</td>
+          <td>${item.Tanggal || '-'}</td>
+          <td><strong>${item.Nama || '-'}</strong></td>
+          <td>${item.Kelas || item.Role || '-'}</td>
+          <td>${item.Mapel || item.Mata_Pelajaran || '-'}</td>
+          <td>
+            <span style="background:${getWarnaBadgeStatus(item.Status)}; color:white; padding:3px 8px; border-radius:4px; font-size:11px;">
+              ${item.Status || 'Alfa'}
+            </span>
+          </td>
+          <td>${item.Waktu || item.Jam_Masuk || '-'}</td>
+        </tr>`;
+    });
+  }
+
+  thead.innerHTML = headHtml;
+  tbody.innerHTML = bodyHtml;
+}
+
+// Helper Warna Badge Status
+function getWarnaBadgeStatus(status) {
+  if (!status) return '#e74c3c';
+  const st = status.toLowerCase();
+  if (st.includes('hadir')) return '#2ecc71';
+  if (st.includes('sakit')) return '#f1c40f';
+  if (st.includes('izin')) return '#e67e22';
+  if (st.includes('dispen')) return '#9b59b6';
+  if (st.includes('cuti')) return '#00cec9';
+  return '#e74c3c'; // Alfa / Bolos / default
+}
+
+// 4. Unduh Laporan format Excel (CSV)
+function unduhLaporanCSV() {
+  if (!dataLaporanAktif || dataLaporanAktif.length === 0) {
+    alert("Silakan tampilkan preview data terlebih dahulu sebelum mengunduh!");
+    return;
+  }
+
+  const jenis = document.getElementById('lap-jenis').value;
+  const role = document.getElementById('lap-role').value;
+  
+  let csvContent = "data:text/csv;charset=utf-8,\uFEFF"; // Tambah BOM UTF-8 agar Excel membaca huruf rapi
+
+  // Header CSV
+  const keys = Object.keys(dataLaporanAktif[0]);
+  csvContent += keys.join(",") + "\n";
+
+  // Isi Data CSV
+  dataLaporanAktif.forEach(row => {
+    let rowData = keys.map(k => {
+      let val = row[k] === undefined || row[k] === null ? "" : String(row[k]);
+      // Hindari error jika ada tanda koma di dalam teks
+      if (val.includes(",")) val = `"${val}"`; 
+      return val;
+    });
+    csvContent += rowData.join(",") + "\n";
+  });
+
+  // Trigger Download via Browser
+  const encodedUri = encodeURI(csvContent);
+  const link = document.createElement("a");
+  link.setAttribute("href", encodedUri);
+  link.setAttribute("download", `Laporan_Absensi_${role}_${jenis}_${new Date().toISOString().slice(0,10)}.csv`);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+}
+
+// 5. Unduh Laporan PDF (Pratinjau Cetak / Save to PDF)
+function unduhLaporanPDF() {
+  if (!dataLaporanAktif || dataLaporanAktif.length === 0) {
+    alert("Silakan tampilkan preview data terlebih dahulu sebelum mengunduh PDF!");
+    return;
+  }
+
+  const tabelElement = document.getElementById('tabel-preview-laporan').outerHTML;
+  const role = document.getElementById('lap-role').value;
+  const jenis = document.getElementById('lap-jenis').value;
+  const tglMulai = document.getElementById('lap-tgl-mulai').value;
+
+  const printWindow = window.open('', '', 'height=700,width=900');
+  printWindow.document.write(`
+    <html>
+      <head>
+        <title>Laporan Absensi ${role} - ${jenis}</title>
+        <style>
+          body { font-family: Arial, sans-serif; padding: 20px; color: #333; }
+          h2 { margin-bottom: 5px; color: #2c3e50; }
+          p { margin-top: 0; color: #7f8c8d; font-size: 13px; }
+          table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+          th, td { border: 1px solid #ddd; padding: 8px; text-align: left; font-size: 12px; }
+          th { background-color: #f2f2f2; color: #333; font-weight: bold; }
+          tr:nth-child(even) { background-color: #f9f9f9; }
+        </style>
+      </head>
+      <body>
+        <h2>LAPORAN ABSENSI (${role.toUpperCase()})</h2>
+        <p>Jenis Laporan: ${jenis} | Periode Tanggal: ${tglMulai}</p>
+        <hr>
+        ${tabelElement}
+      </body>
+    </html>
+  `);
+
+  printWindow.document.close();
+  printWindow.focus();
+  setTimeout(() => {
+    printWindow.print();
+    printWindow.close();
+  }, 500);
+}
