@@ -1592,3 +1592,25 @@ async function loadSemuaJadwalAdmin() {
   }
 }
 
+// Fungsi untuk mencari jadwal di menu Absensi Kelas (Super Admin)
+function filterJadwalAdmin() {
+  const input = document.getElementById('search-jadwal-admin').value.toLowerCase();
+  const container = document.getElementById('admin-jadwal-container');
+  const cards = container.children; // Mengambil semua kotak jadwal
+
+  for (let i = 0; i < cards.length; i++) {
+    const card = cards[i];
+    // Abaikan jika itu teks "Memuat..."
+    if (card.innerText.includes('Memuat')) continue; 
+
+    const textContent = card.innerText.toLowerCase();
+    
+    // Jika teks di kotak cocok dengan pencarian, tampilkan. Jika tidak, sembunyikan.
+    if (textContent.includes(input)) {
+      card.style.display = ""; 
+    } else {
+      card.style.display = "none"; 
+    }
+  }
+}
+

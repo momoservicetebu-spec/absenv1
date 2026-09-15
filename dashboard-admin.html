@@ -599,6 +599,13 @@
       <h2 class="section-title">📝 Daftar Seluruh Jadwal Pelajaran (Super Admin)</h2>
       <p class="section-desc">Pilih kelas dari daftar jadwal di bawah ini untuk memulai presensi.</p>
       
+      <!-- TAMBAHAN: FITUR PENCARIAN JADWAL & GURU -->
+      <div style="margin-bottom: 15px; display: flex; gap: 10px; align-items: center;">
+        <input type="text" id="search-jadwal-admin" placeholder="🔍 Cari berdasarkan Kelas, Mapel, atau Nama Guru..." 
+               style="width: 100%; padding: 12px 15px; border-radius: 8px; background: #161224; color: white; border: 1px solid #4a4563; outline: none; font-size: 14px;"
+               onkeyup="filterJadwalAdmin()">
+      </div>
+      
       <!-- Container untuk memuat semua jadwal dari database -->
       <div id="admin-jadwal-container" style="display: flex; flex-direction: column; gap: 15px; margin-bottom: 20px; max-height: 500px; overflow-y: auto; padding-right: 10px;">
         <!-- Skeleton loader saat data sedang dimuat -->
@@ -610,8 +617,8 @@
       <!-- Opsi Manual tetap dipertahankan jika admin ingin absen di luar jadwal -->
       <details style="background: #2a2640; padding: 15px; border-radius: 5px; border: 1px solid #4a4563;">
         <summary style="cursor: pointer; color: #feca57; font-weight: bold;">Buka Absensi Manual Khusus</summary>
-        <div style="margin-top: 15px; display: flex; gap: 10px;">
-          <select id="select-kelas-manual" style="flex: 1; padding: 10px; background: #161224; color: white; border: 1px solid #4a4563; border-radius: 5px;">
+        <div style="margin-top: 15px; display: flex; gap: 10px; flex-wrap: wrap;">
+          <select id="select-kelas-manual" style="flex: 1; min-width: 200px; padding: 10px; background: #161224; color: white; border: 1px solid #4a4563; border-radius: 5px;">
             <option value="">-- Pilih Kelas --</option>
             <option value="10-A">10-A</option>
             <option value="10-B">10-B</option>
@@ -620,7 +627,7 @@
             <option value="12-IPA">12-IPA</option>
             <option value="12-IPS">12-IPS</option>
           </select>
-          <select id="select-mapel-manual" style="flex: 1; padding: 10px; background: #161224; color: white; border: 1px solid #4a4563; border-radius: 5px;">
+          <select id="select-mapel-manual" style="flex: 1; min-width: 200px; padding: 10px; background: #161224; color: white; border: 1px solid #4a4563; border-radius: 5px;">
             <option value="">-- Pilih Mata Pelajaran --</option>
             <option value="Matematika">Matematika</option>
             <option value="Bahasa Inggris">Bahasa Inggris</option>
@@ -632,7 +639,6 @@
           
           <!-- INI KODE YANG BENAR (Tombol Buka Kelas) -->
           <button class="btn-action" onclick="bukaModalAbsenManual()">Buka Kelas</button>
-          
         </div>
       </details>
     </div>
