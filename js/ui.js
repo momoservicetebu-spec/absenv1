@@ -1858,3 +1858,54 @@ function unduhLaporanPDF() {
     printWindow.close();
   }, 500);
 }
+
+// ==========================================
+// FITUR DROPDOWN SEARCHABLE NAMA LAPORAN
+// ==========================================
+
+async function muatDaftarNamaLaporan() {
+  const role = document.getElementById('lap-role').value;
+  const dataList = document.getElementById('list-nama-laporan');
+  const inputTarget = document.getElementById('lap-nama-target');
+  
+  // Kosongkan list dan input setiap kali Tipe Pengguna (Guru/Siswa) diubah
+  dataList.innerHTML = '';
+  inputTarget.value = '';
+  inputTarget.placeholder = '⏳ Memuat daftar nama...';
+
+  try {
+    // Memanggil API getSiswa atau getGuru yang sudah ada di Router.gs
+    const action = (role === 'Siswa') ? 'getSiswa' : 'getGuru';
+    const res = await fetchAPI(action);
+
+    if (res.success && res.data) {
+      let optionsHtml = '';
+      
+      // Looping data untuk dimasukkan ke opsi dropdown
+      res.data.forEach(item => {
+        // Sesuaikan jika nama kolom di Sheet Anda berbeda
+        const nama = item.Nama || item.Nama_Lengkap || item.Nama_Guru || item.Nama_Siswa || '-';
+        const id = item.SiswaID || item.GuruID || item.NISN || item.NIP || '';
+        
+        // Memasukkan nama sebagai value, dan ID sebagai label tambahan
+        optionsHtml += `<option value="${nama}">ID: ${id}</option>`;
+      });
+      
+      dataList.innerHTML = optionsHtml;
+      inputTarget.placeholder = "Ketik atau pilih nama...";
+    } else {
+      inputTarget.placeholder = "Kosongkan untuk Semua...";
+    }
+  } catch (error) {
+    console.error("Gagal memuat daftar nama:", error);
+    inputTarget.placeholder = "Kosongkan untuk Semua...";
+  }
+}
+
+// Tambahkan pemanggilan fungsi ini saat halaman web pertama kali dimuat
+document.addEventListener('DOMContentLoaded', () => {
+  // ... (kode yang sudah ada) ...
+  if (document.getElementById('lap-nama-target')) {
+    muatDaftarNamaLaporan(); 
+  }
+});

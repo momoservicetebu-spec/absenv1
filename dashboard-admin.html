@@ -655,7 +655,7 @@
           <!-- 1. Tipe Pengguna -->
           <div>
             <label style="color: #a29bfe; font-size: 13px; display: block; margin-bottom: 5px;">Tipe Pengguna</label>
-            <select id="lap-role" style="width: 100%; padding: 10px; background: #161224; color: white; border: 1px solid #4a4563; border-radius: 5px;">
+            <select id="lap-role" onchange="muatDaftarNamaLaporan()" style="width: 100%; padding: 10px; background: #161224; color: white; border: 1px solid #4a4563; border-radius: 5px;">
               <option value="Siswa">Siswa</option>
               <option value="Guru">Guru</option>
             </select>
@@ -676,7 +676,9 @@
           <!-- TAMBAHAN: 3. Filter Target / Nama (Untuk Laporan Per Individu) -->
           <div>
             <label style="color: #a29bfe; font-size: 13px; display: block; margin-bottom: 5px;">Spesifik Nama/ID (Opsional)</label>
-            <input type="text" id="lap-nama-target" placeholder="Kosongkan untuk Semua..." style="width: 100%; padding: 9px; background: #161224; color: white; border: 1px solid #4a4563; border-radius: 5px; outline:none;">
+            <input list="list-nama-laporan" id="lap-nama-target" placeholder="Ketik untuk mencari..." autocomplete="off" style="width: 100%; padding: 9px; background: #161224; color: white; border: 1px solid #4a4563; border-radius: 5px; outline:none;">
+            <!-- Datalist ini akan diisi otomatis oleh JavaScript -->
+            <datalist id="list-nama-laporan"></datalist>
           </div>
 
           <!-- 4. Input Tanggal -->
