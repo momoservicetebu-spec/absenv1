@@ -62,7 +62,7 @@
     <div class="menu-group">Operasional & Absensi</div>
     <button class="nav-btn" onclick="switchTab('jadwal-pelajaran', this)">📅 Jadwal Pelajaran</button>
     <button class="nav-btn" onclick="switchTab('gate-pass', this)">🎟️ Manajemen Gate Pass</button>
-    <button class="nav-btn" onclick="switchTab('absensi-kelas', this)">📝 Absensi Kelas</button>
+    <button class="nav-btn" onclick="switchTab('absensi-kelas', this); loadSemuaJadwalAdmin();">📝 Absensi Kelas</button>
 
     <div class="menu-group">Sistem & Laporan</div>
     <button class="nav-btn" onclick="switchTab('laporan', this)">📊 Laporan Absensi</button>
@@ -594,7 +594,7 @@
       </div>
     </div>
 
-    <!-- KONTEN: ABSENSI KELAS (SUPER ADMIN VIEW) -->
+<!-- KONTEN: ABSENSI KELAS (SUPER ADMIN VIEW) -->
     <div id="absensi-kelas" class="section card">
       <h2 class="section-title">📝 Daftar Seluruh Jadwal Pelajaran (Super Admin)</h2>
       <p class="section-desc">Pilih kelas dari daftar jadwal di bawah ini untuk memulai presensi.</p>
@@ -629,7 +629,10 @@
             <option value="Sejarah">Sejarah</option>
             <option value="Seni Budaya">Seni Budaya</option>
           </select>
-          <li onclick="showSection('absensi-kelas'); loadSemuaJadwalAdmin();"><i class="icon">📝</i> Absensi Kelas</li>
+          
+          <!-- INI KODE YANG BENAR (Tombol Buka Kelas) -->
+          <button class="btn-action" onclick="bukaModalAbsenManual()">Buka Kelas</button>
+          
         </div>
       </details>
     </div>
