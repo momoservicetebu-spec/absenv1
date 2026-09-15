@@ -1564,6 +1564,9 @@ async function loadSemuaJadwalAdmin() {
       
       // Mengelompokkan atau langsung menampilkan semua jadwal
       res.data.forEach(jdwl => {
+        // Fallback jika Nama_Guru belum terisi dari backend, maka tampilkan Kode_Guru
+        const namaGuruTampil = jdwl.Nama_Guru ? jdwl.Nama_Guru : jdwl.Kode_Guru;
+
         // Render setiap baris database menjadi sebuah card jadwal
         html += `
         <div style="background: rgba(108, 92, 231, 0.1); border-left: 4px solid #6c5ce7; padding: 15px 20px; border-radius: 5px; display: flex; justify-content: space-between; align-items: center;">
@@ -1572,7 +1575,9 @@ async function loadSemuaJadwalAdmin() {
               ${jdwl.Hari} | ${jdwl.Mata_Pelajaran} (Jam ke ${jdwl.Jam_Ke})
             </h3>
             <p style="margin: 0; color: #a29bfe; font-size: 13px;">
-              Waktu: ${jdwl.Waktu_Mulai} - ${jdwl.Waktu_Selesai} WIB | Kelas: <strong style="color: #feca57;">${jdwl.Kelas}</strong> | Kode Guru: ${jdwl.Kode_Guru}
+              Waktu: ${jdwl.Waktu_Mulai} - ${jdwl.Waktu_Selesai} WIB | 
+              Kelas: <strong style="color: #feca57;">${jdwl.Kelas}</strong> | 
+              Guru: <strong style="color: #00d2d3;">${namaGuruTampil}</strong>
             </p>
           </div>
           <button class="btn-action btn-success" style="padding: 10px 18px; font-size: 14px;" 
