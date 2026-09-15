@@ -1670,7 +1670,8 @@ async function lihatPreviewLaporan() {
     role: role,
     jenis: jenis,
     tglMulai: tglMulai,
-    tglSampai: tglSampai
+    tglSampai: tglSampai,
+    namaTarget: namaTarget
   };
 
   try {
