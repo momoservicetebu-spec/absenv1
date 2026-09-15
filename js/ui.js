@@ -1467,7 +1467,7 @@ window.closeModalAbsen = function() {
 // 5. Fetch daftar siswa + status digital & status mapel
 async function fetchDaftarSiswaAbsen(kelas, mapel) {
   const tbody = document.getElementById('tabel-absensi-kelas-body');
-  tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:20px;">Memuat daftar siswa & status digital...</td></tr>';
+  tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:20px;">⏳ Memuat daftar siswa & status digital...</td></tr>';
   
   try {
     const res = await fetchAPI('getAbsensiKelas', { kelas: kelas, mapel: mapel });
@@ -1482,6 +1482,7 @@ async function fetchDaftarSiswaAbsen(kelas, mapel) {
         // Gunakan status mapel jika sudah pernah diabsen, jika belum default ke status digital
         const statusSelected = siswa.StatusMapel || (isDigitalHadir ? "Hadir" : "Alpa");
 
+        // Penambahan opsi Telat dan Bolos pada dropdown
         html += `
         <tr style="border-bottom: 1px solid #3a3553;">
           <td style="padding: 10px;">${index + 1}</td>
@@ -1494,6 +1495,8 @@ async function fetchDaftarSiswaAbsen(kelas, mapel) {
               <option value="Hadir" ${statusSelected === 'Hadir' ? 'selected' : ''}>✅ Hadir</option>
               <option value="Sakit" ${statusSelected === 'Sakit' ? 'selected' : ''}>🏥 Sakit</option>
               <option value="Izin" ${statusSelected === 'Izin' ? 'selected' : ''}>📩 Izin</option>
+              <option value="Telat" ${statusSelected === 'Telat' ? 'selected' : ''}>⏱️ Telat</option>
+              <option value="Bolos" ${statusSelected === 'Bolos' ? 'selected' : ''}>🏃 Bolos</option>
               <option value="Alpa" ${statusSelected === 'Alpa' ? 'selected' : ''}>❌ Alpa</option>
             </select>
           </td>
@@ -1501,7 +1504,7 @@ async function fetchDaftarSiswaAbsen(kelas, mapel) {
       });
       tbody.innerHTML = html;
     } else {
-      tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:20px;">Tidak ada siswa di kelas ini.</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:20px;">Tidak ada siswa di kelas ini. (Cek kesamaan penulisan nama kelas di Sheet Siswa)</td></tr>';
     }
   } catch (err) {
     tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:#ff6b6b; padding:20px;">Gagal memuat data siswa!</td></tr>';
@@ -1589,4 +1592,3 @@ async function loadSemuaJadwalAdmin() {
   }
 }
 
-// Catatan: Pastikan Anda memanggil loadSemuaJadwalAdmin() di dalam fungsi navigasi/inisialisasi halaman Anda!
