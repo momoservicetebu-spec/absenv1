@@ -729,20 +729,134 @@
 
     <!-- 10. SETTING -->
     <div id="setting" class="section card">
-      <h2 class="section-title">🛠️ Pengaturan Sistem</h2>
-      <p class="section-desc">Konfigurasi dasar aplikasi dan batasan absensi (Geofencing).</p>
-      <div class="form-group"><label>Nama Sekolah / Instansi</label><input type="text" value="SMA Negeri 1 Contoh"></div>
-      <div class="form-group"><label>Waktu Batas Keterlambatan Masuk</label><input type="text" value="07:15"></div>
-      <div class="form-group"><label>Batas Radius Absen (Meter)</label><input type="text" value="50"></div>
-      <button class="btn-action btn-success">Simpan Pengaturan</button>
-    </div>
+      <h2 class="section-title">🛠️ Pengaturan Sistem & Keamanan</h2>
+      <p class="section-desc">Konfigurasi identitas sekolah, tampilan, batasan absensi, autentikasi MFA, dan fitur anti-manipulasi.</p>
 
-    <!-- 11. BACKUP -->
-    <div id="backup" class="section card">
-      <h2 class="section-title">💾 Backup & Restore Database</h2>
-      <p class="section-desc">Amankan data wajah, sidik jari, dan riwayat absensi secara berkala.</p>
-      <button class="btn-action">📥 Backup Sekarang (Download ZIP)</button> 
-      <button class="btn-action" style="background:#ff6b6b;">📤 Restore Data (Upload)</button>
+      <!-- 1. IDENTITAS SEKOLAH & KOP SURAT -->
+      <div style="margin-top: 20px; padding: 18px; border: 1px solid #4a4563; border-radius: 8px; background: #231f36;">
+        <h3 style="color: #feca57; font-size: 15px; margin-bottom: 15px; border-bottom: 1px solid #4a4563; padding-bottom: 8px;">🏛️ Identitas Sekolah & Kop Surat Laporan</h3>
+        
+        <div class="form-group">
+            <label>Nama Sekolah / Instansi</label>
+            <input type="text" id="set-nama-sekolah" value="SMA Negeri 1 Contoh">
+        </div>
+        
+        <div class="form-group">
+            <label>URL Logo Sekolah (Opsional)</label>
+            <input type="text" id="set-logo-sekolah" placeholder="Link gambar logo (Google Drive/Lainnya)">
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+            <div class="form-group" style="margin-bottom: 0;">
+                <label>Nama Kepala Sekolah</label>
+                <input type="text" id="set-nama-kepsek" placeholder="Nama Lengkap & Gelar">
+            </div>
+            <div class="form-group" style="margin-bottom: 0;">
+                <label>NIP Kepala Sekolah</label>
+                <input type="text" id="set-nip-kepsek" placeholder="Nomor Induk Pegawai">
+            </div>
+        </div>
+
+        <div class="form-group" style="margin-top: 15px;">
+            <label>Alamat & Kontak Sekolah (Teks Bawah Kop Surat)</label>
+            <input type="text" id="set-alamat-kop" placeholder="Jl. Pendidikan No.1 | Telp: (021) 123456 | Email: info@sekolah.id">
+        </div>
+      </div>
+
+      <!-- 2. TEMA & TAMPILAN DASHBOARD (FITUR BARU) -->
+      <div style="margin-top: 20px; padding: 18px; border: 1px solid #4a4563; border-radius: 8px; background: #231f36;">
+        <h3 style="color: #e056fd; font-size: 15px; margin-bottom: 15px; border-bottom: 1px solid #4a4563; padding-bottom: 8px;">🎨 Tema & Tampilan Dashboard</h3>
+        
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+            <div class="form-group" style="margin-bottom: 0;">
+                <label style="color: #74b9ff; font-weight: bold;">Mode Tema (Warna Dasar)</label>
+                <select id="set-tema-mode" style="width: 100%; padding: 10px; background: #161224; color: white; border: 1px solid #4a4563; border-radius: 6px; outline: none; box-sizing: border-box;">
+                    <option value="dark" selected>🌙 Dark Mode (Gelap Elegan)</option>
+                    <option value="light">☀️ Light Mode (Terang Bersih)</option>
+                    <option value="navy">🌊 Navy Blue (Biru Profesional)</option>
+                </select>
+            </div>
+            <div class="form-group" style="margin-bottom: 0;">
+                <label style="color: #74b9ff; font-weight: bold;">Warna Aksen Tombol & Menu</label>
+                <select id="set-tema-aksen" style="width: 100%; padding: 10px; background: #161224; color: white; border: 1px solid #4a4563; border-radius: 6px; outline: none; box-sizing: border-box;">
+                    <option value="default" selected>🟣 Ungu Klasik (Bawaan)</option>
+                    <option value="blue">🔵 Biru Teknologi</option>
+                    <option value="green">🟢 Hijau Tosca</option>
+                    <option value="red">🔴 Merah Tegas</option>
+                </select>
+            </div>
+        </div>
+      </div>
+
+      <!-- 3. PENGATURAN SISTEM DASAR -->
+      <div style="margin-top: 20px; padding: 18px; border: 1px solid #4a4563; border-radius: 8px; background: #231f36;">
+        <h3 style="color: #00b894; font-size: 15px; margin-bottom: 15px; border-bottom: 1px solid #4a4563; padding-bottom: 8px;">⚙️ Parameter Absensi Dasar</h3>
+        
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+            <div class="form-group" style="margin-bottom: 0;">
+                <label>Waktu Batas Keterlambatan Masuk</label>
+                <input type="time" id="set-batas-telat" value="07:15" style="color-scheme: dark;">
+            </div>
+            <div class="form-group" style="margin-bottom: 0;">
+                <label>Batas Radius Absen (Meter)</label>
+                <input type="number" id="set-radius" value="50">
+            </div>
+        </div>
+      </div>
+
+      <!-- 4. KEAMANAN MFA & ANTI MANIPULASI -->
+      <div style="margin-top: 20px; margin-bottom: 25px; padding: 18px; border: 1px solid #4a4563; border-radius: 8px; background: #231f36;">
+        <h3 style="color: #ff7675; font-size: 15px; margin-bottom: 15px; border-bottom: 1px solid #4a4563; padding-bottom: 8px;">🛡️ Keamanan & Multi-Factor Authentication (MFA)</h3>
+        
+        <!-- Pilihan MFA -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; margin-bottom: 20px;">
+            <div class="form-group" style="margin-bottom: 0;">
+                <label style="color: #74b9ff; font-weight: bold;">Metode Absensi Siswa</label>
+                <select id="set-mfa-siswa" style="width: 100%; padding: 10px; background: #161224; color: white; border: 1px solid #4a4563; border-radius: 6px; outline: none; box-sizing: border-box;">
+                    <option value="rfid">Hanya Tap Kartu (RFID / NFC)</option>
+                    <option value="face">Hanya Scan Wajah (Face Recognition)</option>
+                    <option value="rfid_face" selected>🛡️ Tap Kartu + Scan Wajah (MFA)</option>
+                </select>
+            </div>
+            <div class="form-group" style="margin-bottom: 0;">
+                <label style="color: #74b9ff; font-weight: bold;">Metode Absensi Guru</label>
+                <select id="set-mfa-guru" style="width: 100%; padding: 10px; background: #161224; color: white; border: 1px solid #4a4563; border-radius: 6px; outline: none; box-sizing: border-box;">
+                    <option value="finger">Hanya Sidik Jari (Fingerprint)</option>
+                    <option value="face">Hanya Scan Wajah (Face Recognition)</option>
+                    <option value="finger_face" selected>🛡️ Sidik Jari + Scan Wajah (MFA)</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- 5 Fitur Anti-Manipulasi -->
+        <label style="display: block; margin-bottom: 10px; color: #a29bfe; font-weight: bold; font-size: 13px;">5 Lapis Perlindungan Anti-Manipulasi Sistem</label>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px;">
+            <label style="display: flex; align-items: center; gap: 10px; background: #161224; padding: 10px; border-radius: 6px; cursor: pointer; border: 1px solid #4a4563;">
+                <input type="checkbox" id="anti-liveness" checked style="accent-color: #00b894; width: 16px; height: 16px;">
+                <span style="font-size: 12px; color: #dcdde1;">👁️ Liveness Detection</span>
+            </label>
+            <label style="display: flex; align-items: center; gap: 10px; background: #161224; padding: 10px; border-radius: 6px; cursor: pointer; border: 1px solid #4a4563;">
+                <input type="checkbox" id="anti-fakegps" checked style="accent-color: #00b894; width: 16px; height: 16px;">
+                <span style="font-size: 12px; color: #dcdde1;">📍 Blokir Fake GPS</span>
+            </label>
+            <label style="display: flex; align-items: center; gap: 10px; background: #161224; padding: 10px; border-radius: 6px; cursor: pointer; border: 1px solid #4a4563;">
+                <input type="checkbox" id="anti-devicebind" checked style="accent-color: #00b894; width: 16px; height: 16px;">
+                <span style="font-size: 12px; color: #dcdde1;">📱 Device Binding (1 HP)</span>
+            </label>
+            <label style="display: flex; align-items: center; gap: 10px; background: #161224; padding: 10px; border-radius: 6px; cursor: pointer; border: 1px solid #4a4563;">
+                <input type="checkbox" id="anti-timesync" checked style="accent-color: #00b894; width: 16px; height: 16px;">
+                <span style="font-size: 12px; color: #dcdde1;">⏱️ Time-Sync Server</span>
+            </label>
+            <label style="display: flex; align-items: center; gap: 10px; background: #161224; padding: 10px; border-radius: 6px; cursor: pointer; border: 1px solid #4a4563;">
+                <input type="checkbox" id="anti-qr" checked style="accent-color: #00b894; width: 16px; height: 16px;">
+                <span style="font-size: 12px; color: #dcdde1;">🔄 Dynamic QR Code</span>
+            </label>
+        </div>
+      </div>
+
+      <button class="btn-action btn-success" onclick="simpanPengaturanLengkap()" style="width: 100%; font-size: 15px; padding: 12px; font-weight: bold; border-radius: 8px;">
+        💾 Simpan Seluruh Pengaturan
+      </button>
     </div>
 
     <!-- 12. WHATSAPP GATEWAY -->
