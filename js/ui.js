@@ -1644,38 +1644,65 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 });
 // 2. Mengambil Data Laporan dari Server & Memunculkan Preview (Versi Google Apps Script)
-function lihatPreviewLaporan() {
-  // Mengambil elemen-elemen DOM
+// Variable global untuk menyimpan data laporan aktif
+// (Pastikan let dataLaporanAktif = []; sudah ada di bagian atas file Anda)
+
+async function lihatPreviewLaporan() {
   const role = document.getElementById('lap-role').value;
   const jenis = document.getElementById('lap-jenis').value;
   const tglMulai = document.getElementById('lap-tgl-mulai').value;
   const tglSampai = document.getElementById('lap-tgl-sampai').value;
   
-  // Mengambil namaTarget dengan aman
   const elTarget = document.getElementById('lap-target') || document.getElementById('lap-nama-target');
   const namaTarget = elTarget ? elTarget.value : '';
 
-  // Validasi Input
   if (!tglMulai) {
     alert("Mohon tentukan Tanggal Mulai terlebih dahulu!");
     return;
   }
-
   if (jenis !== 'Harian' && !tglSampai) {
     alert("Mohon tentukan Tanggal Sampai!");
     return;
   }
 
-  // Tampilan Loading
   const tbody = document.getElementById('body-preview-laporan');
+  if (tbody) tbody.innerHTML = `<tr><td colspan="10" style="text-align:center; padding:20px;">⏳ Memuat laporan dari server, silakan tunggu...</td></tr>`;
+
+  const payload = { role, jenis, tglMulai, tglSampai, namaTarget };
+
+  // ========================================================
+  // 1. MASUKKAN URL WEB APP GOOGLE APPS SCRIPT ANDA DI SINI
+  // ========================================================
+  const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxx3BLAOh7RZwF2vvukhDPhytbAPXfMP3H_RAJNeWgxLe2LNcCzojm-6HQ1kktPQMTQ/exec'; 
   
-  tbody.innerHTML = `
-    <tr>
-      <td colspan="10" style="text-align:center; padding:20px;">
-        ⏳ Memuat laporan, silakan tunggu...
-      </td>
-    </tr>
-  `;
+  // Kita tambahkan parameter ?action=tarikLaporan agar backend Anda tahu rutenya
+  const API_URL = `${WEB_APP_URL}?action=tarikLaporan`;
+
+  try {
+    const response = await fetch(API_URL, {
+      method: 'POST',
+      // PENTING: Gunakan text/plain agar browser di GitHub tidak memicu preflight CORS error
+      headers: {
+        'Content-Type': 'text/plain;charset=utf-8'
+      },
+      body: JSON.stringify(payload)
+    });
+
+    const result = await response.json();
+
+    // Karena backend Anda menggunakan responseJSON(success, message, data), formatnya seperti ini:
+    if (result.success) {
+      dataLaporanAktif = result.data; // Menyimpan data untuk fitur Download PDF/CSV
+      renderTabelLaporan(jenis, result.data); // Mencetak tabel ke layar
+    } else {
+      tbody.innerHTML = `<tr><td colspan="10" style="text-align:center; padding:20px; color:red;">${result.message}</td></tr>`;
+    }
+
+  } catch (error) {
+    console.error("Gagal memuat laporan:", error);
+    tbody.innerHTML = `<tr><td colspan="10" style="text-align:center; padding:20px; color:red;">❌ Gagal menghubungi server. Pastikan koneksi internet stabil.</td></tr>`;
+  }
+}
 
   // Payload lebih rapi dengan Object Shorthand
   const payload = { role, jenis, tglMulai, tglSampai, namaTarget };
@@ -1705,7 +1732,7 @@ function lihatPreviewLaporan() {
       `;
     })
     .getLaporanDariServer(payload);
-}
+
 
 // 3. Render Header dan Isi Tabel Laporan secara Dinamis
 function renderTabelLaporan(jenis, data) {
