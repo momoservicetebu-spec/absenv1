@@ -2053,12 +2053,11 @@ async function muatPengaturanLengkap() {
 }
 
 // ============================================================================
-// FUNGSI TAMBAHAN: TERAPKAN TEMA LANGSUNG (LIVE PREVIEW)
+// FUNGSI TAMBAHAN: TERAPKAN TEMA LANGSUNG (LIVE PREVIEW) - VERSI MODERN
 // ============================================================================
 function terapkanTemaLive(mode, aksen) {
     console.log(`Mengubah tema ke Mode: ${mode}, Aksen: ${aksen}`);
 
-    // 1. Cek apakah elemen <style> khusus tema sudah ada. Jika belum, buatkan!
     let styleEl = document.getElementById('dynamic-theme-style');
     if (!styleEl) {
         styleEl = document.createElement('style');
@@ -2066,87 +2065,129 @@ function terapkanTemaLive(mode, aksen) {
         document.head.appendChild(styleEl);
     }
 
-    // 2. Siapkan variabel warna berdasarkan Pilihan Mode (Latar Belakang)
-    let bgBody, bgCard, bgInput, textMain, borderCol;
+    // 1. Siapkan Variabel Warna Latar & Teks
+    let bgBody, bgCard, bgInput, textMain, textMuted, borderCol, shadow;
     
     if (mode === 'light') {
-        bgBody = '#f1f2f6';       // Abu-abu sangat terang
+        bgBody = '#f8f9fa';       // Abu-abu super lembut (seperti Google Workspace)
         bgCard = '#ffffff';       // Putih bersih
-        bgInput = '#f1f2f6';      // Abu-abu terang untuk input
-        textMain = '#2f3640';     // Teks abu-abu gelap/hitam
-        borderCol = '#ced6e0';    // Garis batas tipis
+        bgInput = '#ffffff';      // Input putih
+        textMain = '#333333';     // Hitam abu-abu (nyaman dibaca)
+        textMuted = '#6c757d';    // Abu-abu untuk label
+        borderCol = '#dee2e6';    // Garis abu-abu tipis
+        shadow = '0 2px 8px rgba(0,0,0,0.04)'; // Bayangan lembut
     } else if (mode === 'navy') {
-        bgBody = '#0a3d62';       // Biru dongker gelap
-        bgCard = '#1e3799';       // Biru kartu
-        bgInput = '#0c2461';      // Biru input gelap
-        textMain = '#ffffff';     // Teks putih
-        borderCol = '#4a69bd';    // Garis batas biru terang
+        bgBody = '#0f172a';       // Slate Dark
+        bgCard = '#1e293b';       // Slate Card
+        bgInput = '#0f172a';      
+        textMain = '#f8fafc';     
+        textMuted = '#94a3b8';    
+        borderCol = '#334155';    
+        shadow = '0 4px 6px rgba(0,0,0,0.3)';
     } else {
         // default (Dark Mode)
-        bgBody = '#0f0a1c';       // Hitam keunguan (Background luar)
-        bgCard = '#2a2640';       // Ungu gelap (Background Kartu)
-        bgInput = '#161224';      // Ungu lebih gelap (Background Input)
-        textMain = '#ffffff';     // Teks putih
-        borderCol = '#4a4563';    // Garis batas ungu
+        bgBody = '#121212';       
+        bgCard = '#1e1e1e';       
+        bgInput = '#121212';      
+        textMain = '#e0e0e0';     
+        textMuted = '#a0a0a0';    
+        borderCol = '#333333';    
+        shadow = '0 4px 6px rgba(0,0,0,0.5)';
     }
 
-    // 3. Siapkan variabel warna berdasarkan Pilihan Aksen (Tombol & Sorotan)
+    // 2. Siapkan Warna Aksen
     let accentColor, accentHover;
-    
     if (aksen === 'blue') {
-        accentColor = '#0984e3';  // Biru tombol
-        accentHover = '#74b9ff';  // Biru teks sorotan
+        accentColor = '#0d6efd';  
+        accentHover = '#0b5ed7';  
     } else if (aksen === 'green') {
-        accentColor = '#00b894';  // Hijau tombol
-        accentHover = '#55efc4';  // Hijau teks sorotan
+        accentColor = '#198754';  
+        accentHover = '#157347';  
     } else if (aksen === 'red') {
-        accentColor = '#d63031';  // Merah tombol
-        accentHover = '#ff7675';  // Merah teks sorotan
+        accentColor = '#dc3545';  
+        accentHover = '#bb2d3b';  
     } else {
-        // default (Ungu Klasik)
-        accentColor = '#6c5ce7';  
-        accentHover = '#a29bfe';  
+        accentColor = '#6f42c1'; // Ungu Bootstrap (Lebih profesional)
+        accentHover = '#59339d';  
     }
 
-    // 4. Susun Aturan CSS Ajaib
+    // Penyesuaian agar judul di Light Mode menggunakan warna gelap/tegas, bukan warna pucat
+    let titleAccent = (mode === 'light') ? accentColor : accentHover;
+
+    // 3. Susun Aturan CSS yang Lebih Halus (Soft UI)
     const cssRules = `
+        /* Latar Belakang Utama */
         body, .main-content {
             background-color: ${bgBody} !important;
             color: ${textMain} !important;
-            transition: background-color 0.3s ease;
+            transition: all 0.3s ease;
         }
-        .card, .section, .analytics-table-wrap, 
-        div[style*="background: #2a2640"], 
-        div[style*="background: #231f36"],
-        div[style*="background: #161224"] {
+
+        /* Kartu / Kontainer Setting */
+        .card, .section, .analytics-table-wrap {
             background-color: ${bgCard} !important;
-            border-color: ${borderCol} !important;
-            color: ${textMain} !important;
+            border: 1px solid ${borderCol} !important;
+            border-radius: 8px !important; /* Membuat sudut membulat */
+            box-shadow: ${shadow} !important;
+            padding: 20px !important;
+            margin-bottom: 20px !important;
         }
-        input, select, datalist {
+
+        /* Input Form */
+        input:not([type="checkbox"]), select, datalist, textarea {
             background-color: ${bgInput} !important;
             color: ${textMain} !important;
-            border-color: ${borderCol} !important;
+            border: 1px solid ${borderCol} !important;
+            border-radius: 6px !important;
+            padding: 8px 12px !important;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
         }
-        button, .btn-action {
+        
+        /* Efek saat input diklik/fokus */
+        input:focus, select:focus {
+            border-color: ${accentColor} !important;
+            outline: none !important;
+            box-shadow: 0 0 0 3px ${accentColor}25 !important;
+        }
+
+        /* Tombol Utama (Hanya menargetkan tombol Submit/Simpan, bukan menu sidebar) */
+        button[onclick="simpanPengaturanLengkap()"], .btn-primary, .btn-action {
             background-color: ${accentColor} !important;
             color: #ffffff !important;
             border: none !important;
-            transition: transform 0.2s, filter 0.2s;
+            border-radius: 6px !important;
+            padding: 10px 20px !important;
+            font-weight: 600 !important;
+            cursor: pointer !important;
+            transition: all 0.2s ease;
         }
-        button:hover, .btn-action:hover {
-            filter: brightness(1.2);
-            transform: translateY(-2px);
+        
+        button[onclick="simpanPengaturanLengkap()"]:hover, .btn-primary:hover, .btn-action:hover {
+            background-color: ${accentHover} !important;
+            transform: translateY(-1px);
         }
-        h2, h3, label, .section-title {
-            color: ${accentHover} !important;
+
+        /* Tipografi: Judul dan Label */
+        h2, h3, .section-title {
+            color: ${titleAccent} !important;
+            font-weight: 600 !important;
+            margin-bottom: 15px !important;
+            border-bottom: 1px solid ${borderCol} !important;
+            padding-bottom: 8px !important;
         }
+        
+        label {
+            color: ${textMuted} !important;
+            font-weight: 500 !important;
+            font-size: 0.9em !important;
+        }
+
+        /* Sidebar (Tampilan Bersih) */
         .sidebar, #sidebar {
             background-color: ${bgCard} !important;
             border-right: 1px solid ${borderCol} !important;
         }
     `;
 
-    // 5. Terapkan CSS ke halaman secara real-time!
     styleEl.innerHTML = cssRules;
 }
