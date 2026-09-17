@@ -1643,14 +1643,19 @@ document.addEventListener('DOMContentLoaded', () => {
     aturInputTanggalLaporan();
   }
 });
-
-// 2. Mengambil Data Laporan dari Server & Memunculkan Preview
-async function lihatPreviewLaporan() {
+// 2. Mengambil Data Laporan dari Server & Memunculkan Preview (Versi Google Apps Script)
+function lihatPreviewLaporan() {
+  // Mengambil elemen-elemen DOM
   const role = document.getElementById('lap-role').value;
   const jenis = document.getElementById('lap-jenis').value;
   const tglMulai = document.getElementById('lap-tgl-mulai').value;
   const tglSampai = document.getElementById('lap-tgl-sampai').value;
+  
+  // Mengambil namaTarget dengan aman
+  const elTarget = document.getElementById('lap-target') || document.getElementById('lap-nama-target');
+  const namaTarget = elTarget ? elTarget.value : '';
 
+  // Validasi Input
   if (!tglMulai) {
     alert("Mohon tentukan Tanggal Mulai terlebih dahulu!");
     return;
@@ -1661,36 +1666,45 @@ async function lihatPreviewLaporan() {
     return;
   }
 
+  // Tampilan Loading
   const tbody = document.getElementById('body-preview-laporan');
-  const thead = document.getElementById('head-preview-laporan');
   
-  tbody.innerHTML = '<tr><td colspan="10" style="text-align:center; padding:20px;">⏳ Memuat laporan, silakan tunggu...</td></tr>';
+  tbody.innerHTML = `
+    <tr>
+      <td colspan="10" style="text-align:center; padding:20px;">
+        ⏳ Memuat laporan, silakan tunggu...
+      </td>
+    </tr>
+  `;
 
-  const payload = {
-    role: role,
-    jenis: jenis,
-    tglMulai: tglMulai,
-    tglSampai: tglSampai,
-    namaTarget: namaTarget
-  };
+  // Payload lebih rapi dengan Object Shorthand
+  const payload = { role, jenis, tglMulai, tglSampai, namaTarget };
 
-  try {
-    const res = await fetchAPI('tarikLaporan', payload);
-
-    if (res.success && res.data && res.data.length > 0) {
-      dataLaporanAktif = res.data; // Simpan ke memori lokal
-      renderTabelLaporan(jenis, res.data);
-    } else {
-      dataLaporanAktif = [];
-      thead.innerHTML = '';
-      tbody.innerHTML = `<tr><td colspan="10" style="text-align:center; color:#ff6b6b; padding:20px;">
-        ${res.message || "Tidak ada data absensi ditemukan pada rentang waktu ini."}
-      </td></tr>`;
-    }
-  } catch (err) {
-    console.error(err);
-    tbody.innerHTML = '<tr><td colspan="10" style="text-align:center; color:#ff6b6b; padding:20px;">Terjadi kesalahan koneksi saat memuat laporan.</td></tr>';
-  }
+  // --- PROSES MENGAMBIL DATA DARI SERVER GOOGLE APPS SCRIPT ---
+  google.script.run
+    .withSuccessHandler(function(response) {
+      if (response.success) {
+        // PENTING: Simpan data ke variabel global agar bisa diunduh (CSV/PDF)
+        dataLaporanAktif = response.data;
+        
+        // Render tabel menggunakan fungsi yang sudah Anda buat
+        renderTabelLaporan(response.jenis, response.data);
+      } else {
+        // Jika data kosong atau tidak ditemukan
+        tbody.innerHTML = `<tr><td colspan="10" style="text-align:center; padding:20px; color:red;">${response.message}</td></tr>`;
+      }
+    })
+    .withFailureHandler(function(error) {
+      console.error("Gagal memuat laporan:", error);
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="10" style="text-align:center; padding:20px; color:red;">
+            ❌ Gagal memuat laporan: ${error.message}
+          </td>
+        </tr>
+      `;
+    })
+    .getLaporanDariServer(payload);
 }
 
 // 3. Render Header dan Isi Tabel Laporan secara Dinamis
