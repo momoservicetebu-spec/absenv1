@@ -2051,3 +2051,102 @@ async function muatPengaturanLengkap() {
     console.error("Gagal memuat data pengaturan:", err);
   }
 }
+
+// ============================================================================
+// FUNGSI TAMBAHAN: TERAPKAN TEMA LANGSUNG (LIVE PREVIEW)
+// ============================================================================
+function terapkanTemaLive(mode, aksen) {
+    console.log(`Mengubah tema ke Mode: ${mode}, Aksen: ${aksen}`);
+
+    // 1. Cek apakah elemen <style> khusus tema sudah ada. Jika belum, buatkan!
+    let styleEl = document.getElementById('dynamic-theme-style');
+    if (!styleEl) {
+        styleEl = document.createElement('style');
+        styleEl.id = 'dynamic-theme-style';
+        document.head.appendChild(styleEl);
+    }
+
+    // 2. Siapkan variabel warna berdasarkan Pilihan Mode (Latar Belakang)
+    let bgBody, bgCard, bgInput, textMain, borderCol;
+    
+    if (mode === 'light') {
+        bgBody = '#f1f2f6';       // Abu-abu sangat terang
+        bgCard = '#ffffff';       // Putih bersih
+        bgInput = '#f1f2f6';      // Abu-abu terang untuk input
+        textMain = '#2f3640';     // Teks abu-abu gelap/hitam
+        borderCol = '#ced6e0';    // Garis batas tipis
+    } else if (mode === 'navy') {
+        bgBody = '#0a3d62';       // Biru dongker gelap
+        bgCard = '#1e3799';       // Biru kartu
+        bgInput = '#0c2461';      // Biru input gelap
+        textMain = '#ffffff';     // Teks putih
+        borderCol = '#4a69bd';    // Garis batas biru terang
+    } else {
+        // default (Dark Mode)
+        bgBody = '#0f0a1c';       // Hitam keunguan (Background luar)
+        bgCard = '#2a2640';       // Ungu gelap (Background Kartu)
+        bgInput = '#161224';      // Ungu lebih gelap (Background Input)
+        textMain = '#ffffff';     // Teks putih
+        borderCol = '#4a4563';    // Garis batas ungu
+    }
+
+    // 3. Siapkan variabel warna berdasarkan Pilihan Aksen (Tombol & Sorotan)
+    let accentColor, accentHover;
+    
+    if (aksen === 'blue') {
+        accentColor = '#0984e3';  // Biru tombol
+        accentHover = '#74b9ff';  // Biru teks sorotan
+    } else if (aksen === 'green') {
+        accentColor = '#00b894';  // Hijau tombol
+        accentHover = '#55efc4';  // Hijau teks sorotan
+    } else if (aksen === 'red') {
+        accentColor = '#d63031';  // Merah tombol
+        accentHover = '#ff7675';  // Merah teks sorotan
+    } else {
+        // default (Ungu Klasik)
+        accentColor = '#6c5ce7';  
+        accentHover = '#a29bfe';  
+    }
+
+    // 4. Susun Aturan CSS Ajaib
+    const cssRules = `
+        body, .main-content {
+            background-color: ${bgBody} !important;
+            color: ${textMain} !important;
+            transition: background-color 0.3s ease;
+        }
+        .card, .section, .analytics-table-wrap, 
+        div[style*="background: #2a2640"], 
+        div[style*="background: #231f36"],
+        div[style*="background: #161224"] {
+            background-color: ${bgCard} !important;
+            border-color: ${borderCol} !important;
+            color: ${textMain} !important;
+        }
+        input, select, datalist {
+            background-color: ${bgInput} !important;
+            color: ${textMain} !important;
+            border-color: ${borderCol} !important;
+        }
+        button, .btn-action {
+            background-color: ${accentColor} !important;
+            color: #ffffff !important;
+            border: none !important;
+            transition: transform 0.2s, filter 0.2s;
+        }
+        button:hover, .btn-action:hover {
+            filter: brightness(1.2);
+            transform: translateY(-2px);
+        }
+        h2, h3, label, .section-title {
+            color: ${accentHover} !important;
+        }
+        .sidebar, #sidebar {
+            background-color: ${bgCard} !important;
+            border-right: 1px solid ${borderCol} !important;
+        }
+    `;
+
+    // 5. Terapkan CSS ke halaman secara real-time!
+    styleEl.innerHTML = cssRules;
+}
