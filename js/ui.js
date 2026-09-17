@@ -1701,9 +1701,6 @@ async function lihatPreviewLaporan() {
   }
 }
 
-  // Payload lebih rapi dengan Object Shorthand
-  const payload = { role, jenis, tglMulai, tglSampai, namaTarget };
-
   // --- PROSES MENGAMBIL DATA DARI SERVER GOOGLE APPS SCRIPT ---
   google.script.run
     .withSuccessHandler(function(response) {
