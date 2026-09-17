@@ -1701,32 +1701,6 @@ async function lihatPreviewLaporan() {
   }
 }
 
-  // --- PROSES MENGAMBIL DATA DARI SERVER GOOGLE APPS SCRIPT ---
-  google.script.run
-    .withSuccessHandler(function(response) {
-      if (response.success) {
-        // PENTING: Simpan data ke variabel global agar bisa diunduh (CSV/PDF)
-        dataLaporanAktif = response.data;
-        
-        // Render tabel menggunakan fungsi yang sudah Anda buat
-        renderTabelLaporan(response.jenis, response.data);
-      } else {
-        // Jika data kosong atau tidak ditemukan
-        tbody.innerHTML = `<tr><td colspan="10" style="text-align:center; padding:20px; color:red;">${response.message}</td></tr>`;
-      }
-    })
-    .withFailureHandler(function(error) {
-      console.error("Gagal memuat laporan:", error);
-      tbody.innerHTML = `
-        <tr>
-          <td colspan="10" style="text-align:center; padding:20px; color:red;">
-            ❌ Gagal memuat laporan: ${error.message}
-          </td>
-        </tr>
-      `;
-    })
-    .getLaporanDariServer(payload);
-
 // 3. Render Header dan Isi Tabel Laporan secara Dinamis
 function renderTabelLaporan(jenis, data) {
   const thead = document.getElementById('head-preview-laporan');
