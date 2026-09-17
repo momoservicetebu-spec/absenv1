@@ -2053,7 +2053,7 @@ async function muatPengaturanLengkap() {
 }
 
 // ============================================================================
-// FUNGSI TAMBAHAN: TERAPKAN TEMA LANGSUNG (LIVE PREVIEW) - FINAL (HOVER DINAMIS)
+// FUNGSI TAMBAHAN: TERAPKAN TEMA LANGSUNG (LIVE PREVIEW) - FINAL FIX
 // ============================================================================
 function terapkanTemaLive(mode, aksen) {
     console.log(`Mengubah tema ke Mode: ${mode}, Aksen: ${aksen}`);
@@ -2120,13 +2120,19 @@ function terapkanTemaLive(mode, aksen) {
             transition: all 0.3s ease;
         }
 
-        .card, .section, .analytics-table-wrap {
+        /* --- KUNCI PERBAIKAN ADA DI SINI --- */
+        /* Kita sasar secara spesifik div yang masih terkunci warna HTML bawaan */
+        .card, .section, .analytics-table-wrap,
+        div[style*="#2a2640"], 
+        div[style*="#231f36"], 
+        div[style*="#161224"] {
             background-color: ${bgCard} !important;
             border: 1px solid ${borderCol} !important;
             border-radius: 8px !important;
             box-shadow: ${shadow} !important;
             padding: 20px !important;
             margin-bottom: 20px !important;
+            color: ${textMain} !important;
         }
 
         input:not([type="checkbox"]), select, datalist, textarea {
@@ -2168,7 +2174,7 @@ function terapkanTemaLive(mode, aksen) {
             padding-bottom: 8px !important;
         }
         
-        label {
+        label, .form-label {
             color: ${textMuted} !important;
             font-weight: 500 !important;
             font-size: 0.9em !important;
@@ -2179,10 +2185,7 @@ function terapkanTemaLive(mode, aksen) {
             border-right: 1px solid ${borderCol} !important;
         }
 
-        /* =========================================
-           EFEK HOVER DINAMIS UNTUK MENU SIDEBAR 
-           ========================================= */
-        /* Kondisi normal: Latar transparan, warna teks menyesuaikan tema */
+        /* Hover dinamis sidebar */
         .sidebar button, .sidebar a, .sidebar .menu-item {
             background-color: transparent !important;
             color: ${textMain} !important;
@@ -2191,7 +2194,6 @@ function terapkanTemaLive(mode, aksen) {
             transition: background-color 0.2s ease, color 0.2s ease !important;
         }
 
-        /* Kondisi saat di-hover/diklik: Muncul aksen warnanya */
         .sidebar button:hover, .sidebar a:hover, .sidebar .menu-item:hover, .sidebar .active {
             background-color: ${accentColor} !important;
             color: #ffffff !important;
