@@ -1930,20 +1930,17 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // ============================================================================
-// FUNGSI: SIMPAN PENGATURAN LENGKAP
+// FUNGSI: SIMPAN PENGATURAN LENGKAP (Versi GitHub / CORS Safe)
 // ============================================================================
 async function simpanPengaturanLengkap() {
-    // 1. Ambil tombol dan buat efek loading agar UI terlihat interaktif
     const btnSimpan = document.querySelector('button[onclick="simpanPengaturanLengkap()"]');
     const textAsli = btnSimpan.innerHTML;
     btnSimpan.innerHTML = '⏳ Menyimpan ke Database...';
     btnSimpan.disabled = true;
     btnSimpan.style.opacity = '0.7';
 
-    // 2. Kumpulkan seluruh data dari form input & checkbox
     const payloadPengaturan = {
-        action: "simpanPengaturan", // Penanda aksi untuk Apps Script
-        
+        action: "simpanPengaturan", // Tetap dipertahankan jika backend Anda butuh ini
         identitas: {
             namaSekolah: document.getElementById('set-nama-sekolah').value,
             logoSekolah: document.getElementById('set-logo-sekolah').value,
@@ -1951,17 +1948,14 @@ async function simpanPengaturanLengkap() {
             nipKepsek: document.getElementById('set-nip-kepsek').value,
             alamatKop: document.getElementById('set-alamat-kop').value
         },
-        
         tema: {
             mode: document.getElementById('set-tema-mode').value,
             aksen: document.getElementById('set-tema-aksen').value
         },
-        
         parameter: {
             batasTelat: document.getElementById('set-batas-telat').value,
             radiusAbsen: document.getElementById('set-radius').value
         },
-        
         keamanan: {
             mfaSiswa: document.getElementById('set-mfa-siswa').value,
             mfaGuru: document.getElementById('set-mfa-guru').value,
@@ -1973,49 +1967,61 @@ async function simpanPengaturanLengkap() {
         }
     };
 
+    // URL Web App Anda
+    const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxx3BLAOh7RZwF2vvukhDPhytbAPXfMP3H_RAJNeWgxLe2LNcCzojm-6HQ1kktPQMTQ/exec';
+    const API_URL = `${WEB_APP_URL}?action=saveSettings`;
+
     try {
         console.log("Mengirim data pengaturan:", payloadPengaturan);
 
-        // 3. Kirim ke Endpoint API (Google Apps Script)
-        // PASTIKAN variabel 'scriptUrl' atau link API Anda di bawah ini sudah benar
-        const response = await fetch(scriptUrl, { 
+        const response = await fetch(API_URL, { 
             method: 'POST',
+            headers: {
+                'Content-Type': 'text/plain;charset=utf-8' // KUNCI ANTI-ERROR CORS
+            },
             body: JSON.stringify(payloadPengaturan)
         });
 
         const result = await response.json();
 
-        // 4. Evaluasi hasil dari server
-        if (result.status === 'success') {
+        // Mengakomodasi format response dari Apps Script (success atau status='success')
+        if (result.success || result.status === 'success') {
             alert('✅ Pengaturan Sistem berhasil disimpan secara permanen!');
-            
-            // Opsional: Terapkan tema warna secara langsung (Real-time preview)
             terapkanTemaLive(payloadPengaturan.tema.mode, payloadPengaturan.tema.aksen);
         } else {
-            alert('❌ Gagal menyimpan pengaturan: ' + result.message);
+            alert('❌ Gagal menyimpan pengaturan: ' + (result.message || 'Error tidak diketahui'));
         }
 
     } catch (error) {
         console.error('Error Save Setting:', error);
         alert('⚠️ Terjadi kesalahan koneksi saat menyimpan pengaturan.');
     } finally {
-        // 5. Kembalikan tombol ke kondisi semula
         btnSimpan.innerHTML = textAsli;
         btnSimpan.disabled = false;
         btnSimpan.style.opacity = '1';
     }
 }
 
-// Dipanggil otomatis saat halaman menu Pengaturan dibuka
+// ============================================================================
+// FUNGSI: MUAT PENGATURAN (Saat menu dibuka)
+// ============================================================================
 async function muatPengaturanLengkap() {
   try {
-    const response = await fetch(`${scriptUrl}?action=ambilPengaturan`);
+    const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxx3BLAOh7RZwF2vvukhDPhytbAPXfMP3H_RAJNeWgxLe2LNcCzojm-6HQ1kktPQMTQ/exec';
+    
+    // Kita gunakan POST dan text/plain seperti laporan agar pengambilannya lancar
+    const response = await fetch(`${WEB_APP_URL}?action=ambilPengaturan`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({}) 
+    });
+    
     const result = await response.json();
 
-    if (result.status === 'success' && result.data) {
+    if ((result.success || result.status === 'success') && result.data) {
       const d = result.data;
 
-      // Isikan ke form jika datanya tersedia di spreadsheet
+      // Isikan ke form jika datanya tersedia
       if (d.namaSekolah) document.getElementById('set-nama-sekolah').value = d.namaSekolah;
       if (d.logoSekolah) document.getElementById('set-logo-sekolah').value = d.logoSekolah;
       if (d.namaKepsek) document.getElementById('set-nama-kepsek').value = d.namaKepsek;
@@ -2031,123 +2037,17 @@ async function muatPengaturanLengkap() {
       if (d.mfaSiswa) document.getElementById('set-mfa-siswa').value = d.mfaSiswa;
       if (d.mfaGuru) document.getElementById('set-mfa-guru').value = d.mfaGuru;
 
-      // Set Checkbox (Boolean)
+      // Set Checkbox
       document.getElementById('anti-liveness').checked = (d.antiLiveness === true || d.antiLiveness === 'true');
       document.getElementById('anti-fakegps').checked = (d.antiFakeGps === true || d.antiFakeGps === 'true');
       document.getElementById('anti-devicebind').checked = (d.antiDeviceBind === true || d.antiDeviceBind === 'true');
       document.getElementById('anti-timesync').checked = (d.antiTimeSync === true || d.antiTimeSync === 'true');
       document.getElementById('anti-qr').checked = (d.antiQr === true || d.antiQr === 'true');
+      
+      // Opsional: Terapkan tema saat data dimuat
+      if (d.temaMode && d.temaAksen) terapkanTemaLive(d.temaMode, d.temaAksen);
     }
   } catch (err) {
     console.error("Gagal memuat data pengaturan:", err);
   }
-}
-// ============================================================================
-// FUNGSI TAMBAHAN: TERAPKAN TEMA LANGSUNG (LIVE PREVIEW)
-// ============================================================================
-function terapkanTemaLive(mode, aksen) {
-    console.log(`Mengubah tema ke Mode: ${mode}, Aksen: ${aksen}`);
-
-    // 1. Cek apakah elemen <style> khusus tema sudah ada. Jika belum, buatkan!
-    let styleEl = document.getElementById('dynamic-theme-style');
-    if (!styleEl) {
-        styleEl = document.createElement('style');
-        styleEl.id = 'dynamic-theme-style';
-        document.head.appendChild(styleEl);
-    }
-
-    // 2. Siapkan variabel warna berdasarkan Pilihan Mode (Latar Belakang)
-    let bgBody, bgCard, bgInput, textMain, borderCol;
-    
-    if (mode === 'light') {
-        bgBody = '#f1f2f6';       // Abu-abu sangat terang
-        bgCard = '#ffffff';       // Putih bersih
-        bgInput = '#f1f2f6';      // Abu-abu terang untuk input
-        textMain = '#2f3640';     // Teks abu-abu gelap/hitam
-        borderCol = '#ced6e0';    // Garis batas tipis
-    } else if (mode === 'navy') {
-        bgBody = '#0a3d62';       // Biru dongker gelap
-        bgCard = '#1e3799';       // Biru kartu
-        bgInput = '#0c2461';      // Biru input gelap
-        textMain = '#ffffff';     // Teks putih
-        borderCol = '#4a69bd';    // Garis batas biru terang
-    } else {
-        // default (Dark Mode)
-        bgBody = '#0f0a1c';       // Hitam keunguan (Background luar)
-        bgCard = '#2a2640';       // Ungu gelap (Background Kartu)
-        bgInput = '#161224';      // Ungu lebih gelap (Background Input)
-        textMain = '#ffffff';     // Teks putih
-        borderCol = '#4a4563';    // Garis batas ungu
-    }
-
-    // 3. Siapkan variabel warna berdasarkan Pilihan Aksen (Tombol & Sorotan)
-    let accentColor, accentHover;
-    
-    if (aksen === 'blue') {
-        accentColor = '#0984e3';  // Biru tombol
-        accentHover = '#74b9ff';  // Biru teks sorotan
-    } else if (aksen === 'green') {
-        accentColor = '#00b894';  // Hijau tombol
-        accentHover = '#55efc4';  // Hijau teks sorotan
-    } else if (aksen === 'red') {
-        accentColor = '#d63031';  // Merah tombol
-        accentHover = '#ff7675';  // Merah teks sorotan
-    } else {
-        // default (Ungu Klasik)
-        accentColor = '#6c5ce7';  
-        accentHover = '#a29bfe';  
-    }
-
-    // 4. Susun Aturan CSS Ajaib (Menggunakan !important agar menimpa warna bawaan)
-    const cssRules = `
-        /* Warna Dasar Body & Halaman */
-        body, .main-content {
-            background-color: ${bgBody} !important;
-            color: ${textMain} !important;
-            transition: background-color 0.3s ease;
-        }
-
-        /* Warna Kartu (Card), Kotak Setting, dan Tabel */
-        .card, .section, .analytics-table-wrap, 
-        div[style*="background: #2a2640"], 
-        div[style*="background: #231f36"],
-        div[style*="background: #161224"] {
-            background-color: ${bgCard} !important;
-            border-color: ${borderCol} !important;
-            color: ${textMain} !important;
-        }
-
-        /* Warna Input, Select, Date, Checkbox */
-        input, select, datalist {
-            background-color: ${bgInput} !important;
-            color: ${textMain} !important;
-            border-color: ${borderCol} !important;
-        }
-
-        /* Warna Semua Tombol */
-        button, .btn-action {
-            background-color: ${accentColor} !important;
-            color: #ffffff !important;
-            border: none !important;
-            transition: transform 0.2s, filter 0.2s;
-        }
-        button:hover, .btn-action:hover {
-            filter: brightness(1.2);
-            transform: translateY(-2px);
-        }
-
-        /* Warna Teks Judul & Label (Menyesuaikan Aksen) */
-        h2, h3, label, .section-title {
-            color: ${accentHover} !important;
-        }
-        
-        /* Warna Sidebar (Jika ada class sidebar) */
-        .sidebar, #sidebar {
-            background-color: ${bgCard} !important;
-            border-right: 1px solid ${borderCol} !important;
-        }
-    `;
-
-    // 5. Terapkan CSS ke halaman secara real-time!
-    styleEl.innerHTML = cssRules;
 }
