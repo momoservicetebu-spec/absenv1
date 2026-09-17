@@ -1702,38 +1702,7 @@ async function lihatPreviewLaporan() {
     console.error("Gagal memuat laporan:", error);
     tbody.innerHTML = `<tr><td colspan="10" style="text-align:center; padding:20px; color:red;">❌ Gagal menghubungi server. Pastikan koneksi internet stabil.</td></tr>`;
   }
-}
-
-  // Payload lebih rapi dengan Object Shorthand
-  const payload = { role, jenis, tglMulai, tglSampai, namaTarget };
-
-  // --- PROSES MENGAMBIL DATA DARI SERVER GOOGLE APPS SCRIPT ---
-  google.script.run
-    .withSuccessHandler(function(response) {
-      if (response.success) {
-        // PENTING: Simpan data ke variabel global agar bisa diunduh (CSV/PDF)
-        dataLaporanAktif = response.data;
-        
-        // Render tabel menggunakan fungsi yang sudah Anda buat
-        renderTabelLaporan(response.jenis, response.data);
-      } else {
-        // Jika data kosong atau tidak ditemukan
-        tbody.innerHTML = `<tr><td colspan="10" style="text-align:center; padding:20px; color:red;">${response.message}</td></tr>`;
-      }
-    })
-    .withFailureHandler(function(error) {
-      console.error("Gagal memuat laporan:", error);
-      tbody.innerHTML = `
-        <tr>
-          <td colspan="10" style="text-align:center; padding:20px; color:red;">
-            ❌ Gagal memuat laporan: ${error.message}
-          </td>
-        </tr>
-      `;
-    })
-    .getLaporanDariServer(payload);
-
-
+ 
 // 3. Render Header dan Isi Tabel Laporan secara Dinamis
 function renderTabelLaporan(jenis, data) {
   const thead = document.getElementById('head-preview-laporan');
@@ -1908,30 +1877,41 @@ async function muatDaftarNamaLaporan() {
   const role = document.getElementById('lap-role').value;
   const dataList = document.getElementById('list-nama-laporan');
   const inputTarget = document.getElementById('lap-nama-target');
-  
-  // Kosongkan list dan input setiap kali Tipe Pengguna (Guru/Siswa) diubah
+
+  // Kosongkan list dan input setiap kali Tipe Pengguna diubah
   dataList.innerHTML = '';
   inputTarget.value = '';
   inputTarget.placeholder = '⏳ Memuat daftar nama...';
 
   try {
-    // Memanggil API getSiswa atau getGuru yang sudah ada di Router.gs
     const action = (role === 'Siswa') ? 'getSiswa' : 'getGuru';
-    const res = await fetchAPI(action);
+    
+    // --- KODE YANG DIPERBARUI MULAI DARI SINI ---
+    const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxx3BLAOh7RZwF2vvukhDPhytbAPXfMP3H_RAJNeWgxLe2LNcCzojm-6HQ1kktPQMTQ/exec';
+    
+    const response = await fetch(`${WEB_APP_URL}?action=${action}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'text/plain;charset=utf-8'
+      },
+      body: JSON.stringify({}) // Payload kosong karena hanya butuh 'action' di URL
+    });
+    
+    const res = await response.json();
+    // --- BATAS KODE YANG DIPERBARUI ---
 
     if (res.success && res.data) {
       let optionsHtml = '';
-      
+
       // Looping data untuk dimasukkan ke opsi dropdown
       res.data.forEach(item => {
-        // Sesuaikan jika nama kolom di Sheet Anda berbeda
         const nama = item.Nama || item.Nama_Lengkap || item.Nama_Guru || item.Nama_Siswa || '-';
         const id = item.SiswaID || item.GuruID || item.NISN || item.NIP || '';
-        
+
         // Memasukkan nama sebagai value, dan ID sebagai label tambahan
         optionsHtml += `<option value="${nama}">ID: ${id}</option>`;
       });
-      
+
       dataList.innerHTML = optionsHtml;
       inputTarget.placeholder = "Ketik atau pilih nama...";
     } else {
@@ -1939,7 +1919,7 @@ async function muatDaftarNamaLaporan() {
     }
   } catch (error) {
     console.error("Gagal memuat daftar nama:", error);
-    inputTarget.placeholder = "Kosongkan untuk Semua...";
+    inputTarget.placeholder = "Gagal memuat daftar nama...";
   }
 }
 
