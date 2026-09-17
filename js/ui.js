@@ -2053,7 +2053,7 @@ async function muatPengaturanLengkap() {
 }
 
 // ============================================================================
-// FUNGSI TAMBAHAN: TERAPKAN TEMA LANGSUNG (LIVE PREVIEW) - VERSI MODERN
+// FUNGSI TAMBAHAN: TERAPKAN TEMA LANGSUNG (LIVE PREVIEW) - FINAL (HOVER DINAMIS)
 // ============================================================================
 function terapkanTemaLive(mode, aksen) {
     console.log(`Mengubah tema ke Mode: ${mode}, Aksen: ${aksen}`);
@@ -2069,23 +2069,22 @@ function terapkanTemaLive(mode, aksen) {
     let bgBody, bgCard, bgInput, textMain, textMuted, borderCol, shadow;
     
     if (mode === 'light') {
-        bgBody = '#f8f9fa';       // Abu-abu super lembut (seperti Google Workspace)
-        bgCard = '#ffffff';       // Putih bersih
-        bgInput = '#ffffff';      // Input putih
-        textMain = '#333333';     // Hitam abu-abu (nyaman dibaca)
-        textMuted = '#6c757d';    // Abu-abu untuk label
-        borderCol = '#dee2e6';    // Garis abu-abu tipis
-        shadow = '0 2px 8px rgba(0,0,0,0.04)'; // Bayangan lembut
+        bgBody = '#f8f9fa';
+        bgCard = '#ffffff';
+        bgInput = '#ffffff';
+        textMain = '#333333';
+        textMuted = '#6c757d';
+        borderCol = '#dee2e6';
+        shadow = '0 2px 8px rgba(0,0,0,0.04)';
     } else if (mode === 'navy') {
-        bgBody = '#0f172a';       // Slate Dark
-        bgCard = '#1e293b';       // Slate Card
+        bgBody = '#0f172a';
+        bgCard = '#1e293b';
         bgInput = '#0f172a';      
         textMain = '#f8fafc';     
         textMuted = '#94a3b8';    
         borderCol = '#334155';    
         shadow = '0 4px 6px rgba(0,0,0,0.3)';
     } else {
-        // default (Dark Mode)
         bgBody = '#121212';       
         bgCard = '#1e1e1e';       
         bgInput = '#121212';      
@@ -2107,33 +2106,29 @@ function terapkanTemaLive(mode, aksen) {
         accentColor = '#dc3545';  
         accentHover = '#bb2d3b';  
     } else {
-        accentColor = '#6f42c1'; // Ungu Bootstrap (Lebih profesional)
+        accentColor = '#6f42c1'; 
         accentHover = '#59339d';  
     }
 
-    // Penyesuaian agar judul di Light Mode menggunakan warna gelap/tegas, bukan warna pucat
     let titleAccent = (mode === 'light') ? accentColor : accentHover;
 
-    // 3. Susun Aturan CSS yang Lebih Halus (Soft UI)
+    // 3. Susun Aturan CSS Ajaib
     const cssRules = `
-        /* Latar Belakang Utama */
         body, .main-content {
             background-color: ${bgBody} !important;
             color: ${textMain} !important;
             transition: all 0.3s ease;
         }
 
-        /* Kartu / Kontainer Setting */
         .card, .section, .analytics-table-wrap {
             background-color: ${bgCard} !important;
             border: 1px solid ${borderCol} !important;
-            border-radius: 8px !important; /* Membuat sudut membulat */
+            border-radius: 8px !important;
             box-shadow: ${shadow} !important;
             padding: 20px !important;
             margin-bottom: 20px !important;
         }
 
-        /* Input Form */
         input:not([type="checkbox"]), select, datalist, textarea {
             background-color: ${bgInput} !important;
             color: ${textMain} !important;
@@ -2143,14 +2138,12 @@ function terapkanTemaLive(mode, aksen) {
             transition: border-color 0.2s ease, box-shadow 0.2s ease;
         }
         
-        /* Efek saat input diklik/fokus */
         input:focus, select:focus {
             border-color: ${accentColor} !important;
             outline: none !important;
             box-shadow: 0 0 0 3px ${accentColor}25 !important;
         }
 
-        /* Tombol Utama (Hanya menargetkan tombol Submit/Simpan, bukan menu sidebar) */
         button[onclick="simpanPengaturanLengkap()"], .btn-primary, .btn-action {
             background-color: ${accentColor} !important;
             color: #ffffff !important;
@@ -2167,7 +2160,6 @@ function terapkanTemaLive(mode, aksen) {
             transform: translateY(-1px);
         }
 
-        /* Tipografi: Judul dan Label */
         h2, h3, .section-title {
             color: ${titleAccent} !important;
             font-weight: 600 !important;
@@ -2182,10 +2174,27 @@ function terapkanTemaLive(mode, aksen) {
             font-size: 0.9em !important;
         }
 
-        /* Sidebar (Tampilan Bersih) */
         .sidebar, #sidebar {
             background-color: ${bgCard} !important;
             border-right: 1px solid ${borderCol} !important;
+        }
+
+        /* =========================================
+           EFEK HOVER DINAMIS UNTUK MENU SIDEBAR 
+           ========================================= */
+        /* Kondisi normal: Latar transparan, warna teks menyesuaikan tema */
+        .sidebar button, .sidebar a, .sidebar .menu-item {
+            background-color: transparent !important;
+            color: ${textMain} !important;
+            border: none !important;
+            border-radius: 6px !important;
+            transition: background-color 0.2s ease, color 0.2s ease !important;
+        }
+
+        /* Kondisi saat di-hover/diklik: Muncul aksen warnanya */
+        .sidebar button:hover, .sidebar a:hover, .sidebar .menu-item:hover, .sidebar .active {
+            background-color: ${accentColor} !important;
+            color: #ffffff !important;
         }
     `;
 
