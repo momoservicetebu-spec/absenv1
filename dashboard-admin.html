@@ -859,8 +859,8 @@
       </button>
     </div>
 
-    <!-- AREA KONTEN BACKUP & RESTORE -->
-    <div id="backupRestoreSection" class="p-6 animate-fade-in hidden">
+    <!-- AREA KONTEN BACKUP & RESTORE (Pastikan ID-nya adalah "backup") -->
+    <div id="backup" class="tab-content p-6 animate-fade-in hidden">
         <h2 class="text-2xl font-bold text-white mb-6">Backup & Restore Database</h2>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -873,7 +873,7 @@
                     </div>
                     <div>
                         <h3 class="text-lg font-semibold text-white">Backup Database</h3>
-                        <p class="text-sm text-gray-400 mt-1">Unduh salinan lengkap seluruh data sistem (Siswa, Guru, Jadwal, Pengaturan) ke dalam format terenkripsi/JSON.</p>
+                        <p class="text-sm text-gray-400 mt-1">Unduh salinan lengkap seluruh data sistem (Siswa, Guru, Jadwal, Pengaturan) ke dalam format JSON.</p>
                     </div>
                 </div>
                 <button id="btnBackup" onclick="prosesBackup()" class="w-full mt-4 bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 px-4 rounded transition duration-200 flex justify-center items-center">
@@ -889,12 +889,12 @@
                     </div>
                     <div>
                         <h3 class="text-lg font-semibold text-white">Restore Database</h3>
-                        <p class="text-sm text-gray-400 mt-1">Pulihkan sistem menggunakan file backup sebelumnya. <span class="text-red-400 font-semibold">Peringatan: Data saat ini akan ditimpa!</span></p>
+                        <p class="text-sm text-gray-400 mt-1">Pulihkan sistem menggunakan file backup. <span class="text-red-400 font-semibold">Data saat ini akan ditimpa!</span></p>
                     </div>
                 </div>
                 
                 <div class="mt-4 flex flex-col gap-3">
-                    <input type="file" id="fileRestore" accept=".json" class="block w-full text-sm text-gray-300 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-gray-700 file:text-gray-200 hover:file:bg-gray-600 cursor-pointer bg-gray-900 rounded border border-gray-700 p-1"/>
+                    <input type="file" id="fileRestore" accept=".json" class="block w-full text-sm text-gray-300 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:font-semibold file:bg-gray-700 file:text-gray-200 hover:file:bg-gray-600 cursor-pointer bg-gray-900 rounded border border-gray-700 p-1"/>
                     
                     <button id="btnRestore" onclick="prosesRestore()" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-medium py-2.5 px-4 rounded transition duration-200 flex justify-center items-center">
                         <i class="fas fa-database mr-2"></i> Pulihkan Data
@@ -903,7 +903,6 @@
             </div>
         </div>
     </div>
-
     <!-- 12. WHATSAPP GATEWAY -->
     <div id="whatsapp" class="section card">
       <h2 class="section-title">💬 Konfigurasi WhatsApp Gateway</h2>
