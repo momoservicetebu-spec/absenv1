@@ -2202,3 +2202,96 @@ function terapkanTemaLive(mode, aksen) {
 
     styleEl.innerHTML = cssRules;
 }
+// ============================================================================
+// FUNGSI BACKUP & RESTORE DATABASE (Versi GitHub / CORS Safe)
+// ============================================================================
+
+// Meminta seluruh data dari server dan mendownloadnya sebagai file JSON
+async function prosesBackup() {
+    const btn = document.getElementById('btnBackup');
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Menyiapkan Data...';
+    btn.disabled = true;
+
+    try {
+        // Panggil endpoint ke Google Apps Script (pastikan rute 'doBackup' dibuat nanti di Router)
+        const response = await fetch(urlAPI + "?action=doBackup", { method: "GET" });
+        const result = await response.json();
+
+        if (result.success) {
+            // Konversi data dari server menjadi format string JSON
+            const dataStr = JSON.stringify(result.data, null, 2);
+            
+            // Buat file Blob virtual di browser untuk diunduh otomatis
+            const blob = new Blob([dataStr], { type: "application/json" });
+            const url = URL.createObjectURL(blob);
+            
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `Backup_DB_Sistem_${new Date().toISOString().slice(0,10)}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            alert("✅ File backup berhasil diunduh!");
+        } else {
+            alert("❌ Gagal membuat backup: " + result.message);
+        }
+    } catch (error) {
+        alert("Terjadi kesalahan jaringan saat mencoba backup.");
+        console.error(error);
+    } finally {
+        btn.innerHTML = '<i class="fas fa-cloud-download-alt mr-2"></i> Unduh File Backup';
+        btn.disabled = false;
+    }
+}
+
+// Membaca file JSON dari komputer dan mengirimnya ke server
+async function prosesRestore() {
+    const fileInput = document.getElementById('fileRestore');
+    if (!fileInput.files || fileInput.files.length === 0) {
+        alert("Silakan pilih file backup (.json) terlebih dahulu!");
+        return;
+    }
+
+    const konfirmasi = confirm("PERINGATAN BAHAYA!\n\nProses restore akan menghapus SELURUH data saat ini dan menggantinya dengan data dari file backup. Anda yakin ingin melanjutkan?");
+    if (!konfirmasi) return;
+
+    const btn = document.getElementById('btnRestore');
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Memulihkan Data...';
+    btn.disabled = true;
+
+    const file = fileInput.files[0];
+    const reader = new FileReader();
+
+    reader.onload = async function(e) {
+        try {
+            const parsedData = JSON.parse(e.target.result);
+            
+            // Kirim data JSON ke backend Google Apps Script
+            const response = await fetch(urlAPI, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify({ action: 'doRestore', payload: parsedData })
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                alert("✅ Sistem berhasil dipulihkan! Halaman akan dimuat ulang.");
+                location.reload();
+            } else {
+                alert("❌ Gagal melakukan restore: " + result.message);
+            }
+        } catch (error) {
+            alert("File tidak valid atau terjadi kesalahan jaringan.");
+            console.error(error);
+        } finally {
+            btn.innerHTML = '<i class="fas fa-database mr-2"></i> Pulihkan Data';
+            btn.disabled = false;
+        }
+    };
+    
+    // Baca file sebagai teks
+    reader.readAsText(file);
+}
