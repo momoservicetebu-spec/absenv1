@@ -729,3 +729,35 @@ canvas { position: absolute; top: 0; left: 0; }
 #form-gatepass button:hover {
     background-color: #5a4bcf;
 }
+
+/* Gaya untuk tombol hijau (Seperti tombol + Tambah Manual) */
+.btn-hijau {
+  background-color: #20c997; /* Sesuaikan kode warna hijau sistem Anda */
+  color: #ffffff;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 14px;
+  transition: background-color 0.3s;
+}
+.btn-hijau:hover {
+  background-color: #1aa179;
+}
+
+/* Gaya untuk tombol ungu (Seperti tombol Edit/Hapus) */
+.btn-ungu {
+  background-color: #6f42c1; /* Sesuaikan kode warna ungu sistem Anda */
+  color: #ffffff;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 14px;
+  transition: background-color 0.3s;
+}
+.btn-ungu:hover {
+  background-color: #59339d;
+}
