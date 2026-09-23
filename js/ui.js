@@ -2206,6 +2206,9 @@ function terapkanTemaLive(mode, aksen) {
 // FUNGSI BACKUP & RESTORE DATABASE (Versi GitHub / CORS Safe)
 // ============================================================================
 
+// DEKLARASIKAN URL API DISINI (Ganti dengan link Web App Anda)
+const urlAPI = "https://script.google.com/macros/s/AKfycbxx3BLAOh7RZwF2vvukhDPhytbAPXfMP3H_RAJNeWgxLe2LNcCzojm-6HQ1kktPQMTQ/exec";
+
 // Meminta seluruh data dari server dan mendownloadnya sebagai file JSON
 async function prosesBackup() {
     const btn = document.getElementById('btnBackup');
@@ -2213,8 +2216,12 @@ async function prosesBackup() {
     btn.disabled = true;
 
     try {
-        // Panggil endpoint ke Google Apps Script (pastikan rute 'doBackup' dibuat nanti di Router)
-        const response = await fetch(urlAPI + "?action=doBackup", { method: "GET" });
+        // Panggil endpoint ke Google Apps Script dengan redirect 'follow'
+        const response = await fetch(urlAPI + "?action=doBackup", { 
+            method: "GET",
+            redirect: "follow" 
+        });
+        
         const result = await response.json();
 
         if (result.success) {
@@ -2238,10 +2245,10 @@ async function prosesBackup() {
             alert("❌ Gagal membuat backup: " + result.message);
         }
     } catch (error) {
-        alert("Terjadi kesalahan jaringan saat mencoba backup.");
+        alert("Terjadi kesalahan jaringan saat mencoba backup. Pastikan URL API sudah benar.");
         console.error(error);
     } finally {
-        btn.innerHTML = '<i class="fas fa-cloud-download-alt mr-2"></i> Unduh File Backup';
+        btn.innerHTML = '<i class="fas fa-download mr-2"></i> Unduh File Backup';
         btn.disabled = false;
     }
 }
@@ -2268,10 +2275,11 @@ async function prosesRestore() {
         try {
             const parsedData = JSON.parse(e.target.result);
             
-            // Kirim data JSON ke backend Google Apps Script
+            // Kirim data JSON ke backend Google Apps Script dengan redirect 'follow'
             const response = await fetch(urlAPI, {
                 method: 'POST',
                 headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                redirect: "follow",
                 body: JSON.stringify({ action: 'doRestore', payload: parsedData })
             });
             
@@ -2284,7 +2292,7 @@ async function prosesRestore() {
                 alert("❌ Gagal melakukan restore: " + result.message);
             }
         } catch (error) {
-            alert("File tidak valid atau terjadi kesalahan jaringan.");
+            alert("File tidak valid atau terjadi kesalahan jaringan. Pastikan URL API sudah benar.");
             console.error(error);
         } finally {
             btn.innerHTML = '<i class="fas fa-database mr-2"></i> Pulihkan Data';
