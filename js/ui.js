@@ -2449,3 +2449,29 @@ function testWaMessage() {
     })
     .backendUjiKirimWA(token, targetNo, testMsg);
 }
+
+// ==========================================
+// FUNGSI SWITCH TAB / NAVIGASI SIDEBAR (ui.js)
+// ==========================================
+function switchTab(tabId, btnElement) {
+  // 1. Sembunyikan semua elemen section/tab
+  const allSections = document.querySelectorAll('.section, .tab-content, .card');
+  allSections.forEach(el => {
+    el.style.display = 'none';
+  });
+
+  // 2. Tampilkan section yang diklik
+  const targetSection = document.getElementById(tabId);
+  if (targetSection) {
+    targetSection.style.display = 'block';
+  } else {
+    console.error("Elemen dengan ID '" + tabId + "' tidak ditemukan di dashboard-admin.html");
+  }
+
+  // 3. Atur status tombol aktif pada sidebar
+  if (btnElement) {
+    const allBtns = document.querySelectorAll('.nav-btn');
+    allBtns.forEach(btn => btn.classList.remove('active'));
+    btnElement.classList.add('active');
+  }
+}
