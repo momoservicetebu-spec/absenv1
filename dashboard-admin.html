@@ -859,77 +859,87 @@
       </button>
     </div>
 
-  <!-- KARTU BACKUP -->
-<div class="bg-slate-800 rounded-xl p-6 border border-slate-700 shadow-xl flex flex-col justify-between">
-    <div>
-        <div class="flex items-center mb-4">
-            <div class="bg-emerald-500/20 p-3 rounded-lg mr-4">
-                <i class="fas fa-cloud-download-alt text-2xl text-emerald-400"></i>
-            </div>
-            <div>
-                <h3 class="text-lg font-semibold text-gray-100">Backup Database</h3>
-                <span class="text-xs font-medium px-2 py-1 bg-emerald-500/20 text-emerald-400 rounded-full mt-1 inline-block">Aman</span>
-            </div>
-        </div>
-        <p class="text-sm text-gray-400 mb-6">Unduh salinan lengkap seluruh data sistem (Siswa, Guru, Jadwal, Pengaturan) ke dalam format JSON. Lakukan secara berkala untuk mencegah kehilangan data.</p>
-    </div>
-    
-    <button id="btnBackup" onclick="prosesBackup()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-semibold py-3 px-4 rounded-lg transition duration-300 flex justify-center items-center shadow-lg shadow-emerald-500/20">
-        <i class="fas fa-download mr-2"></i> Unduh File Backup
-    </button>
-</div>
+  <!-- CONTAINER GRID UNTUK BACKUP & RESTORE -->
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px; margin-top: 20px;">
 
-<!-- KARTU RESTORE -->
-<div class="bg-slate-800 rounded-xl p-6 border border-slate-700 shadow-xl flex flex-col justify-between">
-    <div>
-        <div class="flex items-center mb-4">
-            <div class="bg-purple-500/20 p-3 rounded-lg mr-4">
-                <i class="fas fa-cloud-upload-alt text-2xl text-purple-400"></i>
+    <!-- KARTU BACKUP -->
+    <div style="background-color: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 24px; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.3);">
+        <div>
+            <div style="display: flex; align-items: center; margin-bottom: 16px;">
+                <div style="background-color: rgba(16, 185, 129, 0.15); padding: 12px; border-radius: 8px; margin-right: 16px;">
+                    <i class="fas fa-cloud-download-alt" style="font-size: 24px; color: #34d399;"></i>
+                </div>
+                <div>
+                    <h3 style="font-size: 18px; font-weight: 600; color: #f3f4f6; margin: 0;">Backup Database</h3>
+                    <span style="font-size: 12px; font-weight: 500; padding: 2px 8px; background-color: rgba(16, 185, 129, 0.2); color: #34d399; border-radius: 9999px; display: inline-block; margin-top: 4px;">Aman</span>
+                </div>
             </div>
-            <div>
-                <h3 class="text-lg font-semibold text-gray-100">Restore Database</h3>
-                <span class="text-xs font-medium px-2 py-1 bg-red-500/20 text-red-400 rounded-full mt-1 inline-block">Berbahaya</span>
-            </div>
+            <p style="font-size: 14px; color: #9ca3af; margin-bottom: 24px; line-height: 1.5;">
+                Unduh salinan lengkap seluruh data sistem (Siswa, Guru, Jadwal, Pengaturan) ke dalam format JSON. Lakukan secara berkala untuk mencegah kehilangan data.
+            </p>
         </div>
-        <p class="text-sm text-gray-400 mb-4">Pulihkan sistem menggunakan file backup (.json). <br><strong class="text-red-400">Peringatan:</strong> Data saat ini akan dihapus dan ditimpa sepenuhnya!</p>
         
-        <!-- CUSTOM FILE INPUT -->
-        <div class="mb-5">
-            <label class="block text-sm font-medium text-gray-300 mb-2">Pilih File Backup</label>
-            
-            <!-- Input file asli disembunyikan -->
-            <input type="file" id="fileRestore" accept=".json" class="hidden" onchange="updateFileName(this)" />
-            
-            <!-- Tampilan pengganti yang sudah disesuaikan warnanya -->
-            <label for="fileRestore" class="flex items-center justify-between w-full p-3 bg-slate-900/80 border border-slate-700 rounded-lg cursor-pointer hover:border-purple-500/50 hover:bg-slate-900 transition group">
-                <span id="fileNameDisplay" class="text-sm text-gray-400 truncate mr-2">Belum ada file dipilih (.json)</span>
-                <span class="bg-purple-600 group-hover:bg-purple-500 text-white text-xs font-semibold px-3 py-1.5 rounded-md transition shadow-sm flex-shrink-0">
-                    <i class="fas fa-folder-open mr-1"></i> Cari File
-                </span>
-            </label>
-        </div>
+        <button id="btnBackup" onclick="prosesBackup()" style="width: 100%; background-color: #10b981; color: #ffffff; font-weight: 600; padding: 12px 16px; border-radius: 8px; border: none; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 8px; font-size: 14px;">
+            <i class="fas fa-download"></i> Unduh File Backup
+        </button>
     </div>
-    
-    <button id="btnRestore" onclick="prosesRestore()" class="w-full bg-purple-600 hover:bg-purple-500 text-white font-semibold py-3 px-4 rounded-lg transition duration-300 flex justify-center items-center shadow-lg shadow-purple-500/20">
-        <i class="fas fa-database mr-2"></i> Pulihkan Data
-    </button>
+
+    <!-- KARTU RESTORE -->
+    <div style="background-color: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 24px; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.3);">
+        <div>
+            <div style="display: flex; align-items: center; margin-bottom: 16px;">
+                <div style="background-color: rgba(139, 92, 246, 0.15); padding: 12px; border-radius: 8px; margin-right: 16px;">
+                    <i class="fas fa-cloud-upload-alt" style="font-size: 24px; color: #c084fc;"></i>
+                </div>
+                <div>
+                    <h3 style="font-size: 18px; font-weight: 600; color: #f3f4f6; margin: 0;">Restore Database</h3>
+                    <span style="font-size: 12px; font-weight: 500; padding: 2px 8px; background-color: rgba(239, 68, 68, 0.2); color: #f87171; border-radius: 9999px; display: inline-block; margin-top: 4px;">Berbahaya</span>
+                </div>
+            </div>
+            <p style="font-size: 14px; color: #9ca3af; margin-bottom: 16px; line-height: 1.5;">
+                Pulihkan sistem menggunakan file backup (.json). <br><strong style="color: #f87171;">Peringatan:</strong> Data saat ini akan dihapus dan ditimpa sepenuhnya!
+            </p>
+            
+            <!-- CUSTOM FILE INPUT -->
+            <div style="margin-bottom: 20px;">
+                <label style="display: block; font-size: 14px; font-weight: 500; color: #d1d5db; margin-bottom: 8px;">Pilih File Backup</label>
+                
+                <!-- Input file disembunyikan menggunakan style bawaan -->
+                <input type="file" id="fileRestore" accept=".json" style="display: none;" onchange="updateFileName(this)" />
+                
+                <!-- Tombol pemilih file kustom -->
+                <label for="fileRestore" style="display: flex; align-items: center; justify-content: space-between; width: 100%; padding: 10px 14px; background-color: #0f172a; border: 1px solid #334155; border-radius: 8px; cursor: pointer; box-sizing: border-box;">
+                    <span id="fileNameDisplay" style="font-size: 14px; color: #9ca3af; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-right: 8px;">Belum ada file dipilih (.json)</span>
+                    <span style="background-color: #8b5cf6; color: #ffffff; font-size: 12px; font-weight: 600; padding: 6px 12px; border-radius: 6px; flex-shrink: 0; display: flex; align-items: center; gap: 6px;">
+                        <i class="fas fa-folder-open"></i> Cari File
+                    </span>
+                </label>
+            </div>
+        </div>
+        
+        <button id="btnRestore" onclick="prosesRestore()" style="width: 100%; background-color: #8b5cf6; color: #ffffff; font-weight: 600; padding: 12px 16px; border-radius: 8px; border: none; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 8px; font-size: 14px;">
+            <i class="fas fa-database"></i> Pulihkan Data
+        </button>
+    </div>
+
 </div>
 
-<!-- SCRIPT UNTUK MENGUPDATE NAMA FILE KETIKA DIPILIH -->
+<!-- SCRIPT UNTUK MENGUPDATE NAMA FILE -->
 <script>
 function updateFileName(input) {
     const display = document.getElementById('fileNameDisplay');
     if (input.files && input.files.length > 0) {
         display.textContent = input.files[0].name;
-        display.classList.remove('text-gray-400');
-        display.classList.add('text-purple-300', 'font-medium');
+        display.style.color = '#c084fc';
+        display.style.fontWeight = '500';
     } else {
         display.textContent = 'Belum ada file dipilih (.json)';
-        display.classList.remove('text-purple-300', 'font-medium');
-        display.classList.add('text-gray-400');
+        display.style.color = '#9ca3af';
+        display.style.fontWeight = 'normal';
     }
 }
 </script>
+
     <!-- 12. WHATSAPP GATEWAY -->
     <div id="whatsapp" class="section card">
       <h2 class="section-title">💬 Konfigurasi WhatsApp Gateway</h2>
