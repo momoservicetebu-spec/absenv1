@@ -2275,8 +2275,8 @@ async function prosesRestore() {
         try {
             const parsedData = JSON.parse(e.target.result);
             
-            // Kirim data JSON ke backend Google Apps Script dengan redirect 'follow'
-            const response = await fetch(urlAPI, {
+            // PERBAIKAN: Menambahkan ?action=doRestore pada urlAPI agar terbaca oleh router backend
+            const response = await fetch(urlAPI + "?action=doRestore", {
                 method: 'POST',
                 headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                 redirect: "follow",
