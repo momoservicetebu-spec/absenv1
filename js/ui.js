@@ -2305,13 +2305,13 @@ async function prosesRestore() {
 }
 
 // ==========================================
-// MODULE: WA NOTIFICATION SYSTEM (ui.js)
+// MODULE: WA NOTIFICATION SYSTEM (ui.js) - FIXED FOR GITHUB PAGES
 // ==========================================
 
 /**
  * 1. Cek Koneksi & API Token Fonnte
  */
-function checkWaConnection() {
+async function checkWaConnection() {
   const token = document.getElementById("waApiToken").value;
   const badge = document.getElementById("waStatusBadge");
 
@@ -2320,37 +2320,29 @@ function checkWaConnection() {
     return;
   }
 
-  // Ubah tampilan badge menjadi status loading
   badge.textContent = "Mengecek...";
-  badge.style.backgroundColor = "rgba(234, 179, 8, 0.2)"; // Warna Kuning
+  badge.style.backgroundColor = "rgba(234, 179, 8, 0.2)";
   badge.style.color = "#facc15";
 
-  // Panggil fungsi di Google Apps Script (Backend)
-  google.script.run
-    .withSuccessHandler(function(response) {
-      if (response.success) {
-        badge.textContent = "Terhubung";
-        badge.style.backgroundColor = "rgba(16, 185, 129, 0.2)"; // Warna Hijau
-        badge.style.color = "#34d399";
-        alert("Koneksi berhasil! Perangkat WA Anda sudah terhubung.");
-      } else {
-        badge.textContent = "Terputus";
-        badge.style.backgroundColor = "rgba(239, 68, 68, 0.2)"; // Warna Merah
-        badge.style.color = "#f87171";
-        alert("Gagal terhubung: " + response.message);
-      }
-    })
-    .withFailureHandler(function(error) {
-      badge.textContent = "Error";
-      alert("Terjadi kesalahan sistem: " + error.message);
-    })
-    .backendCekKoneksiWA(token);
+  const response = await fetchAPI("cekKoneksiWA", { token: token });
+
+  if (response && response.success) {
+    badge.textContent = "Terhubung";
+    badge.style.backgroundColor = "rgba(16, 185, 129, 0.2)";
+    badge.style.color = "#34d399";
+    alert("Koneksi berhasil! Perangkat WA Anda sudah terhubung.");
+  } else {
+    badge.textContent = "Terputus";
+    badge.style.backgroundColor = "rgba(239, 68, 68, 0.2)";
+    badge.style.color = "#f87171";
+    alert("Gagal terhubung: " + (response ? response.message : "Kesalahan sistem"));
+  }
 }
 
 /**
- * 2. Simpan Pengaturan (Target Penerima & Pemicu Pesan)
+ * 2. Simpan Pengaturan WA
  */
-function saveWaSettings() {
+async function saveWaSettings() {
   const settingsData = {
     apiToken: document.getElementById("waApiToken").value,
     penerima: {
@@ -2366,14 +2358,13 @@ function saveWaSettings() {
     }
   };
 
-  google.script.run
-    .withSuccessHandler(function() {
-      alert("Pengaturan Notifikasi WA berhasil disimpan!");
-    })
-    .withFailureHandler(function(error) {
-      alert("Gagal menyimpan pengaturan: " + error.message);
-    })
-    .backendSimpanPengaturanWA(settingsData);
+  const response = await fetchAPI("simpanPengaturanWA", settingsData);
+
+  if (response && response.success) {
+    alert("Pengaturan Notifikasi WA berhasil disimpan!");
+  } else {
+    alert("Gagal menyimpan pengaturan: " + (response ? response.message : "Kesalahan sistem"));
+  }
 }
 
 /**
@@ -2383,7 +2374,6 @@ function loadSelectedTemplate() {
   const type = document.getElementById("waTemplateType").value;
   const textarea = document.getElementById("waTemplateMessage");
 
-  // Template bawaan untuk masing-masing opsi
   const templates = {
     masuk: "Halo Bapak/Ibu Wali Murid,\nKami informasikan bahwa siswa an. *[nama_siswa]* telah melakukan absensi MASUK pada *[waktu]* di lokasi *[lokasi_gate]*.\n\nTerima Kasih.",
     pulang: "Halo Bapak/Ibu Wali Murid,\nKami informasikan bahwa siswa an. *[nama_siswa]* telah melakukan absensi PULANG pada *[waktu]*.\n\nTerima Kasih.",
@@ -2397,7 +2387,7 @@ function loadSelectedTemplate() {
 /**
  * 4. Simpan Template Pesan
  */
-function saveWaTemplate() {
+async function saveWaTemplate() {
   const type = document.getElementById("waTemplateType").value;
   const message = document.getElementById("waTemplateMessage").value;
 
@@ -2406,25 +2396,19 @@ function saveWaTemplate() {
     return;
   }
 
-  const templateData = {
-    jenis: type,
-    pesan: message
-  };
+  const response = await fetchAPI("simpanTemplateWA", { jenis: type, pesan: message });
 
-  google.script.run
-    .withSuccessHandler(function() {
-      alert("Template pesan '" + type + "' berhasil disimpan!");
-    })
-    .withFailureHandler(function(error) {
-      alert("Gagal menyimpan template: " + error.message);
-    })
-    .backendSimpanTemplateWA(templateData);
+  if (response && response.success) {
+    alert("Template pesan '" + type + "' berhasil disimpan!");
+  } else {
+    alert("Gagal menyimpan template: " + (response ? response.message : "Kesalahan sistem"));
+  }
 }
 
 /**
  * 5. Uji Kirim Pesan WA
  */
-function testWaMessage() {
+async function testWaMessage() {
   const token = document.getElementById("waApiToken").value;
   if (!token) {
     alert("Harap masukkan API Token terlebih dahulu sebelum menguji.");
@@ -2436,18 +2420,13 @@ function testWaMessage() {
 
   const testMsg = "Halo! Ini adalah pesan uji coba dari Sistem Absensi Sekolah. Jika pesan ini masuk, koneksi WA Anda sudah bekerja dengan baik ✅";
 
-  google.script.run
-    .withSuccessHandler(function(response) {
-      if (response.success) {
-        alert("Berhasil! Pesan uji coba telah dikirim ke " + targetNo);
-      } else {
-        alert("Gagal mengirim pesan: Cek kembali nomor tujuan, token, atau status API Anda.");
-      }
-    })
-    .withFailureHandler(function(error) {
-      alert("Terjadi kesalahan: " + error.message);
-    })
-    .backendUjiKirimWA(token, targetNo, testMsg);
+  const response = await fetchAPI("ujiKirimWA", { token: token, targetNo: targetNo, msg: testMsg });
+
+  if (response && response.success) {
+    alert("Berhasil! Pesan uji coba telah dikirim ke " + targetNo);
+  } else {
+    alert("Gagal mengirim pesan: " + (response ? response.message : "Cek kembali nomor tujuan atau token Anda."));
+  }
 }
 
 // ==========================================
