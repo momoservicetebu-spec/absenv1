@@ -10,10 +10,19 @@ async function fetchAPI(action, payload = {}) {
       headers: { 'Content-Type': 'text/plain;charset=utf-8' },
       body: JSON.stringify(payload)
     });
-    return await response.json();
+    
+    // Ambil teks mentah terlebih dahulu untuk mencegah crash saat parse JSON
+    const textResponse = await response.text();
+    
+    try {
+      return JSON.parse(textResponse);
+    } catch (e) {
+      console.error(`[API Error] Response dari action '${action}' bukan JSON:`, textResponse);
+      return { success: false, message: "Server mengembalikan format non-JSON / HTML Error." };
+    }
   } catch (error) {
     console.error("Gagal API:", error);
-    return null;
+    return { success: false, message: error.message };
   }
 }
 
@@ -27,20 +36,15 @@ async function loadDashboardData(role = 'semua') {
     const result = await response.json();
     console.log("3. Hasil mentah dari server (result):", result);
     
-    if (result) {
-      // Mengambil payload utama dari responseJSON
+    if (result && result.success) {
       const data = result.data || result;
       console.log("4. Data yang siap dikirim ke Chart/UI (data):", data);
       
-      // Update Chart dan KPI Utama
       if (typeof window.updateDashboardUI === "function") {
         window.updateDashboardUI(data);
         console.log("5. Eksekusi updateDashboardUI SELESAI.");
-      } else {
-        console.error("GAGAL: Fungsi updateDashboardUI tidak ditemukan! Cek urutan script di HTML.");
       }
       
-      // Update List/Daftar Tabel
       if (typeof window.updateListsUI === "function") {
         window.updateListsUI(data);
       } else if (typeof updateListsUI === "function") {
@@ -55,24 +59,20 @@ async function loadDashboardData(role = 'semua') {
 function updateListsUI(data) {
   if (!data) return;
 
-  // 1. Tabel
   renderTable('table-kelas-body', data.kelasSiswa || []);
   renderTable('table-rumpun-body', data.rumpunGuru || []);
 
-  // 2. List Siswa
   renderList('list-terajin-siswa', data.terajinSiswa || [], '#1dd1a1');
   renderList('list-telat-siswa', data.telatSiswa || [], '#feca57');
   renderList('list-alpa-siswa', data.alpaSiswa || [], '#ff6b6b');
   renderList('list-belum-absen-siswa', data.belumAbsenSiswa || [], '#a2a3b7');
 
-  // 3. List Guru
   renderList('list-terajin-guru', data.terajinGuru || [], '#1dd1a1');
   renderList('list-telat-guru', data.telatGuru || [], '#feca57');
   renderList('list-cuti-guru', data.cutiGuru || [], '#54a0ff');
   renderList('list-kosong-guru', data.kosongGuru || [], '#a2a3b7');
 }
 
-// Helper Render List
 function renderList(id, arrayData, color) {
   const ul = document.getElementById(id);
   if (!ul) return;
@@ -84,7 +84,6 @@ function renderList(id, arrayData, color) {
   });
 }
 
-// Helper Render Table
 function renderTable(id, arrayData) {
   const tbody = document.getElementById(id);
   if (!tbody) return;
