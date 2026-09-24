@@ -1,17 +1,18 @@
 // ==========================================
 // FILE: js/pages/geofencing.js
-// FUNGSI: Keamanan Lokasi & Validasi Jarak
+// FUNGSI: Keamanan Lokasi & Validasi Jarak dari Google Sheets
 // ==========================================
 
-const KORDINAT_SEKOLAH = {
-  latitude: -6.200000,   // Ganti dengan kordinat sekolah Anda
-  longitude: 106.816666, // Ganti dengan kordinat sekolah Anda
-  radiusToleransi: 150   // Dalam meter
-};
+// Masukkan URL Web App Google Apps Script Anda di sini!
+const API_LOKASI_URL = "https://script.google.com/macros/s/AKfycbxx3BLAOh7RZwF2vvukhDPhytbAPXfMP3H_RAJNeWgxLe2LNcCzojm-6HQ1kktPQMTQ/exec"; 
 
-function prosesAbsensiGPS() {
+let KORDINAT_SEKOLAH = {}; // Akan diisi dari database
+
+async function prosesAbsensiGPS() {
   const btn = document.getElementById("btnGps");
-  btn.innerText = "Mencari sinyal GPS...";
+  const gpsStatus = document.getElementById("gpsStatusText");
+  
+  btn.innerText = "Mengambil data kordinat dari server...";
   btn.disabled = true;
 
   if (!navigator.geolocation) {
@@ -21,13 +22,27 @@ function prosesAbsensiGPS() {
     return;
   }
 
-  const options = {
-    enableHighAccuracy: true,
-    maximumAge: 0,
-    timeout: 10000 
-  };
+  try {
+    // 1. Ambil kordinat dari Google Sheets
+    const response = await fetch(API_LOKASI_URL);
+    const dataServer = await response.json();
+    
+    KORDINAT_SEKOLAH = {
+      latitude: dataServer.latitude,
+      longitude: dataServer.longitude,
+      radiusToleransi: dataServer.radius
+    };
 
-  navigator.geolocation.getCurrentPosition(berhasilDeteksi, gagalDeteksi, options);
+    // 2. Mulai cari sinyal GPS perangkat
+    btn.innerText = "Mencari sinyal GPS perangkat...";
+    const options = { enableHighAccuracy: true, maximumAge: 0, timeout: 10000 };
+    navigator.geolocation.getCurrentPosition(berhasilDeteksi, gagalDeteksi, options);
+
+  } catch (error) {
+    gpsStatus.innerText = "Gagal terhubung ke database lokasi!";
+    btn.innerText = "📍 Ulangi Verifikasi Lokasi";
+    btn.disabled = false;
+  }
 }
 
 function berhasilDeteksi(position) {
@@ -35,38 +50,32 @@ function berhasilDeteksi(position) {
   const lonSiswa = position.coords.longitude;
   const akurasi = position.coords.accuracy;
   const btn = document.getElementById("btnGps");
+  const gpsStatus = document.getElementById("gpsStatusText");
 
   if (akurasi > 100) {
-    alert(`Sinyal GPS lemah atau tidak akurat (${akurasi.toFixed(0)} meter). Pastikan koneksi WiFi/Sinyal stabil.`);
+    alert(`Sinyal GPS lemah atau tidak akurat (${akurasi.toFixed(0)} meter). Pastikan sinyal stabil.`);
     btn.innerText = "📍 Ulangi Verifikasi Lokasi";
     btn.disabled = false;
     return;
   }
 
   const jarakMeter = hitungJarakHaversine(
-    KORDINAT_SEKOLAH.latitude, 
-    KORDINAT_SEKOLAH.longitude, 
-    latSiswa, 
-    lonSiswa
+    KORDINAT_SEKOLAH.latitude, KORDINAT_SEKOLAH.longitude, 
+    latSiswa, lonSiswa
   );
 
   if (jarakMeter <= KORDINAT_SEKOLAH.radiusToleransi) {
-    // BUKA KUNCI SISTEM
-    document.getElementById("btnGps").style.display = "none";
-    const gpsStatus = document.getElementById("gpsStatusText");
-    gpsStatus.innerText = `Lokasi Valid (Jarak: ${jarakMeter.toFixed(0)}m). Sistem Siap Digunakan.`;
+    // BUKA KUNCI
+    btn.style.display = "none";
+    gpsStatus.innerText = `Lokasi Valid (Jarak: ${jarakMeter.toFixed(0)}m / Max: ${KORDINAT_SEKOLAH.radiusToleransi}m). Sistem Siap.`;
     gpsStatus.style.color = "#28a745";
 
-    // Aktifkan area NFC dan Fingerprint
     document.getElementById("boxNfc").classList.add("unlocked");
     document.getElementById("boxFingerprint").classList.add("unlocked");
     document.getElementById("nfcSimulator").disabled = false;
-    
-    // Fokus otomatis ke input NFC
     document.getElementById("nfcSimulator").focus();
-    
   } else {
-    alert(`Akses ditolak! Perangkat ini berada ${jarakMeter.toFixed(0)} meter di luar area radius sekolah.`);
+    alert(`Akses ditolak! Perangkat ini berada ${jarakMeter.toFixed(0)}m dari titik absensi (Maksimal ${KORDINAT_SEKOLAH.radiusToleransi}m).`);
     btn.innerText = "📍 Ulangi Verifikasi Lokasi";
     btn.disabled = false;
   }
@@ -74,11 +83,10 @@ function berhasilDeteksi(position) {
 
 function gagalDeteksi(error) {
   let pesan = "Gagal mendapatkan lokasi: ";
-  switch(error.code) {
-    case error.PERMISSION_DENIED: pesan += "Akses GPS/Lokasi ditolak oleh browser."; break;
-    case error.POSITION_UNAVAILABLE: pesan += "Sinyal GPS tidak tersedia."; break;
-    case error.TIMEOUT: pesan += "Waktu permintaan GPS habis (Timeout)."; break;
-  }
+  if(error.code === error.PERMISSION_DENIED) pesan += "Izin Lokasi ditolak oleh browser.";
+  else if(error.code === error.POSITION_UNAVAILABLE) pesan += "Sinyal GPS tidak tersedia.";
+  else if(error.code === error.TIMEOUT) pesan += "Waktu permintaan GPS habis.";
+  
   alert(pesan);
   const btn = document.getElementById("btnGps");
   btn.innerText = "📍 Ulangi Verifikasi Lokasi";
@@ -86,14 +94,12 @@ function gagalDeteksi(error) {
 }
 
 function hitungJarakHaversine(lat1, lon1, lat2, lon2) {
-  const R = 6371e3; // Radius bumi meter
+  const R = 6371e3;
   const p1 = lat1 * Math.PI / 180;
   const p2 = lat2 * Math.PI / 180;
   const dp = (lat2 - lat1) * Math.PI / 180;
   const dl = (lon2 - lon1) * Math.PI / 180;
-  const a = Math.sin(dp/2) * Math.sin(dp/2) +
-            Math.cos(p1) * Math.cos(p2) *
-            Math.sin(dl/2) * Math.sin(dl/2);
+  const a = Math.sin(dp/2) * Math.sin(dp/2) + Math.cos(p1) * Math.cos(p2) * Math.sin(dl/2) * Math.sin(dl/2);
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
   return R * c; 
 }
