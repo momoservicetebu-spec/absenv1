@@ -87,7 +87,7 @@ function renderList(id, arrayData, color) {
 function renderTable(id, arrayData) {
   const tbody = document.getElementById(id);
   if (!tbody) return;
-  tbody.innerHTML = arrayData.length === 0 ? "<tr><td colspan='4' style='text-align:center;'>N/A</td></tr>" : "";
+  tbody.innerHTML = arrayData.length === 0 ? "<tr><td colspan='4' style='text-align:center;'>N/A</li>" : "";
   arrayData.forEach(item => {
     tbody.innerHTML += `<tr style="border-bottom: 1px solid #333;">
       <td>${item.nama}</td><td>${item.hadir || 0}</td><td>${item.kedua || 0}</td><td>${item.ketiga || 0}</td>
@@ -95,4 +95,91 @@ function renderTable(id, arrayData) {
   });
 }
 
-document.addEventListener("DOMContentLoaded", () => loadDashboardData());
+// ==========================================
+// FITUR PENGELOLAAN TITIK GPS & GEOFENCING
+// ==========================================
+
+// 1. Deteksi Lokasi GPS Admin Menggunakan Browser
+function getCurrentLocation() {
+  if (!navigator.geolocation) {
+    alert("Browser Anda tidak mendukung fitur Geolocation.");
+    return;
+  }
+  
+  alert("Sedang mengambil kordinat GPS perangkat Anda...");
+  navigator.geolocation.getCurrentPosition(
+    (position) => {
+      const latInput = document.getElementById("latInput");
+      const lngInput = document.getElementById("lngInput");
+      if (latInput) latInput.value = position.coords.latitude;
+      if (lngInput) lngInput.value = position.coords.longitude;
+      alert("Kordinat berhasil didapatkan!");
+    },
+    (error) => {
+      alert("Gagal mengambil lokasi: " + error.message);
+    },
+    { enableHighAccuracy: true }
+  );
+}
+
+// 2. Simpan Kordinat GPS Baru ke Database via fetchAPI
+async function simpanKoordinatGPS() {
+  const latInput = document.getElementById("latInput");
+  const lngInput = document.getElementById("lngInput");
+  const radiusInput = document.getElementById("radiusInput");
+  const btn = document.getElementById("btnSimpanGps");
+
+  const lat = latInput ? latInput.value : "";
+  const lng = lngInput ? lngInput.value : "";
+  const radius = radiusInput ? radiusInput.value : "";
+
+  if (!lat || !lng || !radius) {
+    alert("Harap isi Latitude, Longitude, dan Radius dengan lengkap!");
+    return;
+  }
+
+  if (btn) {
+    btn.innerText = "Menyimpan...";
+    btn.disabled = true;
+  }
+
+  const payload = {
+    latitude: parseFloat(lat),
+    longitude: parseFloat(lng),
+    radius: parseInt(radius)
+  };
+
+  const result = await fetchAPI('saveLocation', payload);
+
+  if (result && result.success) {
+    alert(result.message || "Berhasil! Kordinat GPS dan Radius berhasil disimpan.");
+  } else {
+    alert("Gagal menyimpan: " + (result?.message || "Terjadi kesalahan server."));
+  }
+
+  if (btn) {
+    btn.innerText = "Simpan Kordinat GPS";
+    btn.disabled = false;
+  }
+}
+
+// 3. Memuat Kordinat Terakhir dari Database Saat Halaman Dibuka
+async function loadLokasiAwal() {
+  const result = await fetchAPI('getLocation', {});
+
+  if (result && result.success && result.data) {
+    const latInput = document.getElementById("latInput");
+    const lngInput = document.getElementById("lngInput");
+    const radiusInput = document.getElementById("radiusInput");
+
+    if (latInput) latInput.value = result.data.latitude || "";
+    if (lngInput) lngInput.value = result.data.longitude || "";
+    if (radiusInput) radiusInput.value = result.data.radius || 150;
+  }
+}
+
+// Inisialisasi Saat Halaman Selesai Dimuat
+document.addEventListener("DOMContentLoaded", () => {
+  loadDashboardData();
+  loadLokasiAwal(); // Memuat titik kordinat aktif
+});

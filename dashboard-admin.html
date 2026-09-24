@@ -1075,7 +1075,7 @@ function updateFileName(input) {
       <p class="section-desc">Tentukan kordinat utama sekolah untuk validasi Haversine.</p>
       
       <div class="search-bar" style="margin-bottom: 20px;">
-        <button class="btn-action" onclick="getCurrentLocation()" style="background:#f39c12;">🎯 Deteksi Lokasi Saat Ini</button>
+        <button type="button" class="btn-action" onclick="getCurrentLocation()" style="background:#f39c12;">🎯 Deteksi Lokasi Saat Ini</button>
       </div>
       
       <div class="form-group">
@@ -1088,10 +1088,10 @@ function updateFileName(input) {
       </div>
       <div class="form-group">
         <label>Radius Toleransi Absensi (Meter)</label>
-        <input type="text" value="50" style="max-width: 150px;">
+        <input type="number" id="radiusInput" value="150" style="max-width: 150px;">
       </div>
       
-      <button class="btn-action btn-success">Simpan Kordinat GPS</button>
+      <button type="button" id="btnSimpanGps" class="btn-action btn-success" onclick="simpanKoordinatGPS()">Simpan Kordinat GPS</button>
     </div>
 
     <!-- FOOTER -->
