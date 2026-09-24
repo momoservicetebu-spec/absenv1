@@ -4,7 +4,7 @@
 // ==========================================
 
 // Masukkan URL Web App Google Apps Script Anda di sini!
-const API_LOKASI_URL = "https://script.google.com/macros/s/AKfycbxx3BLAOh7RZwF2vvukhDPhytbAPXfMP3H_RAJNeWgxLe2LNcCzojm-6HQ1kktPQMTQ/exec"; 
+const API_LOKASI_URL = "https://script.google.com/macros/s/AKfycbxx3BLAOh7RZwF2vvukhDPhytbAPXfMP3H_RAJNeWgxLe2LNcCzojm-6HQ1kktPQMTQ/exec?action=getLocation";
 
 let KORDINAT_SEKOLAH = {}; // Akan diisi dari database
 
