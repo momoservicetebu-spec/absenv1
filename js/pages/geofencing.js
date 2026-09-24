@@ -27,11 +27,19 @@ async function prosesAbsensiGPS() {
     const response = await fetch(API_LOKASI_URL);
     const dataServer = await response.json();
     
+    // Perbaikan: Ambil objek data utama jika terbungkus dalam `data`
+    const resData = dataServer.data || dataServer;
+
     KORDINAT_SEKOLAH = {
-      latitude: dataServer.latitude,
-      longitude: dataServer.longitude,
-      radiusToleransi: dataServer.radius
+      latitude: parseFloat(resData.latitude),
+      longitude: parseFloat(resData.longitude),
+      radiusToleransi: parseInt(resData.radius)
     };
+
+    // Validasi pencegah NaN / undefined
+    if (isNaN(KORDINAT_SEKOLAH.latitude) || isNaN(KORDINAT_SEKOLAH.longitude) || isNaN(KORDINAT_SEKOLAH.radiusToleransi)) {
+      throw new Error("Data koordinat dari server tidak valid atau belum diatur di Dashboard Admin.");
+    }
 
     // 2. Mulai cari sinyal GPS perangkat
     btn.innerText = "Mencari sinyal GPS perangkat...";
@@ -39,10 +47,11 @@ async function prosesAbsensiGPS() {
     navigator.geolocation.getCurrentPosition(berhasilDeteksi, gagalDeteksi, options);
 
   } catch (error) {
-    // Ubah baris ini agar kita bisa melihat error aslinya di Console (F12)
     console.error("Detail Error API Lokasi:", error);
     
-    gpsStatus.innerText = "Gagal terhubung: " + error.message;
+    if (gpsStatus) gpsStatus.innerText = "Gagal terhubung: " + error.message;
+    alert("Error Lokasi: " + error.message);
+    
     btn.innerText = "📍 Ulangi Verifikasi Lokasi";
     btn.disabled = false;
   }
@@ -70,13 +79,19 @@ function berhasilDeteksi(position) {
   if (jarakMeter <= KORDINAT_SEKOLAH.radiusToleransi) {
     // BUKA KUNCI
     btn.style.display = "none";
-    gpsStatus.innerText = `Lokasi Valid (Jarak: ${jarakMeter.toFixed(0)}m / Max: ${KORDINAT_SEKOLAH.radiusToleransi}m). Sistem Siap.`;
-    gpsStatus.style.color = "#28a745";
+    if (gpsStatus) {
+      gpsStatus.innerText = `Lokasi Valid (Jarak: ${jarakMeter.toFixed(0)}m / Max: ${KORDINAT_SEKOLAH.radiusToleransi}m). Sistem Siap.`;
+      gpsStatus.style.color = "#28a745";
+    }
 
-    document.getElementById("boxNfc").classList.add("unlocked");
-    document.getElementById("boxFingerprint").classList.add("unlocked");
-    document.getElementById("nfcSimulator").disabled = false;
-    document.getElementById("nfcSimulator").focus();
+    document.getElementById("boxNfc")?.classList.add("unlocked");
+    document.getElementById("boxFingerprint")?.classList.add("unlocked");
+    
+    const inputNfc = document.getElementById("nfcSimulator");
+    if (inputNfc) {
+      inputNfc.disabled = false;
+      inputNfc.focus();
+    }
   } else {
     alert(`Akses ditolak! Perangkat ini berada ${jarakMeter.toFixed(0)}m dari titik absensi (Maksimal ${KORDINAT_SEKOLAH.radiusToleransi}m).`);
     btn.innerText = "📍 Ulangi Verifikasi Lokasi";
@@ -86,9 +101,9 @@ function berhasilDeteksi(position) {
 
 function gagalDeteksi(error) {
   let pesan = "Gagal mendapatkan lokasi: ";
-  if(error.code === error.PERMISSION_DENIED) pesan += "Izin Lokasi ditolak oleh browser.";
-  else if(error.code === error.POSITION_UNAVAILABLE) pesan += "Sinyal GPS tidak tersedia.";
-  else if(error.code === error.TIMEOUT) pesan += "Waktu permintaan GPS habis.";
+  if (error.code === error.PERMISSION_DENIED) pesan += "Izin Lokasi ditolak oleh browser.";
+  else if (error.code === error.POSITION_UNAVAILABLE) pesan += "Sinyal GPS tidak tersedia.";
+  else if (error.code === error.TIMEOUT) pesan += "Waktu permintaan GPS habis.";
   
   alert(pesan);
   const btn = document.getElementById("btnGps");
@@ -97,7 +112,7 @@ function gagalDeteksi(error) {
 }
 
 function hitungJarakHaversine(lat1, lon1, lat2, lon2) {
-  const R = 6371e3;
+  const R = 6371e3; // Radius bumi dalam meter
   const p1 = lat1 * Math.PI / 180;
   const p2 = lat2 * Math.PI / 180;
   const dp = (lat2 - lat1) * Math.PI / 180;
