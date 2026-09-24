@@ -39,7 +39,10 @@ async function prosesAbsensiGPS() {
     navigator.geolocation.getCurrentPosition(berhasilDeteksi, gagalDeteksi, options);
 
   } catch (error) {
-    gpsStatus.innerText = "Gagal terhubung ke database lokasi!";
+    // Ubah baris ini agar kita bisa melihat error aslinya di Console (F12)
+    console.error("Detail Error API Lokasi:", error);
+    
+    gpsStatus.innerText = "Gagal terhubung: " + error.message;
     btn.innerText = "📍 Ulangi Verifikasi Lokasi";
     btn.disabled = false;
   }
