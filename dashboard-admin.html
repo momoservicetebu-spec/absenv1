@@ -359,31 +359,40 @@
       </div>
     </div>
 
-        <!-- 5. ENROLLMENT WAJAH -->
-    <div id="enrollment" class="section card">
-      <h2 class="section-title">📸 Pendaftaran Wajah Biometrik</h2>
-      <p class="section-desc">Pindai wajah untuk absensi menggunakan AI Face Recognition.</p>
+       <!-- 5. ENROLLMENT WAJAH -->
+<div id="enrollment" class="section card">
+  <h2 class="section-title">📸 Pendaftaran Wajah Biometrik</h2>
+  <p class="section-desc">Pindai wajah untuk absensi menggunakan AI Face Recognition.</p>
 
-      <div class="form-group">
-        <label>Pilih Pengguna</label>
-        <select id="faceUserSelect" class="form-control" style="width:100%; max-width:400px; padding:10px;">
-          <option value="">-- Memuat Data Pengguna... --</option>
-        </select>
-      </div>
+  <div class="form-group">
+    <label>Pilih Pengguna</label>
+    <select id="faceUserSelect" class="form-control" style="width:100%; max-width:400px; padding:10px;">
+      <option value="">-- Memuat Data Pengguna... --</option>
+    </select>
+  </div>
 
-      <div style="font-weight: bold; color: #feca57; margin-bottom:10px;" id="statusText">Menunggu kamera...</div>
-      
-      <div style="display: flex; gap: 15px; flex-wrap: wrap; margin-bottom: 15px;">
-        <video id="video" width="320" height="240" autoplay muted playsinline style="background:#000; border-radius:8px; object-fit:cover;"></video>
-        <canvas id="faceCanvas" width="320" height="240" style="background:#111; border-radius:8px; border:1px dashed #666;"></canvas>
-      </div>
-
-      <div style="display: flex; gap: 10px;">
-        <button type="button" class="btn-action" onclick="startCamera()">📷 Nyalakan Kamera</button>
-        <button type="button" class="btn-action btn-warning" onclick="captureFace()">📸 Ambil Foto</button>
-        <button type="button" class="btn-action btn-success" id="btnEnroll" onclick="registerCurrentFace()" disabled>💾 Simpan Wajah</button>
-      </div>
+  <div style="font-weight: bold; color: #feca57; margin-bottom:15px;" id="statusText">Menunggu kamera...</div>
+  
+  <!-- BUNGKUSAN KAMERA & CANVAS YANG DIPERBAIKI -->
+  <div style="display: flex; flex-direction: row; gap: 20px; margin-bottom: 20px; flex-wrap: wrap;">
+    <div style="display: flex; flex-direction: column; align-items: center;">
+      <label style="font-size: 12px; margin-bottom: 5px;">Live Kamera</label>
+      <video id="video" autoplay muted playsinline style="width: 320px; height: 240px; background:#000; border-radius:8px; object-fit:cover; border: 2px solid #555;"></video>
     </div>
+    
+    <div style="display: flex; flex-direction: column; align-items: center;">
+      <label style="font-size: 12px; margin-bottom: 5px;">Hasil Tangkapan</label>
+      <canvas id="faceCanvas" width="320" height="240" style="width: 320px; height: 240px; background:#111; border-radius:8px; border:2px dashed #666;"></canvas>
+    </div>
+  </div>
+
+  <!-- TOMBOL KONTROL -->
+  <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+    <button type="button" class="btn-action" onclick="startCamera()">📷 Nyalakan Kamera</button>
+    <button type="button" class="btn-action btn-warning" onclick="captureFace()">📸 Ambil Foto</button>
+    <button type="button" class="btn-action btn-success" id="btnEnroll" onclick="registerCurrentFace()" disabled>💾 Simpan Wajah</button>
+  </div>
+</div>
 
     <!-- 6. FINGERPRINT -->
     <div id="fingerprint" class="section card">
