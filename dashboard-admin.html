@@ -359,42 +359,89 @@
       </div>
     </div>
 
-    <!-- 5. ENROLLMENT WAJAH -->
+        <!-- 5. ENROLLMENT WAJAH -->
     <div id="enrollment" class="section card">
       <h2 class="section-title">📸 Pendaftaran Wajah Biometrik</h2>
       <p class="section-desc">Pindai wajah untuk absensi menggunakan AI Face Recognition.</p>
-      <div style="font-weight: bold; color: #feca57;" id="statusText">Menunggu kamera...</div>
-      <div id="video-container"><video id="video" width="480" height="360" autoplay muted playsinline></video></div>
-      <div class="form-group" style="margin-top: 15px;"><label>ID Pengguna</label><input type="text" id="userIdInput" placeholder="Contoh: SISWA-001"></div>
-      <button class="btn-action btn-success" id="btnEnroll" onclick="registerCurrentFace()" disabled>Simpan Wajah</button>
+
+      <div class="form-group">
+        <label>Pilih Pengguna</label>
+        <select id="faceUserSelect" class="form-control" style="width:100%; max-width:400px; padding:10px;">
+          <option value="">-- Memuat Data Pengguna... --</option>
+        </select>
+      </div>
+
+      <div style="font-weight: bold; color: #feca57; margin-bottom:10px;" id="statusText">Menunggu kamera...</div>
+      
+      <div style="display: flex; gap: 15px; flex-wrap: wrap; margin-bottom: 15px;">
+        <video id="video" width="320" height="240" autoplay muted playsinline style="background:#000; border-radius:8px; object-fit:cover;"></video>
+        <canvas id="faceCanvas" width="320" height="240" style="background:#111; border-radius:8px; border:1px dashed #666;"></canvas>
+      </div>
+
+      <div style="display: flex; gap: 10px;">
+        <button type="button" class="btn-action" onclick="startCamera()">📷 Nyalakan Kamera</button>
+        <button type="button" class="btn-action btn-warning" onclick="captureFace()">📸 Ambil Foto</button>
+        <button type="button" class="btn-action btn-success" id="btnEnroll" onclick="registerCurrentFace()" disabled>💾 Simpan Wajah</button>
+      </div>
     </div>
 
     <!-- 6. FINGERPRINT -->
     <div id="fingerprint" class="section card">
       <h2 class="section-title">👆 Pendaftaran Fingerprint</h2>
       <p class="section-desc">Integrasi dengan alat Scanner Sidik Jari USB / Mesin ZKTeco.</p>
-      <div class="form-group"><label>Pilih Pengguna</label><input type="text" placeholder="Cari Nama / ID User"></div>
-      <div class="form-group"><label>Status Sensor</label><input type="text" value="Menunggu alat pemindai terhubung..." disabled style="opacity: 0.6;"></div>
-      <button class="btn-action">Mulai Pindai Jari (Scan)</button>
+
+      <div class="form-group">
+        <label>Pilih Pengguna</label>
+        <select id="fpUserSelect" class="form-control" style="width:100%; max-width:400px; padding:10px;">
+          <option value="">-- Memuat Data Pengguna... --</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>ID Fingerprint Hardware / Status Sensor</label>
+        <input type="text" id="fpStatusInput" placeholder="Tempelkan jari ke scanner..." style="width:100%; max-width:400px; padding:10px;">
+      </div>
+
+      <button type="button" class="btn-action btn-success" onclick="simpanFingerprint()">Simpan Fingerprint User</button>
     </div>
 
     <!-- 7. RFID / NFC -->
     <div id="rfid" class="section card">
       <h2 class="section-title">💳 Pendaftaran Kartu RFID / NFC</h2>
       <p class="section-desc">Tempelkan kartu pelajar/guru ke alat pembaca (RFID Reader USB).</p>
-      <div class="form-group"><label>Pilih Pengguna</label><input type="text" placeholder="Cari Nama / ID User"></div>
-      <div class="form-group"><label>UID Kartu (Tap Kartu Sekarang)</label><input type="text" placeholder="Klik disini, lalu tap kartu..." autofocus></div>
-      <button class="btn-action btn-success">Simpan Kartu</button>
+
+      <div class="form-group">
+        <label>Pilih Pengguna</label>
+        <select id="rfidUserSelect" class="form-control" style="width:100%; max-width:400px; padding:10px;">
+          <option value="">-- Memuat Data Pengguna... --</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>UID Kartu (Tap Kartu Sekarang)</label>
+        <input type="text" id="rfidCardInput" placeholder="Arahkan kursor ke sini, lalu tap kartu..." style="width:100%; max-width:400px; padding:10px;" autocomplete="off">
+      </div>
+
+      <button type="button" id="btnSimpanRfid" class="btn-action btn-success" onclick="simpanKartuRFID()">Simpan Kartu</button>
     </div>
 
     <!-- 8. BARCODE / QR -->
     <div id="barcode" class="section card">
       <h2 class="section-title">🎫 Generate Barcode / QR Code</h2>
       <p class="section-desc">Cetak kartu identitas yang dilengkapi dengan QR Code khusus.</p>
-      <div class="form-group"><label>Pilih Pengguna</label><input type="text" placeholder="Masukkan ID User"></div>
-      <button class="btn-action">Generate QR Code</button>
-      <div class="barcode-box">Preview QR Code</div>
-      <button class="btn-action btn-success" style="margin-top:15px;">Cetak Kartu (Print)</button>
+
+      <div class="form-group">
+        <label>Pilih Pengguna</label>
+        <select id="qrUserSelect" class="form-control" style="width:100%; max-width:400px; padding:10px;" onchange="generateQRCode()">
+          <option value="">-- Memuat Data Pengguna... --</option>
+        </select>
+      </div>
+
+      <div class="barcode-box" id="qrPreviewBox" style="margin: 15px 0; padding: 15px; background: #fff; width: fit-content; border-radius: 8px;">
+        <p style="color:#666; margin:0;">Pilih pengguna untuk membuat QR Code</p>
+      </div>
+
+      <button type="button" class="btn-action btn-success" onclick="cetakKartuQR()">🖨️ Cetak Kartu (Print)</button>
     </div>
 
     <!-- KONTEN: ADMIN & OPERATOR -->
