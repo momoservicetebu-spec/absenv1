@@ -171,28 +171,47 @@ async function loadUserForFaceAI() {
   selectElement.innerHTML = '<option value="">⏳ Memuat data dari server...</option>';
 
   try {
-    const result = await fetchAPI("getUsers"); 
-    
-    // Tampilkan isi data mentah di Console agar kita tahu nama kolomnya
-    console.log("Data dari Backend GAS:", result);
+    // MENGGUNAKAN ENDPOINT YANG SESUAI DENGAN CONSOLE (getDashboardData)
+    const result = await fetchAPI("getDashboardData", { role: "semua" }); 
     
     if (result && result.success && result.data) {
-      selectElement.innerHTML = '<option value="">-- Pilih Pengguna --</option>';
+      selectElement.innerHTML = '<option value="">-- Ketik atau Pilih Pengguna --</option>';
       
-      result.data.forEach(user => {
-        let option = document.createElement('option');
-        
-        // Deteksi otomatis berbagai kemungkinan nama kolom dari Google Sheets Anda
-        let userId = user.id || user.ID || user.nis || user.NIS || user.id_siswa || "Tanpa ID";
-        let userName = user.nama || user.Nama || user.nama_siswa || user.NAMA || "Tanpa Nama";
-        
-        option.value = userId; 
-        option.text = `${userId} - ${userName}`; 
-        
-        selectElement.appendChild(option);
-      });
+      const data = result.data;
+      const listSiswa = data.listSiswa || [];
+      const listGuru = data.listGuru || [];
+
+      // Masukkan Kelompok Siswa
+      if (listSiswa.length > 0) {
+        const groupSiswa = document.createElement("optgroup");
+        groupSiswa.label = "--- SISWA ---";
+        listSiswa.forEach(s => {
+          groupSiswa.innerHTML += `<option value="${s.id || s.nis}">${s.nama} (${s.nis || s.kelas})</option>`;
+        });
+        selectElement.appendChild(groupSiswa);
+      }
+
+      // Masukkan Kelompok Guru
+      if (listGuru.length > 0) {
+        const groupGuru = document.createElement("optgroup");
+        groupGuru.label = "--- GURU / STAF ---";
+        listGuru.forEach(g => {
+          groupGuru.innerHTML += `<option value="${g.id || g.nip}">${g.nama} (${g.nip || 'Guru'})</option>`;
+        });
+        selectElement.appendChild(groupGuru);
+      }
+
+      // AKTIFKAN FITUR SEARCH PADA DROPDOWN (Jika jQuery & Select2 tersedia di template Anda)
+      if (typeof jQuery !== 'undefined' && typeof jQuery.fn.select2 !== 'undefined') {
+        jQuery('#faceUserSelect').select2({
+          placeholder: "-- Ketik atau Pilih Pengguna --",
+          allowClear: true,
+          width: '100%'
+        });
+      }
+
     } else {
-      selectElement.innerHTML = `<option value="">❌ Gagal: ${result?.message || 'Data kosong'}</option>`;
+      selectElement.innerHTML = `<option value="">❌ Gagal: Data kosong</option>`;
     }
   } catch (error) {
     selectElement.innerHTML = `<option value="">❌ Error API: ${error.message}</option>`;
