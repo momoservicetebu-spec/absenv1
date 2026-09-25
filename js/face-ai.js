@@ -70,6 +70,7 @@ async function captureFace() {
     return;
   }
 
+  // Ambil gambar dari video dan taruh di canvas 'Hasil Tangkapan'
   const ctx = canvas.getContext('2d');
   ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
   
@@ -82,7 +83,8 @@ async function captureFace() {
   // Jalankan ekstraksi AI jika Face-API tersedia
   if (typeof faceapi !== 'undefined') {
     try {
-      const detection = await faceapi.detectSingleFace(video, new faceapi.TinyFaceDetectorOptions())
+      // PERUBAHAN PENTING: Deteksi AI dilakukan pada 'canvas' hasil jepretan, bukan 'video' langsung
+      const detection = await faceapi.detectSingleFace(canvas, new faceapi.TinyFaceDetectorOptions())
         .withFaceLandmarks()
         .withFaceDescriptor();
 
@@ -90,9 +92,8 @@ async function captureFace() {
         lastDescriptor = Array.from(detection.descriptor);
         
         // Gambar landmark biometrik di atas canvas
-        const resized = faceapi.resizeResults(detection, { width: canvas.width, height: canvas.height });
-        faceapi.draw.drawDetections(canvas, resized);
-        faceapi.draw.drawFaceLandmarks(canvas, resized);
+        faceapi.draw.drawDetections(canvas, detection);
+        faceapi.draw.drawFaceLandmarks(canvas, detection);
 
         statusText.innerText = "✅ Wajah & Biometrik Terdeteksi! Siap disimpan.";
         statusText.style.color = "#1dd1a1";
