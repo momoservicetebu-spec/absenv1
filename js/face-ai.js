@@ -166,42 +166,36 @@ async function registerCurrentFace() {
 // ==========================================
 async function loadUserForFaceAI() {
   const selectElement = document.getElementById('faceUserSelect');
-  if (!selectElement) return;
+  
+  if (!selectElement) {
+    console.error("Elemen Dropdown dengan ID 'faceUserSelect' tidak ditemukan di HTML!");
+    return;
+  }
 
-  selectElement.innerHTML = '<option value="">⏳ Memuat data dari server...</option>';
+  selectElement.innerHTML = '<option value="">⏳ Sedang menarik data dari database...</option>';
 
   try {
-    // MENGGUNAKAN ENDPOINT YANG SESUAI DENGAN CONSOLE (getDashboardData)
-    const result = await fetchAPI("getDashboardData", { role: "semua" }); 
+    // Memanggil API khusus untuk daftar pengguna (bukan dashboard)
+    // Sesuaikan "getUsers" dengan command di Google Apps Script Anda (misal: "getSiswa")
+    const result = await fetchAPI("getUsers"); 
     
-    if (result && result.success && result.data) {
+    console.log("Hasil Tarik Data Pengguna:", result); // Cek isi data di Console
+
+    if (result && result.success && result.data && result.data.length > 0) {
       selectElement.innerHTML = '<option value="">-- Ketik atau Pilih Pengguna --</option>';
       
-      const data = result.data;
-      const listSiswa = data.listSiswa || [];
-      const listGuru = data.listGuru || [];
+      result.data.forEach(user => {
+        // Deteksi otomatis kolom ID dan Nama dari Google Sheets
+        let userId = user.id || user.nis || user.nip || user.ID || "Tanpa ID";
+        let userName = user.nama || user.nama_siswa || user.Nama || "Tanpa Nama";
+        
+        let option = document.createElement('option');
+        option.value = userId; 
+        option.text = `${userId} - ${userName}`; 
+        selectElement.appendChild(option);
+      });
 
-      // Masukkan Kelompok Siswa
-      if (listSiswa.length > 0) {
-        const groupSiswa = document.createElement("optgroup");
-        groupSiswa.label = "--- SISWA ---";
-        listSiswa.forEach(s => {
-          groupSiswa.innerHTML += `<option value="${s.id || s.nis}">${s.nama} (${s.nis || s.kelas})</option>`;
-        });
-        selectElement.appendChild(groupSiswa);
-      }
-
-      // Masukkan Kelompok Guru
-      if (listGuru.length > 0) {
-        const groupGuru = document.createElement("optgroup");
-        groupGuru.label = "--- GURU / STAF ---";
-        listGuru.forEach(g => {
-          groupGuru.innerHTML += `<option value="${g.id || g.nip}">${g.nama} (${g.nip || 'Guru'})</option>`;
-        });
-        selectElement.appendChild(groupGuru);
-      }
-
-      // AKTIFKAN FITUR SEARCH PADA DROPDOWN (Jika jQuery & Select2 tersedia di template Anda)
+      // Aktifkan fitur pencarian (Search) jika library Select2 tersedia di template
       if (typeof jQuery !== 'undefined' && typeof jQuery.fn.select2 !== 'undefined') {
         jQuery('#faceUserSelect').select2({
           placeholder: "-- Ketik atau Pilih Pengguna --",
@@ -209,11 +203,18 @@ async function loadUserForFaceAI() {
           width: '100%'
         });
       }
-
     } else {
-      selectElement.innerHTML = `<option value="">❌ Gagal: Data kosong</option>`;
+      selectElement.innerHTML = `<option value="">❌ Gagal: Data pengguna kosong atau endpoint salah</option>`;
     }
   } catch (error) {
-    selectElement.innerHTML = `<option value="">❌ Error API: ${error.message}</option>`;
+    console.error("Error Load User:", error);
+    selectElement.innerHTML = `<option value="">❌ Error Koneksi: ${error.message}</option>`;
   }
 }
+
+// Pastikan fungsi dipanggil saat halaman dimuat
+document.addEventListener("DOMContentLoaded", () => {
+  if(document.getElementById('faceUserSelect')) {
+    loadUserForFaceAI();
+  }
+});
