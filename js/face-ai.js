@@ -83,7 +83,7 @@ async function captureFace() {
   // Jalankan ekstraksi AI jika Face-API tersedia
   if (typeof faceapi !== 'undefined') {
     try {
-      // PERUBAHAN PENTING: Deteksi AI dilakukan pada 'canvas' hasil jepretan, bukan 'video' langsung
+      // Deteksi AI dilakukan pada 'canvas' hasil jepretan
       const detection = await faceapi.detectSingleFace(canvas, new faceapi.TinyFaceDetectorOptions())
         .withFaceLandmarks()
         .withFaceDescriptor();
@@ -160,3 +160,42 @@ async function registerCurrentFace() {
   btnEnroll.innerText = "💾 Simpan Wajah";
   btnEnroll.disabled = false;
 }
+
+// ==========================================
+// 5. FUNGSI BARU: Muat Data Pengguna ke Dropdown
+// ==========================================
+async function loadUserForFaceAI() {
+  const selectElement = document.getElementById('faceUserSelect');
+  if (!selectElement) return;
+
+  selectElement.innerHTML = '<option value="">⏳ Memuat data dari server...</option>';
+
+  try {
+    // Sesuaikan "getUsers" dengan command API yang ada di Google Apps Script Anda 
+    // (misal: "getUsers", "getSiswa", atau "getAllUsers")
+    const result = await fetchAPI("getUsers"); 
+    
+    if (result && result.success && result.data) {
+      selectElement.innerHTML = '<option value="">-- Pilih Pengguna --</option>';
+      
+      result.data.forEach(user => {
+        let option = document.createElement('option');
+        option.value = user.id || user.nis; // Sesuaikan dengan nama kolom ID/NIS
+        option.text = `${user.id || user.nis} - ${user.nama}`; 
+        selectElement.appendChild(option);
+      });
+    } else {
+      selectElement.innerHTML = `<option value="">❌ Gagal: ${result?.message || 'Data kosong'}</option>`;
+    }
+  } catch (error) {
+    selectElement.innerHTML = `<option value="">❌ Error API: ${error.message}</option>`;
+  }
+}
+
+// Panggil fungsi muat data saat halaman/file ini selesai dimuat
+document.addEventListener("DOMContentLoaded", () => {
+  // Jika dropdown sudah ada di halaman, langsung eksekusi
+  if(document.getElementById('faceUserSelect')) {
+    loadUserForFaceAI();
+  }
+});
