@@ -1,15 +1,14 @@
 // ==========================================
-// PENGELOLA KREDENSIAL TERPADU (WAJAH, FP, RFID, QR)
+// PENGELOLA KREDENSIAL TERPADU (FP, RFID, QR)
+// (WAJAH SUDAH DIURUS OLEH face-ai.js)
 // ==========================================
-
-let localStream = null;
-let capturedFaceBase64 = "";
 
 // ------------------------------------------
 // 0. LOADER DROPDOWN USER (OTOMATIS)
 // ------------------------------------------
 async function loadAllUserDropdowns() {
-  const dropdownIds = ["faceUserSelect", "fpUserSelect", "rfidUserSelect", "qrUserSelect"];
+  // faceUserSelect dihapus dari sini agar tidak bentrok dengan fungsi loadUserForFaceAI()
+  const dropdownIds = ["fpUserSelect", "rfidUserSelect", "qrUserSelect"];
   
   const result = await fetchAPI("getDashboardData", { role: "semua" });
   if (!result || !result.success) return;
@@ -45,67 +44,7 @@ async function loadAllUserDropdowns() {
 }
 
 // ------------------------------------------
-// 1. LOGIKA WAJAH BIOMETRIK
-// ------------------------------------------
-async function startCamera() {
-  const video = document.getElementById("video");
-  const statusText = document.getElementById("statusText");
-
-  try {
-    if (localStream) localStream.getTracks().forEach(t => t.stop());
-    localStream = await navigator.mediaDevices.getUserMedia({ video: true });
-    video.srcObject = localStream;
-    statusText.innerText = "Kamera Aktif. Posisikan wajah di tengah.";
-    statusText.style.color = "#28a745";
-  } catch (err) {
-    statusText.innerText = "Gagal membuka kamera: " + err.message;
-    statusText.style.color = "#dc3545";
-  }
-}
-
-function captureFace() {
-  const video = document.getElementById("video");
-  const canvas = document.getElementById("faceCanvas");
-  const btnEnroll = document.getElementById("btnEnroll");
-  const statusText = document.getElementById("statusText");
-
-  if (!localStream) {
-    alert("Nyalakan kamera terlebih dahulu!");
-    return;
-  }
-
-  const ctx = canvas.getContext("2d");
-  ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-  capturedFaceBase64 = canvas.toDataURL("image/jpeg", 0.7);
-
-  btnEnroll.disabled = false;
-  statusText.innerText = "Sampel foto berhasil diambil. Silakan simpan.";
-}
-
-async function registerCurrentFace() {
-  const userID = document.getElementById("faceUserSelect").value;
-  const btn = document.getElementById("btnEnroll");
-
-  if (!userID) return alert("Pilih Pengguna terlebih dahulu!");
-  if (!capturedFaceBase64) return alert("Ambil foto sampel wajah dulu!");
-
-  btn.innerText = "Menyimpan...";
-  btn.disabled = true;
-
-  const result = await fetchAPI("saveFaceData", { userID: userID, fotoBase64: capturedFaceBase64 });
-
-  if (result && result.success) {
-    alert("✅ Wajah berhasil didaftarkan!");
-  } else {
-    alert("❌ Gagal menyimpan wajah: " + (result?.message || "Error server"));
-  }
-
-  btn.innerText = "Simpan Wajah";
-  btn.disabled = false;
-}
-
-// ------------------------------------------
-// 2. LOGIKA FINGERPRINT
+// 1. LOGIKA FINGERPRINT
 // ------------------------------------------
 async function simpanFingerprint() {
   const userID = document.getElementById("fpUserSelect").value;
@@ -125,7 +64,7 @@ async function simpanFingerprint() {
 }
 
 // ------------------------------------------
-// 3. LOGIKA RFID / NFC
+// 2. LOGIKA RFID / NFC
 // ------------------------------------------
 async function simpanKartuRFID() {
   const userID = document.getElementById("rfidUserSelect").value;
@@ -153,7 +92,7 @@ async function simpanKartuRFID() {
 }
 
 // ------------------------------------------
-// 4. LOGIKA GENERATE & PRINT QR CODE
+// 3. LOGIKA GENERATE & PRINT QR CODE
 // ------------------------------------------
 function generateQRCode() {
   const userID = document.getElementById("qrUserSelect").value;
@@ -164,7 +103,6 @@ function generateQRCode() {
     return;
   }
 
-  // Menggunakan Service API Generator QR Code Publik (Tanpa butuh library tambahan)
   const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(userID)}`;
   previewBox.innerHTML = `
     <div style="text-align:center;">

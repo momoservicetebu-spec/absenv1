@@ -171,17 +171,24 @@ async function loadUserForFaceAI() {
   selectElement.innerHTML = '<option value="">⏳ Memuat data dari server...</option>';
 
   try {
-    // Sesuaikan "getUsers" dengan command API yang ada di Google Apps Script Anda 
-    // (misal: "getUsers", "getSiswa", atau "getAllUsers")
     const result = await fetchAPI("getUsers"); 
+    
+    // Tampilkan isi data mentah di Console agar kita tahu nama kolomnya
+    console.log("Data dari Backend GAS:", result);
     
     if (result && result.success && result.data) {
       selectElement.innerHTML = '<option value="">-- Pilih Pengguna --</option>';
       
       result.data.forEach(user => {
         let option = document.createElement('option');
-        option.value = user.id || user.nis; // Sesuaikan dengan nama kolom ID/NIS
-        option.text = `${user.id || user.nis} - ${user.nama}`; 
+        
+        // Deteksi otomatis berbagai kemungkinan nama kolom dari Google Sheets Anda
+        let userId = user.id || user.ID || user.nis || user.NIS || user.id_siswa || "Tanpa ID";
+        let userName = user.nama || user.Nama || user.nama_siswa || user.NAMA || "Tanpa Nama";
+        
+        option.value = userId; 
+        option.text = `${userId} - ${userName}`; 
+        
         selectElement.appendChild(option);
       });
     } else {
@@ -191,11 +198,3 @@ async function loadUserForFaceAI() {
     selectElement.innerHTML = `<option value="">❌ Error API: ${error.message}</option>`;
   }
 }
-
-// Panggil fungsi muat data saat halaman/file ini selesai dimuat
-document.addEventListener("DOMContentLoaded", () => {
-  // Jika dropdown sudah ada di halaman, langsung eksekusi
-  if(document.getElementById('faceUserSelect')) {
-    loadUserForFaceAI();
-  }
-});
