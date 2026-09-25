@@ -167,54 +167,62 @@ async function registerCurrentFace() {
 async function loadUserForFaceAI() {
   const selectElement = document.getElementById('faceUserSelect');
   
-  if (!selectElement) {
-    console.error("Elemen Dropdown dengan ID 'faceUserSelect' tidak ditemukan di HTML!");
-    return;
-  }
+  if (!selectElement) return;
 
-  selectElement.innerHTML = '<option value="">⏳ Sedang menarik data dari database...</option>';
+  selectElement.innerHTML = '<option value="">⏳ Memuat data dari database...</option>';
 
   try {
-    // Memanggil API khusus untuk daftar pengguna (bukan dashboard)
-    // Sesuaikan "getUsers" dengan command di Google Apps Script Anda (misal: "getSiswa")
+    // Memanggil API (jika getUsers gagal, Anda bisa ganti menjadi getDashboardData)
     const result = await fetchAPI("getUsers"); 
     
-    console.log("Hasil Tarik Data Pengguna:", result); // Cek isi data di Console
-
-    if (result && result.success && result.data && result.data.length > 0) {
+    if (result && result.success) {
       selectElement.innerHTML = '<option value="">-- Ketik atau Pilih Pengguna --</option>';
       
-      result.data.forEach(user => {
-        // Deteksi otomatis kolom ID dan Nama dari Google Sheets
-        let userId = user.id || user.nis || user.nip || user.ID || "Tanpa ID";
-        let userName = user.nama || user.nama_siswa || user.Nama || "Tanpa Nama";
-        
-        let option = document.createElement('option');
-        option.value = userId; 
-        option.text = `${userId} - ${userName}`; 
-        selectElement.appendChild(option);
-      });
+      // Menampung semua data pengguna
+      let usersArray = [];
 
-      // Aktifkan fitur pencarian (Search) jika library Select2 tersedia di template
-      if (typeof jQuery !== 'undefined' && typeof jQuery.fn.select2 !== 'undefined') {
-        jQuery('#faceUserSelect').select2({
-          placeholder: "-- Ketik atau Pilih Pengguna --",
-          allowClear: true,
-          width: '100%'
+      // Mengecek apakah data langsung berbentuk Array atau terbungkus Object
+      if (Array.isArray(result.data)) {
+        usersArray = result.data;
+      } else if (typeof result.data === 'object') {
+        // Menggabungkan array guru dan siswa jika dipisah oleh backend
+        if (result.data.listSiswa) usersArray = usersArray.concat(result.data.listSiswa);
+        if (result.data.siswa) usersArray = usersArray.concat(result.data.siswa);
+        if (result.data.listGuru) usersArray = usersArray.concat(result.data.listGuru);
+        if (result.data.guru) usersArray = usersArray.concat(result.data.guru);
+      }
+
+      if (usersArray.length > 0) {
+        usersArray.forEach(user => {
+          // MENYESUAIKAN DENGAN NAMA KOLOM DI GOOGLE SHEETS
+          let userId = user.GuruID || user.SiswaID || user.NIP || user.NIS || user.id || "Tanpa ID";
+          let userName = user.Nama || user.nama || user.NAMA || "Tanpa Nama";
+          
+          // Jangan tampilkan jika datanya benar-benar kosong
+          if (userId !== "Tanpa ID" && userName !== "Tanpa Nama") {
+            let option = document.createElement('option');
+            option.value = userId; 
+            option.text = `${userId} - ${userName}`; 
+            selectElement.appendChild(option);
+          }
         });
+
+        // Aktifkan fitur pencarian (Search) bawaan Select2
+        if (typeof jQuery !== 'undefined' && typeof jQuery.fn.select2 !== 'undefined') {
+          jQuery('#faceUserSelect').select2({
+            placeholder: "-- Ketik atau Pilih Pengguna --",
+            allowClear: true,
+            width: '100%'
+          });
+        }
+      } else {
+        selectElement.innerHTML = `<option value="">❌ Gagal: Data pengguna kosong</option>`;
       }
     } else {
-      selectElement.innerHTML = `<option value="">❌ Gagal: Data pengguna kosong atau endpoint salah</option>`;
+      selectElement.innerHTML = `<option value="">❌ Gagal mengambil data</option>`;
     }
   } catch (error) {
     console.error("Error Load User:", error);
     selectElement.innerHTML = `<option value="">❌ Error Koneksi: ${error.message}</option>`;
   }
 }
-
-// Pastikan fungsi dipanggil saat halaman dimuat
-document.addEventListener("DOMContentLoaded", () => {
-  if(document.getElementById('faceUserSelect')) {
-    loadUserForFaceAI();
-  }
-});
