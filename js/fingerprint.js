@@ -4,9 +4,12 @@
 // ==========================================
 
 document.addEventListener('DOMContentLoaded', () => {
+  // 1. Muat daftar Siswa & Guru ke dropdown saat halaman terbuka
+  loadFingerprintUserOptions();
+
   const fpInput = document.getElementById('fpStatusInput');
 
-  // Scanner USB biasanya otomatis mengirimkan tombol 'Enter' setelah selesai memindai
+  // Scanner USB biasanya otomatis mengirim tombol 'Enter' setelah scan
   if (fpInput) {
     fpInput.addEventListener('keypress', (e) => {
       if (e.key === 'Enter') {
@@ -16,6 +19,65 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 });
+
+/**
+ * Memuat data Siswa & Guru dari Database ke Dropdown #fpUserSelect
+ */
+async function loadFingerprintUserOptions() {
+  const userSelect = document.getElementById("fpUserSelect");
+  if (!userSelect) return;
+
+  userSelect.innerHTML = '<option value="">⏳ Memuat data pengguna...</option>';
+
+  try {
+    const result = await fetchAPI("getAllUsers");
+
+    if (result && result.success && result.data) {
+      userSelect.innerHTML = '<option value="">-- Pilih Pengguna --</option>';
+
+      const { siswa, guru } = result.data;
+
+      // Group Guru
+      if (guru && guru.length > 0) {
+        const optGroupGuru = document.createElement('optgroup');
+        optGroupGuru.label = "👨‍🏫 GURU / STAF";
+        guru.forEach(g => {
+          const id = g.GuruID || g.NIP || g.ID || "";
+          const nama = g.Nama || g.NamaGuru || g.NamaLengkap || "";
+          if (id) {
+            const opt = document.createElement('option');
+            opt.value = id;
+            opt.textContent = `[GURU] ${id} - ${nama}`;
+            optGroupGuru.appendChild(opt);
+          }
+        });
+        userSelect.appendChild(optGroupGuru);
+      }
+
+      // Group Siswa
+      if (siswa && siswa.length > 0) {
+        const optGroupSiswa = document.createElement('optgroup');
+        optGroupSiswa.label = "👨‍🎓 SISWA";
+        siswa.forEach(s => {
+          const id = s.SiswaID || s.NIS || s.ID || "";
+          const nama = s.Nama || s.NamaSiswa || s.NamaLengkap || "";
+          if (id) {
+            const opt = document.createElement('option');
+            opt.value = id;
+            opt.textContent = `[SISWA] ${id} - ${nama}`;
+            optGroupSiswa.appendChild(opt);
+          }
+        });
+        userSelect.appendChild(optGroupSiswa);
+      }
+    } else {
+      userSelect.innerHTML = '<option value="">❌ Gagal memuat data pengguna</option>';
+    }
+  } catch (err) {
+    console.error("Error loadFingerprintUserOptions:", err);
+    userSelect.innerHTML = '<option value="">❌ Error koneksi data pengguna</option>';
+  }
+}
 
 /**
  * Memproses dan menyimpan mapping Fingerprint Pengguna ke Backend
@@ -28,7 +90,6 @@ async function simpanFingerprint() {
   const userID = userSelect ? userSelect.value : "";
   const fpCode = fpInput ? fpInput.value.trim() : "";
 
-  // 1. Validasi Input
   if (!userID) {
     alert("⚠️ Silakan pilih Pengguna terlebih dahulu!");
     if (userSelect) userSelect.focus();
@@ -41,7 +102,6 @@ async function simpanFingerprint() {
     return;
   }
 
-  // 2. Indikator Loading di Tombol
   let originalText = "Simpan Fingerprint User";
   if (btnSave) {
     originalText = btnSave.innerText;
@@ -50,14 +110,12 @@ async function simpanFingerprint() {
   }
 
   try {
-    // 3. Deteksi Role singkat dari teks opsi yang dipilih
     const selectedText = userSelect.options[userSelect.selectedIndex].text.toUpperCase();
     let role = "Siswa";
     if (selectedText.includes('GURU') || userID.toUpperCase().includes('GURU')) {
       role = "Guru";
     }
 
-    // 4. Payload dikirim via fetchAPI
     const payload = {
       userID: userID,
       fingerprintID: fpCode,
@@ -69,7 +127,7 @@ async function simpanFingerprint() {
     if (result && result.success) {
       alert(`✅ ${result.message}`);
       if (fpInput) {
-        fpInput.value = ""; // Reset input setelah berhasil
+        fpInput.value = "";
         fpInput.focus();
       }
     } else {
