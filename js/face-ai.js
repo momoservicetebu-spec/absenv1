@@ -226,3 +226,11 @@ async function loadUserForFaceAI() {
     selectElement.innerHTML = `<option value="">❌ Error Koneksi: ${error.message}</option>`;
   }
 }
+
+// Tambahkan ini di baris paling bawah file face-ai.js
+document.addEventListener("DOMContentLoaded", () => {
+    loadUserForFaceAI();
+});
+
+
+
