@@ -126,17 +126,25 @@ async function registerCurrentFace() {
     alert("Silakan pilih Pengguna terlebih dahulu dari list dropdown!");
     return;
   }
-
   if (!capturedFaceBase64) {
     alert("Ambil foto wajah terlebih dahulu!");
     return;
   }
 
+  // DETEKSI ROLE (GURU atau SISWA)
+  const selectedText = userSelect.options[userSelect.selectedIndex].text.toLowerCase();
+  let userRole = "Siswa"; // Default ke Siswa
+  if (selectedText.includes('guru') || userId.toLowerCase().includes('guru') || userId.toLowerCase().includes('nip')) {
+    userRole = "Guru";
+  }
+
   btnEnroll.innerText = "⏳ Menyimpan ke Server...";
   btnEnroll.disabled = true;
 
+  // Siapkan paket data untuk dikirim
   const payload = {
     userId: userId,
+    role: userRole, // Info role diselipkan di sini
     faceDescriptor: lastDescriptor ? JSON.stringify(lastDescriptor) : "",
     fotoBase64: capturedFaceBase64
   };
@@ -144,7 +152,7 @@ async function registerCurrentFace() {
   const result = await fetchAPI("registerFace", payload);
 
   if (result && result.success) {
-    alert(`✅ Data Wajah AI untuk ID (${userId}) Berhasil Disimpan!`);
+    alert(`✅ ${result.message}`); // Pesan sukses dari server
     
     // Reset Canvas
     const canvas = document.getElementById('faceCanvas');
@@ -154,7 +162,7 @@ async function registerCurrentFace() {
     capturedFaceBase64 = "";
     lastDescriptor = null;
   } else {
-    alert(`❌ Gagal Menyimpan: ${result?.message || 'Terjadi kesalahan koneksi server'}`);
+    alert(`❌ Gagal Menyimpan: ${result?.message || 'Terjadi kesalahan koneksi'}`);
   }
 
   btnEnroll.innerText = "💾 Simpan Wajah";

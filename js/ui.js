@@ -2499,25 +2499,6 @@ async function loadAllUserDropdowns() {
   });
 }
 
-// ------------------------------------------
-// 1. LOGIKA FINGERPRINT
-// ------------------------------------------
-async function simpanFingerprint() {
-  const userID = document.getElementById("fpUserSelect").value;
-  const fpCode = document.getElementById("fpStatusInput").value.trim();
-
-  if (!userID) return alert("Pilih Pengguna terlebih dahulu!");
-  if (!fpCode) return alert("Masukkan ID Fingerprint hasil scan hardware!");
-
-  const result = await fetchAPI("saveFingerprintMapping", { userID: userID, fingerprintID: fpCode });
-
-  if (result && result.success) {
-    alert("✅ Fingerprint berhasil terhubung dengan pengguna!");
-    document.getElementById("fpStatusInput").value = "";
-  } else {
-    alert("❌ Gagal menyimpan: " + (result?.message || "Error server"));
-  }
-}
 
 // ------------------------------------------
 // 2. LOGIKA RFID / NFC

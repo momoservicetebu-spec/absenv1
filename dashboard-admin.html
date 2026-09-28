@@ -415,7 +415,7 @@
         <input type="text" id="fpStatusInput" placeholder="Tempelkan jari ke scanner..." style="width:100%; max-width:400px; padding:10px;">
       </div>
 
-      <button type="button" class="btn-action btn-success" onclick="simpanFingerprint()">Simpan Fingerprint User</button>
+      <button id="btnSaveFingerprint" onclick="simpanFingerprint()" class="btn btn-primary">Simpan Fingerprint User</button>
     </div>
 
     <!-- 7. RFID / NFC -->
@@ -1388,6 +1388,8 @@ function updateFileName(input) {
 <script src="./js/ui.js?v=2.1"></script>
 <script src="./js/users.js?v=2.0"></script>
 <script src="./js/face-ai.js?v=2.1"></script>
+<script src="./js/fingerprint.js"></script> 
+
 
 <!-- INISIALISASI SELECT2 -->
 <script>
