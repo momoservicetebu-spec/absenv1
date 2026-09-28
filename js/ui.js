@@ -6,8 +6,6 @@
 // FUNGSI NAVIGASI TAB UTAMA & LOAD DATA
 // ==========================================
 
-const API_URL = "https://script.google.com/macros/s/AKfycbxx3BLAOh7RZwF2vvukhDPhytbAPXfMP3H_RAJNeWgxLe2LNcCzojm-6HQ1kktPQMTQ/exec";
-
 // --- [PERBAIKAN] TAMBAHKAN FUNGSI fetchAPI DI SINI ---
 async function fetchAPI(action, payload = null) {
   try {
