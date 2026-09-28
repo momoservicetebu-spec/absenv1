@@ -1,6 +1,6 @@
 // ==========================================
 // FILE: js/fingerprint.js
-// INTEGRASI HW ZKTECO (ZK4000/ZK4500/ZK8000) VIA WEBSOCKET/WEBAGENT
+// INTEGRASI HW ZKTECO VIA WEBSOCKET & PENYIMPANAN DATA
 // ==========================================
 
 let zkSocket = null;
@@ -9,7 +9,6 @@ let isSensorConnected = false;
 document.addEventListener('DOMContentLoaded', () => {
   // 1. Muat pengguna ke dropdown
   loadFingerprintUserOptions();
-
   // 2. Hubungkan ke Hardware ZKTeco
   connectToZKTecoHardware();
 });
@@ -19,13 +18,9 @@ document.addEventListener('DOMContentLoaded', () => {
  */
 function connectToZKTecoHardware() {
   const statusLabel = document.getElementById('hardwareStatus') || createHardwareStatusElement();
-
-  // Port standar ZKTeco WebAgent / WebServer SDK
   const zkServerUrl = "ws://127.0.0.1:24010/zkfinger";
 
-  if (statusLabel) {
-    statusLabel.innerHTML = '⏳ Menghubungkan ke ZKTeco Hardware Service...';
-  }
+  if (statusLabel) statusLabel.innerHTML = '⏳ Menghubungkan ke ZKTeco Hardware Service...';
 
   try {
     zkSocket = new WebSocket(zkServerUrl);
@@ -33,11 +28,7 @@ function connectToZKTecoHardware() {
     zkSocket.onopen = () => {
       isSensorConnected = true;
       console.log("✅ Terhubung ke ZKTeco WebAgent Service");
-      if (statusLabel) {
-        statusLabel.innerHTML = '🟢 <span style="color: green;">Hardware ZKTeco Siap (Standby)</span>';
-      }
-      
-      // Kirim perintah inisialisasi sensor ke service lokal
+      if (statusLabel) statusLabel.innerHTML = '🟢 <span style="color: green;">Hardware ZKTeco Siap (Standby)</span>';
       zkSocket.send(JSON.stringify({ command: "init" }));
     };
 
@@ -51,15 +42,13 @@ function connectToZKTecoHardware() {
     };
 
     zkSocket.onerror = (err) => {
-      console.warn("❌ ZKTeco WebAgent tidak terdeteksi di port 24010. Mencoba mode Universal Fallback.");
+      console.warn("❌ ZKTeco WebAgent tidak terdeteksi. Mencoba mode Universal Fallback.");
       fallbackToUniversalInput();
     };
 
     zkSocket.onclose = () => {
       isSensorConnected = false;
-      if (statusLabel) {
-        statusLabel.innerHTML = '🔴 <span style="color: red;">Hardware Terputus (Service Offline)</span>';
-      }
+      if (statusLabel) statusLabel.innerHTML = '🔴 <span style="color: red;">Hardware Terputus (Service Offline)</span>';
     };
 
   } catch (e) {
@@ -74,20 +63,16 @@ function handleZKTecoEvent(data) {
   const statusLabel = document.getElementById('hardwareStatus');
   const fpInput = document.getElementById('fpStatusInput');
 
-  // Event saat jari ditempelkan ke sensor
   if (data.event === "finger_touch") {
     if (statusLabel) statusLabel.innerHTML = '🟡 <span style="color: orange;">Jari Terdeteksi, Memindai...</span>';
   }
 
-  // Event saat template fingerprint berhasil diambil
   if (data.event === "capture" || data.status === "success") {
     const templateBase64 = data.template || data.data;
-
     if (templateBase64) {
       if (fpInput) fpInput.value = templateBase64;
       if (statusLabel) statusLabel.innerHTML = '⚡ <span style="color: blue;">Sidik Jari Berhasil Di-scan!</span>';
-
-      // Otomatis jalankan simpan
+      // Otomatis simpan saat sidik jari berhasil discan
       simpanFingerprint();
     }
   }
@@ -97,17 +82,11 @@ function handleZKTecoEvent(data) {
   }
 }
 
-/**
- * Fallback jika WebAgent ZKTeco tidak aktif (menggunakan mode Emulation Input)
- */
 function fallbackToUniversalInput() {
   const statusLabel = document.getElementById('hardwareStatus');
   const fpInput = document.getElementById('fpStatusInput');
 
-  if (statusLabel) {
-    statusLabel.innerHTML = '🟠 <span style="color: orange;">Mode Standar / Manual Active</span>';
-  }
-
+  if (statusLabel) statusLabel.innerHTML = '🟠 <span style="color: orange;">Mode Standar / Manual Active</span>';
   if (fpInput) {
     fpInput.focus();
     fpInput.addEventListener('keypress', (e) => {
@@ -119,9 +98,6 @@ function fallbackToUniversalInput() {
   }
 }
 
-/**
- * Indikator UI Status Hardware
- */
 function createHardwareStatusElement() {
   const container = document.getElementById('fpStatusInput')?.parentElement;
   if (!container) return null;
@@ -132,13 +108,12 @@ function createHardwareStatusElement() {
   statusDiv.style.fontSize = '14px';
   statusDiv.style.fontWeight = 'bold';
   statusDiv.innerHTML = '⏳ Menyiapkan Hardware...';
-
   container.appendChild(statusDiv);
   return statusDiv;
 }
 
 /**
- * Load User List (Guru & Siswa)
+ * 1. MENGAMBIL DATA DARI ENDPOINT getFingerUsers
  */
 async function loadFingerprintUserOptions() {
   const userSelect = document.getElementById("fpUserSelect");
@@ -147,19 +122,23 @@ async function loadFingerprintUserOptions() {
   userSelect.innerHTML = '<option value="">⏳ Memuat data pengguna...</option>';
 
   try {
-    const result = await fetchAPI("getAllUsers");
+    // Memanggil endpoint backend yang baru
+    const result = await fetchAPI("getFingerUsers");
+    const dataObj = result.data || result; 
+    
+    // Menggunakan listSiswa dan listGuru sesuai ide Anda
+    const siswa = dataObj.listSiswa || [];
+    const guru = dataObj.listGuru || [];
 
-    if (result && result.success && result.data) {
+    if (siswa.length > 0 || guru.length > 0) {
       userSelect.innerHTML = '<option value="">-- Pilih Pengguna --</option>';
 
-      const { siswa, guru } = result.data;
-
-      if (guru && guru.length > 0) {
+      if (guru.length > 0) {
         const optGroupGuru = document.createElement('optgroup');
         optGroupGuru.label = "👨‍🏫 GURU / STAF";
         guru.forEach(g => {
-          const id = g.GuruID || g.NIP || g.ID || "";
-          const nama = g.Nama || g.NamaGuru || g.NamaLengkap || "";
+          const id = g.id || g.ID || g.GuruID || g.nip || g.NIP || "";
+          const nama = g.nama || g.Nama || g.NamaGuru || g.nama_lengkap || g.NamaLengkap || "Tanpa Nama";
           if (id) {
             const opt = document.createElement('option');
             opt.value = id;
@@ -170,12 +149,12 @@ async function loadFingerprintUserOptions() {
         userSelect.appendChild(optGroupGuru);
       }
 
-      if (siswa && siswa.length > 0) {
+      if (siswa.length > 0) {
         const optGroupSiswa = document.createElement('optgroup');
         optGroupSiswa.label = "👨‍🎓 SISWA";
         siswa.forEach(s => {
-          const id = s.SiswaID || s.NIS || s.ID || "";
-          const nama = s.Nama || s.NamaSiswa || s.NamaLengkap || "";
+          const id = s.id || s.ID || s.SiswaID || s.nis || s.NIS || s.nisn || "";
+          const nama = s.nama || s.Nama || s.NamaSiswa || s.nama_lengkap || s.NamaLengkap || "Tanpa Nama";
           if (id) {
             const opt = document.createElement('option');
             opt.value = id;
@@ -186,7 +165,7 @@ async function loadFingerprintUserOptions() {
         userSelect.appendChild(optGroupSiswa);
       }
     } else {
-      userSelect.innerHTML = '<option value="">❌ Gagal memuat data pengguna</option>';
+      userSelect.innerHTML = '<option value="">❌ Data siswa dan guru kosong</option>';
     }
   } catch (err) {
     console.error("Error loadFingerprintUserOptions:", err);
@@ -195,7 +174,7 @@ async function loadFingerprintUserOptions() {
 }
 
 /**
- * Simpan Mapping Sidik Jari
+ * 2. MENYIMPAN DATA KE ENDPOINT saveFingerprintMapping
  */
 async function simpanFingerprint() {
   const userSelect = document.getElementById("fpUserSelect");
@@ -206,7 +185,7 @@ async function simpanFingerprint() {
   const fpCode = fpInput ? fpInput.value.trim() : "";
 
   if (!userID) {
-    alert("⚠️ Silakan pilih Pengguna terlebih dahulu!");
+    alert("⚠️ Silakan pilih Pengguna terlebih dahulu di dropdown!");
     if (userSelect) userSelect.focus();
     return;
   }
@@ -224,23 +203,23 @@ async function simpanFingerprint() {
   }
 
   try {
-    const selectedOption = userSelect.options[userSelect.selectedIndex].text.toUpperCase();
-    let role = "Siswa";
-    if (selectedOption.includes('GURU') || userID.toUpperCase().includes('GURU')) {
-      role = "Guru";
-    }
+    // Menentukan Role (Guru / Siswa) dari teks yang dipilih di dropdown
+    const selectedText = userSelect.options[userSelect.selectedIndex].text.toUpperCase();
+    let role = selectedText.includes('GURU') ? "Guru" : "Siswa";
 
+    // Menyusun payload sesuai permintaan backend
     const payload = {
       userID: userID,
       fingerprintID: fpCode,
       role: role
     };
 
+    // Mengirim ke backend
     const result = await fetchAPI("saveFingerprintMapping", payload);
 
-    if (result && result.success) {
-      alert(`✅ ${result.message}`);
-      if (fpInput) fpInput.value = "";
+    if (result && (result.success || result.status === 'success' || result.status === 200)) {
+      alert(`✅ ${result.message || "Data cap jari berhasil disimpan!"}`);
+      if (fpInput) fpInput.value = ""; // Kosongkan input setelah sukses
     } else {
       alert(`❌ Gagal menyimpan: ${result?.message || "Terjadi kesalahan server"}`);
     }
