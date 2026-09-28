@@ -1,16 +1,115 @@
 // ==========================================
 // FILE: js/fingerprint.js
-// LOGIKA PENDAFTARAN FINGERPRINT / SIDIK JARI
+// INTEGRASI HW ZKTECO (ZK4000/ZK4500/ZK8000) VIA WEBSOCKET/WEBAGENT
 // ==========================================
 
+let zkSocket = null;
+let isSensorConnected = false;
+
 document.addEventListener('DOMContentLoaded', () => {
-  // 1. Muat daftar Siswa & Guru ke dropdown saat halaman terbuka
+  // 1. Muat pengguna ke dropdown
   loadFingerprintUserOptions();
 
+  // 2. Hubungkan ke Hardware ZKTeco
+  connectToZKTecoHardware();
+});
+
+/**
+ * Membuka koneksi WebSocket ke Service Lokal ZKTeco
+ */
+function connectToZKTecoHardware() {
+  const statusLabel = document.getElementById('hardwareStatus') || createHardwareStatusElement();
+
+  // Port standar ZKTeco WebAgent / WebServer SDK
+  const zkServerUrl = "ws://127.0.0.1:24010/zkfinger";
+
+  if (statusLabel) {
+    statusLabel.innerHTML = '⏳ Menghubungkan ke ZKTeco Hardware Service...';
+  }
+
+  try {
+    zkSocket = new WebSocket(zkServerUrl);
+
+    zkSocket.onopen = () => {
+      isSensorConnected = true;
+      console.log("✅ Terhubung ke ZKTeco WebAgent Service");
+      if (statusLabel) {
+        statusLabel.innerHTML = '🟢 <span style="color: green;">Hardware ZKTeco Siap (Standby)</span>';
+      }
+      
+      // Kirim perintah inisialisasi sensor ke service lokal
+      zkSocket.send(JSON.stringify({ command: "init" }));
+    };
+
+    zkSocket.onmessage = (event) => {
+      try {
+        const response = JSON.parse(event.data);
+        handleZKTecoEvent(response);
+      } catch (e) {
+        console.log("Raw Message ZK:", event.data);
+      }
+    };
+
+    zkSocket.onerror = (err) => {
+      console.warn("❌ ZKTeco WebAgent tidak terdeteksi di port 24010. Mencoba mode Universal Fallback.");
+      fallbackToUniversalInput();
+    };
+
+    zkSocket.onclose = () => {
+      isSensorConnected = false;
+      if (statusLabel) {
+        statusLabel.innerHTML = '🔴 <span style="color: red;">Hardware Terputus (Service Offline)</span>';
+      }
+    };
+
+  } catch (e) {
+    fallbackToUniversalInput();
+  }
+}
+
+/**
+ * Memproses respon & event dari Sensor ZKTeco
+ */
+function handleZKTecoEvent(data) {
+  const statusLabel = document.getElementById('hardwareStatus');
   const fpInput = document.getElementById('fpStatusInput');
 
-  // Scanner USB biasanya otomatis mengirim tombol 'Enter' setelah scan
+  // Event saat jari ditempelkan ke sensor
+  if (data.event === "finger_touch") {
+    if (statusLabel) statusLabel.innerHTML = '🟡 <span style="color: orange;">Jari Terdeteksi, Memindai...</span>';
+  }
+
+  // Event saat template fingerprint berhasil diambil
+  if (data.event === "capture" || data.status === "success") {
+    const templateBase64 = data.template || data.data;
+
+    if (templateBase64) {
+      if (fpInput) fpInput.value = templateBase64;
+      if (statusLabel) statusLabel.innerHTML = '⚡ <span style="color: blue;">Sidik Jari Berhasil Di-scan!</span>';
+
+      // Otomatis jalankan simpan
+      simpanFingerprint();
+    }
+  }
+
+  if (data.event === "error") {
+    alert("⚠️ Error Hardware: " + (data.message || "Gagal membaca sidik jari"));
+  }
+}
+
+/**
+ * Fallback jika WebAgent ZKTeco tidak aktif (menggunakan mode Emulation Input)
+ */
+function fallbackToUniversalInput() {
+  const statusLabel = document.getElementById('hardwareStatus');
+  const fpInput = document.getElementById('fpStatusInput');
+
+  if (statusLabel) {
+    statusLabel.innerHTML = '🟠 <span style="color: orange;">Mode Standar / Manual Active</span>';
+  }
+
   if (fpInput) {
+    fpInput.focus();
     fpInput.addEventListener('keypress', (e) => {
       if (e.key === 'Enter') {
         e.preventDefault();
@@ -18,10 +117,28 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
   }
-});
+}
 
 /**
- * Memuat data Siswa & Guru dari Database ke Dropdown #fpUserSelect
+ * Indikator UI Status Hardware
+ */
+function createHardwareStatusElement() {
+  const container = document.getElementById('fpStatusInput')?.parentElement;
+  if (!container) return null;
+
+  const statusDiv = document.createElement('div');
+  statusDiv.id = 'hardwareStatus';
+  statusDiv.style.marginTop = '8px';
+  statusDiv.style.fontSize = '14px';
+  statusDiv.style.fontWeight = 'bold';
+  statusDiv.innerHTML = '⏳ Menyiapkan Hardware...';
+
+  container.appendChild(statusDiv);
+  return statusDiv;
+}
+
+/**
+ * Load User List (Guru & Siswa)
  */
 async function loadFingerprintUserOptions() {
   const userSelect = document.getElementById("fpUserSelect");
@@ -37,7 +154,6 @@ async function loadFingerprintUserOptions() {
 
       const { siswa, guru } = result.data;
 
-      // Group Guru
       if (guru && guru.length > 0) {
         const optGroupGuru = document.createElement('optgroup');
         optGroupGuru.label = "👨‍🏫 GURU / STAF";
@@ -54,7 +170,6 @@ async function loadFingerprintUserOptions() {
         userSelect.appendChild(optGroupGuru);
       }
 
-      // Group Siswa
       if (siswa && siswa.length > 0) {
         const optGroupSiswa = document.createElement('optgroup');
         optGroupSiswa.label = "👨‍🎓 SISWA";
@@ -80,7 +195,7 @@ async function loadFingerprintUserOptions() {
 }
 
 /**
- * Memproses dan menyimpan mapping Fingerprint Pengguna ke Backend
+ * Simpan Mapping Sidik Jari
  */
 async function simpanFingerprint() {
   const userSelect = document.getElementById("fpUserSelect");
@@ -97,8 +212,7 @@ async function simpanFingerprint() {
   }
 
   if (!fpCode) {
-    alert("⚠️ Masukkan atau tempelkan jari ke scanner untuk mengambil ID Fingerprint!");
-    if (fpInput) fpInput.focus();
+    alert("⚠️ Tempelkan jari pada scanner ZKTeco terlebih dahulu!");
     return;
   }
 
@@ -110,9 +224,9 @@ async function simpanFingerprint() {
   }
 
   try {
-    const selectedText = userSelect.options[userSelect.selectedIndex].text.toUpperCase();
+    const selectedOption = userSelect.options[userSelect.selectedIndex].text.toUpperCase();
     let role = "Siswa";
-    if (selectedText.includes('GURU') || userID.toUpperCase().includes('GURU')) {
+    if (selectedOption.includes('GURU') || userID.toUpperCase().includes('GURU')) {
       role = "Guru";
     }
 
@@ -126,10 +240,7 @@ async function simpanFingerprint() {
 
     if (result && result.success) {
       alert(`✅ ${result.message}`);
-      if (fpInput) {
-        fpInput.value = "";
-        fpInput.focus();
-      }
+      if (fpInput) fpInput.value = "";
     } else {
       alert(`❌ Gagal menyimpan: ${result?.message || "Terjadi kesalahan server"}`);
     }
@@ -142,33 +253,3 @@ async function simpanFingerprint() {
     }
   }
 }
-
-/**
- * Mengecek ketersediaan Hardware Fingerprint (Local Agent / Emulasi)
- */
-async function checkFingerprintHardware() {
-  const statusEl = document.getElementById('hardwareStatus');
-  if (!statusEl) return;
-
-  statusEl.innerText = "🔍 Mencari perangkat fingerprint...";
-
-  try {
-    // 1. Cek apakah ada Local Service Agent ZKTeco di PC client
-    const response = await fetch('http://localhost:8080/api/fingerprint/status', { method: 'GET' });
-    const data = await response.json();
-
-    if (data && data.connected) {
-      statusEl.innerHTML = `✅ Terdeteksi: <strong>${data.device}</strong> (SDK ZKTeco Active)`;
-      return 'SDK_ZKTECO';
-    }
-  } catch (err) {
-    // 2. Jika Local Agent tidak ditemukan, asumsikan menggunakan scanner mode USB Keyboard Universal
-    statusEl.innerHTML = "ℹ️ Mode Universal USB Emulation Active (Siap menerima input scanner USB)";
-    return 'USB_EMULATION';
-  }
-}
-
-// Jalankan deteksi saat halaman dimuat
-document.addEventListener('DOMContentLoaded', () => {
-  checkFingerprintHardware();
-});
