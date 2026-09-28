@@ -173,7 +173,7 @@ async function loadUserForFaceAI() {
 
   try {
     // Memanggil API (jika getUsers gagal, Anda bisa ganti menjadi getDashboardData)
-    const result = await fetchAPI("getUsers"); 
+    const result = await fetchAPI("getFaceUsers");
     
     if (result && result.success) {
       selectElement.innerHTML = '<option value="">-- Ketik atau Pilih Pengguna --</option>';
