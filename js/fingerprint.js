@@ -142,3 +142,33 @@ async function simpanFingerprint() {
     }
   }
 }
+
+/**
+ * Mengecek ketersediaan Hardware Fingerprint (Local Agent / Emulasi)
+ */
+async function checkFingerprintHardware() {
+  const statusEl = document.getElementById('hardwareStatus');
+  if (!statusEl) return;
+
+  statusEl.innerText = "🔍 Mencari perangkat fingerprint...";
+
+  try {
+    // 1. Cek apakah ada Local Service Agent ZKTeco di PC client
+    const response = await fetch('http://localhost:8080/api/fingerprint/status', { method: 'GET' });
+    const data = await response.json();
+
+    if (data && data.connected) {
+      statusEl.innerHTML = `✅ Terdeteksi: <strong>${data.device}</strong> (SDK ZKTeco Active)`;
+      return 'SDK_ZKTECO';
+    }
+  } catch (err) {
+    // 2. Jika Local Agent tidak ditemukan, asumsikan menggunakan scanner mode USB Keyboard Universal
+    statusEl.innerHTML = "ℹ️ Mode Universal USB Emulation Active (Siap menerima input scanner USB)";
+    return 'USB_EMULATION';
+  }
+}
+
+// Jalankan deteksi saat halaman dimuat
+document.addEventListener('DOMContentLoaded', () => {
+  checkFingerprintHardware();
+});
