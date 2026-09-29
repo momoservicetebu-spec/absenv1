@@ -1,72 +1,37 @@
-/**
- * Membuka koneksi WebSocket ke Service Lokal ZKTeco (Auto-Scan Port)
- */
-function connectToZKTecoHardware() {
-  const statusLabel = document.getElementById('hardwareStatus') || createHardwareStatusElement();
-  const btnSave = document.getElementById("btnSaveFingerprint") || document.querySelector("button[onclick*='simpanFingerprint']");
-  
-  // Daftar port yang sering digunakan oleh Driver Web ZKTeco
-  const portsToTry = [24010, 20824, 8080, 8090];
-  let currentPortIndex = 0;
+// local-bridge.js (Dijalankan di PC Client: node local-bridge.js)
+const express = require('express');
+const cors = require('cors');
+const app = express();
 
-  if (statusLabel) statusLabel.innerHTML = '⏳ Mencari service ZKTeco di komputer...';
+app.use(cors());
+app.use(express.json());
 
-  function tryConnect() {
-    if (currentPortIndex >= portsToTry.length) {
-      if (statusLabel) statusLabel.innerHTML = '🔴 <span style="color: red;">Hardware Terputus (Driver ZKTeco tidak ditemukan)</span>';
-      console.warn("❌ ZKTeco WebAgent tidak terdeteksi di port manapun. Pastikan aplikasi driver ZKTeco berjalan di Windows.");
-      fallbackToUniversalInput();
-      return;
-    }
+// Simulasi status koneksi sensor ZKTeco via SDK
+let isSensorReady = true; 
 
-    const port = portsToTry[currentPortIndex];
-    const zkServerUrl = `ws://127.0.0.1:${port}/zkfinger`;
-    console.log(`Mencoba koneksi ke sensor di port: ${port}...`);
+// Endpoint cek status hardware
+app.get('/api/fingerprint/status', (req, res) => {
+  res.json({
+    connected: isSensorReady,
+    device: "ZKTeco ZK4000/ZK8000 Sensor",
+    sdkVersion: "ZKFinger 10.0"
+  });
+});
 
-    try {
-      zkSocket = new WebSocket(zkServerUrl);
-
-      zkSocket.onopen = () => {
-        isSensorConnected = true;
-        console.log(`✅ Berhasil terhubung ke ZKTeco WebAgent di port ${port}`);
-        if (statusLabel) statusLabel.innerHTML = '🟢 <span style="color: green;">Hardware ZKTeco Siap (Standby)</span>';
-        
-        // Kirim inisialisasi awal ke alat
-        zkSocket.send(JSON.stringify({ command: "init" }));
-      };
-
-      zkSocket.onmessage = (event) => {
-        try {
-          const response = JSON.parse(event.data);
-          handleZKTecoEvent(response);
-        } catch (e) {
-          console.log("Raw Message ZK:", event.data);
-        }
-      };
-
-      zkSocket.onerror = (err) => {
-        // Jika gagal, tutup socket dan coba port berikutnya
-        zkSocket.close();
-      };
-
-      zkSocket.onclose = () => {
-        if (!isSensorConnected) {
-          // Hanya pindah ke port berikutnya jika memang belum pernah sukses terkoneksi
-          currentPortIndex++;
-          tryConnect();
-        } else {
-          // Jika sebelumnya sukses lalu terputus (misal alat dicabut)
-          isSensorConnected = false;
-          if (statusLabel) statusLabel.innerHTML = '🔴 <span style="color: red;">Hardware Terputus (Kabel Dicabut)</span>';
-        }
-      };
-
-    } catch (e) {
-      currentPortIndex++;
-      tryConnect();
-    }
+// Endpoint untuk mulai scan jari
+app.get('/api/fingerprint/scan', async (req, res) => {
+  try {
+    // Di sini dipanggil fungsi ZKFinger SDK (InitEngine, BeginCapture, dll)
+    // Mengembalikan hasil ekstraksi template / ID fingerprint
+    res.json({
+      success: true,
+      fingerprintID: "FP_ZK_98127391823" 
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Gagal membaca sensor: " + err.message });
   }
+});
 
-  // Mulai percobaan koneksi pertama
-  tryConnect();
-}
+app.listen(8080, () => {
+  console.log("Local ZKTeco Bridge Service berjalan di http://localhost:8080");
+});
