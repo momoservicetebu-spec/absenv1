@@ -425,6 +425,7 @@
 
       <div class="form-group">
         <label>Pilih Pengguna</label>
+        <!-- ID ini sudah BENAR (Sesuai dengan rfid.js) -->
         <select id="rfidUserSelect" class="form-control" style="width:100%; max-width:400px; padding:10px;">
           <option value="">-- Memuat Data Pengguna... --</option>
         </select>
@@ -432,12 +433,13 @@
 
       <div class="form-group">
         <label>UID Kartu (Tap Kartu Sekarang)</label>
-        <input type="text" id="rfidCardInput" placeholder="Arahkan kursor ke sini, lalu tap kartu..." style="width:100%; max-width:400px; padding:10px;" autocomplete="off">
+        <!-- UBAH: id="rfidCardInput" diganti menjadi id="rfidUidInput" -->
+        <input type="text" id="rfidUidInput" placeholder="Arahkan kursor ke sini, lalu tap kartu..." style="width:100%; max-width:400px; padding:10px;" autocomplete="off">
       </div>
 
-      <button type="button" id="btnSimpanRfid" class="btn-action btn-success" onclick="simpanKartuRFID()">Simpan Kartu</button>
+      <!-- UBAH: id dan onclick disesuaikan dengan fungsi di rfid.js -->
+      <button type="button" id="btnEnrollRFID" class="btn-action btn-success" onclick="registerCurrentRFID()">Simpan Kartu</button>
     </div>
-
     <!-- 8. BARCODE / QR -->
     <div id="barcode" class="section card">
       <h2 class="section-title">🎫 Generate Barcode / QR Code</h2>
