@@ -260,14 +260,18 @@ async function loadFaceTable() {
 
       tbody.innerHTML = '';
       data.forEach((row, index) => {
+        // Ambil ID dengan berbagai kemungkinan nama kolom dari Spreadsheet
+        const uid = row.UserID || row.userId || row.userid || row['UserID (SiswaID/GuruID)'] || "Tidak Ditemukan";
+        const role = row.Role || row.role || "-";
+        
         const tr = document.createElement('tr');
         tr.innerHTML = `
           <td style="padding: 8px; border: 1px solid #444;">${index + 1}</td>
-          <td style="padding: 8px; border: 1px solid #444; font-weight: bold;">${row.UserID}</td>
-          <td style="padding: 8px; border: 1px solid #444;">${row.Role}</td>
+          <td style="padding: 8px; border: 1px solid #444; font-weight: bold;">${uid}</td>
+          <td style="padding: 8px; border: 1px solid #444;">${role}</td>
           <td style="padding: 8px; border: 1px solid #444; color: #1dd1a1;">Terekam</td>
           <td style="padding: 8px; border: 1px solid #444;">
-            <button class="btn-action btn-danger" style="padding: 5px 10px; font-size: 12px;" onclick="deleteFaceData('${row.UserID}')">Hapus</button>
+            <button class="btn-action btn-danger" style="padding: 5px 10px; font-size: 12px;" onclick="deleteFaceData('${uid}')">Hapus</button>
           </td>
         `;
         tbody.appendChild(tr);
@@ -302,4 +306,34 @@ document.addEventListener("DOMContentLoaded", () => {
   // Panggil fungsi muat tabel wajah saat halaman dibuka
   loadFaceTable(); 
 });
+
+// ==========================================
+// FUNGSI SEARCH / FILTER TABEL WAJAH
+// ==========================================
+function filterFaceTable() {
+  const input = document.getElementById("searchFaceInput");
+  const filter = input.value.toLowerCase().trim();
+  const tbody = document.getElementById("faceTableBody");
+  const rows = tbody.getElementsByTagName("tr");
+
+  for (let i = 0; i < rows.length; i++) {
+    // Lewati jika baris memuat pesan "Memuat data..." atau "Belum ada data"
+    if (rows[i].getElementsByTagName("td").length <= 1) continue;
+
+    const userIdTd = rows[i].getElementsByTagName("td")[1]; // Kolom UserID
+    const roleTd = rows[i].getElementsByTagName("td")[2];   // Kolom Role
+
+    if (userIdTd || roleTd) {
+      const userIdText = userIdTd.textContent || userIdTd.innerText;
+      const roleText = roleTd.textContent || roleTd.innerText;
+
+      // Cek apakah kata kunci ada di UserID atau Role
+      if (userIdText.toLowerCase().indexOf(filter) > -1 || roleText.toLowerCase().indexOf(filter) > -1) {
+        rows[i].style.display = "";
+      } else {
+        rows[i].style.display = "none";
+      }
+    }
+  }
+}
 

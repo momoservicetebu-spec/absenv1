@@ -397,16 +397,23 @@
         <button type="button" class="btn-action btn-success" id="btnEnroll" onclick="registerCurrentFace()" disabled>💾 Simpan Wajah</button>
       </div>
       
-      <!-- ========================================== -->
-      <!-- TABEL SEKARANG ADA DI DALAM DIV ENROLLMENT -->
-      <!-- ========================================== -->
-
       <!-- Pembatas Form dan Tabel -->
       <hr style="margin: 30px 0; border: 1px solid #444;">
       
-      <h3 class="section-title">🖼️ Data Wajah Terdaftar</h3>
+      <!-- HEADER TABEL & KOTAK PENCARIAN -->
+      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 10px;">
+        <h3 class="section-title" style="margin: 0;">🖼️ Data Wajah Terdaftar</h3>
+        <input 
+          type="text" 
+          id="searchFaceInput" 
+          placeholder="🔍 Cari UserID / Role..." 
+          style="padding: 8px 12px; width: 100%; max-width: 250px; border-radius: 6px; border: 1px solid #444; background: #222; color: #fff; font-size: 14px;"
+          onkeyup="filterFaceTable()"
+        >
+      </div>
+
       <div style="overflow-x: auto;">
-        <table style="width: 100%; border-collapse: collapse; text-align: left; margin-top: 10px;">
+        <table style="width: 100%; border-collapse: collapse; text-align: left; margin-top: 5px;">
           <thead>
             <tr style="background-color: #2c2f33; color: #fff;">
               <th style="padding: 10px; border: 1px solid #444;">No</th>
@@ -424,7 +431,7 @@
         </table>
       </div>
 
-    </div> <!-- HANYA ADA SATU TAG PENUTUP /DIV DI PALING BAWAH SINI -->
+    </div>
 
     <!-- 6. FINGERPRINT -->
     <div id="fingerprint" class="section card">
@@ -446,14 +453,13 @@
       <button id="btnSaveFingerprint" onclick="simpanFingerprint()" class="btn btn-primary">Simpan Fingerprint User</button>
     </div>
 
-    <!-- 7. RFID / NFC -->
+   <!-- 7. RFID / NFC -->
     <div id="rfid" class="section card">
       <h2 class="section-title">💳 Pendaftaran Kartu RFID / NFC</h2>
       <p class="section-desc">Tempelkan kartu pelajar/guru ke alat pembaca (RFID Reader USB).</p>
 
       <div class="form-group">
         <label>Pilih Pengguna</label>
-        <!-- ID ini sudah BENAR (Sesuai dengan rfid.js) -->
         <select id="rfidUserSelect" class="form-control" style="width:100%; max-width:400px; padding:10px;">
           <option value="">-- Memuat Data Pengguna... --</option>
         </select>
@@ -461,23 +467,28 @@
 
       <div class="form-group">
         <label>UID Kartu (Tap Kartu Sekarang)</label>
-        <!-- UBAH: id="rfidCardInput" diganti menjadi id="rfidUidInput" -->
         <input type="text" id="rfidUidInput" placeholder="Arahkan kursor ke sini, lalu tap kartu..." style="width:100%; max-width:400px; padding:10px;" autocomplete="off">
       </div>
 
-      <!-- UBAH: id dan onclick disesuaikan dengan fungsi di rfid.js -->
       <button type="button" id="btnEnrollRFID" class="btn-action btn-success" onclick="registerCurrentRFID()">Simpan Kartu</button>
-      
-      <!-- ========================================== -->
-      <!-- TABEL SEKARANG ADA DI DALAM DIV RFID -->
-      <!-- ========================================== -->
       
       <!-- Pembatas Form dan Tabel -->
       <hr style="margin: 30px 0; border: 1px solid #444;">
       
-      <h3 class="section-title">📋 Data Kartu Terdaftar</h3>
+      <!-- HEADER TABEL & KOTAK PENCARIAN -->
+      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 10px;">
+        <h3 class="section-title" style="margin: 0;">📋 Data Kartu Terdaftar</h3>
+        <input 
+          type="text" 
+          id="searchRfidInput" 
+          placeholder="🔍 Cari UserID, Role, UID..." 
+          style="padding: 8px 12px; width: 100%; max-width: 250px; border-radius: 6px; border: 1px solid #444; background: #222; color: #fff; font-size: 14px;"
+          onkeyup="filterRfidTable()"
+        >
+      </div>
+
       <div style="overflow-x: auto;">
-        <table style="width: 100%; border-collapse: collapse; text-align: left; margin-top: 10px;">
+        <table style="width: 100%; border-collapse: collapse; text-align: left; margin-top: 5px;">
           <thead>
             <tr style="background-color: #2c2f33; color: #fff;">
               <th style="padding: 10px; border: 1px solid #444;">No</th>
@@ -496,8 +507,8 @@
         </table>
       </div>
       
-    </div> <!-- TAG PENUTUP INI SEKARANG ADA DI PALING BAWAH -->
-    
+    </div>
+
     <!-- 8. BARCODE / QR -->
     <div id="barcode" class="section card">
       <h2 class="section-title">🎫 Generate Barcode / QR Code</h2>

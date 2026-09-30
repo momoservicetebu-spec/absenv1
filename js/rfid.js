@@ -224,3 +224,39 @@ function editRFIDUI(userId) {
   document.getElementById('rfidUidInput').focus();
   alert(`Mode Edit Aktif: Silakan TAP KARTU BARU ke scanner untuk mengganti kartu ID ${userId}.`);
 }
+
+// ==========================================
+// FUNGSI SEARCH / FILTER TABEL RFID
+// ==========================================
+function filterRfidTable() {
+  const input = document.getElementById("searchRfidInput");
+  const filter = input.value.toLowerCase().trim();
+  const tbody = document.getElementById("rfidTableBody");
+  const rows = tbody.getElementsByTagName("tr");
+
+  for (let i = 0; i < rows.length; i++) {
+    // Lewati jika baris berisi pesan loading/kosong (hanya 1 kolom)
+    if (rows[i].getElementsByTagName("td").length <= 1) continue;
+
+    const userIdTd = rows[i].getElementsByTagName("td")[1]; // Kolom UserID
+    const roleTd   = rows[i].getElementsByTagName("td")[2]; // Kolom Role
+    const uidTd    = rows[i].getElementsByTagName("td")[3]; // Kolom UID Kartu
+
+    if (userIdTd || roleTd || uidTd) {
+      const userIdText = userIdTd ? (userIdTd.textContent || userIdTd.innerText) : "";
+      const roleText   = roleTd   ? (roleTd.textContent   || roleTd.innerText)   : "";
+      const uidText    = uidTd    ? (uidTd.textContent    || uidTd.innerText)    : "";
+
+      // Cek apakah kata kunci cocok dengan UserID, Role, atau UID Kartu
+      if (
+        userIdText.toLowerCase().indexOf(filter) > -1 ||
+        roleText.toLowerCase().indexOf(filter) > -1 ||
+        uidText.toLowerCase().indexOf(filter) > -1
+      ) {
+        rows[i].style.display = "";
+      } else {
+        rows[i].style.display = "none";
+      }
+    }
+  }
+}
