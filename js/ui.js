@@ -2581,18 +2581,3 @@ function cetakKartuQR() {
   printWindow.document.close();
 }
 
-// Auto-Load saat DOM Siap
-document.addEventListener("DOMContentLoaded", () => {
-  loadAllUserDropdowns();
-
-  // Listener Enter pada input RFID Reader
-  const rfidInput = document.getElementById("rfidCardInput");
-  if (rfidInput) {
-    rfidInput.addEventListener("keypress", (e) => {
-      if (e.key === "Enter") {
-        e.preventDefault();
-        simpanKartuRFID();
-      }
-    });
-  }
-});
