@@ -240,5 +240,66 @@ document.addEventListener("DOMContentLoaded", () => {
     loadUserForFaceAI();
 });
 
+// ==========================================
+// FUNGSI CRUD: MUAT TABEL WAJAH (READ)
+// ==========================================
+async function loadFaceTable() {
+  const tbody = document.getElementById('faceTableBody');
+  if (!tbody) return;
 
+  tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding: 15px;">⏳ Memuat data...</td></tr>';
+
+  try {
+    const result = await fetchAPI("getAllFaceData");
+    if (result && result.success) {
+      const data = result.data;
+      if (data.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding: 15px;">Belum ada wajah terdaftar.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = '';
+      data.forEach((row, index) => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td style="padding: 8px; border: 1px solid #444;">${index + 1}</td>
+          <td style="padding: 8px; border: 1px solid #444; font-weight: bold;">${row.UserID}</td>
+          <td style="padding: 8px; border: 1px solid #444;">${row.Role}</td>
+          <td style="padding: 8px; border: 1px solid #444; color: #1dd1a1;">Terekam</td>
+          <td style="padding: 8px; border: 1px solid #444;">
+            <button class="btn-action btn-danger" style="padding: 5px 10px; font-size: 12px;" onclick="deleteFaceData('${row.UserID}')">Hapus</button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    } else {
+      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:red;">❌ Gagal memuat data tabel</td></tr>';
+    }
+  } catch (error) {
+    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:red;">❌ Error: ${error.message}</td></tr>`;
+  }
+}
+
+// ==========================================
+// FUNGSI CRUD: HAPUS DATA WAJAH (DELETE)
+// ==========================================
+async function deleteFaceData(userId) {
+  if(!confirm(`Yakin ingin MENGHAPUS data wajah untuk ID: ${userId}?`)) return;
+  
+  const result = await fetchAPI("deleteFace", { userId: userId });
+  if(result && result.success) {
+    alert("✅ " + result.message);
+    loadFaceTable(); // Refresh tabel setelah dihapus
+  } else {
+    alert("❌ Gagal menghapus: " + result?.message);
+  }
+}
+
+// ==========================================
+// EVENT LISTENER
+// ==========================================
+document.addEventListener("DOMContentLoaded", () => {
+  // Panggil fungsi muat tabel wajah saat halaman dibuka
+  loadFaceTable(); 
+});
 
