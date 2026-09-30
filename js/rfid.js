@@ -146,3 +146,78 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 });
+
+// ==========================================
+// 4. FUNGSI CRUD: MUAT TABEL (READ)
+// ==========================================
+async function loadRFIDTable() {
+  const tbody = document.getElementById('rfidTableBody');
+  if (!tbody) return;
+
+  tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 15px;">⏳ Memuat data...</td></tr>';
+
+  try {
+    const result = await fetchAPI("getAllRFIDData");
+    if (result && result.success) {
+      const data = result.data;
+      if (data.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 15px;">Belum ada kartu terdaftar.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = '';
+      data.forEach((row, index) => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td style="padding: 8px; border: 1px solid #444;">${index + 1}</td>
+          <td style="padding: 8px; border: 1px solid #444; font-weight: bold;">${row.UserID}</td>
+          <td style="padding: 8px; border: 1px solid #444;">${row.Role}</td>
+          <td style="padding: 8px; border: 1px solid #444;">${row.UID_Kartu}</td>
+          <td style="padding: 8px; border: 1px solid #444; color: #1dd1a1;">${row.Status}</td>
+          <td style="padding: 8px; border: 1px solid #444;">
+            <button class="btn-action btn-warning" style="padding: 5px 10px; font-size: 12px; margin-right: 5px;" onclick="editRFIDUI('${row.UserID}')">Edit</button>
+            <button class="btn-action btn-danger" style="padding: 5px 10px; font-size: 12px;" onclick="deleteRFIDData('${row.UserID}')">Hapus</button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    } else {
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:red;">❌ Gagal memuat data tabel</td></tr>';
+    }
+  } catch (error) {
+    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:red;">❌ Error: ${error.message}</td></tr>`;
+  }
+}
+
+// ==========================================
+// 5. FUNGSI CRUD: HAPUS DATA (DELETE)
+// ==========================================
+async function deleteRFIDData(userId) {
+  if(!confirm(`Yakin ingin MENCABUT akses kartu untuk ID: ${userId}?`)) return;
+  
+  const result = await fetchAPI("deleteRFID", { userId: userId });
+  if(result && result.success) {
+    alert("✅ " + result.message);
+    loadRFIDTable(); // Refresh tabel setelah dihapus
+  } else {
+    alert("❌ Gagal menghapus: " + result?.message);
+  }
+}
+
+// ==========================================
+// 6. FUNGSI CRUD: ARAHKAN KE FORM EDIT (UPDATE)
+// ==========================================
+function editRFIDUI(userId) {
+  // Mengubah pilihan dropdown sesuai ID yang diklik
+  const select = document.getElementById('rfidUserSelect');
+  select.value = userId;
+  
+  // Jika Anda memakai JQuery Select2, trigger perubahannya:
+  if (typeof jQuery !== 'undefined' && typeof jQuery.fn.select2 !== 'undefined') {
+    jQuery('#rfidUserSelect').trigger('change');
+  }
+
+  // Fokuskan kursor ke input kartu
+  document.getElementById('rfidUidInput').focus();
+  alert(`Mode Edit Aktif: Silakan TAP KARTU BARU ke scanner untuk mengganti kartu ID ${userId}.`);
+}

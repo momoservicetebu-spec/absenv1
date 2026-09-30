@@ -440,6 +440,29 @@
       <!-- UBAH: id dan onclick disesuaikan dengan fungsi di rfid.js -->
       <button type="button" id="btnEnrollRFID" class="btn-action btn-success" onclick="registerCurrentRFID()">Simpan Kartu</button>
     </div>
+    <!-- Pembatas Form dan Tabel -->
+      <hr style="margin: 30px 0; border: 1px solid #444;">
+      
+      <h3 class="section-title">📋 Data Kartu Terdaftar</h3>
+      <div style="overflow-x: auto;">
+        <table style="width: 100%; border-collapse: collapse; text-align: left; margin-top: 10px;">
+          <thead>
+            <tr style="background-color: #2c2f33; color: #fff;">
+              <th style="padding: 10px; border: 1px solid #444;">No</th>
+              <th style="padding: 10px; border: 1px solid #444;">UserID</th>
+              <th style="padding: 10px; border: 1px solid #444;">Role</th>
+              <th style="padding: 10px; border: 1px solid #444;">UID Kartu</th>
+              <th style="padding: 10px; border: 1px solid #444;">Status</th>
+              <th style="padding: 10px; border: 1px solid #444;">Aksi</th>
+            </tr>
+          </thead>
+          <tbody id="rfidTableBody">
+            <tr>
+              <td colspan="6" style="text-align:center; padding: 15px;">Mencari data...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     <!-- 8. BARCODE / QR -->
     <div id="barcode" class="section card">
       <h2 class="section-title">🎫 Generate Barcode / QR Code</h2>
