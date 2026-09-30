@@ -130,7 +130,10 @@ document.addEventListener("DOMContentLoaded", () => {
   // 1. Langsung muat daftar dropdown saat halaman dibuka
   loadUserForRFID();
 
-  // 2. OTOMATISASI SCANNER USB:
+  // 2. LANGSUNG MUAT TABEL DATA KARTU SAAT HALAMAN DIBUKA
+  loadRFIDTable(); 
+
+  // 3. OTOMATISASI SCANNER USB:
   // Sebagian besar scanner RFID USB memancarkan tombol "Enter" setelah mencetak nomor kartu.
   // Kode di bawah ini berguna agar tombol "Simpan Kartu" langsung tertekan otomatis.
   const rfidInput = document.getElementById('rfidUidInput');
