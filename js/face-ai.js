@@ -4,10 +4,12 @@
 // ==========================================
 
 let localStream = null;
-let lastDescriptor = null;
+let lastDescriptor = null; // Ini variabel penyimpan embedding wajah
 let capturedFaceBase64 = "";
 
+// ==========================================
 // 1. Fungsi Membuka Kamera
+// ==========================================
 async function startCamera() {
   const video = document.getElementById('video');
   const statusText = document.getElementById('statusText');
@@ -42,7 +44,9 @@ async function startCamera() {
   }
 }
 
-// 2. Fungsi Muat Model AI (Jika Face-API Dipasang)
+// ==========================================
+// 2. Fungsi Muat Model AI 
+// ==========================================
 async function loadFaceAIModels() {
   const statusText = document.getElementById('statusText');
   try {
@@ -54,11 +58,13 @@ async function loadFaceAIModels() {
     statusText.innerText = "🎯 Kamera & AI Biometrik Siap!";
     statusText.style.color = "#1dd1a1";
   } catch (err) {
-    console.warn("Model AI tidak dapat dimuat, berpindah ke mode Foto Kamera saja.", err);
+    console.warn("Model AI tidak dapat dimuat, periksa path/koneksi.", err);
   }
 }
 
+// ==========================================
 // 3. Fungsi Ambil Foto & Pindai Biometrik Wajah
+// ==========================================
 async function captureFace() {
   const video = document.getElementById('video');
   const canvas = document.getElementById('faceCanvas');
@@ -72,6 +78,10 @@ async function captureFace() {
 
   // Ambil gambar dari video dan taruh di canvas 'Hasil Tangkapan'
   const ctx = canvas.getContext('2d');
+  
+  // Sesuaikan ukuran canvas dengan rasio video
+  canvas.width = video.videoWidth || 320;
+  canvas.height = video.videoHeight || 240;
   ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
   
   // Ambil gambar sampel format Base64
@@ -80,43 +90,55 @@ async function captureFace() {
   statusText.innerText = "⏳ Memproses pemindaian biometrik AI...";
   statusText.style.color = "#feca57";
 
+  // Reset descriptor sebelumnya
+  lastDescriptor = null; 
+
   // Jalankan ekstraksi AI jika Face-API tersedia
   if (typeof faceapi !== 'undefined') {
     try {
-      // Deteksi AI dilakukan pada 'canvas' hasil jepretan
+      // PERBAIKAN: Deteksi langsung menggunakan elemen canvas
       const detection = await faceapi.detectSingleFace(canvas, new faceapi.TinyFaceDetectorOptions())
         .withFaceLandmarks()
         .withFaceDescriptor();
 
       if (detection) {
+        // PERBAIKAN: Simpan Float32Array menjadi Standard Array ke lastDescriptor
         lastDescriptor = Array.from(detection.descriptor);
         
+        // Sesuaikan ukuran tangkapan AI untuk digambar
+        const displaySize = { width: canvas.width, height: canvas.height };
+        faceapi.matchDimensions(canvas, displaySize);
+        const resizedDetections = faceapi.resizeResults(detection, displaySize);
+
         // Gambar landmark biometrik di atas canvas
-        faceapi.draw.drawDetections(canvas, detection);
-        faceapi.draw.drawFaceLandmarks(canvas, detection);
+        faceapi.draw.drawDetections(canvas, resizedDetections);
+        faceapi.draw.drawFaceLandmarks(canvas, resizedDetections);
 
         statusText.innerText = "✅ Wajah & Biometrik Terdeteksi! Siap disimpan.";
         statusText.style.color = "#1dd1a1";
       } else {
-        lastDescriptor = null;
-        statusText.innerText = "⚠️ Foto diambil, namun landmark AI tidak terdeteksi. Posisikan wajah di tengah.";
-        statusText.style.color = "#feca57";
+        statusText.innerText = "⚠️ Foto diambil, namun AI gagal mendeteksi wajah. Coba posisi lain.";
+        statusText.style.color = "#ff6b6b";
+        alert("Wajah tidak terdeteksi oleh AI. Mohon posisikan wajah lurus ke kamera dan cahaya cukup.");
       }
     } catch (e) {
       console.error("Error Deteksi AI:", e);
-      lastDescriptor = null;
-      statusText.innerText = "📸 Foto Sampel Terambil.";
-      statusText.style.color = "#1dd1a1";
+      statusText.innerText = "❌ Terjadi kesalahan pada proses AI.";
+      statusText.style.color = "#ff6b6b";
     }
-  } else {
-    statusText.innerText = "📸 Foto Sampel Terambil.";
-    statusText.style.color = "#1dd1a1";
   }
 
-  btnEnroll.disabled = false;
+  // Aktifkan tombol simpan HANYA jika descriptor didapatkan
+  if (lastDescriptor && lastDescriptor.length > 0) {
+    btnEnroll.disabled = false;
+  } else {
+    btnEnroll.disabled = true; 
+  }
 }
 
-// 4. Simpan Data Wajah ke Database
+// ==========================================
+// 4. Simpan Data Wajah ke Database (Spreadsheet)
+// ==========================================
 async function registerCurrentFace() {
   const userSelect = document.getElementById('faceUserSelect');
   const userId = userSelect ? userSelect.value : '';
@@ -126,74 +148,68 @@ async function registerCurrentFace() {
     return;
   }
 
-  // Pastikan variabel global descriptor/embedding dari face-api.js ada
-  // (Sesuaikan nama variabel global descriptor Anda jika berbeda, misal: currentFaceDescriptor)
-  if (!window.currentDescriptor && !window.currentFaceDescriptor) {
-    alert("⚠️ Belum ada data wajah yang terdeteksi/ditangkap!");
+  // PERBAIKAN: Validasi menggunakan variabel 'lastDescriptor' yang diset di captureFace()
+  if (!lastDescriptor || lastDescriptor.length === 0) {
+    alert("⚠️ Belum ada data wajah yang terdeteksi/ditangkap! Silakan klik 'Ambil Foto' lagi.");
     return;
   }
-
-  const rawDescriptor = window.currentDescriptor || window.currentFaceDescriptor;
-  
-  // Konversi Float32Array dari face-api.js ke Array biasa
-  const descriptorArray = Array.from(rawDescriptor);
 
   const btnEnroll = document.getElementById('btnEnroll');
   if (btnEnroll) {
     btnEnroll.disabled = true;
-    btnEnroll.innerText = "⏳ Menyimpan...";
+    btnEnroll.innerText = "⏳ Menyimpan ke Database...";
   }
 
+  // PERBAIKAN: Format payload untuk Backend
   const payload = {
     userId: userId,
     provider: "Face-API-JS",
-    embedding: descriptorArray, // Mengirim array descriptor asli
+    embedding: JSON.stringify(lastDescriptor), // Stringify agar Google Sheets menerimanya dengan baik sebagai Text
     qualityScore: 98.5
   };
 
   try {
     const response = await fetchAPI("registerFace", payload);
     if (response && response.success) {
-      alert("✅ " + response.message);
-      if (typeof loadFaceTable === 'function') loadFaceTable(); // Reload tabel
+      alert("✅ Data Wajah Berhasil Disimpan!");
+      
+      // Bersihkan memori wajah setelah sukses
+      lastDescriptor = null;
+      
+      // Reload dropdown/tabel
+      if (typeof loadFaceTable === 'function') loadFaceTable();
     } else {
-      alert("❌ Gagal: " + (response ? response.message : "Terjadi kesalahan"));
+      alert("❌ Gagal: " + (response ? response.message : "Terjadi kesalahan koneksi database."));
     }
   } catch (err) {
-    alert("❌ Error: " + err.message);
+    alert("❌ Request Error: " + err.message);
   } finally {
     if (btnEnroll) {
-      btnEnroll.disabled = false;
+      btnEnroll.disabled = true; // Matikan lagi sampai user ambil foto baru
       btnEnroll.innerText = "💾 Simpan Wajah";
     }
   }
 }
 
 // ==========================================
-// 5. FUNGSI BARU: Muat Data Pengguna ke Dropdown
+// 5. Muat Data Pengguna ke Dropdown
 // ==========================================
 async function loadUserForFaceAI() {
   const selectElement = document.getElementById('faceUserSelect');
-  
   if (!selectElement) return;
 
   selectElement.innerHTML = '<option value="">⏳ Memuat data dari database...</option>';
 
   try {
-    // Memanggil API (jika getUsers gagal, Anda bisa ganti menjadi getDashboardData)
     const result = await fetchAPI("getFaceUsers");
     
     if (result && result.success) {
       selectElement.innerHTML = '<option value="">-- Ketik atau Pilih Pengguna --</option>';
-      
-      // Menampung semua data pengguna
       let usersArray = [];
 
-      // Mengecek apakah data langsung berbentuk Array atau terbungkus Object
       if (Array.isArray(result.data)) {
         usersArray = result.data;
       } else if (typeof result.data === 'object') {
-        // Menggabungkan array guru dan siswa jika dipisah oleh backend
         if (result.data.listSiswa) usersArray = usersArray.concat(result.data.listSiswa);
         if (result.data.siswa) usersArray = usersArray.concat(result.data.siswa);
         if (result.data.listGuru) usersArray = usersArray.concat(result.data.listGuru);
@@ -202,11 +218,9 @@ async function loadUserForFaceAI() {
 
       if (usersArray.length > 0) {
         usersArray.forEach(user => {
-          // MENYESUAIKAN DENGAN NAMA KOLOM DI GOOGLE SHEETS
           let userId = user.GuruID || user.SiswaID || user.NIP || user.NIS || user.id || "Tanpa ID";
           let userName = user.Nama || user.nama || user.NAMA || "Tanpa Nama";
           
-          // Jangan tampilkan jika datanya benar-benar kosong
           if (userId !== "Tanpa ID" && userName !== "Tanpa Nama") {
             let option = document.createElement('option');
             option.value = userId; 
@@ -215,7 +229,7 @@ async function loadUserForFaceAI() {
           }
         });
 
-        // Aktifkan fitur pencarian (Search) bawaan Select2
+        // Aktifkan Select2 jika jQuery tersedia
         if (typeof jQuery !== 'undefined' && typeof jQuery.fn.select2 !== 'undefined') {
           jQuery('#faceUserSelect').select2({
             placeholder: "-- Ketik atau Pilih Pengguna --",
@@ -235,13 +249,8 @@ async function loadUserForFaceAI() {
   }
 }
 
-// Tambahkan ini di baris paling bawah file face-ai.js
-document.addEventListener("DOMContentLoaded", () => {
-    loadUserForFaceAI();
-});
-
 // ==========================================
-// FUNGSI CRUD: MUAT TABEL WAJAH (READ)
+// 6. Muat Tabel Wajah (READ)
 // ==========================================
 async function loadFaceTable() {
   const tbody = document.getElementById('faceTableBody');
@@ -260,18 +269,18 @@ async function loadFaceTable() {
 
       tbody.innerHTML = '';
       data.forEach((row, index) => {
-        // Ambil ID dengan berbagai kemungkinan nama kolom dari Spreadsheet
-        const uid = row.UserID || row.userId || row.userid || row['UserID (SiswaID/GuruID)'] || "Tidak Ditemukan";
+        // Ambil ID sesuai nama kolom yang diubah (UserID)
+        const uid = row.UserID || row.userId || row.userid || row['UserID'] || row['UserID (SiswaID/GuruID)'] || "Tidak Ditemukan";
         const role = row.Role || row.role || "-";
         
         const tr = document.createElement('tr');
         tr.innerHTML = `
-          <td style="padding: 8px; border: 1px solid #444;">${index + 1}</td>
+          <td style="padding: 8px; border: 1px solid #444; text-align: center;">${index + 1}</td>
           <td style="padding: 8px; border: 1px solid #444; font-weight: bold;">${uid}</td>
           <td style="padding: 8px; border: 1px solid #444;">${role}</td>
-          <td style="padding: 8px; border: 1px solid #444; color: #1dd1a1;">Terekam</td>
-          <td style="padding: 8px; border: 1px solid #444;">
-            <button class="btn-action btn-danger" style="padding: 5px 10px; font-size: 12px;" onclick="deleteFaceData('${uid}')">Hapus</button>
+          <td style="padding: 8px; border: 1px solid #444; color: #1dd1a1;">✅ Terekam</td>
+          <td style="padding: 8px; border: 1px solid #444; text-align: center;">
+            <button class="btn-action btn-danger" style="padding: 5px 10px; font-size: 12px; cursor:pointer;" onclick="deleteFaceData('${uid}')">Hapus</button>
           </td>
         `;
         tbody.appendChild(tr);
@@ -285,7 +294,7 @@ async function loadFaceTable() {
 }
 
 // ==========================================
-// FUNGSI CRUD: HAPUS DATA WAJAH (DELETE)
+// 7. Hapus Data Wajah (DELETE)
 // ==========================================
 async function deleteFaceData(userId) {
   if(!confirm(`Yakin ingin MENGHAPUS data wajah untuk ID: ${userId}?`)) return;
@@ -293,22 +302,14 @@ async function deleteFaceData(userId) {
   const result = await fetchAPI("deleteFace", { userId: userId });
   if(result && result.success) {
     alert("✅ " + result.message);
-    loadFaceTable(); // Refresh tabel setelah dihapus
+    loadFaceTable(); 
   } else {
     alert("❌ Gagal menghapus: " + result?.message);
   }
 }
 
 // ==========================================
-// EVENT LISTENER
-// ==========================================
-document.addEventListener("DOMContentLoaded", () => {
-  // Panggil fungsi muat tabel wajah saat halaman dibuka
-  loadFaceTable(); 
-});
-
-// ==========================================
-// FUNGSI SEARCH / FILTER TABEL WAJAH
+// 8. Search / Filter Tabel Wajah
 // ==========================================
 function filterFaceTable() {
   const input = document.getElementById("searchFaceInput");
@@ -317,17 +318,15 @@ function filterFaceTable() {
   const rows = tbody.getElementsByTagName("tr");
 
   for (let i = 0; i < rows.length; i++) {
-    // Lewati jika baris memuat pesan "Memuat data..." atau "Belum ada data"
     if (rows[i].getElementsByTagName("td").length <= 1) continue;
 
-    const userIdTd = rows[i].getElementsByTagName("td")[1]; // Kolom UserID
-    const roleTd = rows[i].getElementsByTagName("td")[2];   // Kolom Role
+    const userIdTd = rows[i].getElementsByTagName("td")[1];
+    const roleTd = rows[i].getElementsByTagName("td")[2];
 
     if (userIdTd || roleTd) {
       const userIdText = userIdTd.textContent || userIdTd.innerText;
       const roleText = roleTd.textContent || roleTd.innerText;
 
-      // Cek apakah kata kunci ada di UserID atau Role
       if (userIdText.toLowerCase().indexOf(filter) > -1 || roleText.toLowerCase().indexOf(filter) > -1) {
         rows[i].style.display = "";
       } else {
@@ -337,3 +336,10 @@ function filterFaceTable() {
   }
 }
 
+// ==========================================
+// EVENT LISTENER GLOBAL
+// ==========================================
+document.addEventListener("DOMContentLoaded", () => {
+  loadUserForFaceAI();
+  loadFaceTable(); 
+});
