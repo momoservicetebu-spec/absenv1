@@ -63,7 +63,7 @@ async function loadFaceAIModels() {
 }
 
 // ==========================================
-// 3. Fungsi Ambil Foto & Pindai Biometrik Wajah
+// 3. Fungsi Ambil Foto & Pindai Biometrik Wajah (FIXED CANVAS PHOTO)
 // ==========================================
 async function captureFace() {
   const video = document.getElementById('video');
@@ -76,41 +76,41 @@ async function captureFace() {
     return;
   }
 
-  // Ambil gambar dari video dan taruh di canvas 'Hasil Tangkapan'
-  const ctx = canvas.getContext('2d');
-  
-  // Sesuaikan ukuran canvas dengan rasio video
+  // 1. Samakan ukuran canvas dengan video kamera
   canvas.width = video.videoWidth || 320;
   canvas.height = video.videoHeight || 240;
-  ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+  const ctx = canvas.getContext('2d', { willReadFrequently: true });
   
-  // Ambil gambar sampel format Base64
+  // 2. Jepret foto dari video
+  ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
   capturedFaceBase64 = canvas.toDataURL('image/jpeg', 0.8);
 
   statusText.innerText = "⏳ Memproses pemindaian biometrik AI...";
   statusText.style.color = "#feca57";
 
-  // Reset descriptor sebelumnya
   lastDescriptor = null; 
 
-  // Jalankan ekstraksi AI jika Face-API tersedia
   if (typeof faceapi !== 'undefined') {
     try {
-      // PERBAIKAN: Deteksi langsung menggunakan elemen canvas
+      // Deteksi AI pada foto canvas
       const detection = await faceapi.detectSingleFace(canvas, new faceapi.TinyFaceDetectorOptions())
         .withFaceLandmarks()
         .withFaceDescriptor();
 
       if (detection) {
-        // PERBAIKAN: Simpan Float32Array menjadi Standard Array ke lastDescriptor
         lastDescriptor = Array.from(detection.descriptor);
         
-        // Sesuaikan ukuran tangkapan AI untuk digambar
         const displaySize = { width: canvas.width, height: canvas.height };
+        
+        // PENTING: matchDimensions akan mereset canvas
         faceapi.matchDimensions(canvas, displaySize);
         const resizedDetections = faceapi.resizeResults(detection, displaySize);
 
-        // Gambar landmark biometrik di atas canvas
+        // --- SOLUSI: Draw ulang foto latar belakang kamera sebelum melukis biometrik ---
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+        // Lukis garis biometrik AI di atas foto yang sudah digambar ulang
         faceapi.draw.drawDetections(canvas, resizedDetections);
         faceapi.draw.drawFaceLandmarks(canvas, resizedDetections);
 
@@ -128,7 +128,6 @@ async function captureFace() {
     }
   }
 
-  // Aktifkan tombol simpan HANYA jika descriptor didapatkan
   if (lastDescriptor && lastDescriptor.length > 0) {
     btnEnroll.disabled = false;
   } else {
