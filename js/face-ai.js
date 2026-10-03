@@ -119,54 +119,54 @@ async function captureFace() {
 // 4. Simpan Data Wajah ke Database
 async function registerCurrentFace() {
   const userSelect = document.getElementById('faceUserSelect');
-  const btnEnroll = document.getElementById('btnEnroll');
-  const userId = userSelect ? userSelect.value : "";
+  const userId = userSelect ? userSelect.value : '';
 
   if (!userId) {
-    alert("Silakan pilih Pengguna terlebih dahulu dari list dropdown!");
-    return;
-  }
-  if (!capturedFaceBase64) {
-    alert("Ambil foto wajah terlebih dahulu!");
+    alert("⚠️ Silakan pilih pengguna terlebih dahulu!");
     return;
   }
 
-  // DETEKSI ROLE (GURU atau SISWA)
-  const selectedText = userSelect.options[userSelect.selectedIndex].text.toLowerCase();
-  let userRole = "Siswa"; // Default ke Siswa
-  if (selectedText.includes('guru') || userId.toLowerCase().includes('guru') || userId.toLowerCase().includes('nip')) {
-    userRole = "Guru";
+  // Pastikan variabel global descriptor/embedding dari face-api.js ada
+  // (Sesuaikan nama variabel global descriptor Anda jika berbeda, misal: currentFaceDescriptor)
+  if (!window.currentDescriptor && !window.currentFaceDescriptor) {
+    alert("⚠️ Belum ada data wajah yang terdeteksi/ditangkap!");
+    return;
   }
 
-  btnEnroll.innerText = "⏳ Menyimpan ke Server...";
-  btnEnroll.disabled = true;
+  const rawDescriptor = window.currentDescriptor || window.currentFaceDescriptor;
+  
+  // Konversi Float32Array dari face-api.js ke Array biasa
+  const descriptorArray = Array.from(rawDescriptor);
 
-  // Siapkan paket data untuk dikirim
+  const btnEnroll = document.getElementById('btnEnroll');
+  if (btnEnroll) {
+    btnEnroll.disabled = true;
+    btnEnroll.innerText = "⏳ Menyimpan...";
+  }
+
   const payload = {
     userId: userId,
-    role: userRole, // Info role diselipkan di sini
-    faceDescriptor: lastDescriptor ? JSON.stringify(lastDescriptor) : "",
-    fotoBase64: capturedFaceBase64
+    provider: "Face-API-JS",
+    embedding: descriptorArray, // Mengirim array descriptor asli
+    qualityScore: 98.5
   };
 
-  const result = await fetchAPI("registerFace", payload);
-
-  if (result && result.success) {
-    alert(`✅ ${result.message}`); // Pesan sukses dari server
-    
-    // Reset Canvas
-    const canvas = document.getElementById('faceCanvas');
-    const ctx = canvas.getContext('2d');
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    
-    capturedFaceBase64 = "";
-    lastDescriptor = null;
-  } else {
-    alert(`❌ Gagal Menyimpan: ${result?.message || 'Terjadi kesalahan koneksi'}`);
+  try {
+    const response = await fetchAPI("registerFace", payload);
+    if (response && response.success) {
+      alert("✅ " + response.message);
+      if (typeof loadFaceTable === 'function') loadFaceTable(); // Reload tabel
+    } else {
+      alert("❌ Gagal: " + (response ? response.message : "Terjadi kesalahan"));
+    }
+  } catch (err) {
+    alert("❌ Error: " + err.message);
+  } finally {
+    if (btnEnroll) {
+      btnEnroll.disabled = false;
+      btnEnroll.innerText = "💾 Simpan Wajah";
+    }
   }
-
-  btnEnroll.innerText = "💾 Simpan Wajah";
-  btnEnroll.disabled = false;
 }
 
 // ==========================================
