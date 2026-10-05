@@ -14,25 +14,26 @@ document.addEventListener("DOMContentLoaded", function () {
 // ==========================================
 async function loadUserForQR() {
   const selectElement = document.getElementById('qrUserSelect');
-  
   if (!selectElement) return;
+
+  // 1. hancurkan (destroy) Select2 jika sudah pernah aktif agar tidak double render
+  if (typeof jQuery !== 'undefined' && jQuery('#qrUserSelect').hasClass("select2-hidden-accessible")) {
+    jQuery('#qrUserSelect').select2('destroy');
+  }
 
   selectElement.innerHTML = '<option value="">⏳ Memuat data dari database...</option>';
 
   try {
-    // Memanggil API khusus QR Users yang ada di router.gs
     const result = await fetchAPI("getQRUsers");
     
     if (result && result.success) {
+      // Kosongkan isi dropdown
       selectElement.innerHTML = '<option value="">-- Ketik atau Pilih Pengguna --</option>';
       
       let usersArray = [];
-
-      // Mengekstrak data list Guru & Siswa (Pola pencarian fleksibel)
       if (Array.isArray(result.data)) {
         usersArray = result.data;
       } else if (typeof result.data === 'object' && result.data !== null) {
-        if (result.data.users) usersArray = usersArray.concat(result.data.users);
         if (result.data.listSiswa) usersArray = usersArray.concat(result.data.listSiswa);
         if (result.data.siswa) usersArray = usersArray.concat(result.data.siswa);
         if (result.data.listGuru) usersArray = usersArray.concat(result.data.listGuru);
@@ -40,7 +41,7 @@ async function loadUserForQR() {
       }
 
       if (usersArray.length > 0) {
-        qrUserListCache = usersArray; // Simpan cache untuk generateQRCode()
+        qrUserListCache = usersArray;
 
         usersArray.forEach(user => {
           let userId = user.UserID || user.GuruID || user.SiswaID || user.NIP || user.NIS || user.id || "Tanpa ID";
@@ -57,7 +58,7 @@ async function loadUserForQR() {
           }
         });
 
-        // Aktifkan fitur pencarian (Search) bawaan Select2 jika terpasang
+        // 2. Inisialisasi Select2 kembali secara bersih
         if (typeof jQuery !== 'undefined' && typeof jQuery.fn.select2 !== 'undefined') {
           jQuery('#qrUserSelect').select2({
             placeholder: "-- Ketik atau Pilih Pengguna --",
@@ -65,7 +66,6 @@ async function loadUserForQR() {
             width: '100%'
           });
 
-          // Event pemicu generate QR saat opsi Select2 dipilih
           jQuery('#qrUserSelect').off('change.qr').on('change.qr', function () {
             generateQRCode();
           });
