@@ -1,36 +1,45 @@
 /**
  * FILE: qr_code.js
- * Menggunakan pola fetchAPI & Select2 yang sama persis dengan modul RFID
  */
 
-let qrUserListCache = []; // Menyimpan data pengguna lokal untuk generator
+let qrUserListCache = []; 
 
+// Jalankan otomatis saat halaman selesai dimuat
 document.addEventListener("DOMContentLoaded", function () {
+  console.log("[QR System] DOM ready, memuat data user QR...");
   loadUserForQR();
 });
 
-// ==========================================
-// 1. FUNGSI: Muat Data Pengguna ke Dropdown QR Code
-// ==========================================
+// Fungsi utama load data
 async function loadUserForQR() {
+  console.log("[QR System] Memulai loadUserForQR()...");
   const selectElement = document.getElementById('qrUserSelect');
-  if (!selectElement) return;
+  
+  if (!selectElement) {
+    console.error("[QR System] Elemen #qrUserSelect tidak ditemukan di HTML!");
+    return;
+  }
 
-  // 1. hancurkan (destroy) Select2 jika sudah pernah aktif agar tidak double render
+  // 1. Bersihkan Select2 lama jika sudah pernah di-init agar tidak bertumpuk
   if (typeof jQuery !== 'undefined' && jQuery('#qrUserSelect').hasClass("select2-hidden-accessible")) {
     jQuery('#qrUserSelect').select2('destroy');
   }
 
+  // Tanda bahwa JS baru sudah mulai berjalan
   selectElement.innerHTML = '<option value="">⏳ Memuat data dari database...</option>';
 
   try {
+    // Panggil Backend Apps Script
+    console.log("[QR System] Mengirim request fetchAPI('getQRUsers')...");
     const result = await fetchAPI("getQRUsers");
-    
+    console.log("[QR System] Hasil Response dari Server:", result);
+
     if (result && result.success) {
-      // Kosongkan isi dropdown
       selectElement.innerHTML = '<option value="">-- Ketik atau Pilih Pengguna --</option>';
       
       let usersArray = [];
+
+      // Parsing data flexible
       if (Array.isArray(result.data)) {
         usersArray = result.data;
       } else if (typeof result.data === 'object' && result.data !== null) {
@@ -38,7 +47,10 @@ async function loadUserForQR() {
         if (result.data.siswa) usersArray = usersArray.concat(result.data.siswa);
         if (result.data.listGuru) usersArray = usersArray.concat(result.data.listGuru);
         if (result.data.guru) usersArray = usersArray.concat(result.data.guru);
+        if (result.data.users) usersArray = usersArray.concat(result.data.users);
       }
+
+      console.log(`[QR System] Total user berhasil ditarik: ${usersArray.length} orang.`);
 
       if (usersArray.length > 0) {
         qrUserListCache = usersArray;
@@ -46,7 +58,7 @@ async function loadUserForQR() {
         usersArray.forEach(user => {
           let userId = user.UserID || user.GuruID || user.SiswaID || user.NIP || user.NIS || user.id || "Tanpa ID";
           let userName = user.Nama || user.nama || user.NAMA || "Tanpa Nama";
-          let userRole = user.Role || user.role || (user.NIP || user.GuruID ? 'Guru' : 'Siswa');
+          let userRole = user.Role || user.role || (String(userId).toUpperCase().includes('GURU') ? 'Guru' : 'Siswa');
           
           if (userId !== "Tanpa ID" && userName !== "Tanpa Nama") {
             let option = document.createElement('option');
@@ -58,7 +70,7 @@ async function loadUserForQR() {
           }
         });
 
-        // 2. Inisialisasi Select2 kembali secara bersih
+        // Activate Select2
         if (typeof jQuery !== 'undefined' && typeof jQuery.fn.select2 !== 'undefined') {
           jQuery('#qrUserSelect').select2({
             placeholder: "-- Ketik atau Pilih Pengguna --",
@@ -71,20 +83,18 @@ async function loadUserForQR() {
           });
         }
       } else {
-        selectElement.innerHTML = `<option value="">❌ Gagal: Data pengguna kosong</option>`;
+        selectElement.innerHTML = `<option value="">❌ Gagal: Data pengguna kosong di database</option>`;
       }
     } else {
-      selectElement.innerHTML = `<option value="">❌ Gagal mengambil data</option>`;
+      selectElement.innerHTML = `<option value="">❌ Gagal: ${result ? result.message : 'Response server kosong'}</option>`;
     }
   } catch (error) {
-    console.error("Error Load User QR:", error);
-    selectElement.innerHTML = `<option value="">❌ Error Koneksi: ${error.message}</option>`;
+    console.error("[QR System Error]:", error);
+    selectElement.innerHTML = `<option value="">❌ Error: ${error.message}</option>`;
   }
 }
 
-// ==========================================
-// 2. FUNGSI: Generate QR Code saat Pengguna Dipilih
-// ==========================================
+// Fungsi Generate QR Card
 async function generateQRCode() {
   const selectElement = document.getElementById("qrUserSelect");
   const previewBox = document.getElementById("qrPreviewBox");
@@ -98,7 +108,6 @@ async function generateQRCode() {
     return;
   }
 
-  // Cari data dari cache atau atribut elemen option
   const selectedOption = selectElement.options[selectElement.selectedIndex];
   const user = qrUserListCache.find(u => 
     String(u.UserID || u.GuruID || u.SiswaID || u.NIP || u.NIS || u.id) === String(selectedUserId)
@@ -107,20 +116,17 @@ async function generateQRCode() {
   const nama = user ? (user.Nama || user.nama) : (selectedOption ? selectedOption.getAttribute('data-nama') : 'Pengguna');
   let role = user ? (user.Role || user.role) : (selectedOption ? selectedOption.getAttribute('data-role') : 'Siswa');
 
-  if (!role) role = selectedUserId.toUpperCase().includes('GURU') ? 'Guru' : 'Siswa';
+  if (!role) role = String(selectedUserId).toUpperCase().includes('GURU') ? 'Guru' : 'Siswa';
 
-  // Format data di dalam QR Code
   const qrPayload = JSON.stringify({
     id: selectedUserId,
     role: role,
     nama: nama
   });
 
-  // URL Gambar QR & Barcode
   const qrImageUrl = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(qrPayload)}`;
   const barcodeImageUrl = `https://bwipjs-api.metafloor.com/?bcid=code128&text=${encodeURIComponent(selectedUserId)}&scale=2&rotate=N&includetext`;
 
-  // Render Tampilan Kartu
   previewBox.innerHTML = `
     <div id="printableCard" style="background: #ffffff; color: #1f2937; padding: 20px; border-radius: 12px; width: 100%; max-width: 280px; margin: 0 auto; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.15); border: 2px solid #6366f1;">
       <div style="border-bottom: 2px solid #4f46e5; padding-bottom: 8px; margin-bottom: 12px;">
@@ -143,13 +149,10 @@ async function generateQRCode() {
     </div>
   `;
 
-  // Simpan ke spreadsheet via backend
   saveQRToDatabase(selectedUserId, role, qrPayload);
 }
 
-// ==========================================
-// 3. FUNGSI: Simpan QR ke Database
-// ==========================================
+// Simpan Log ke DB
 async function saveQRToDatabase(userId, role, qrPayload) {
   try {
     if (typeof fetchAPI === 'function') {
@@ -158,16 +161,14 @@ async function saveQRToDatabase(userId, role, qrPayload) {
         role: role,
         qrPayload: qrPayload
       });
-      console.log(`[Database] QR Code (${userId}) berhasil disimpan.`);
+      console.log(`[QR System] Saved to DB: ${userId}`);
     }
   } catch (err) {
-    console.error("[Database Error] Gagal menyimpan QR Code:", err);
+    console.error("[QR System Save Error]:", err);
   }
 }
 
-// ==========================================
-// 4. FUNGSI: Cetak Kartu (Print)
-// ==========================================
+// Fungsi Print
 function cetakKartuQR() {
   const cardContent = document.getElementById("printableCard");
   if (!cardContent) {
@@ -182,7 +183,7 @@ function cetakKartuQR() {
         <title>Cetak Kartu Identitas</title>
         <style>
           body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: sans-serif;
             display: flex;
             justify-content: center;
             align-items: center;
