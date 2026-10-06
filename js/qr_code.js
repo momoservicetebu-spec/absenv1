@@ -104,3 +104,20 @@ function cetakKartuQR() {
   printWindow.focus();
   setTimeout(() => { printWindow.print(); printWindow.close(); }, 500);
 }
+
+// Tambahkan fungsi navigasi ini di qr_code.js
+function showBarcodeSection() {
+  // 1. Sembunyikan semua halaman/section lain
+  document.querySelectorAll('.page-section').forEach(section => {
+    section.style.display = 'none';
+  });
+
+  // 2. Tampilkan halaman QR Code
+  const barcodeSection = document.getElementById('barcode');
+  if (barcodeSection) {
+    barcodeSection.style.display = 'block';
+  }
+
+  // 3. Pastikan data dropdown diisi ulang jika sebelumnya kosong
+  loadUserForQR();
+}
