@@ -4,7 +4,7 @@
  */
 
 let qrUserListCache = [];
-let currentQRMode = 'single'; // 'single' atau 'bulk'
+let currentQRMode = 'single';
 let currentQRDataToSave = null;
 
 document.addEventListener("DOMContentLoaded", function () {
@@ -31,12 +31,12 @@ async function loadUserForQR() {
       let classSet = new Set();
 
       if (typeof result.data === 'object' && result.data !== null) {
-        if (result.data.listSiswa) {
+        if (result.data.listSiswa && Array.isArray(result.data.listSiswa)) {
           let siswa = result.data.listSiswa.map(u => ({...u, Role: 'Siswa'}));
           usersArray = usersArray.concat(siswa);
           siswa.forEach(s => { if (s.Kelas) classSet.add(s.Kelas); });
         }
-        if (result.data.listGuru) {
+        if (result.data.listGuru && Array.isArray(result.data.listGuru)) {
           let guru = result.data.listGuru.map(u => ({...u, Role: 'Guru'}));
           usersArray = usersArray.concat(guru);
         }
@@ -47,7 +47,6 @@ async function loadUserForQR() {
       if (usersArray.length > 0) {
         qrUserListCache = usersArray;
 
-        // Isi Dropdown Single User
         usersArray.forEach(user => {
           let userId = user.UserID || user.NIP || user.NIS || user.id;
           let userName = user.Nama || user.nama || "Tanpa Nama";
@@ -61,12 +60,13 @@ async function loadUserForQR() {
           }
         });
 
-        // Isi Dropdown Kelas untuk Bulk
         classSet.forEach(kelas => {
-          let opt = document.createElement('option');
-          opt.value = kelas;
-          opt.text = `Kelas: ${kelas}`;
-          classElement.appendChild(opt);
+          if (classElement) {
+            let opt = document.createElement('option');
+            opt.value = kelas;
+            opt.text = `Kelas: ${kelas}`;
+            classElement.appendChild(opt);
+          }
         });
 
         selectElement.onchange = () => renderQRPreview();
@@ -75,9 +75,12 @@ async function loadUserForQR() {
       } else {
         selectElement.innerHTML = '<option value="">❌ Data pengguna kosong</option>';
       }
+    } else {
+      selectElement.innerHTML = '<option value="">❌ Gagal mengambil data</option>';
     }
   } catch (error) {
     console.error("Error QR:", error);
+    selectElement.innerHTML = `<option value="">❌ Error: ${error.message}</option>`;
   }
 }
 
@@ -89,28 +92,42 @@ function switchQRMode(mode) {
   const containerSingle = document.getElementById("containerSingleUser");
   const containerBulk = document.getElementById("containerBulkClass");
 
+  if (!btnSingle || !btnBulk) return;
+
   if (mode === 'single') {
-    btnSingle.classList.add("active");
-    btnBulk.classList.remove("active");
-    containerSingle.style.display = "block";
-    containerBulk.style.display = "none";
+    btnSingle.style.background = "#4f46e5";
+    btnSingle.style.color = "#ffffff";
+    btnSingle.style.border = "none";
+
+    btnBulk.style.background = "transparent";
+    btnBulk.style.color = "#a5b4fc";
+    btnBulk.style.border = "1px solid #4f46e5";
+
+    if (containerSingle) containerSingle.style.display = "block";
+    if (containerBulk) containerBulk.style.display = "none";
   } else {
-    btnBulk.classList.add("active");
-    btnSingle.classList.remove("active");
-    containerSingle.style.display = "none";
-    containerBulk.style.display = "block";
+    btnBulk.style.background = "#4f46e5";
+    btnBulk.style.color = "#ffffff";
+    btnBulk.style.border = "none";
+
+    btnSingle.style.background = "transparent";
+    btnSingle.style.color = "#a5b4fc";
+    btnSingle.style.border = "1px solid #4f46e5";
+
+    if (containerSingle) containerSingle.style.display = "none";
+    if (containerBulk) containerBulk.style.display = "block";
   }
   renderQRPreview();
 }
 
-// 3. RENDER TEMPLATE KARTU (PORTRAIT & LANDSCAPE)
+// 3. BUILD TEMPLATE KARTU (PORTRAIT & LANDSCAPE)
 function buildCardHtml(userId, nama, role, orientation) {
   const qrPayload = JSON.stringify({ id: userId, role: role, nama: nama });
   const qrImageUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(qrPayload)}`;
 
   if (orientation === 'landscape') {
     return `
-      <div class="qr-printable-card" style="background: #ffffff; color: #1f2937; padding: 16px; border-radius: 12px; width: 340px; height: 210px; border: 2px solid #6366f1; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); margin: 10px auto; font-family: sans-serif;">
+      <div class="qr-printable-card" style="background: #ffffff; color: #1f2937; padding: 16px; border-radius: 12px; width: 340px; height: 210px; border: 2px solid #6366f1; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); margin: 10px auto; font-family: sans-serif; box-sizing: border-box;">
         <div style="text-align: left; width: 55%; padding-right: 10px;">
           <span style="font-size: 10px; background: #e0e7ff; color: #3730a3; padding: 3px 8px; border-radius: 20px; font-weight: bold; text-transform: uppercase;">${role}</span>
           <h5 style="margin: 10px 0 4px 0; font-size: 13px; color: #4f46e5; font-weight: 800;">KARTU ABSENSI DIGITAL</h5>
@@ -123,9 +140,8 @@ function buildCardHtml(userId, nama, role, orientation) {
       </div>
     `;
   } else {
-    // Default: Portrait
     return `
-      <div class="qr-printable-card" style="background: #ffffff; color: #1f2937; padding: 20px; border-radius: 12px; width: 230px; height: 340px; border: 2px solid #6366f1; text-align: center; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); margin: 10px auto; font-family: sans-serif; display: flex; flex-direction: column; justify-content: space-between;">
+      <div class="qr-printable-card" style="background: #ffffff; color: #1f2937; padding: 20px; border-radius: 12px; width: 230px; height: 340px; border: 2px solid #6366f1; text-align: center; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); margin: 10px auto; font-family: sans-serif; display: flex; flex-direction: column; justify-content: space-between; box-sizing: border-box;">
         <div>
           <h5 style="margin: 0; font-size: 12px; color: #4f46e5; font-weight: 800; letter-spacing: 0.5px;">KARTU ABSENSI DIGITAL</h5>
           <small style="font-size: 10px; background: #e0e7ff; color: #3730a3; padding: 2px 8px; border-radius: 12px; font-weight: bold; text-transform: uppercase; display: inline-block; margin-top: 4px;">${role}</small>
@@ -142,16 +158,19 @@ function buildCardHtml(userId, nama, role, orientation) {
   }
 }
 
-// 4. PREVIEW KARTU SINGLE & MASSAL
+// 4. PREVIEW KARTU
 function renderQRPreview() {
   const previewBox = document.getElementById("qrPreviewBox");
-  const orientation = document.getElementById("qrOrientationSelect").value;
-  if (!previewBox) return;
+  const orientationElem = document.getElementById("qrOrientationSelect");
+  if (!previewBox || !orientationElem) return;
+
+  const orientation = orientationElem.value;
 
   if (currentQRMode === 'single') {
-    const selectedUserId = document.getElementById("qrUserSelect").value;
+    const selectElem = document.getElementById("qrUserSelect");
+    const selectedUserId = selectElem ? selectElem.value : "";
     if (!selectedUserId) {
-      previewBox.innerHTML = '<p class="text-muted m-0">Pilih pengguna di atas untuk menampilkan kartu QR Code</p>';
+      previewBox.innerHTML = '<p style="color: #9ca3af; margin: 0;">Pilih pengguna di atas untuk menampilkan kartu QR Code</p>';
       currentQRDataToSave = null;
       return;
     }
@@ -170,8 +189,8 @@ function renderQRPreview() {
     };
 
   } else {
-    // Mode Bulk / Massal
-    const selectedClass = document.getElementById("qrClassSelect").value;
+    const classElem = document.getElementById("qrClassSelect");
+    const selectedClass = classElem ? classElem.value : "";
     let filteredUsers = [];
 
     if (selectedClass === "ALL") {
@@ -183,16 +202,16 @@ function renderQRPreview() {
     }
 
     if (filteredUsers.length === 0) {
-      previewBox.innerHTML = '<p class="text-muted m-0">Pilih kelas di atas untuk melihat preview massal.</p>';
+      previewBox.innerHTML = '<p style="color: #9ca3af; margin: 0;">Pilih kelas di atas untuk melihat preview massal.</p>';
       return;
     }
 
-    let bulkHtml = `<p class="text-info fw-bold mb-3">Menampilkan ${filteredUsers.length} Kartu Siap Cetak:</p>`;
+    let bulkHtml = `<p style="color: #38bdf8; font-weight: bold; margin-bottom: 15px;">Menampilkan ${filteredUsers.length} Kartu Siap Cetak:</p>`;
     bulkHtml += `<div style="display: flex; flex-wrap: wrap; gap: 15px; justify-content: center; max-height: 450px; overflow-y: auto; padding: 10px;">`;
     
     filteredUsers.forEach(u => {
       let uId = u.UserID || u.NIP || u.NIS || u.id;
-      let uNama = u.Nama || u.nama;
+      let uNama = u.Nama || u.nama || "Pengguna";
       let uRole = u.Role || (String(uId).length > 10 ? 'Guru' : 'Siswa');
       bulkHtml += buildCardHtml(uId, uNama, uRole, orientation);
     });
@@ -205,7 +224,7 @@ function renderQRPreview() {
 // 5. SIMPAN KE DATABASE
 async function simpanKeDatabaseQR() {
   if (currentQRMode === 'bulk') {
-    alert("ℹ️ Untuk opsi simpan massal otomatis, silakan cetak kartu. Sistem akan merekam saat penggunaan absensi.");
+    alert("Fitur simpan otomatis tersedia di mode Per Orang. Untuk cetak massal, Anda bisa langsung mencetak kartu.");
     return;
   }
 
@@ -215,6 +234,8 @@ async function simpanKeDatabaseQR() {
   }
 
   const btnSimpan = document.getElementById("btnSimpanQR");
+  if (!btnSimpan) return;
+
   const teksAsli = btnSimpan.innerHTML;
   btnSimpan.innerHTML = "⏳ Menyimpan...";
   btnSimpan.disabled = true;
@@ -223,7 +244,7 @@ async function simpanKeDatabaseQR() {
     const result = await fetchAPI("saveQRCode", currentQRDataToSave);
     if (result && result.success) {
       alert(`✅ Berhasil! QR Code untuk ID: ${currentQRDataToSave.userId} telah tersimpan.`);
-      loadSavedQRTable(); // Refresh tabel setelah simpan
+      loadSavedQRTable();
     } else {
       alert("❌ Gagal menyimpan data: " + (result.message || "Terjadi kesalahan."));
     }
@@ -235,9 +256,11 @@ async function simpanKeDatabaseQR() {
   }
 }
 
-// 6. FUNGSI CETAK (PRINTING GRID A4)
+// 6. CETAK KARTU (PRINTING GRID A4)
 function cetakKartuQR() {
   const previewBox = document.getElementById("qrPreviewBox");
+  if (!previewBox) return;
+
   const cards = previewBox.querySelectorAll('.qr-printable-card');
 
   if (cards.length === 0) {
@@ -275,12 +298,12 @@ function cetakKartuQR() {
   setTimeout(() => { printWindow.print(); printWindow.close(); }, 600);
 }
 
-// 7. MEMUAT TABEL DATA TERDAFTAR (CRUD)
+// 7. MEMUAT TABEL CRUD DATA QR
 async function loadSavedQRTable() {
   const tbody = document.getElementById("tbodySavedQR");
   if (!tbody) return;
 
-  tbody.innerHTML = '<tr><td colspan="7" class="text-center py-4 text-muted">⏳ Memuat data tabel QR Code...</td></tr>';
+  tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 20px; color: #9ca3af;">⏳ Memuat data tabel QR Code...</td></tr>';
 
   try {
     const result = await fetchAPI("getAllQRData");
@@ -288,31 +311,34 @@ async function loadSavedQRTable() {
     if (result && result.success && Array.isArray(result.data) && result.data.length > 0) {
       let html = '';
       result.data.forEach((row, index) => {
+        let badgeBg = row.Role === 'Guru' ? '#f59e0b' : '#0284c7';
+        let badgeColor = row.Role === 'Guru' ? '#000000' : '#ffffff';
+
         html += `
-          <tr class="border-secondary">
-            <td class="ps-3">${index + 1}</td>
-            <td><span class="badge bg-secondary">${row.QRID || '-'}</span></td>
-            <td class="fw-bold">${row.UserID || '-'}</td>
-            <td><span class="badge ${row.Role === 'Guru' ? 'bg-warning text-dark' : 'bg-info'}">${row.Role || 'Siswa'}</span></td>
-            <td><span class="badge bg-success">${row.Status || 'Active'}</span></td>
-            <td class="small text-muted">${row.CreatedAt || '-'}</td>
-            <td class="text-end pe-3">
-              <button class="btn btn-sm btn-outline-danger" onclick="hapusQRFromTable('${row.UserID}', '${row.Role}')">🗑️ Hapus</button>
+          <tr style="border-bottom: 1px solid #332d4a;">
+            <td style="padding: 12px 16px;">${index + 1}</td>
+            <td style="padding: 12px 16px;"><span style="background: #374151; color: #e5e7eb; padding: 3px 8px; border-radius: 4px; font-family: monospace; font-size: 0.8rem;">${row.QRID || '-'}</span></td>
+            <td style="padding: 12px 16px; font-weight: bold; color: #ffffff;">${row.UserID || '-'}</td>
+            <td style="padding: 12px 16px;"><span style="background: ${badgeBg}; color: ${badgeColor}; padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold;">${row.Role || 'Siswa'}</span></td>
+            <td style="padding: 12px 16px;"><span style="background: #10b981; color: #ffffff; padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold;">${row.Status || 'Active'}</span></td>
+            <td style="padding: 12px 16px; color: #9ca3af; font-size: 0.85rem;">${row.CreatedAt || '-'}</td>
+            <td style="padding: 12px 16px; text-align: right;">
+              <button type="button" onclick="hapusQRFromTable('${row.UserID}', '${row.Role}')" style="background: transparent; color: #ef4444; border: 1px solid #dc2626; padding: 4px 10px; border-radius: 6px; font-size: 0.8rem; cursor: pointer;">🗑️ Hapus</button>
             </td>
           </tr>
         `;
       });
       tbody.innerHTML = html;
     } else {
-      tbody.innerHTML = '<tr><td colspan="7" class="text-center py-4 text-muted">📭 Belum ada data QR Code yang tersimpan di database.</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 20px; color: #9ca3af;">📭 Belum ada data QR Code yang tersimpan di database.</td></tr>';
     }
   } catch (error) {
     console.error("Error Load Saved QR Table:", error);
-    tbody.innerHTML = `<tr><td colspan="7" class="text-center py-4 text-danger">❌ Error: ${error.message}</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 20px; color: #f87171;">❌ Error: ${error.message}</td></tr>`;
   }
 }
 
-// 8. HAPUS DATA QR DARI TABEL
+// 8. HAPUS DATA QR
 async function hapusQRFromTable(userId, role) {
   if (!confirm(`Apakah Anda yakin ingin menghapus data QR untuk ID: ${userId}?`)) return;
 
