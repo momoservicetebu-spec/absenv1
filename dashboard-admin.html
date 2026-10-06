@@ -512,96 +512,96 @@
     <!-- ========================================== -->
     <!-- --- SECTION BUAT BARCODE / QR CODE --- -->
     <!-- ========================================== -->
-   <div id="barcode" class="page-section" style="display: none; padding-bottom: 40px;">
+     <div id="barcode" class="page-section" style="display: none; padding-bottom: 40px;">
   
-  <!-- HEADER -->
-  <div style="margin-bottom: 20px;">
-    <h3 style="color: #fff; margin-bottom: 5px;">💳 Generate Barcode / QR Code</h3>
-    <p style="color: #ccc;">Cetak kartu identitas yang dilengkapi dengan QR Code khusus untuk Siswa dan Guru.</p>
-  </div>
-
-  <!-- BUNGKUSAN KONTROL GENERATOR -->
-  <div style="background: #1e1b2e; border: 1px solid #332d4a; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
-    
-    <!-- TOMBOL MODE -->
-    <div style="margin-bottom: 15px; display: flex; gap: 10px;">
-      <button id="btnModeSingle" onclick="switchQRMode('single')" style="padding: 8px 15px; background: #4f46e5; color: #fff; border: none; border-radius: 5px; cursor: pointer;">👤 Per Orang</button>
-      <button id="btnModeBulk" onclick="switchQRMode('bulk')" style="padding: 8px 15px; background: transparent; color: #a5b4fc; border: 1px solid #4f46e5; border-radius: 5px; cursor: pointer;">👥 Massal (Per Kelas)</button>
-    </div>
-
-    <!-- AREA DROPDOWN -->
-    <div style="display: flex; flex-wrap: wrap; gap: 15px; align-items: flex-end;">
-      
-      <div id="containerSingleUser" style="flex: 1; min-width: 200px;">
-        <label style="display: block; color: #fff; margin-bottom: 5px;">Pilih Pengguna</label>
-        <select id="qrUserSelect" style="width: 100%; padding: 8px; background: #13111c; color: #fff; border: 1px solid #332d4a; border-radius: 4px;">
-          <option value="">⏳ Memuat data...</option>
-        </select>
+      <!-- HEADER -->
+      <div style="margin-bottom: 20px;">
+        <h3 style="color: #fff; margin-bottom: 5px;">💳 Generate Barcode / QR Code</h3>
+        <p style="color: #ccc;">Cetak kartu identitas yang dilengkapi dengan QR Code khusus untuk Siswa dan Guru.</p>
       </div>
 
-      <div id="containerBulkClass" style="display: none; flex: 1; min-width: 200px;">
-        <label style="display: block; color: #fff; margin-bottom: 5px;">Pilih Kelas / Group</label>
-        <select id="qrClassSelect" style="width: 100%; padding: 8px; background: #13111c; color: #fff; border: 1px solid #332d4a; border-radius: 4px;">
-          <option value="">-- Semua Kelas / Semua Guru --</option>
-        </select>
+      <!-- BUNGKUSAN KONTROL GENERATOR -->
+      <div style="background: #1e1b2e; border: 1px solid #332d4a; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+        
+        <!-- TOMBOL MODE -->
+        <div style="margin-bottom: 15px; display: flex; gap: 10px;">
+          <button id="btnModeSingle" onclick="switchQRMode('single')" style="padding: 8px 15px; background: #4f46e5; color: #fff; border: none; border-radius: 5px; cursor: pointer;">👤 Per Orang</button>
+          <button id="btnModeBulk" onclick="switchQRMode('bulk')" style="padding: 8px 15px; background: transparent; color: #a5b4fc; border: 1px solid #4f46e5; border-radius: 5px; cursor: pointer;">👥 Massal (Per Kelas)</button>
+        </div>
+
+        <!-- AREA DROPDOWN -->
+        <div style="display: flex; flex-wrap: wrap; gap: 15px; align-items: flex-end;">
+          
+          <div id="containerSingleUser" style="flex: 1; min-width: 200px;">
+            <label style="display: block; color: #fff; margin-bottom: 5px;">Pilih Pengguna</label>
+            <select id="qrUserSelect" style="width: 100%; padding: 8px; background: #13111c; color: #fff; border: 1px solid #332d4a; border-radius: 4px;">
+              <option value="">⏳ Memuat data...</option>
+            </select>
+          </div>
+
+          <div id="containerBulkClass" style="display: none; flex: 1; min-width: 200px;">
+            <label style="display: block; color: #fff; margin-bottom: 5px;">Pilih Kelas / Group</label>
+            <select id="qrClassSelect" style="width: 100%; padding: 8px; background: #13111c; color: #fff; border: 1px solid #332d4a; border-radius: 4px;">
+              <option value="">-- Semua Kelas / Semua Guru --</option>
+            </select>
+          </div>
+
+          <div style="flex: 1; min-width: 200px;">
+            <label style="display: block; color: #fff; margin-bottom: 5px;">Orientasi Kartu</label>
+            <select id="qrOrientationSelect" onchange="renderQRPreview()" style="width: 100%; padding: 8px; background: #13111c; color: #fff; border: 1px solid #332d4a; border-radius: 4px;">
+              <option value="portrait">📱 Potret (Vertical)</option>
+              <option value="landscape">🖼️ Lanskap (Horizontal)</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- AREA PREVIEW KARTU (DITAMBAHKAN SCROLL INTERNAL) -->
+        <div style="margin-top: 20px; border: 1px dashed #4f46e5; border-radius: 8px; padding: 20px; background: #0f0d16;">
+          <!-- max-height: 400px dan overflow-y: auto akan membuat area ini bisa di-scroll ke bawah -->
+          <div id="qrPreviewBox" style="max-height: 400px; overflow-y: auto; text-align: center; padding-right: 10px;">
+            <p style="color: #9ca3af; margin: 0;">Pilih pengguna atau kelas di atas untuk menampilkan preview kartu QR Code</p>
+          </div>
+        </div>
+
+        <!-- TOMBOL AKSI -->
+        <div style="margin-top: 20px; text-align: right;">
+          <button onclick="cetakKartuQR()" style="padding: 10px 20px; background: #10b981; color: #fff; border: none; border-radius: 5px; cursor: pointer; margin-right: 10px;">🖨️ Cetak Kartu</button>
+          <button id="btnSimpanQR" onclick="simpanKeDatabaseQR()" style="padding: 10px 20px; background: #6366f1; color: #fff; border: none; border-radius: 5px; cursor: pointer;">💾 Simpan ke Database</button>
+        </div>
+
       </div>
 
-      <div style="flex: 1; min-width: 200px;">
-        <label style="display: block; color: #fff; margin-bottom: 5px;">Orientasi Kartu</label>
-        <select id="qrOrientationSelect" onchange="renderQRPreview()" style="width: 100%; padding: 8px; background: #13111c; color: #fff; border: 1px solid #332d4a; border-radius: 4px;">
-          <option value="portrait">📱 Potret (Vertical)</option>
-          <option value="landscape">🖼️ Lanskap (Horizontal)</option>
-        </select>
+      <!-- TABEL CRUD YANG DIKEMBALIKAN -->
+      <div style="background: #1e1b2e; border: 1px solid #332d4a; border-radius: 8px; overflow: hidden; margin-bottom: 20px;">
+        <div style="padding: 15px 20px; background: #181524; border-bottom: 1px solid #332d4a; display: flex; justify-content: space-between; align-items: center;">
+          <h5 style="margin: 0; color: #fff; font-size: 1.1rem;">📋 Daftar QR Code Terdaftar</h5>
+          <button onclick="loadSavedQRTable()" style="padding: 6px 12px; background: transparent; color: #38bdf8; border: 1px solid #0284c7; border-radius: 5px; cursor: pointer;">🔄 Refresh Data</button>
+        </div>
+        
+        <!-- Bungkus table untuk scroll horizontal jika layar sempit -->
+        <div style="overflow-x: auto; width: 100%;">
+          <table style="width: 100%; border-collapse: collapse; text-align: left; color: #e5e7eb; font-size: 0.9rem; min-width: 700px;">
+            <thead>
+              <tr style="background: #13111c; color: #9ca3af; border-bottom: 1px solid #332d4a;">
+                <th style="padding: 12px 20px;">No</th>
+                <th style="padding: 12px 20px;">QR ID</th>
+                <th style="padding: 12px 20px;">User ID / NIP / NIS</th>
+                <th style="padding: 12px 20px;">Role</th>
+                <th style="padding: 12px 20px;">Status</th>
+                <th style="padding: 12px 20px;">Dibuat Pada</th>
+                <th style="padding: 12px 20px; text-align: right;">Aksi</th>
+              </tr>
+            </thead>
+            <tbody id="tbodySavedQR">
+              <tr>
+                <td colspan="7" style="text-align: center; padding: 30px; color: #6b7280;">⏳ Memuat data tabel QR Code...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
-    </div>
 
-    <!-- AREA PREVIEW KARTU (DITAMBAHKAN SCROLL INTERNAL) -->
-    <div style="margin-top: 20px; border: 1px dashed #4f46e5; border-radius: 8px; padding: 20px; background: #0f0d16;">
-      <!-- max-height: 400px dan overflow-y: auto akan membuat area ini bisa di-scroll ke bawah -->
-      <div id="qrPreviewBox" style="max-height: 400px; overflow-y: auto; text-align: center; padding-right: 10px;">
-        <p style="color: #9ca3af; margin: 0;">Pilih pengguna atau kelas di atas untuk menampilkan preview kartu QR Code</p>
-      </div>
     </div>
-
-    <!-- TOMBOL AKSI -->
-    <div style="margin-top: 20px; text-align: right;">
-      <button onclick="cetakKartuQR()" style="padding: 10px 20px; background: #10b981; color: #fff; border: none; border-radius: 5px; cursor: pointer; margin-right: 10px;">🖨️ Cetak Kartu</button>
-      <button id="btnSimpanQR" onclick="simpanKeDatabaseQR()" style="padding: 10px 20px; background: #6366f1; color: #fff; border: none; border-radius: 5px; cursor: pointer;">💾 Simpan ke Database</button>
-    </div>
-
-  </div>
-
-  <!-- TABEL CRUD YANG DIKEMBALIKAN -->
-  <div style="background: #1e1b2e; border: 1px solid #332d4a; border-radius: 8px; overflow: hidden; margin-bottom: 20px;">
-    <div style="padding: 15px 20px; background: #181524; border-bottom: 1px solid #332d4a; display: flex; justify-content: space-between; align-items: center;">
-      <h5 style="margin: 0; color: #fff; font-size: 1.1rem;">📋 Daftar QR Code Terdaftar</h5>
-      <button onclick="loadSavedQRTable()" style="padding: 6px 12px; background: transparent; color: #38bdf8; border: 1px solid #0284c7; border-radius: 5px; cursor: pointer;">🔄 Refresh Data</button>
-    </div>
-    
-    <!-- Bungkus table untuk scroll horizontal jika layar sempit -->
-    <div style="overflow-x: auto; width: 100%;">
-      <table style="width: 100%; border-collapse: collapse; text-align: left; color: #e5e7eb; font-size: 0.9rem; min-width: 700px;">
-        <thead>
-          <tr style="background: #13111c; color: #9ca3af; border-bottom: 1px solid #332d4a;">
-            <th style="padding: 12px 20px;">No</th>
-            <th style="padding: 12px 20px;">QR ID</th>
-            <th style="padding: 12px 20px;">User ID / NIP / NIS</th>
-            <th style="padding: 12px 20px;">Role</th>
-            <th style="padding: 12px 20px;">Status</th>
-            <th style="padding: 12px 20px;">Dibuat Pada</th>
-            <th style="padding: 12px 20px; text-align: right;">Aksi</th>
-          </tr>
-        </thead>
-        <tbody id="tbodySavedQR">
-          <tr>
-            <td colspan="7" style="text-align: center; padding: 30px; color: #6b7280;">⏳ Memuat data tabel QR Code...</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
-
-</div>
 
     <!-- KONTEN: ADMIN & OPERATOR -->
     <div id="admin-operator" class="section">
