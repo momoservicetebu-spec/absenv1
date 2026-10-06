@@ -60,6 +60,10 @@ function switchTab(tabId, btnElement) {
   } else if (tabId === 'hak-akses') {
     if (typeof loadDataRole === 'function') loadDataRole();
   }
+// --- TAMBAHAN UNTUK QR CODE ---
+  else if (tabId === 'barcode') {
+    if (typeof loadUserForQR === 'function') loadUserForQR();
+  }
 }
 
 function getCurrentLocation() {
@@ -2526,58 +2530,5 @@ async function simpanKartuRFID() {
 
   btn.innerText = "Simpan Kartu";
   btn.disabled = false;
-}
-
-// ------------------------------------------
-// 3. LOGIKA GENERATE & PRINT QR CODE
-// ------------------------------------------
-function generateQRCode() {
-  const userID = document.getElementById("qrUserSelect").value;
-  const previewBox = document.getElementById("qrPreviewBox");
-
-  if (!userID) {
-    previewBox.innerHTML = `<p style="color:#666; margin:0;">Pilih pengguna untuk membuat QR Code</p>`;
-    return;
-  }
-
-  const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(userID)}`;
-  previewBox.innerHTML = `
-    <div style="text-align:center;">
-      <img src="${qrUrl}" alt="QR Code" style="border: 1px solid #ccc; padding: 5px; border-radius: 4px;">
-      <p style="margin:5px 0 0 0; font-weight:bold; color:#333;">ID: ${userID}</p>
-    </div>
-  `;
-}
-
-function cetakKartuQR() {
-  const userID = document.getElementById("qrUserSelect").value;
-  if (!userID) return alert("Pilih Pengguna yang ingin dicetak kartunya!");
-
-  const printWindow = window.open('', '', 'width=600,height=400');
-  const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(userID)}`;
-
-  printWindow.document.write(`
-    <html>
-      <head>
-        <title>Cetak Kartu - ${userID}</title>
-        <style>
-          body { font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-          .card { border: 2px solid #000; padding: 20px; border-radius: 12px; text-align: center; width: 250px; }
-          img { margin-top: 10px; }
-        </style>
-      </head>
-      <body>
-        <div class="card">
-          <h3 style="margin:0 0 10px 0;">KARTU AKSES ABSENSI</h3>
-          <img src="${qrUrl}" />
-          <h2 style="margin:10px 0 0 0;">${userID}</h2>
-        </div>
-        <script>
-          window.onload = function() { window.print(); window.close(); }
-        </script>
-      </body>
-    </html>
-  `);
-  printWindow.document.close();
 }
 
