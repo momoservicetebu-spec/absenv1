@@ -3,6 +3,7 @@
  */
 
 let qrUserListCache = [];
+let currentQRDataToSave = null; // Variabel global diletakkan di atas
 
 // Panggil fungsi saat dokumen selesai dimuat
 document.addEventListener("DOMContentLoaded", function () {
@@ -25,7 +26,6 @@ async function loadUserForQR() {
       if (Array.isArray(result.data)) {
         usersArray = result.data;
       } else if (typeof result.data === 'object' && result.data !== null) {
-        // PERBAIKAN DISINI: Langsung berikan label Role secara otomatis
         if (result.data.listSiswa) {
           let siswa = result.data.listSiswa.map(u => ({...u, Role: 'Siswa'}));
           usersArray = usersArray.concat(siswa);
@@ -42,7 +42,6 @@ async function loadUserForQR() {
         usersArray.forEach(user => {
           let userId = user.UserID || user.NIP || user.NIS || user.id;
           let userName = user.Nama || user.nama || "Tanpa Nama";
-          // Cek Role dari map di atas, jika tidak ada, asumsikan Guru jika ID > 10 digit
           let userRole = user.Role || (String(userId).length > 10 ? 'Guru' : 'Siswa');
 
           if (userId) {
@@ -77,13 +76,13 @@ function generateQRCode() {
   const selectedUserId = selectElement.value;
   if (!selectedUserId) {
     previewBox.innerHTML = '<p style="color:#9ca3af; margin:0;">Pilih pengguna di atas untuk menampilkan kartu QR Code</p>';
+    currentQRDataToSave = null;
     return;
   }
 
   const user = qrUserListCache.find(u => String(u.UserID || u.NIP || u.NIS || u.id) === String(selectedUserId));
   const nama = user ? (user.Nama || user.nama) : "Pengguna";
   
-  // Pastikan ambil role dari user object yang sudah disematkan 'Guru'/'Siswa' di atas
   const role = user ? (user.Role || (String(selectedUserId).length > 10 ? 'Guru' : 'Siswa')) : 'Siswa';
 
   const qrPayload = JSON.stringify({ id: selectedUserId, role: role, nama: nama });
@@ -100,6 +99,45 @@ function generateQRCode() {
       <p style="margin: 0; font-size: 12px; color: #4b5563;">ID: ${selectedUserId}</p>
     </div>
   `;
+
+  // Variabel currentQRDataToSave DISISIPKAN DI DALAM FUNGSI INI (Bukan di luar)
+  // Menyesuaikan action dengan backend Anda: "saveQRCode"
+  currentQRDataToSave = {
+    action: "saveQRCode",
+    userId: selectedUserId,
+    role: role,
+    qrPayload: qrPayload
+  };
+}
+
+async function simpanKeDatabaseQR() {
+  if (!currentQRDataToSave) {
+    alert("⚠️ Silakan pilih pengguna dan biarkan QR Code muncul terlebih dahulu!");
+    return;
+  }
+
+  const btnSimpan = document.getElementById("btnSimpanQR");
+  if (!btnSimpan) return;
+  
+  const teksAsli = btnSimpan.innerHTML;
+  btnSimpan.innerHTML = "⏳ Menyimpan...";
+  btnSimpan.disabled = true;
+
+  try {
+    const result = await fetchAPI("saveQRCode", currentQRDataToSave);
+
+    if (result && result.success) {
+      alert(`✅ Berhasil! Data QR untuk ${currentQRDataToSave.role} telah disimpan ke database.`);
+    } else {
+      alert("❌ Gagal menyimpan data: " + (result.message || "Kesalahan tidak diketahui"));
+    }
+  } catch (error) {
+    console.error("Error Simpan QR:", error);
+    alert("❌ Terjadi kesalahan jaringan/sistem: " + error.message);
+  } finally {
+    btnSimpan.innerHTML = teksAsli;
+    btnSimpan.disabled = false;
+  }
 }
 
 function cetakKartuQR() {
@@ -127,49 +165,4 @@ function showBarcodeSection() {
   }
 
   loadUserForQR();
-}
-
-// Tambahkan variabel global ini di paling atas file (di bawah let qrUserListCache = [];)
-let currentQRDataToSave = null;
-
-// --- REVISI fungsi generateQRCode() ---
-// Di dalam fungsi generateQRCode(), tepat SETELAH baris:
-// const qrPayload = JSON.stringify({ id: selectedUserId, role: role, nama: nama });
-// TAMBAHKAN KODE INI:
-currentQRDataToSave = {
-  action: "simpanQR", // Penanda untuk Google Apps Script
-  UserID: selectedUserId,
-  Role: role,
-  QRPayload: qrPayload,
-  Status: "Aktif"
-};
-
-// --- TAMBAHKAN FUNGSI BARU INI DI BAGIAN BAWAH qr_code.js ---
-async function simpanKeDatabaseQR() {
-  if (!currentQRDataToSave) {
-    alert("⚠️ Silakan pilih pengguna dan biarkan QR Code muncul terlebih dahulu!");
-    return;
-  }
-
-  const btnSimpan = document.getElementById("btnSimpanQR");
-  const teksAsli = btnSimpan.innerHTML;
-  btnSimpan.innerHTML = "⏳ Menyimpan...";
-  btnSimpan.disabled = true;
-
-  try {
-    // Memanggil fungsi fetchAPI Anda (pastikan fetchAPI mendukung metode POST)
-    const result = await fetchAPI("simpanQR", currentQRDataToSave);
-
-    if (result && result.success) {
-      alert(`✅ Berhasil! Data QR untuk ${currentQRDataToSave.Role} telah disimpan ke database.`);
-    } else {
-      alert("❌ Gagal menyimpan data: " + (result.message || "Kesalahan tidak diketahui"));
-    }
-  } catch (error) {
-    console.error("Error Simpan QR:", error);
-    alert("❌ Terjadi kesalahan jaringan/sistem: " + error.message);
-  } finally {
-    btnSimpan.innerHTML = teksAsli;
-    btnSimpan.disabled = false;
-  }
 }
