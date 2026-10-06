@@ -11,6 +11,19 @@ document.addEventListener("DOMContentLoaded", function () {
   loadUserForQR();
   loadSavedQRTable();
 });
+// Inisialisasi Select2 pada dropdown pengguna agar bisa dicari
+$(document).ready(function() {
+    $('#qrUserSelect').select2({
+        placeholder: "-- Cari Pengguna --",
+        allowClear: true,
+        width: '100%' // Sesuaikan lebar otomatis
+    });
+    
+    // Pastikan saat Select2 berubah, kartu preview juga terupdate
+    $('#qrUserSelect').on('change', function() {
+        renderQRPreview();
+    });
+});
 
 // 1. MEMUAT DATA UNTUK DROPDOWN
 async function loadUserForQR() {

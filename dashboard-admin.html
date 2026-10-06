@@ -512,108 +512,61 @@
     <!-- ========================================== -->
     <!-- --- SECTION BUAT BARCODE / QR CODE --- -->
     <!-- ========================================== -->
-   <div id="barcode" class="page-section w-100" style="display: none; width: 100%; min-width: 100%; flex: 1;">
+   <div id="barcode" class="page-section" style="display: none;">
   
   <!-- HEADER -->
-  <div class="row mb-4">
-    <div class="col-12 border-bottom border-secondary pb-2">
-      <h3 class="fw-bold text-white mb-2" style="font-size: 1.5rem;">💳 Generate Barcode / QR Code</h3>
-      <p class="text-muted mb-0">Cetak kartu identitas yang dilengkapi dengan QR Code khusus untuk Siswa dan Guru.</p>
-    </div>
+  <div style="margin-bottom: 20px;">
+    <h3 style="color: #fff; margin-bottom: 5px;">💳 Generate Barcode / QR Code</h3>
+    <p style="color: #ccc;">Cetak kartu identitas yang dilengkapi dengan QR Code khusus untuk Siswa dan Guru.</p>
   </div>
 
-  <!-- PANEL KONTROL GENERATOR -->
-  <div class="card bg-dark text-white border-secondary mb-4 w-100">
-    <div class="card-body p-4">
+  <!-- BUNGKUSAN KONTROL GENERATOR -->
+  <div style="background: #1e1b2e; border: 1px solid #332d4a; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+    
+    <!-- TOMBOL MODE -->
+    <div style="margin-bottom: 15px; display: flex; gap: 10px;">
+      <button id="btnModeSingle" onclick="switchQRMode('single')" style="padding: 8px 15px; background: #4f46e5; color: #fff; border: none; border-radius: 5px; cursor: pointer;">👤 Per Orang</button>
+      <button id="btnModeBulk" onclick="switchQRMode('bulk')" style="padding: 8px 15px; background: transparent; color: #a5b4fc; border: 1px solid #4f46e5; border-radius: 5px; cursor: pointer;">👥 Massal (Per Kelas)</button>
+    </div>
+
+    <!-- AREA DROPDOWN -->
+    <div style="display: flex; flex-wrap: wrap; gap: 15px; align-items: flex-end;">
       
-      <!-- TAB MODE: SINGLE VS MASSAL -->
-      <div class="d-flex gap-2 mb-4">
-        <button type="button" class="btn btn-primary px-4" id="btnModeSingle" onclick="switchQRMode('single')">
-          👤 Per Orang (Tunggal)
-        </button>
-        <button type="button" class="btn btn-outline-primary px-4" id="btnModeBulk" onclick="switchQRMode('bulk')">
-          👥 Massal (Per Kelas)
-        </button>
+      <div id="containerSingleUser" style="flex: 1; min-width: 200px;">
+        <label style="display: block; color: #fff; margin-bottom: 5px;">Pilih Pengguna</label>
+        <!-- Select2 akan diterapkan di sini -->
+        <select id="qrUserSelect" style="width: 100%; padding: 8px;">
+          <option value="">⏳ Memuat data...</option>
+        </select>
       </div>
 
-      <!-- INPUT DROPDOWN (PILIH USER & ORIENTASI) -->
-      <div class="row g-3 mb-4">
-        
-        <!-- OPSI TUNGGAL -->
-        <div class="col-md-6" id="containerSingleUser">
-          <label class="form-label text-light fw-semibold">Pilih Pengguna</label>
-          <select id="qrUserSelect" class="form-select bg-dark text-white border-secondary">
-            <option value="">⏳ Memuat data...</option>
-          </select>
-        </div>
-
-        <!-- OPSI MASSAL (Sembunyi by default) -->
-        <div class="col-md-6" id="containerBulkClass" style="display: none;">
-          <label class="form-label text-light fw-semibold">Pilih Kelas / Group</label>
-          <select id="qrClassSelect" class="form-select bg-dark text-white border-secondary">
-            <option value="">-- Semua Kelas / Semua Guru --</option>
-          </select>
-        </div>
-
-        <!-- OPSI ORIENTASI KARTU -->
-        <div class="col-md-6">
-          <label class="form-label text-light fw-semibold">Orientasi Kartu</label>
-          <select id="qrOrientationSelect" class="form-select bg-dark text-white border-secondary" onchange="renderQRPreview()">
-            <option value="portrait">📱 Potret (Vertical - Standar ID Card)</option>
-            <option value="landscape">🖼️ Lanskap (Horizontal)</option>
-          </select>
-        </div>
-
+      <div id="containerBulkClass" style="display: none; flex: 1; min-width: 200px;">
+        <label style="display: block; color: #fff; margin-bottom: 5px;">Pilih Kelas / Group</label>
+        <select id="qrClassSelect" style="width: 100%; padding: 8px;">
+          <option value="">-- Semua Kelas / Semua Guru --</option>
+        </select>
       </div>
 
-      <!-- AREA PREVIEW KARTU -->
-      <div class="p-4 rounded border border-secondary text-center" style="background-color: rgba(0, 0, 0, 0.2);">
-        <div id="qrPreviewBox">
-          <p class="text-muted m-0">Pilih pengguna atau kelas di atas untuk menampilkan preview kartu QR Code</p>
-        </div>
-      </div>
-
-      <!-- TOMBOL AKSI -->
-      <div class="mt-4 d-flex justify-content-end gap-2">
-        <button type="button" class="btn btn-success px-4" onclick="cetakKartuQR()">
-          🖨️ Cetak Kartu
-        </button>
-        <button type="button" class="btn btn-primary px-4" id="btnSimpanQR" onclick="simpanKeDatabaseQR()">
-          💾 Simpan ke Database
-        </button>
-      </div>
-
-    </div>
-  </div>
-
-  <!-- TABEL CRUD DATA QR TERDAFTAR -->
-  <div class="card bg-dark text-white border-secondary w-100">
-    <div class="card-header border-secondary d-flex justify-content-between align-items-center py-3">
-      <h5 class="m-0 fw-bold text-white">📋 Daftar QR Code Terdaftar</h5>
-      <button class="btn btn-sm btn-outline-info" onclick="loadSavedQRTable()">🔄 Refresh Data</button>
-    </div>
-    <div class="card-body p-0">
-      <div class="table-responsive">
-        <table class="table table-dark table-hover mb-0 align-middle">
-          <thead>
-            <tr class="border-secondary text-muted">
-              <th class="ps-3">No</th>
-              <th>QR ID</th>
-              <th>User ID / NIP / NIS</th>
-              <th>Role</th>
-              <th>Status</th>
-              <th>Dibuat Pada</th>
-              <th class="text-end pe-3">Aksi</th>
-            </tr>
-          </thead>
-          <tbody id="tbodySavedQR">
-            <tr>
-              <td colspan="7" class="text-center py-4 text-muted">⏳ Memuat data tabel QR Code...</td>
-            </tr>
-          </tbody>
-        </table>
+      <div style="flex: 1; min-width: 200px;">
+        <label style="display: block; color: #fff; margin-bottom: 5px;">Orientasi Kartu</label>
+        <select id="qrOrientationSelect" onchange="renderQRPreview()" style="width: 100%; padding: 8px;">
+          <option value="portrait">📱 Potret (Vertical)</option>
+          <option value="landscape">🖼️ Lanskap (Horizontal)</option>
+        </select>
       </div>
     </div>
+
+    <!-- AREA PREVIEW KARTU -->
+    <div id="qrPreviewBox" style="margin-top: 20px; padding: 20px; border: 1px dashed #4f46e5; text-align: center; border-radius: 8px;">
+      <p style="color: #9ca3af; margin: 0;">Pilih pengguna atau kelas di atas untuk menampilkan preview kartu QR Code</p>
+    </div>
+
+    <!-- TOMBOL AKSI -->
+    <div style="margin-top: 20px; text-align: right;">
+      <button onclick="cetakKartuQR()" style="padding: 10px 20px; background: #10b981; color: #fff; border: none; border-radius: 5px; cursor: pointer; margin-right: 10px;">🖨️ Cetak Kartu</button>
+      <button id="btnSimpanQR" onclick="simpanKeDatabaseQR()" style="padding: 10px 20px; background: #6366f1; color: #fff; border: none; border-radius: 5px; cursor: pointer;">💾 Simpan ke Database</button>
+    </div>
+
   </div>
 
 </div>
