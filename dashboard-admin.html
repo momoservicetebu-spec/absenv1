@@ -531,10 +531,13 @@
         <p style="color: #9ca3af; margin: 0;">Pilih pengguna di atas untuk menampilkan kartu QR Code</p>
       </div>
 
-      <!-- TOMBOL CETAK -->
-      <div class="mt-4" style="text-align: left;">
+    <!-- TOMBOL CETAK & SIMPAN -->
+      <div class="mt-4" style="display: flex; gap: 10px;">
         <button type="button" class="btn-action btn-success px-4" onclick="cetakKartuQR()">
           🖨️ Cetak Kartu (Print)
+        </button>
+        <button type="button" class="btn-action btn-primary px-4" id="btnSimpanQR" onclick="simpanKeDatabaseQR()">
+          💾 Simpan ke Database
         </button>
       </div>
     </div>
