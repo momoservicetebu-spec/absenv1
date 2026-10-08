@@ -2380,101 +2380,29 @@ async function testWaMessage() {
 // ==========================================
 // FUNGSI SWITCH TAB / NAVIGASI SIDEBAR (ui.js)
 // ==========================================
+// ==========================================
+// FUNGSI SWITCH TAB / NAVIGASI SIDEBAR (ui.js)
+// ==========================================
 function switchTab(tabId, btnElement) {
-  // 1. Sembunyikan semua section & reset status aktif tombol
-  document.querySelectorAll('.section').forEach(sec => sec.classList.remove('active'));
-  document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
-  
-  // 2. Cari elemen kontainer berdasarkan ID
+  // 1. Sembunyikan semua elemen section/tab
+  const allSections = document.querySelectorAll('.section, .tab-content, .card');
+  allSections.forEach(el => {
+    el.style.display = 'none';
+  });
+
+  // 2. Tampilkan section yang diklik
   const targetSection = document.getElementById(tabId);
   if (targetSection) {
-    targetSection.classList.add('active');
+    targetSection.style.display = 'block';
   } else {
-    console.warn(`[Warning] Elemen <div id="${tabId}" class="section"> tidak ditemukan di HTML!`);
+    console.error("Elemen dengan ID '" + tabId + "' tidak ditemukan di dashboard-admin.html");
   }
-  
-  // 3. Tandai tombol menu sidebar yang diklik
+
+  // 3. Atur status tombol aktif pada sidebar
   if (btnElement) {
+    const allBtns = document.querySelectorAll('.nav-btn');
+    allBtns.forEach(btn => btn.classList.remove('active'));
     btnElement.classList.add('active');
-  }
-  
-  // 4. Panggil fungsi backend/fetch data sesuai ID Tab
-  switch (tabId) {
-    case 'dashboard':
-      if (typeof loadDashboard === 'function') loadDashboard();
-      break;
-
-    // MANAJEMEN DATA
-    case 'data-siswa':
-    case 'data-guru':
-      if (typeof loadAllData === 'function') loadAllData();
-      break;
-    case 'import':
-    case 'import-csv':
-      if (typeof initImportCSV === 'function') initImportCSV();
-      break;
-
-    // PENDAFTARAN KREDENSIAL
-    case 'enrollment':
-    case 'daftar-wajah':
-      if (!window.aiLoaded && typeof initFaceAI === 'function') initFaceAI();
-      break;
-    case 'fingerprint':
-    case 'daftar-fingerprint':
-      if (typeof loadFingerprint === 'function') loadFingerprint();
-      break;
-    case 'rfid':
-    case 'daftar-rfid':
-      if (typeof loadRFID === 'function') loadRFID();
-      break;
-    case 'barcode':
-    case 'buat-barcode':
-      if (typeof loadUserForQR === 'function') loadUserForQR();
-      break;
-
-    // MANAJEMEN USER
-    case 'admin-operator':
-      if (typeof loadDataAdmin === 'function') loadDataAdmin();
-      break;
-    case 'hak-akses':
-      if (typeof loadDataRole === 'function') loadDataRole();
-      break;
-
-    // OPERASIONAL & ABSENSI
-    case 'jadwal-pelajaran':
-      if (typeof loadJadwal === 'function') loadJadwal();
-      break;
-    case 'gate-pass':
-      if (typeof loadGatePass === 'function') loadGatePass();
-      break;
-    case 'absensi-kelas':
-      if (typeof loadAbsensiKelas === 'function') loadAbsensiKelas();
-      break;
-
-    // SISTEM & LAPORAN
-    case 'laporan-absensi':
-      if (typeof loadLaporan === 'function') loadLaporan();
-      break;
-    case 'setting':
-    case 'pengaturan':
-      if (typeof loadSettings === 'function') loadSettings();
-      break;
-    case 'backup':
-    case 'backup-restore':
-      if (typeof initBackup === 'function') initBackup();
-      break;
-
-    case 'whatsapp-settings':
-    case 'notifikasi-wa':
-      if (typeof loadWAConfig === 'function') loadWAConfig();
-      break;
-    case 'geofencing':
-    case 'lokasi-geofencing':
-      if (typeof loadGeofencing === 'function') loadGeofencing();
-      break;
-
-    default:
-      break;
   }
 }
 
