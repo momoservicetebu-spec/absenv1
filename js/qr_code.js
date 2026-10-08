@@ -327,21 +327,22 @@ async function loadSavedQRTable() {
         let badgeBg = row.Role === 'Guru' ? '#f59e0b' : '#0284c7';
         let badgeColor = row.Role === 'Guru' ? '#000000' : '#ffffff';
 
-        // Ambil ID dengan fleksibel jika struktur nama properti berbeda
-        let qrId = row.QRID || row.qrId || row.qr_id || '';
-        let userId = row.UserID || row.userId || row.user_id || '';
-        let role = row.Role || row.role || 'Siswa';
+        // Ambil RecordID dari Google Sheet (misal: QR-1791279407702)
+        let recordId = row.RecordID || row.QRID || row.qrId || '';
+        let userId = row.UserID || row.userId || '';
+        let role = row.Role || 'Siswa';
 
         html += `
           <tr style="border-bottom: 1px solid #332d4a;">
             <td style="padding: 12px 16px;">${index + 1}</td>
-            <td style="padding: 12px 16px;"><span style="background: #374151; color: #e5e7eb; padding: 3px 8px; border-radius: 4px; font-family: monospace; font-size: 0.8rem;">${qrId || '-'}</span></td>
+            <td style="padding: 12px 16px;"><span style="background: #374151; color: #e5e7eb; padding: 3px 8px; border-radius: 4px; font-family: monospace; font-size: 0.8rem;">${recordId || '-'}</span></td>
             <td style="padding: 12px 16px; font-weight: bold; color: #ffffff;">${userId || '-'}</td>
             <td style="padding: 12px 16px;"><span style="background: ${badgeBg}; color: ${badgeColor}; padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold;">${role}</span></td>
             <td style="padding: 12px 16px;"><span style="background: #10b981; color: #ffffff; padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold;">${row.Status || 'Active'}</span></td>
-            <td style="padding: 12px 16px; color: #9ca3af; font-size: 0.85rem;">${row.CreatedAt || '-'}</td>
+            <td style="padding: 12px 16px; color: #9ca3af; font-size: 0.85rem;">${row.CreatedAt || row.UpdatedAt || '-'}</td>
             <td style="padding: 12px 16px; text-align: right;">
-              <button type="button" onclick="hapusQRFromTable('${qrId}', '${userId}', '${role}')" style="background: transparent; color: #ef4444; border: 1px solid #dc2626; padding: 4px 10px; border-radius: 6px; font-size: 0.8rem; cursor: pointer;">🗑️ Hapus</button>
+              <!-- Kirim recordId, userId, dan role ke fungsi hapus -->
+              <button type="button" onclick="hapusQRFromTable('${recordId}', '${userId}', '${role}')" style="background: transparent; color: #ef4444; border: 1px solid #dc2626; padding: 4px 10px; border-radius: 6px; font-size: 0.8rem; cursor: pointer;">🗑️ Hapus</button>
             </td>
           </tr>
         `;
@@ -357,21 +358,27 @@ async function loadSavedQRTable() {
 }
 
 // 8. HAPUS DATA QR
-async function hapusQRFromTable(qrId, userId, role) {
-  const displayId = qrId || userId;
-  if (!confirm(`Apakah Anda yakin ingin menghapus data QR untuk ID: ${displayId}?`)) return;
+async function hapusQRFromTable(recordId, userId, role) {
+  const targetId = recordId || userId;
+  
+  if (!targetId) {
+    alert("❌ Error: RecordID tidak valid!");
+    return;
+  }
+
+  if (!confirm(`Apakah Anda yakin ingin menghapus data QR (${targetId})?`)) return;
 
   try {
-    // Kirim semua variasi kunci parameter agar backend pasti menemukannya
+    // Kirim kunci recordId dan RecordID agar sesuai pencarian di Google Apps Script
     const result = await fetchAPI("deleteQRCode", { 
-      qrId: qrId, 
+      recordId: recordId,
+      RecordID: recordId,
       userId: userId, 
-      id: qrId || userId, 
       role: role 
     });
 
     if (result && result.success) {
-      alert("✅ Data QR berhasil dihapus!");
+      alert("✅ Data QR berhasil dihapus dari " + (role === 'Guru' ? 'QR_Guru' : 'QR_Siswa') + "!");
       loadSavedQRTable();
     } else {
       alert("❌ Gagal menghapus: " + (result.message || "Kesalahan server."));
