@@ -362,24 +362,28 @@ async function hapusQRFromTable(recordId, userId, role) {
   const targetId = recordId || userId;
   
   if (!targetId) {
-    alert("❌ Error: RecordID tidak valid!");
+    alert("❌ Error: RecordID/UserID tidak valid!");
     return;
   }
 
   if (!confirm(`Apakah Anda yakin ingin menghapus data QR (${targetId})?`)) return;
 
   try {
-    // Kirim kunci recordId dan RecordID agar sesuai pencarian di Google Apps Script
     const result = await fetchAPI("deleteQRCode", { 
       recordId: recordId,
+      qrId: recordId,
       RecordID: recordId,
       userId: userId, 
       role: role 
     });
 
     if (result && result.success) {
-      alert("✅ Data QR berhasil dihapus dari " + (role === 'Guru' ? 'QR_Guru' : 'QR_Siswa') + "!");
-      loadSavedQRTable();
+      alert("✅ Data QR berhasil dihapus!");
+
+      // 1. Tambahkan 'await' agar proses penuangan data baru ke tabel selesai sempurna
+      if (typeof loadSavedQRTable === "function") {
+        await loadSavedQRTable();
+      }
     } else {
       alert("❌ Gagal menghapus: " + (result.message || "Kesalahan server."));
     }

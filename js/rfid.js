@@ -195,15 +195,31 @@ async function loadRFIDTable() {
 // ==========================================
 // 5. FUNGSI CRUD: HAPUS DATA (DELETE)
 // ==========================================
-async function deleteRFIDData(userId) {
-  if(!confirm(`Yakin ingin MENCABUT akses kartu untuk ID: ${userId}?`)) return;
+async function deleteRFIDData(userId, role, recordId) {
+  if (!confirm(`Yakin ingin MENCABUT akses kartu untuk ID: ${userId}?`)) return;
   
-  const result = await fetchAPI("deleteRFID", { userId: userId });
-  if(result && result.success) {
-    alert("✅ " + result.message);
-    loadRFIDTable(); // Refresh tabel setelah dihapus
-  } else {
-    alert("❌ Gagal menghapus: " + result?.message);
+  try {
+    // Kirim parameter lengkap agar backend Google Apps Script pasti menemukannya
+    const result = await fetchAPI("deleteRFID", { 
+      userId: userId,
+      role: role,
+      recordId: recordId,
+      id: recordId
+    });
+
+    if (result && result.success) {
+      alert("✅ " + (result.message || "Akses kartu berhasil dicabut!"));
+      
+      // Paksa tunggu refresh tabel selesai
+      if (typeof loadRFIDTable === "function") {
+        await loadRFIDTable();
+      }
+    } else {
+      alert("❌ Gagal menghapus: " + (result?.message || "Terjadi kesalahan server."));
+    }
+  } catch (error) {
+    console.error("Error Hapus RFID:", error);
+    alert("❌ Error: " + error.message);
   }
 }
 
