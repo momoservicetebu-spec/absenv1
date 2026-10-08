@@ -327,16 +327,21 @@ async function loadSavedQRTable() {
         let badgeBg = row.Role === 'Guru' ? '#f59e0b' : '#0284c7';
         let badgeColor = row.Role === 'Guru' ? '#000000' : '#ffffff';
 
+        // Ambil ID dengan fleksibel jika struktur nama properti berbeda
+        let qrId = row.QRID || row.qrId || row.qr_id || '';
+        let userId = row.UserID || row.userId || row.user_id || '';
+        let role = row.Role || row.role || 'Siswa';
+
         html += `
           <tr style="border-bottom: 1px solid #332d4a;">
             <td style="padding: 12px 16px;">${index + 1}</td>
-            <td style="padding: 12px 16px;"><span style="background: #374151; color: #e5e7eb; padding: 3px 8px; border-radius: 4px; font-family: monospace; font-size: 0.8rem;">${row.QRID || '-'}</span></td>
-            <td style="padding: 12px 16px; font-weight: bold; color: #ffffff;">${row.UserID || '-'}</td>
-            <td style="padding: 12px 16px;"><span style="background: ${badgeBg}; color: ${badgeColor}; padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold;">${row.Role || 'Siswa'}</span></td>
+            <td style="padding: 12px 16px;"><span style="background: #374151; color: #e5e7eb; padding: 3px 8px; border-radius: 4px; font-family: monospace; font-size: 0.8rem;">${qrId || '-'}</span></td>
+            <td style="padding: 12px 16px; font-weight: bold; color: #ffffff;">${userId || '-'}</td>
+            <td style="padding: 12px 16px;"><span style="background: ${badgeBg}; color: ${badgeColor}; padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold;">${role}</span></td>
             <td style="padding: 12px 16px;"><span style="background: #10b981; color: #ffffff; padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold;">${row.Status || 'Active'}</span></td>
             <td style="padding: 12px 16px; color: #9ca3af; font-size: 0.85rem;">${row.CreatedAt || '-'}</td>
             <td style="padding: 12px 16px; text-align: right;">
-              <button type="button" onclick="hapusQRFromTable('${row.UserID}', '${row.Role}')" style="background: transparent; color: #ef4444; border: 1px solid #dc2626; padding: 4px 10px; border-radius: 6px; font-size: 0.8rem; cursor: pointer;">🗑️ Hapus</button>
+              <button type="button" onclick="hapusQRFromTable('${qrId}', '${userId}', '${role}')" style="background: transparent; color: #ef4444; border: 1px solid #dc2626; padding: 4px 10px; border-radius: 6px; font-size: 0.8rem; cursor: pointer;">🗑️ Hapus</button>
             </td>
           </tr>
         `;
@@ -352,11 +357,19 @@ async function loadSavedQRTable() {
 }
 
 // 8. HAPUS DATA QR
-async function hapusQRFromTable(userId, role) {
-  if (!confirm(`Apakah Anda yakin ingin menghapus data QR untuk ID: ${userId}?`)) return;
+async function hapusQRFromTable(qrId, userId, role) {
+  const displayId = qrId || userId;
+  if (!confirm(`Apakah Anda yakin ingin menghapus data QR untuk ID: ${displayId}?`)) return;
 
   try {
-    const result = await fetchAPI("deleteQRCode", { userId: userId, role: role });
+    // Kirim semua variasi kunci parameter agar backend pasti menemukannya
+    const result = await fetchAPI("deleteQRCode", { 
+      qrId: qrId, 
+      userId: userId, 
+      id: qrId || userId, 
+      role: role 
+    });
+
     if (result && result.success) {
       alert("✅ Data QR berhasil dihapus!");
       loadSavedQRTable();
@@ -366,12 +379,4 @@ async function hapusQRFromTable(userId, role) {
   } catch (error) {
     alert("❌ Error: " + error.message);
   }
-}
-
-function showBarcodeSection() {
-  document.querySelectorAll('.page-section').forEach(s => s.style.display = 'none');
-  const section = document.getElementById('barcode');
-  if (section) section.style.display = 'block';
-  loadUserForQR();
-  loadSavedQRTable();
 }
