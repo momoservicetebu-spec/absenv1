@@ -399,16 +399,29 @@
       <!-- Pembatas Form dan Tabel -->
       <hr style="margin: 30px 0; border: 1px solid #444;">
       
-      <!-- HEADER TABEL & KOTAK PENCARIAN -->
-      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 10px;">
+      <!-- HEADER TABEL & KOTAK PENCARIAN DATA WAJAH -->
+      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 15px;">
         <h3 class="section-title" style="margin: 0;">🖼️ Data Wajah Terdaftar</h3>
-        <input 
-          type="text" 
-          id="searchFaceInput" 
-          placeholder="🔍 Cari UserID / Role..." 
-          style="padding: 8px 12px; width: 100%; max-width: 250px; border-radius: 6px; border: 1px solid #444; background: #222; color: #fff; font-size: 14px;"
-          onkeyup="filterFaceTable()"
-        >
+        
+        <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+          <!-- Kotak Pencarian Wajah -->
+          <input 
+            type="text" 
+            id="searchFaceInput" 
+            placeholder="🔍 Cari UserID / Role..." 
+            style="padding: 8px 12px; width: 220px; border-radius: 6px; border: 1px solid #444; background: #222; color: #fff; font-size: 14px;"
+            onkeyup="filterFaceTable()"
+          >
+
+          <!-- Tombol Refresh Data Wajah -->
+          <button 
+            type="button" 
+            onclick="loadFaceTable()" 
+            style="padding: 8px 14px; border-radius: 6px; border: 1px solid #3b82f6; background: #1e293b; color: #60a5fa; font-size: 14px; cursor: pointer; white-space: nowrap;"
+          >
+            🔄 Refresh Data
+          </button>
+        </div>
       </div>
 
       <div style="overflow-x: auto;">
