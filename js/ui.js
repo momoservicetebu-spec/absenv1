@@ -2381,22 +2381,24 @@ async function testWaMessage() {
 // FUNGSI SWITCH TAB / NAVIGASI SIDEBAR (ui.js)
 // ==========================================
 function switchTab(tabId, btnElement) {
-  // 1. Sembunyikan semua section & reset status tombol
+  // 1. Sembunyikan semua section & reset status aktif tombol
   document.querySelectorAll('.section').forEach(sec => sec.classList.remove('active'));
   document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
   
-  // 2. Aktifkan section yang dipilih
+  // 2. Cari elemen kontainer berdasarkan ID
   const targetSection = document.getElementById(tabId);
   if (targetSection) {
     targetSection.classList.add('active');
+  } else {
+    console.warn(`[Warning] Elemen <div id="${tabId}" class="section"> tidak ditemukan di HTML!`);
   }
   
-  // 3. Tandai menu sidebar yang diklik
+  // 3. Tandai tombol menu sidebar yang diklik
   if (btnElement) {
     btnElement.classList.add('active');
   }
   
-  // 4. Jalankan fungsi pemanggil data sesuai ID Tab
+  // 4. Panggil fungsi backend/fetch data sesuai ID Tab
   switch (tabId) {
     case 'dashboard':
       if (typeof loadDashboard === 'function') loadDashboard();
@@ -2407,23 +2409,26 @@ function switchTab(tabId, btnElement) {
     case 'data-guru':
       if (typeof loadAllData === 'function') loadAllData();
       break;
+    case 'import':
     case 'import-csv':
       if (typeof initImportCSV === 'function') initImportCSV();
       break;
 
     // PENDAFTARAN KREDENSIAL
-    case 'daftar-wajah':
     case 'enrollment':
+    case 'daftar-wajah':
       if (!window.aiLoaded && typeof initFaceAI === 'function') initFaceAI();
       break;
+    case 'fingerprint':
     case 'daftar-fingerprint':
       if (typeof loadFingerprint === 'function') loadFingerprint();
       break;
+    case 'rfid':
     case 'daftar-rfid':
       if (typeof loadRFID === 'function') loadRFID();
       break;
-    case 'buat-barcode':
     case 'barcode':
+    case 'buat-barcode':
       if (typeof loadUserForQR === 'function') loadUserForQR();
       break;
 
@@ -2450,15 +2455,20 @@ function switchTab(tabId, btnElement) {
     case 'laporan-absensi':
       if (typeof loadLaporan === 'function') loadLaporan();
       break;
+    case 'setting':
     case 'pengaturan':
       if (typeof loadSettings === 'function') loadSettings();
       break;
+    case 'backup':
     case 'backup-restore':
       if (typeof initBackup === 'function') initBackup();
       break;
+
+    case 'whatsapp-settings':
     case 'notifikasi-wa':
       if (typeof loadWAConfig === 'function') loadWAConfig();
       break;
+    case 'geofencing':
     case 'lokasi-geofencing':
       if (typeof loadGeofencing === 'function') loadGeofencing();
       break;
