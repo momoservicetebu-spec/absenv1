@@ -518,7 +518,9 @@ async function deleteGuruByID(guruID) {
       const res = await fetchAPI('deleteGuru', { GuruID: guruID });
       if (res && res.success) {
         alert('✅ Data berhasil dihapus!');
-        renderGuruTable(listDataGuru.filter(g => g.GuruID !== guruID));
+        // Update variabel global dulu, baru render ulang tabel
+        listDataGuru = listDataGuru.filter(g => g.GuruID !== guruID);
+        renderGuruTable(listDataGuru);
       } else {
         alert('❌ Gagal menghapus: ' + (res?.message || 'Terjadi kesalahan sistem'));
       }
@@ -538,7 +540,9 @@ async function deleteSiswaByID(siswaID) {
       const res = await fetchAPI('deleteSiswa', { SiswaID: siswaID });
       if (res && res.success) {
         alert('✅ Data berhasil dihapus!');
-        renderSiswaTable(listDataSiswa.filter(s => s.SiswaID !== siswaID));
+        // Update variabel global dulu, baru render ulang tabel
+        listDataSiswa = listDataSiswa.filter(s => s.SiswaID !== siswaID);
+        renderSiswaTable(listDataSiswa);
       } else {
         alert('❌ Gagal menghapus: ' + (res?.message || 'Terjadi kesalahan sistem'));
       }
@@ -551,6 +555,13 @@ async function deleteSiswaByID(siswaID) {
 
 document.addEventListener('DOMContentLoaded', () => {
   loadAllData();
+
+  // Daftarkan listener submit form CRUD
+  const formGuru = document.getElementById('formGuru');
+  if (formGuru) formGuru.addEventListener('submit', handleGuruSubmit);
+
+  const formSiswa = document.getElementById('formSiswa');
+  if (formSiswa) formSiswa.addEventListener('submit', handleSiswaSubmit);
 });
 
 async function loadAllData() {
@@ -2370,25 +2381,90 @@ async function testWaMessage() {
 // FUNGSI SWITCH TAB / NAVIGASI SIDEBAR (ui.js)
 // ==========================================
 function switchTab(tabId, btnElement) {
-  // 1. Sembunyikan semua elemen section/tab
-  const allSections = document.querySelectorAll('.section, .tab-content, .card');
-  allSections.forEach(el => {
-    el.style.display = 'none';
-  });
-
-  // 2. Tampilkan section yang diklik
+  // 1. Sembunyikan semua section & reset status tombol
+  document.querySelectorAll('.section').forEach(sec => sec.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+  
+  // 2. Aktifkan section yang dipilih
   const targetSection = document.getElementById(tabId);
   if (targetSection) {
-    targetSection.style.display = 'block';
-  } else {
-    console.error("Elemen dengan ID '" + tabId + "' tidak ditemukan di dashboard-admin.html");
+    targetSection.classList.add('active');
   }
-
-  // 3. Atur status tombol aktif pada sidebar
+  
+  // 3. Tandai menu sidebar yang diklik
   if (btnElement) {
-    const allBtns = document.querySelectorAll('.nav-btn');
-    allBtns.forEach(btn => btn.classList.remove('active'));
     btnElement.classList.add('active');
+  }
+  
+  // 4. Jalankan fungsi pemanggil data sesuai ID Tab
+  switch (tabId) {
+    case 'dashboard':
+      if (typeof loadDashboard === 'function') loadDashboard();
+      break;
+
+    // MANAJEMEN DATA
+    case 'data-siswa':
+    case 'data-guru':
+      if (typeof loadAllData === 'function') loadAllData();
+      break;
+    case 'import-csv':
+      if (typeof initImportCSV === 'function') initImportCSV();
+      break;
+
+    // PENDAFTARAN KREDENSIAL
+    case 'daftar-wajah':
+    case 'enrollment':
+      if (!window.aiLoaded && typeof initFaceAI === 'function') initFaceAI();
+      break;
+    case 'daftar-fingerprint':
+      if (typeof loadFingerprint === 'function') loadFingerprint();
+      break;
+    case 'daftar-rfid':
+      if (typeof loadRFID === 'function') loadRFID();
+      break;
+    case 'buat-barcode':
+    case 'barcode':
+      if (typeof loadUserForQR === 'function') loadUserForQR();
+      break;
+
+    // MANAJEMEN USER
+    case 'admin-operator':
+      if (typeof loadDataAdmin === 'function') loadDataAdmin();
+      break;
+    case 'hak-akses':
+      if (typeof loadDataRole === 'function') loadDataRole();
+      break;
+
+    // OPERASIONAL & ABSENSI
+    case 'jadwal-pelajaran':
+      if (typeof loadJadwal === 'function') loadJadwal();
+      break;
+    case 'gate-pass':
+      if (typeof loadGatePass === 'function') loadGatePass();
+      break;
+    case 'absensi-kelas':
+      if (typeof loadAbsensiKelas === 'function') loadAbsensiKelas();
+      break;
+
+    // SISTEM & LAPORAN
+    case 'laporan-absensi':
+      if (typeof loadLaporan === 'function') loadLaporan();
+      break;
+    case 'pengaturan':
+      if (typeof loadSettings === 'function') loadSettings();
+      break;
+    case 'backup-restore':
+      if (typeof initBackup === 'function') initBackup();
+      break;
+    case 'notifikasi-wa':
+      if (typeof loadWAConfig === 'function') loadWAConfig();
+      break;
+    case 'lokasi-geofencing':
+      if (typeof loadGeofencing === 'function') loadGeofencing();
+      break;
+
+    default:
+      break;
   }
 }
 
