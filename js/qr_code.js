@@ -391,3 +391,21 @@ async function hapusQRFromTable(recordId, userId, role) {
     alert("❌ Error: " + error.message);
   }
 }
+// ==========================================
+// FUNGSI PENCARIAN REAL-TIME TABEL QR CODE
+// ==========================================
+function filterQrTable() {
+  const input = document.getElementById("searchQrInput");
+  if (!input) return;
+  const filter = input.value.toLowerCase().trim();
+  
+  // Mencari semua baris di dalam tbody tabel QR Code
+  const rows = document.querySelectorAll("table tbody tr");
+  
+  rows.forEach(row => {
+    if (row.cells.length <= 1) return;
+    
+    const textContent = row.textContent.toLowerCase();
+    row.style.display = textContent.includes(filter) ? "" : "none";
+  });
+}

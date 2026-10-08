@@ -160,7 +160,9 @@ async function loadRFIDTable() {
   tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 15px;">⏳ Memuat data...</td></tr>';
 
   try {
-    const result = await fetchAPI("getAllRFIDData");
+    // Tambahkan timestamp '_t' agar browser selalu ambil data paling baru (anti-cache)
+    const result = await fetchAPI("getAllRFIDData", { _t: new Date().getTime() });
+    
     if (result && result.success) {
       const data = result.data;
       if (data.length === 0) {
@@ -175,11 +177,11 @@ async function loadRFIDTable() {
           <td style="padding: 8px; border: 1px solid #444;">${index + 1}</td>
           <td style="padding: 8px; border: 1px solid #444; font-weight: bold;">${row.UserID}</td>
           <td style="padding: 8px; border: 1px solid #444;">${row.Role}</td>
-          <td style="padding: 8px; border: 1px solid #444;">${row.UID_Kartu}</td>
-          <td style="padding: 8px; border: 1px solid #444; color: #1dd1a1;">${row.Status}</td>
+          <td style="padding: 8px; border: 1px solid #444;">${row.UID_Kartu || row.UID}</td>
+          <td style="padding: 8px; border: 1px solid #444; color: #1dd1a1;">${row.Status || 'Active'}</td>
           <td style="padding: 8px; border: 1px solid #444;">
             <button class="btn-action btn-warning" style="padding: 5px 10px; font-size: 12px; margin-right: 5px;" onclick="editRFIDUI('${row.UserID}')">Edit</button>
-            <button class="btn-action btn-danger" style="padding: 5px 10px; font-size: 12px;" onclick="deleteRFIDData('${row.UserID}')">Hapus</button>
+            <button class="btn-action btn-danger" style="padding: 5px 10px; font-size: 12px;" onclick="deleteRFIDData('${row.UserID}', '${row.Role}', '${row.UID_Kartu || row.RecordID}')">Hapus</button>
           </td>
         `;
         tbody.appendChild(tr);
@@ -281,4 +283,24 @@ function filterRfidTable() {
       }
     }
   }
+}
+
+// ==========================================
+// FUNGSI PENCARIAN REAL-TIME TABEL RFID
+// ==========================================
+function filterRfidTable() {
+  const input = document.getElementById("searchRfidInput");
+  if (!input) return;
+  const filter = input.value.toLowerCase().trim();
+  
+  // Mencari semua baris di dalam tbody tabel RFID
+  const rows = document.querySelectorAll("table tbody tr");
+  
+  rows.forEach(row => {
+    // Abaikan baris loader / pesan "Memuat data..."
+    if (row.cells.length <= 1) return; 
+    
+    const textContent = row.textContent.toLowerCase();
+    row.style.display = textContent.includes(filter) ? "" : "none";
+  });
 }

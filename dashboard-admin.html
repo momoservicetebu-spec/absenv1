@@ -474,16 +474,31 @@
       <!-- Pembatas Form dan Tabel -->
       <hr style="margin: 30px 0; border: 1px solid #444;">
       
-      <!-- HEADER TABEL & KOTAK PENCARIAN -->
+      <!-- HEADER TABEL & KOTAK PENCARIAN RFID -->
       <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 10px;">
         <h3 class="section-title" style="margin: 0;">📋 Data Kartu Terdaftar</h3>
-        <input 
-          type="text" 
-          id="searchRfidInput" 
-          placeholder="🔍 Cari UserID, Role, UID..." 
-          style="padding: 8px 12px; width: 100%; max-width: 250px; border-radius: 6px; border: 1px solid #444; background: #222; color: #fff; font-size: 14px;"
-          onkeyup="filterRfidTable()"
-        >
+        
+        <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+          <!-- Kotak Pencarian RFID -->
+          <input 
+            type="text" 
+            id="searchRfidInput" 
+            placeholder="🔍 Cari UserID, Role, UID..." 
+            style="padding: 8px 12px; width: 100%; max-width: 220px; border-radius: 6px; border: 1px solid #444; background: #222; color: #fff; font-size: 14px;"
+            onkeyup="filterRfidTable()"
+          >
+
+          <!-- Tombol Refresh RFID -->
+          <button 
+            type="button" 
+            onclick="loadRFIDTable()" 
+            style="padding: 8px 14px; border-radius: 6px; border: 1px solid #3b82f6; background: rgba(59, 130, 246, 0.1); color: #60a5fa; font-size: 14px; cursor: pointer; transition: 0.2s;"
+            onmouseover="this.style.background='rgba(59, 130, 246, 0.25)'"
+            onmouseout="this.style.background='rgba(59, 130, 246, 0.1)'"
+          >
+            🔄 Refresh Data
+          </button>
+        </div>
       </div>
 
       <div style="overflow-x: auto;">
@@ -571,10 +586,31 @@
       </div>
 
       <!-- TABEL CRUD YANG DIKEMBALIKAN -->
-      <div style="background: #1e1b2e; border: 1px solid #332d4a; border-radius: 8px; overflow: hidden; margin-bottom: 20px;">
-        <div style="padding: 15px 20px; background: #181524; border-bottom: 1px solid #332d4a; display: flex; justify-content: space-between; align-items: center;">
-          <h5 style="margin: 0; color: #fff; font-size: 1.1rem;">📋 Daftar QR Code Terdaftar</h5>
-          <button onclick="loadSavedQRTable()" style="padding: 6px 12px; background: transparent; color: #38bdf8; border: 1px solid #0284c7; border-radius: 5px; cursor: pointer;">🔄 Refresh Data</button>
+      <!-- HEADER TABEL & KOTAK PENCARIAN QR CODE -->
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 10px;">
+          <h3 class="section-title" style="margin: 0;">📋 Daftar QR Code Terdaftar</h3>
+          
+          <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+            <!-- Kotak Pencarian QR Code -->
+            <input 
+              type="text" 
+              id="searchQrInput" 
+              placeholder="🔍 Cari QR ID, UserID, Role..." 
+              style="padding: 8px 12px; width: 100%; max-width: 220px; border-radius: 6px; border: 1px solid #444; background: #222; color: #fff; font-size: 14px;"
+              onkeyup="filterQrTable()"
+            >
+
+            <!-- Tombol Refresh QR Code -->
+            <button 
+              type="button" 
+              onclick="loadSavedQRTable()" 
+              style="padding: 8px 14px; border-radius: 6px; border: 1px solid #3b82f6; background: rgba(59, 130, 246, 0.1); color: #60a5fa; font-size: 14px; cursor: pointer; transition: 0.2s;"
+              onmouseover="this.style.background='rgba(59, 130, 246, 0.25)'"
+              onmouseout="this.style.background='rgba(59, 130, 246, 0.1)'"
+            >
+              🔄 Refresh Data
+            </button>
+          </div>
         </div>
         
         <!-- Bungkus table untuk scroll horizontal jika layar sempit -->
