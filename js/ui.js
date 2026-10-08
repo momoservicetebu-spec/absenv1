@@ -116,36 +116,32 @@ function downloadTemplate(type) {
   let fileName = "";
 
   if (type === 'guru') {
-    csvContent = 
-      "# ==========================================================================\n" +
-      "# ATURAN PENGISIAN TEMPLATE DATA GURU (BISA LANGSUNG DIISI DI BAWAH)\n" +
-      "# 1. JANGAN MENGUBAH / MENGHAPUS NAMA HEADER PADA BARIS KE-10.\n" +
-      "# 2. Format Tanggal (TglLahir & TglMasuk): YYYY-MM-DD (Contoh: 1990-05-20).\n" +
-      "# 3. Jenis Kelamin (JK): 'L' (Laki-Laki) atau 'P' (Perempuan).\n" +
-      "# 4. Status: 'Aktif', 'Cuti', atau 'Non-Aktif'.\n" +
-      "# 5. Role_Sistem: 'Admin', 'Kepsek', atau 'Guru'.\n" +
-      "# 6. Face_Registered: 'TRUE' atau 'FALSE'.\n" +
-      "# 7. Username & Password: Isi untuk akses login aplikasi (Contoh: pass123).\n" +
-      "# ==========================================================================\n" +
-      "GuruID;NIP;Nama;JK;TmpLahir;TglLahir;HPWA;Email;Alamat;Jabatan;Mapel;Status;NFC_UID;QR_Token;BarcodeID;FingerprintID;FotoURL;TglMasuk;Role_Sistem;Face_Registered;Username;Password;Kode_Guru\n" +
-      "GURU-001;199001012015011001;Ahmad Dahlan M.Pd;L;Jakarta;1990-01-01;081234567890;ahmad@sekolah.sch.id;Jl. Merdeka No. 123;Guru Matematika;Matematika;Aktif;UID991;QR-GURU-001;BC-GURU-001;F-01;https://link-foto.com/guru.jpg;2015-01-10;Guru;FALSE;guru_ahmad;pass123\n";
-    fileName = "Template_Import_Guru.csv";
-  } else {
-    csvContent = 
-      "# ==========================================================================\n" +
-      "# ATURAN PENGISIAN TEMPLATE DATA SISWA (BISA LANGSUNG DIISI DI BAWAH)\n" +
-      "# 1. JANGAN MENGUBAH / MENGHAPUS NAMA HEADER PADA BARIS KE-9.\n" +
-      "# 2. Format Tanggal (TglLahir): YYYY-MM-DD (Contoh: 2007-11-15).\n" +
-      "# 3. Jenis Kelamin (JK): 'L' (Laki-Laki) atau 'P' (Perempuan).\n" +
-      "# 4. Angkatan: Tahun masuk 4 digit (Contoh: 2024).\n" +
-      "# 5. Status: 'Aktif', 'Mutasi', atau 'Lulus'.\n" +
-      "# 6. Username & Password: Isi untuk akses login aplikasi (Contoh: pass123).\n" +
-      "# ==========================================================================\n" +
-      "SiswaID;NIS;NISN;Nama;JK;TmpLahir;TglLahir;HPWA;NamaOrtu;WA_Ortu;KelasID;JurusanID;Angkatan;Status;NFC_UID;QR_Token;BarcodeID;FingerprintID;FotoURL;Face_Registered;Username;Password\n" +
-      "SISWA-001;23001;0050012345;Alfa Romeo Prasetya;L;Jakarta;2007-01-01;082100001111;Budi Prasetya;083100002222;X-A;RPL;2023;Aktif;UID001;QR-SISWA-001;BC-SISWA-001;F-11;https://link-foto.com/siswa.jpg;FALSE;siswa_alfa;pass123\n";
-    fileName = "Template_Import_Siswa.csv";
-  }
-
+  csvContent = 
+    "# ==========================================================================\n" +
+    "# ATURAN PENGISIAN TEMPLATE DATA GURU (BISA LANGSUNG DIISI DI BAWAH)\n" +
+    "# 1. JANGAN MENGUBAH / MENGHAPUS NAMA HEADER PADA BARIS KE-8.\n" +
+    "# 2. Format Tanggal (TglLahir & TglMasuk): YYYY-MM-DD (Contoh: 1990-05-20).\n" +
+    "# 3. Jenis Kelamin (JK): 'L' (Laki-Laki) atau 'P' (Perempuan).\n" +
+    "# 4. Status: 'Aktif', 'Cuti', atau 'Non-Aktif'.\n" +
+    "# 5. Role_Sistem: 'Admin', 'Kepsek', atau 'Guru'.\n" +
+    "# ==========================================================================\n" +
+    "GuruID;NIP;Nama;JK;TmpLahir;TglLahir;HP;WA;Email;Alamat;Jabatan;Mapel;Status;FotoURL;TglMasuk;Role_Sistem;Username;Password;Kode_Guru\n" +
+    "GURU-001;199001012015011001;Ahmad Dahlan M.Pd;L;Jakarta;1990-01-01;081234567890;081234567890;ahmad@sekolah.sch.id;Jl. Merdeka No. 123;Guru Matematika;Matematika;Aktif;https://link-foto.com/guru.jpg;2015-01-10;Guru;guru_ahmad;pass123;KG-001\n";
+  fileName = "Template_Import_Guru.csv";
+} else {
+  csvContent = 
+    "# ==========================================================================\n" +
+    "# ATURAN PENGISIAN TEMPLATE DATA SISWA (BISA LANGSUNG DIISI DI BAWAH)\n" +
+    "# 1. JANGAN MENGUBAH / MENGHAPUS NAMA HEADER PADA BARIS KE-8.\n" +
+    "# 2. Format Tanggal (TglLahir): YYYY-MM-DD (Contoh: 2007-11-15).\n" +
+    "# 3. Jenis Kelamin (JK): 'L' (Laki-Laki) atau 'P' (Perempuan).\n" +
+    "# 4. Angkatan: Tahun masuk 4 digit (Contoh: 2024).\n" +
+    "# 5. Status: 'Aktif', 'Mutasi', atau 'Lulus'.\n" +
+    "# ==========================================================================\n" +
+    "SiswaID;NIS;NISN;Nama;JK;TmpLahir;TglLahir;HP;WA;NamaOrtu;WA_Ortu;KelasID;JurusanID;Angkatan;Status;FotoURL;Username;Password\n" +
+    "SISWA-001;23001;0050012345;Alfa Romeo Prasetya;L;Jakarta;2007-01-01;082100001111;082100001111;Budi Prasetya;083100002222;X-A;RPL;2023;Aktif;https://link-foto.com/siswa.jpg;siswa_alfa;pass123\n";
+  fileName = "Template_Import_Siswa.csv";
+}
   const blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8;' }); 
   const link = document.createElement("a");
   const url = URL.createObjectURL(blob);
@@ -285,7 +281,7 @@ function closeModal(modalId) {
 
 function openGuruModal(data = null) {
   const form = document.getElementById('formGuru');
-  form.reset();
+  if (form) form.reset();
 
   if (data) {
     document.getElementById('modalGuruTitle').innerText = '✏️ Edit Data Guru';
@@ -294,14 +290,14 @@ function openGuruModal(data = null) {
     document.getElementById('guru_Nama').value = data.Nama || '';
     document.getElementById('guru_JK').value = data.JK || 'L';
     document.getElementById('guru_TmpLahir').value = data.TmpLahir || '';
-    document.getElementById('guru_TglLahir').value = data.TglLahir || '';
+    document.getElementById('guru_TglLahir').value = data.TglLahir ? String(data.TglLahir).split('T')[0] : '';
     document.getElementById('guru_HPWA').value = data.HPWA || '';
     document.getElementById('guru_Email').value = data.Email || '';
     document.getElementById('guru_Alamat').value = data.Alamat || '';
     document.getElementById('guru_Jabatan').value = data.Jabatan || '';
     document.getElementById('guru_Mapel').value = data.Mapel || '';
     document.getElementById('guru_Status').value = data.Status || 'Aktif';
-    document.getElementById('guru_TglMasuk').value = data.TglMasuk || '';
+    document.getElementById('guru_TglMasuk').value = data.TglMasuk ? String(data.TglMasuk).split('T')[0] : '';
     document.getElementById('guru_Role_Sistem').value = data.Role_Sistem || 'Guru';
     document.getElementById('Kode_Guru').value = data.Kode_Guru || '';
     
@@ -319,7 +315,7 @@ function openGuruModal(data = null) {
 
 function openSiswaModal(data = null) {
   const form = document.getElementById('formSiswa');
-  form.reset();
+  if (form) form.reset();
 
   if (data) {
     document.getElementById('modalSiswaTitle').innerText = '✏️ Edit Data Siswa';
@@ -329,7 +325,7 @@ function openSiswaModal(data = null) {
     document.getElementById('siswa_Nama').value = data.Nama || '';
     document.getElementById('siswa_JK').value = data.JK || 'L';
     document.getElementById('siswa_TmpLahir').value = data.TmpLahir || '';
-    document.getElementById('siswa_TglLahir').value = (data.TglLahir) ? data.TglLahir.split('T')[0] : '';
+    document.getElementById('siswa_TglLahir').value = data.TglLahir ? String(data.TglLahir).split('T')[0] : '';
     document.getElementById('siswa_HPWA').value = data.HPWA || '';
     document.getElementById('siswa_NamaOrtu').value = data.NamaOrtu || '';
     document.getElementById('siswa_WA_Ortu').value = data.WA_Ortu || '';
@@ -352,62 +348,76 @@ function openSiswaModal(data = null) {
 
 async function handleGuruSubmit(e) {
   e.preventDefault();
+  
   const payload = {
-    GuruID: document.getElementById('guru_GuruID').value,
-    NIP: document.getElementById('guru_NIP').value,
-    Nama: document.getElementById('guru_Nama').value,
-    JK: document.getElementById('guru_JK').value,
-    TmpLahir: document.getElementById('guru_TmpLahir').value,
-    TglLahir: document.getElementById('guru_TglLahir').value,
-    HPWA: document.getElementById('guru_HPWA').value,
-    Email: document.getElementById('guru_Email').value,
-    Alamat: document.getElementById('guru_Alamat').value,
-    Jabatan: document.getElementById('guru_Jabatan').value,
-    Status: document.getElementById('guru_Status').value,
-    TglMasuk: document.getElementById('guru_TglMasuk').value,
-    Role_Sistem: document.getElementById('guru_Role_Sistem').value,
-    Username: document.getElementById('guru_Username').value,
-    Password: document.getElementById('guru_Password').value 
+    GuruID: document.getElementById('guru_GuruID')?.value || '',
+    NIP: document.getElementById('guru_NIP')?.value || '',
+    Nama: document.getElementById('guru_Nama')?.value || '',
+    JK: document.getElementById('guru_JK')?.value || 'L',
+    TmpLahir: document.getElementById('guru_TmpLahir')?.value || '',
+    TglLahir: document.getElementById('guru_TglLahir')?.value || '',
+    HPWA: document.getElementById('guru_HPWA')?.value || '',
+    Email: document.getElementById('guru_Email')?.value || '',
+    Alamat: document.getElementById('guru_Alamat')?.value || '',
+    Jabatan: document.getElementById('guru_Jabatan')?.value || '',
+    Mapel: document.getElementById('guru_Mapel')?.value || '',          // ← Ditambahkan
+    Status: document.getElementById('guru_Status')?.value || 'Aktif',
+    TglMasuk: document.getElementById('guru_TglMasuk')?.value || '',
+    Role_Sistem: document.getElementById('guru_Role_Sistem')?.value || 'Guru',
+    Kode_Guru: document.getElementById('Kode_Guru')?.value || '',        // ← Ditambahkan
+    Username: document.getElementById('guru_Username')?.value || '',
+    Password: document.getElementById('guru_Password')?.value || '' 
   };
 
-  const res = await fetchAPI('saveGuru', payload);
-  if (res.success) {
-    alert('✅ Data Guru Berhasil Disimpan!');
-    closeModal('modalGuru');
-    loadAllData();
-  } else {
-    alert('❌ Gagal Menyimpan: ' + res.message);
+  try {
+    const res = await fetchAPI('saveGuru', payload);
+    if (res && res.success) {
+      alert('✅ Data Guru Berhasil Disimpan!');
+      closeModal('modalGuru');
+      loadAllData();
+    } else {
+      alert('❌ Gagal Menyimpan: ' + (res?.message || 'Terjadi kesalahan sistem'));
+    }
+  } catch (err) {
+    console.error('Error saving Guru:', err);
+    alert('❌ Gagal Menyimpan: Terjadi kesalahan jaringan / server.');
   }
 }
 
 async function handleSiswaSubmit(e) {
   e.preventDefault();
+
   const payload = {
-    SiswaID: document.getElementById('siswa_SiswaID').value,
-    NIS: document.getElementById('siswa_NIS').value,
-    NISN: document.getElementById('siswa_NISN').value,
-    Nama: document.getElementById('siswa_Nama').value,
-    JK: document.getElementById('siswa_JK').value,
-    TmpLahir: document.getElementById('siswa_TmpLahir').value,
-    TglLahir: document.getElementById('siswa_TglLahir').value,
-    HPWA: document.getElementById('siswa_HPWA').value,
-    NamaOrtu: document.getElementById('siswa_NamaOrtu').value,
-    WA_Ortu: document.getElementById('siswa_WA_Ortu').value,
-    KelasID: document.getElementById('siswa_KelasID').value,
-    JurusanID: document.getElementById('siswa_JurusanID').value,
-    Angkatan: document.getElementById('siswa_Angkatan').value,
-    Status: document.getElementById('siswa_Status').value,
-    Username: document.getElementById('siswa_Username').value,
-    Password: document.getElementById('siswa_Password').value
+    SiswaID: document.getElementById('siswa_SiswaID')?.value || '',
+    NIS: document.getElementById('siswa_NIS')?.value || '',
+    NISN: document.getElementById('siswa_NISN')?.value || '',
+    Nama: document.getElementById('siswa_Nama')?.value || '',
+    JK: document.getElementById('siswa_JK')?.value || 'L',
+    TmpLahir: document.getElementById('siswa_TmpLahir')?.value || '',
+    TglLahir: document.getElementById('siswa_TglLahir')?.value || '',
+    HPWA: document.getElementById('siswa_HPWA')?.value || '',
+    NamaOrtu: document.getElementById('siswa_NamaOrtu')?.value || '',
+    WA_Ortu: document.getElementById('siswa_WA_Ortu')?.value || '',
+    KelasID: document.getElementById('siswa_KelasID')?.value || '',
+    JurusanID: document.getElementById('siswa_JurusanID')?.value || '',
+    Angkatan: document.getElementById('siswa_Angkatan')?.value || '',
+    Status: document.getElementById('siswa_Status')?.value || 'Aktif',
+    Username: document.getElementById('siswa_Username')?.value || '',
+    Password: document.getElementById('siswa_Password')?.value || ''
   };
 
-  const res = await fetchAPI('saveSiswa', payload);
-  if (res.success) {
-    alert('✅ Data Siswa Berhasil Disimpan!');
-    closeModal('modalSiswa');
-    loadAllData();
-  } else {
-    alert('❌ Gagal Menyimpan: ' + res.message);
+  try {
+    const res = await fetchAPI('saveSiswa', payload);
+    if (res && res.success) {
+      alert('✅ Data Siswa Berhasil Disimpan!');
+      closeModal('modalSiswa');
+      loadAllData();
+    } else {
+      alert('❌ Gagal Menyimpan: ' + (res?.message || 'Terjadi kesalahan sistem'));
+    }
+  } catch (err) {
+    console.error('Error saving Siswa:', err);
+    alert('❌ Gagal Menyimpan: Terjadi kesalahan jaringan / server.');
   }
 }
 
@@ -439,139 +449,54 @@ function filterTable(sectionId, keyword) {
 // ==========================================
 // FUNGSI EDIT & HAPUS (GURU & SISWA)
 // ==========================================
-function editGuru(btnElement) {
-  const row = btnElement.closest('tr');
-  const id = row.cells[0].innerText;
-  const namaLengkap = row.cells[1].innerText;
-  const jabatan = row.cells[2].innerText;
-  
-  const data = {
-    GuruID: id,
-    NIP: id, 
-    Nama: namaLengkap,
-    Jabatan: jabatan,
-    Status: 'Aktif'
-  };
-  openGuruModal(data);
-}
-
-async function deleteGuru(btnElement) {
-  const row = btnElement.closest('tr');
-  const id = row.cells[0].innerText;
-  const nama = row.cells[1].innerText;
-  
-  if (confirm(`⚠️ PERINGATAN:\nApakah Anda yakin ingin menghapus data Guru:\n${nama} (${id})?`)) {
-    btnElement.innerText = "Menghapus...";
-    btnElement.disabled = true;
-    setTimeout(() => {
-      row.remove();
-      alert(`✅ Data ${nama} berhasil dihapus!`);
-    }, 600);
-  }
-}
-
-function editSiswa(btnElement) {
-  const row = btnElement.closest('tr');
-  const id = row.cells[0].innerText;
-  const namaSiswa = row.cells[1].innerText;
-  const kelas = row.cells[2].innerText;
-  
-  const data = {
-    SiswaID: id,
-    NISN: id,
-    Nama: namaSiswa,
-    KelasID: kelas,
-    Status: 'Aktif'
-  };
-  openSiswaModal(data);
-}
-
-async function deleteSiswa(btnElement) {
-  const row = btnElement.closest('tr');
-  const id = row.cells[0].innerText;
-  const nama = row.cells[1].innerText;
-  
-  if (confirm(`⚠️ PERINGATAN:\nApakah Anda yakin ingin menghapus data Siswa:\n${nama} (${id})?`)) {
-    btnElement.innerText = "Menghapus...";
-    btnElement.disabled = true;
-    setTimeout(() => {
-      row.remove();
-      alert(`✅ Data ${nama} berhasil dihapus!`);
-    }, 600);
-  }
-}
 
 let listDataGuru = [];
 let listDataSiswa = [];
 
 function renderGuruTable(dataArray) {
-  listDataGuru = dataArray;
+  listDataGuru = dataArray || [];
   const tbody = document.getElementById('guru-table-body');
   if (!tbody) return;
 
-  if (dataArray.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:#a29bfe;">Belum ada data guru.</td></tr>`;
+  if (listDataGuru.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:#a29bfe;">Belum ada data guru.</td></tr>`;
     return;
   }
 
-  tbody.innerHTML = dataArray.map(guru => {
-    let badges = [];
-    if (guru.Face_Registered === "TRUE" || guru.Face_Registered === true) badges.push("Wajah");
-    if (guru.FingerprintID) badges.push("Fingerprint");
-    if (guru.NFC_UID) badges.push("RFID");
-    
-    const badgeHTML = badges.length > 0 
-      ? `<span class="badge badge-success">${badges.join(', ')}</span>`
-      : `<span class="badge badge-danger">Belum Terdaftar</span>`;
-
-    return `
-      <tr>
-        <td>${guru.NIP || guru.GuruID}</td>
-        <td>${guru.Nama}</td>
-        <td>${guru.Jabatan || '-'}</td>
-        <td>${badgeHTML}</td>
-        <td>
-          <button class="btn-action btn-small" onclick="editGuruByID('${guru.GuruID}')">Edit</button>
-          <button class="btn-action btn-small badge-danger" style="border:none;" onclick="deleteGuruByID('${guru.GuruID}')">Hapus</button>
-        </td>
-      </tr>
-    `;
-  }).join('');
+  tbody.innerHTML = listDataGuru.map(guru => `
+    <tr>
+      <td>${guru.NIP || guru.GuruID || '-'}</td>
+      <td>${guru.Nama || '-'}</td>
+      <td>${guru.Jabatan || '-'}</td>
+      <td>
+        <button class="btn-action btn-small" onclick="editGuruByID('${guru.GuruID}')">Edit</button>
+        <button class="btn-action btn-small badge-danger" style="border:none;" onclick="deleteGuruByID('${guru.GuruID}')">Hapus</button>
+      </td>
+    </tr>
+  `).join('');
 }
 
 function renderSiswaTable(dataArray) {
-  listDataSiswa = dataArray;
+  listDataSiswa = dataArray || [];
   const tbody = document.getElementById('siswa-table-body');
   if (!tbody) return;
 
-  if (dataArray.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:#a29bfe;">Belum ada data siswa.</td></tr>`;
+  if (listDataSiswa.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:#a29bfe;">Belum ada data siswa.</td></tr>`;
     return;
   }
 
-  tbody.innerHTML = dataArray.map(siswa => {
-    let badges = [];
-    if (siswa.FotoURL) badges.push("Wajah");
-    if (siswa.NFC_UID) badges.push("RFID");
-    if (siswa.FingerprintID) badges.push("Fingerprint");
-
-    const badgeHTML = badges.length > 0 
-      ? `<span class="badge badge-success">${badges.join(', ')}</span>`
-      : `<span class="badge badge-warning">Belum Terdaftar</span>`;
-
-    return `
-      <tr>
-        <td>${siswa.NIS || siswa.SiswaID}</td>
-        <td>${siswa.Nama}</td>
-        <td>${siswa.KelasID || '-'}</td>
-        <td>${badgeHTML}</td>
-        <td>
-          <button class="btn-action btn-small" onclick="editSiswaByID('${siswa.SiswaID}')">Edit</button>
-          <button class="btn-action btn-small badge-danger" style="border:none;" onclick="deleteSiswaByID('${siswa.SiswaID}')">Hapus</button>
-        </td>
-      </tr>
-    `;
-  }).join('');
+  tbody.innerHTML = listDataSiswa.map(siswa => `
+    <tr>
+      <td>${siswa.NIS || siswa.SiswaID || '-'}</td>
+      <td>${siswa.Nama || '-'}</td>
+      <td>${siswa.KelasID || '-'}</td>
+      <td>
+        <button class="btn-action btn-small" onclick="editSiswaByID('${siswa.SiswaID}')">Edit</button>
+        <button class="btn-action btn-small badge-danger" style="border:none;" onclick="deleteSiswaByID('${siswa.SiswaID}')">Hapus</button>
+      </td>
+    </tr>
+  `).join('');
 }
 
 function editGuruByID(guruID) {
@@ -589,12 +514,17 @@ async function deleteGuruByID(guruID) {
   if (!guru) return;
 
   if (confirm(`⚠️ PERINGATAN:\nHapus data Guru: ${guru.Nama} (${guru.NIP || guruID})?`)) {
-    const res = await fetchAPI('deleteGuru', { GuruID: guruID });
-    if (res.success) {
-      alert('✅ Data berhasil dihapus!');
-      renderGuruTable(listDataGuru.filter(g => g.GuruID !== guruID));
-    } else {
-      alert('❌ Gagal menghapus: ' + res.message);
+    try {
+      const res = await fetchAPI('deleteGuru', { GuruID: guruID });
+      if (res && res.success) {
+        alert('✅ Data berhasil dihapus!');
+        renderGuruTable(listDataGuru.filter(g => g.GuruID !== guruID));
+      } else {
+        alert('❌ Gagal menghapus: ' + (res?.message || 'Terjadi kesalahan sistem'));
+      }
+    } catch (err) {
+      console.error("Error deleting Guru:", err);
+      alert('❌ Gagal menghapus: Terjadi kesalahan jaringan / server.');
     }
   }
 }
@@ -604,12 +534,17 @@ async function deleteSiswaByID(siswaID) {
   if (!siswa) return;
 
   if (confirm(`⚠️ PERINGATAN:\nHapus data Siswa: ${siswa.Nama} (${siswa.NIS || siswaID})?`)) {
-    const res = await fetchAPI('deleteSiswa', { SiswaID: siswaID });
-    if (res.success) {
-      alert('✅ Data berhasil dihapus!');
-      renderSiswaTable(listDataSiswa.filter(s => s.SiswaID !== siswaID));
-    } else {
-      alert('❌ Gagal menghapus: ' + res.message);
+    try {
+      const res = await fetchAPI('deleteSiswa', { SiswaID: siswaID });
+      if (res && res.success) {
+        alert('✅ Data berhasil dihapus!');
+        renderSiswaTable(listDataSiswa.filter(s => s.SiswaID !== siswaID));
+      } else {
+        alert('❌ Gagal menghapus: ' + (res?.message || 'Terjadi kesalahan sistem'));
+      }
+    } catch (err) {
+      console.error("Error deleting Siswa:", err);
+      alert('❌ Gagal menghapus: Terjadi kesalahan jaringan / server.');
     }
   }
 }
@@ -621,12 +556,12 @@ document.addEventListener('DOMContentLoaded', () => {
 async function loadAllData() {
   try {
     const resGuru = await fetchAPI('getGuru');
-    if (resGuru.success && resGuru.data) {
+    if (resGuru && resGuru.success && resGuru.data) {
       renderGuruTable(resGuru.data);
     }
 
     const resSiswa = await fetchAPI('getSiswa');
-    if (resSiswa.success && resSiswa.data) {
+    if (resSiswa && resSiswa.success && resSiswa.data) {
       renderSiswaTable(resSiswa.data);
     }
   } catch (error) {
