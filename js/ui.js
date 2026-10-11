@@ -6,25 +6,45 @@
 // FUNGSI NAVIGASI TAB UTAMA & LOAD DATA
 // ==========================================
 
-// --- [PERBAIKAN] TAMBAHKAN FUNGSI fetchAPI DI SINI ---
 async function fetchAPI(action, payload = null) {
+  showLoading("Memproses data..."); // 1. Tampilkan loading otomatis
+
+  // 2. Pasang batas waktu (timeout) 20 detik untuk mencegah aplikasi macet selamanya
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 20000); 
+
   try {
     let url = `${API_URL}?action=${action}`;
-    let options = { method: 'GET' };
+    let options = { 
+      method: 'GET',
+      signal: controller.signal // Kaitkan sinyal batas waktu
+    };
 
     if (payload) {
       options = {
         method: 'POST',
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify(payload)
+        body: JSON.stringify(payload),
+        signal: controller.signal
       };
     }
 
     const response = await fetch(url, options);
+    clearTimeout(timeoutId); // Hapus batas waktu jika server membalas cepat
     return await response.json();
+
   } catch (error) {
     console.error(`API Error (${action}):`, error);
+    
+    // Tangani error khusus jika terputus karena batas waktu habis (timeout)
+    if (error.name === 'AbortError') {
+      return { success: false, message: "Koneksi ke server terputus karena terlalu lama (Timeout)." };
+    }
     return { success: false, message: error.message };
+    
+  } finally {
+    // 3. WAJIB ADA: Pastikan loading selalu ditutup apa pun yang terjadi
+    hideLoading(); 
   }
 }
 // -----------------------------------------------------
