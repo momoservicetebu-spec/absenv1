@@ -453,71 +453,84 @@ function filterTable(sectionId, keyword) {
 }
 
 // ==========================================
-// FUNGSI RENDER TABEL GURU (FULL KOLOM SESUAI DATABASE)
+// FUNGSI RENDER TABEL GURU
 // ==========================================
 function renderGuruTable(dataArray) {
-  listDataGuru = dataArray || [];
+  listDataGuru = Array.isArray(dataArray) ? dataArray : [];
   const tbody = document.getElementById('guru-table-body');
   if (!tbody) return;
 
   if (listDataGuru.length === 0) {
-    // colspan diubah dari 4 menjadi 16 karena jumlah kolom bertambah
     tbody.innerHTML = `<tr><td colspan="16" style="text-align:center; color:#a29bfe; padding:20px;">Belum ada data guru.</td></tr>`;
     return;
   }
 
-  tbody.innerHTML = listDataGuru.map(guru => `
+  // Gunakan variabel penampung string sebelum disuntikkan ke DOM
+  const htmlString = listDataGuru.map(guru => {
+    const id = guru.GuruID || '';
+    const tglLahir = guru.TglLahir ? String(guru.TglLahir).split('T')[0] : '-';
+    const tglMasuk = guru.TglMasuk ? String(guru.TglMasuk).split('T')[0] : '-';
+    const statusColor = guru.Status === 'Aktif' ? '#1dd1a1' : '#ff6b6b';
+
+    return `
     <tr style="border-bottom: 1px solid #332d4a;">
-      <td>${guru.GuruID || '-'}</td>
+      <td>${id || '-'}</td>
       <td>${guru.NIP || '-'}</td>
       <td style="font-weight:bold; color: #1dd1a1;">${guru.Nama || '-'}</td>
       <td>${guru.JK || '-'}</td>
       <td>${guru.TmpLahir || '-'}</td>
-      <td>${guru.TglLahir ? String(guru.TglLahir).split('T')[0] : '-'}</td>
+      <td>${tglLahir}</td>
       <td>${guru.HP || guru.WA || '-'}</td>
       <td>${guru.Email || '-'}</td>
       <td>${guru.Alamat || '-'}</td>
       <td>${guru.Jabatan || '-'}</td>
       <td>${guru.Mapel || '-'}</td>
       <td>
-        <span style="background:${guru.Status === 'Aktif' ? '#1dd1a1' : '#ff6b6b'}; color:#161224; padding:3px 8px; border-radius:4px; font-size:12px; font-weight:bold;">
+        <span style="background:${statusColor}; color:#161224; padding:3px 8px; border-radius:4px; font-size:12px; font-weight:bold;">
           ${guru.Status || '-'}
         </span>
       </td>
-      <td>${guru.TglMasuk ? String(guru.TglMasuk).split('T')[0] : '-'}</td>
+      <td>${tglMasuk}</td>
       <td>${guru.Role_Sistem || '-'}</td>
       <td>${guru.Username || '-'}</td>
       <td style="white-space: nowrap; position: sticky; right: 0; background: #1e1b2e; border-left: 1px solid #332d4a;">
-        <button class="btn-action btn-small" style="background:#feca57; color:#111; border:none;" onclick="editGuruByID('${guru.GuruID}')">✏️ Edit</button>
-        <button class="btn-action btn-small badge-danger" style="border:none;" onclick="deleteGuruByID('${guru.GuruID}')">🗑️ Hapus</button>
+        <button type="button" class="btn-action btn-small" style="background:#feca57; color:#111; border:none;" onclick="editGuruByID('${id}')">✏️ Edit</button>
+        <button type="button" class="btn-action btn-small badge-danger" style="border:none;" onclick="deleteGuruByID('${id}')">🗑️ Hapus</button>
       </td>
     </tr>
-  `).join('');
+    `;
+  }).join('');
+
+  tbody.innerHTML = htmlString;
 }
 
 // ==========================================
-// FUNGSI RENDER TABEL SISWA (FULL KOLOM SESUAI DATABASE)
+// FUNGSI RENDER TABEL SISWA
 // ==========================================
 function renderSiswaTable(dataArray) {
-  listDataSiswa = dataArray || [];
+  listDataSiswa = Array.isArray(dataArray) ? dataArray : [];
   const tbody = document.getElementById('siswa-table-body');
   if (!tbody) return;
 
   if (listDataSiswa.length === 0) {
-    // colspan disesuaikan dengan jumlah kolom (16 kolom)
     tbody.innerHTML = `<tr><td colspan="16" style="text-align:center; color:#a29bfe; padding:20px;">Belum ada data siswa.</td></tr>`;
     return;
   }
 
-  tbody.innerHTML = listDataSiswa.map(siswa => `
+  const htmlString = listDataSiswa.map(siswa => {
+    const id = siswa.SiswaID || '';
+    const tglLahir = siswa.TglLahir ? String(siswa.TglLahir).split('T')[0] : '-';
+    const statusColor = siswa.Status === 'Aktif' ? '#1dd1a1' : '#ff6b6b';
+
+    return `
     <tr style="border-bottom: 1px solid #332d4a;">
-      <td>${siswa.SiswaID || '-'}</td>
+      <td>${id || '-'}</td>
       <td>${siswa.NIS || '-'}</td>
       <td>${siswa.NISN || '-'}</td>
       <td style="font-weight:bold; color: #1dd1a1;">${siswa.Nama || '-'}</td>
       <td>${siswa.JK || '-'}</td>
       <td>${siswa.TmpLahir || '-'}</td>
-      <td>${siswa.TglLahir ? String(siswa.TglLahir).split('T')[0] : '-'}</td>
+      <td>${tglLahir}</td>
       <td>${siswa.HP || siswa.WA || '-'}</td>
       <td>${siswa.NamaOrtu || '-'}</td>
       <td>${siswa.WA_Ortu || '-'}</td>
@@ -525,17 +538,20 @@ function renderSiswaTable(dataArray) {
       <td>${siswa.JurusanID || '-'}</td>
       <td>${siswa.Angkatan || '-'}</td>
       <td>
-        <span style="background:${siswa.Status === 'Aktif' ? '#1dd1a1' : '#ff6b6b'}; color:#161224; padding:3px 8px; border-radius:4px; font-size:12px; font-weight:bold;">
+        <span style="background:${statusColor}; color:#161224; padding:3px 8px; border-radius:4px; font-size:12px; font-weight:bold;">
           ${siswa.Status || '-'}
         </span>
       </td>
       <td>${siswa.Username || '-'}</td>
       <td style="white-space: nowrap; position: sticky; right: 0; background: #1e1b2e; border-left: 1px solid #332d4a;">
-        <button class="btn-action btn-small" style="background:#feca57; color:#111; border:none;" onclick="editSiswaByID('${siswa.SiswaID}')">✏️ Edit</button>
-        <button class="btn-action btn-small badge-danger" style="border:none;" onclick="deleteSiswaByID('${siswa.SiswaID}')">🗑️ Hapus</button>
+        <button type="button" class="btn-action btn-small" style="background:#feca57; color:#111; border:none;" onclick="editSiswaByID('${id}')">✏️ Edit</button>
+        <button type="button" class="btn-action btn-small badge-danger" style="border:none;" onclick="deleteSiswaByID('${id}')">🗑️ Hapus</button>
       </td>
     </tr>
-  `).join('');
+    `;
+  }).join('');
+
+  tbody.innerHTML = htmlString;
 }
 
 function editGuruByID(guruID) {
@@ -622,6 +638,7 @@ async function loadAllData() {
     console.error("Gagal memuat data dari database:", error);
   }
 }
+
 
 // ==========================================
 // FUNGSI SUBMIT DENGAN ANIMASI LOADING PROGRESS BAR
