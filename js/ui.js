@@ -777,6 +777,7 @@ function showLoading(pesan = "Memproses data...") {
   if (overlay && text) {
     text.innerText = pesan;
     overlay.classList.remove('hidden');
+    overlay.style.display = 'flex';
   }
 }
 
@@ -784,6 +785,7 @@ function hideLoading() {
   const overlay = document.getElementById('loadingOverlay');
   if (overlay) {
     overlay.classList.add('hidden');
+    overlay.style.display = 'none';
   }
 }
 
