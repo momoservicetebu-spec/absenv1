@@ -29,38 +29,36 @@ async function fetchAPI(action, payload = null) {
 }
 // -----------------------------------------------------
 function switchTab(tabId, btnElement) {
-  // 1. Ambil HANYA elemen pembungkus menu utama (yang punya class 'section')
-  // Hati-hati, JANGAN masukkan '.card' di sini agar isi dalamnya tidak ikut hilang
-  const allSections = document.querySelectorAll('.main-content > .section');
+  // 1. Cari SEMUA elemen yang memiliki class 'section' (semua halaman menu)
+  const allSections = document.querySelectorAll('.section');
   
+  // Sembunyikan semuanya tanpa kecuali
   allSections.forEach(sec => {
     sec.classList.remove('active');
-    sec.style.display = 'none'; // Sembunyikan secara aman
+    sec.style.display = 'none';
   });
   
-  // Hapus class active dari semua tombol
-  document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+  // Hapus class 'active' dari semua tombol sidebar
+  document.querySelectorAll('.nav-btn').forEach(btn => {
+    btn.classList.remove('active');
+  });
   
-  // 2. Tampilkan HANYA section yang dituju
+  // 2. Tampilkan HANYA elemen yang ID-nya sesuai dengan menu yang diklik
   const targetSection = document.getElementById(tabId);
   if (targetSection) {
     targetSection.classList.add('active');
-    targetSection.style.display = 'block'; // Paksa tampil
+    targetSection.style.display = 'block';
   }
   
-  // Aktifkan tombol yang diklik
+  // Beri warna/efek aktif pada tombol yang baru saja diklik
   if (btnElement) {
     btnElement.classList.add('active');
   }
   
-  // --- Pemicu Fungsi Spesifik ---
-
-  // 1. Inisialisasi Face AI (Kode Asli)
+  // --- Pemicu Fungsi Spesifik (Biarkan seperti ini) ---
   if(tabId === 'enrollment' && !window.aiLoaded) {
     if (typeof initFaceAI === 'function') initFaceAI();
   }
-
-  // 2. Trigger Load Data Database (Kode Baru)
   if (tabId === 'data-siswa') {
     if (typeof loadDataSiswa === 'function') loadDataSiswa();
   } else if (tabId === 'data-guru') {
@@ -69,9 +67,7 @@ function switchTab(tabId, btnElement) {
     if (typeof loadDataAdmin === 'function') loadDataAdmin();
   } else if (tabId === 'hak-akses') {
     if (typeof loadDataRole === 'function') loadDataRole();
-  }
-  // --- TAMBAHAN UNTUK QR CODE ---
-  else if (tabId === 'barcode') {
+  } else if (tabId === 'barcode') {
     if (typeof loadUserForQR === 'function') loadUserForQR();
   }
 }
