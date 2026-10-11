@@ -607,12 +607,16 @@ async function loadAllData() {
   try {
     const resGuru = await fetchAPI('getGuru');
     if (resGuru && resGuru.success && resGuru.data) {
-      renderGuruTable(resGuru.data);
+      // WAJIB DITAMBAHKAN: Simpan data ke variabel global agar bisa dibaca oleh tombol Edit/Hapus
+      listDataGuru = resGuru.data; 
+      renderGuruTable(listDataGuru);
     }
 
     const resSiswa = await fetchAPI('getSiswa');
     if (resSiswa && resSiswa.success && resSiswa.data) {
-      renderSiswaTable(resSiswa.data);
+      // WAJIB DITAMBAHKAN: Simpan data ke variabel global
+      listDataSiswa = resSiswa.data; 
+      renderSiswaTable(listDataSiswa);
     }
   } catch (error) {
     console.error("Gagal memuat data dari database:", error);
