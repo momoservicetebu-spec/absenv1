@@ -298,11 +298,26 @@ function handleFileSelect(event) {
 // ==========================================
 
 function openModal(modalId) {
-  document.getElementById(modalId).classList.add('active');
+  const modal = document.getElementById(modalId);
+  if (modal) {
+    modal.classList.add('active');
+    modal.style.display = 'flex'; // Paksa tampilkan modal
+  }
 }
 
 function closeModal(modalId) {
-  document.getElementById(modalId).classList.remove('active');
+  const modal = document.getElementById(modalId);
+  if (modal) {
+    modal.classList.remove('active');
+    modal.style.display = 'none'; // Paksa sembunyikan modal total
+  }
+  
+  // Pastikan loading overlay juga dipaksa sembunyi saat modal tutup
+  const loading = document.getElementById('loadingOverlay');
+  if (loading) {
+    loading.classList.add('hidden');
+    loading.style.display = 'none';
+  }
 }
 
 function openGuruModal(data = null) {
