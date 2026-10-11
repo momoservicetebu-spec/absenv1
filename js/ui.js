@@ -575,48 +575,18 @@ function renderSiswaTable(dataArray) {
 }
 
 // ==========================================
-// FUNGSI EDIT DATA
+// PERBAIKAN FUNGSI EDIT
 // ==========================================
 function editGuruByID(guruID) {
-  alert("1. Tombol Edit Guru diklik! ID: " + guruID);
-  
-  const guru = listDataGuru.find(g => g.GuruID == guruID);
-  
-  if (!guru) {
-    alert("❌ Error: Data guru tidak ditemukan di listDataGuru!");
-    return;
-  }
-  
-  alert("2. Data guru ditemukan: " + guru.Nama + ". Mencoba membuka modal...");
-  
-  try {
-    openGuruModal(guru);
-    alert("3. Modal berhasil dibuka!");
-  } catch (error) {
-    alert("❌ Error saat membuka modal: " + error.message);
-    console.error(error);
-  }
+  // Gunakan == agar kebal terhadap perbedaan Integer vs String
+  const guru = listDataGuru.find(g => g.GuruID == guruID); 
+  if (guru) openGuruModal(guru);
 }
 
 function editSiswaByID(siswaID) {
-  alert("1. Tombol Edit Siswa diklik! ID: " + siswaID);
-  
+  // Gunakan == 
   const siswa = listDataSiswa.find(s => s.SiswaID == siswaID);
-  
-  if (!siswa) {
-    alert("❌ Error: Data siswa tidak ditemukan di listDataSiswa!");
-    return;
-  }
-  
-  alert("2. Data siswa ditemukan: " + siswa.Nama + ". Mencoba membuka modal...");
-  
-  try {
-    openSiswaModal(siswa);
-    alert("3. Modal berhasil dibuka!");
-  } catch (error) {
-    alert("❌ Error saat membuka modal: " + error.message);
-    console.error(error);
-  }
+  if (siswa) openSiswaModal(siswa);
 }
 
 // ==========================================
