@@ -453,53 +453,86 @@ function filterTable(sectionId, keyword) {
 }
 
 // ==========================================
-// FUNGSI EDIT & HAPUS (GURU & SISWA)
+// FUNGSI RENDER TABEL GURU (FULL KOLOM SESUAI DATABASE)
 // ==========================================
-
-let listDataGuru = [];
-let listDataSiswa = [];
-
 function renderGuruTable(dataArray) {
   listDataGuru = dataArray || [];
   const tbody = document.getElementById('guru-table-body');
   if (!tbody) return;
 
   if (listDataGuru.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:#a29bfe;">Belum ada data guru.</td></tr>`;
+    // colspan diubah dari 4 menjadi 16 karena jumlah kolom bertambah
+    tbody.innerHTML = `<tr><td colspan="16" style="text-align:center; color:#a29bfe; padding:20px;">Belum ada data guru.</td></tr>`;
     return;
   }
 
   tbody.innerHTML = listDataGuru.map(guru => `
-    <tr>
-      <td>${guru.NIP || guru.GuruID || '-'}</td>
-      <td>${guru.Nama || '-'}</td>
+    <tr style="border-bottom: 1px solid #332d4a;">
+      <td>${guru.GuruID || '-'}</td>
+      <td>${guru.NIP || '-'}</td>
+      <td style="font-weight:bold; color: #1dd1a1;">${guru.Nama || '-'}</td>
+      <td>${guru.JK || '-'}</td>
+      <td>${guru.TmpLahir || '-'}</td>
+      <td>${guru.TglLahir ? String(guru.TglLahir).split('T')[0] : '-'}</td>
+      <td>${guru.HP || guru.WA || '-'}</td>
+      <td>${guru.Email || '-'}</td>
+      <td>${guru.Alamat || '-'}</td>
       <td>${guru.Jabatan || '-'}</td>
+      <td>${guru.Mapel || '-'}</td>
       <td>
-        <button class="btn-action btn-small" onclick="editGuruByID('${guru.GuruID}')">Edit</button>
-        <button class="btn-action btn-small badge-danger" style="border:none;" onclick="deleteGuruByID('${guru.GuruID}')">Hapus</button>
+        <span style="background:${guru.Status === 'Aktif' ? '#1dd1a1' : '#ff6b6b'}; color:#161224; padding:3px 8px; border-radius:4px; font-size:12px; font-weight:bold;">
+          ${guru.Status || '-'}
+        </span>
+      </td>
+      <td>${guru.TglMasuk ? String(guru.TglMasuk).split('T')[0] : '-'}</td>
+      <td>${guru.Role_Sistem || '-'}</td>
+      <td>${guru.Username || '-'}</td>
+      <td style="white-space: nowrap; position: sticky; right: 0; background: #1e1b2e; border-left: 1px solid #332d4a;">
+        <button class="btn-action btn-small" style="background:#feca57; color:#111; border:none;" onclick="editGuruByID('${guru.GuruID}')">✏️ Edit</button>
+        <button class="btn-action btn-small badge-danger" style="border:none;" onclick="deleteGuruByID('${guru.GuruID}')">🗑️ Hapus</button>
       </td>
     </tr>
   `).join('');
 }
 
+// ==========================================
+// FUNGSI RENDER TABEL SISWA (FULL KOLOM SESUAI DATABASE)
+// ==========================================
 function renderSiswaTable(dataArray) {
   listDataSiswa = dataArray || [];
   const tbody = document.getElementById('siswa-table-body');
   if (!tbody) return;
 
   if (listDataSiswa.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:#a29bfe;">Belum ada data siswa.</td></tr>`;
+    // colspan disesuaikan dengan jumlah kolom (16 kolom)
+    tbody.innerHTML = `<tr><td colspan="16" style="text-align:center; color:#a29bfe; padding:20px;">Belum ada data siswa.</td></tr>`;
     return;
   }
 
   tbody.innerHTML = listDataSiswa.map(siswa => `
-    <tr>
-      <td>${siswa.NIS || siswa.SiswaID || '-'}</td>
-      <td>${siswa.Nama || '-'}</td>
-      <td>${siswa.KelasID || '-'}</td>
+    <tr style="border-bottom: 1px solid #332d4a;">
+      <td>${siswa.SiswaID || '-'}</td>
+      <td>${siswa.NIS || '-'}</td>
+      <td>${siswa.NISN || '-'}</td>
+      <td style="font-weight:bold; color: #1dd1a1;">${siswa.Nama || '-'}</td>
+      <td>${siswa.JK || '-'}</td>
+      <td>${siswa.TmpLahir || '-'}</td>
+      <td>${siswa.TglLahir ? String(siswa.TglLahir).split('T')[0] : '-'}</td>
+      <td>${siswa.HP || siswa.WA || '-'}</td>
+      <td>${siswa.NamaOrtu || '-'}</td>
+      <td>${siswa.WA_Ortu || '-'}</td>
+      <td><span style="background:#4834d4; padding:3px 8px; border-radius:4px; color:white;">${siswa.KelasID || '-'}</span></td>
+      <td>${siswa.JurusanID || '-'}</td>
+      <td>${siswa.Angkatan || '-'}</td>
       <td>
-        <button class="btn-action btn-small" onclick="editSiswaByID('${siswa.SiswaID}')">Edit</button>
-        <button class="btn-action btn-small badge-danger" style="border:none;" onclick="deleteSiswaByID('${siswa.SiswaID}')">Hapus</button>
+        <span style="background:${siswa.Status === 'Aktif' ? '#1dd1a1' : '#ff6b6b'}; color:#161224; padding:3px 8px; border-radius:4px; font-size:12px; font-weight:bold;">
+          ${siswa.Status || '-'}
+        </span>
+      </td>
+      <td>${siswa.Username || '-'}</td>
+      <td style="white-space: nowrap; position: sticky; right: 0; background: #1e1b2e; border-left: 1px solid #332d4a;">
+        <button class="btn-action btn-small" style="background:#feca57; color:#111; border:none;" onclick="editSiswaByID('${siswa.SiswaID}')">✏️ Edit</button>
+        <button class="btn-action btn-small badge-danger" style="border:none;" onclick="deleteSiswaByID('${siswa.SiswaID}')">🗑️ Hapus</button>
       </td>
     </tr>
   `).join('');
