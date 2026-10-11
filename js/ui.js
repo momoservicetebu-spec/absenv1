@@ -28,16 +28,27 @@ async function fetchAPI(action, payload = null) {
   }
 }
 // -----------------------------------------------------
-
 function switchTab(tabId, btnElement) {
-  document.querySelectorAll('.section').forEach(sec => sec.classList.remove('active'));
+  // 1. Ambil HANYA elemen pembungkus menu utama (yang punya class 'section')
+  // Hati-hati, JANGAN masukkan '.card' di sini agar isi dalamnya tidak ikut hilang
+  const allSections = document.querySelectorAll('.main-content > .section');
+  
+  allSections.forEach(sec => {
+    sec.classList.remove('active');
+    sec.style.display = 'none'; // Sembunyikan secara aman
+  });
+  
+  // Hapus class active dari semua tombol
   document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
   
+  // 2. Tampilkan HANYA section yang dituju
   const targetSection = document.getElementById(tabId);
   if (targetSection) {
     targetSection.classList.add('active');
+    targetSection.style.display = 'block'; // Paksa tampil
   }
   
+  // Aktifkan tombol yang diklik
   if (btnElement) {
     btnElement.classList.add('active');
   }
@@ -46,11 +57,10 @@ function switchTab(tabId, btnElement) {
 
   // 1. Inisialisasi Face AI (Kode Asli)
   if(tabId === 'enrollment' && !window.aiLoaded) {
-    initFaceAI();
+    if (typeof initFaceAI === 'function') initFaceAI();
   }
 
   // 2. Trigger Load Data Database (Kode Baru)
-  // TRIGGER LOAD DATA DATABASE
   if (tabId === 'data-siswa') {
     if (typeof loadDataSiswa === 'function') loadDataSiswa();
   } else if (tabId === 'data-guru') {
@@ -60,7 +70,7 @@ function switchTab(tabId, btnElement) {
   } else if (tabId === 'hak-akses') {
     if (typeof loadDataRole === 'function') loadDataRole();
   }
-// --- TAMBAHAN UNTUK QR CODE ---
+  // --- TAMBAHAN UNTUK QR CODE ---
   else if (tabId === 'barcode') {
     if (typeof loadUserForQR === 'function') loadUserForQR();
   }
