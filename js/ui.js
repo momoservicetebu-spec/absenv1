@@ -554,18 +554,26 @@ function renderSiswaTable(dataArray) {
   tbody.innerHTML = htmlString;
 }
 
+// ==========================================
+// PERBAIKAN FUNGSI EDIT
+// ==========================================
 function editGuruByID(guruID) {
-  const guru = listDataGuru.find(g => g.GuruID === guruID);
+  // Gunakan == agar kebal terhadap perbedaan Integer vs String
+  const guru = listDataGuru.find(g => g.GuruID == guruID); 
   if (guru) openGuruModal(guru);
 }
 
 function editSiswaByID(siswaID) {
-  const siswa = listDataSiswa.find(s => s.SiswaID === siswaID);
+  // Gunakan == 
+  const siswa = listDataSiswa.find(s => s.SiswaID == siswaID);
   if (siswa) openSiswaModal(siswa);
 }
 
+// ==========================================
+// PERBAIKAN FUNGSI HAPUS
+// ==========================================
 async function deleteGuruByID(guruID) {
-  const guru = listDataGuru.find(g => g.GuruID === guruID);
+  const guru = listDataGuru.find(g => g.GuruID == guruID);
   if (!guru) return;
 
   if (confirm(`⚠️ PERINGATAN:\nHapus data Guru: ${guru.Nama} (${guru.NIP || guruID})?`)) {
@@ -573,8 +581,8 @@ async function deleteGuruByID(guruID) {
       const res = await fetchAPI('deleteGuru', { GuruID: guruID });
       if (res && res.success) {
         alert('✅ Data berhasil dihapus!');
-        // Update variabel global dulu, baru render ulang tabel
-        listDataGuru = listDataGuru.filter(g => g.GuruID !== guruID);
+        // Gunakan != untuk menyaring tipe data dengan aman
+        listDataGuru = listDataGuru.filter(g => g.GuruID != guruID); 
         renderGuruTable(listDataGuru);
       } else {
         alert('❌ Gagal menghapus: ' + (res?.message || 'Terjadi kesalahan sistem'));
@@ -587,7 +595,7 @@ async function deleteGuruByID(guruID) {
 }
 
 async function deleteSiswaByID(siswaID) {
-  const siswa = listDataSiswa.find(s => s.SiswaID === siswaID);
+  const siswa = listDataSiswa.find(s => s.SiswaID == siswaID);
   if (!siswa) return;
 
   if (confirm(`⚠️ PERINGATAN:\nHapus data Siswa: ${siswa.Nama} (${siswa.NIS || siswaID})?`)) {
@@ -595,8 +603,8 @@ async function deleteSiswaByID(siswaID) {
       const res = await fetchAPI('deleteSiswa', { SiswaID: siswaID });
       if (res && res.success) {
         alert('✅ Data berhasil dihapus!');
-        // Update variabel global dulu, baru render ulang tabel
-        listDataSiswa = listDataSiswa.filter(s => s.SiswaID !== siswaID);
+        // Gunakan != untuk menyaring tipe data dengan aman
+        listDataSiswa = listDataSiswa.filter(s => s.SiswaID != siswaID); 
         renderSiswaTable(listDataSiswa);
       } else {
         alert('❌ Gagal menghapus: ' + (res?.message || 'Terjadi kesalahan sistem'));
