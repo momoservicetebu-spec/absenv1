@@ -14,7 +14,7 @@ async function fetchAPI(action, payload = null) {
   const timeoutId = setTimeout(() => controller.abort(), 20000); 
 
   try {
-    let url = `${API_URL}?action=${action}`;
+    let url = `${API_URL}?action=${action}&t=${new Date().getTime()}`;
     let options = { 
       method: 'GET',
       signal: controller.signal // Kaitkan sinyal batas waktu
