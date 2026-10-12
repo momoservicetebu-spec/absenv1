@@ -316,18 +316,25 @@ async function loadSavedQRTable() {
   const tbody = document.getElementById("tbodySavedQR");
   if (!tbody) return;
 
+  // 1. Kosongkan tabel dan beri status loading setiap dipanggil
   tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 20px; color: #9ca3af;">⏳ Memuat data tabel QR Code...</td></tr>';
 
   try {
-    const result = await fetchAPI("getAllQRData");
+    // 2. KUNCI PERBAIKAN: Tambahkan parameter _t (timestamp) untuk mematikan Cache Browser
+    const result = await fetchAPI("getAllQRData", { _t: new Date().getTime() });
 
-    if (result && result.success && Array.isArray(result.data) && result.data.length > 0) {
+    // 3. Tangani jika database benar-benar kosong
+    if (!result || !result.data || result.data.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 20px; color: #9ca3af;">📭 Belum ada data QR Code yang tersimpan di database.</td></tr>';
+      return; // Berhenti di sini
+    }
+
+    if (result.success && Array.isArray(result.data)) {
       let html = '';
       result.data.forEach((row, index) => {
         let badgeBg = row.Role === 'Guru' ? '#f59e0b' : '#0284c7';
         let badgeColor = row.Role === 'Guru' ? '#000000' : '#ffffff';
 
-        // Ambil RecordID dari Google Sheet (misal: QR-1791279407702)
         let recordId = row.RecordID || row.QRID || row.qrId || '';
         let userId = row.UserID || row.userId || '';
         let role = row.Role || 'Siswa';
@@ -341,15 +348,12 @@ async function loadSavedQRTable() {
             <td style="padding: 12px 16px;"><span style="background: #10b981; color: #ffffff; padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold;">${row.Status || 'Active'}</span></td>
             <td style="padding: 12px 16px; color: #9ca3af; font-size: 0.85rem;">${row.CreatedAt || row.UpdatedAt || '-'}</td>
             <td style="padding: 12px 16px; text-align: right;">
-              <!-- Kirim recordId, userId, dan role ke fungsi hapus -->
               <button type="button" onclick="hapusQRFromTable('${recordId}', '${userId}', '${role}')" style="background: transparent; color: #ef4444; border: 1px solid #dc2626; padding: 4px 10px; border-radius: 6px; font-size: 0.8rem; cursor: pointer;">🗑️ Hapus</button>
             </td>
           </tr>
         `;
       });
       tbody.innerHTML = html;
-    } else {
-      tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 20px; color: #9ca3af;">📭 Belum ada data QR Code yang tersimpan di database.</td></tr>';
     }
   } catch (error) {
     console.error("Error Load Saved QR Table:", error);
