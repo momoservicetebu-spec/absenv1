@@ -384,10 +384,17 @@ async function hapusQRFromTable(recordId, userId, role) {
     if (result && result.success) {
       alert("✅ Data QR berhasil dihapus!");
 
-      // 1. Tambahkan 'await' agar proses penuangan data baru ke tabel selesai sempurna
-      if (typeof loadSavedQRTable === "function") {
-        await loadSavedQRTable();
-      }
+      // 1. KOSONGKAN TABEL SECARA MANUAL DI LAYAR DULU
+      const tbody = document.getElementById("tbodySavedQR");
+      if(tbody) tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 20px; color: #9ca3af;">⏳ Menunggu sinkronisasi database (2 detik)...</td></tr>';
+
+      // 2. BERI JEDA 2 DETIK SEBELUM MEMANGGIL DATA BARU AGAR GOOGLE SHEETS SELESAI MENGHAPUS
+      setTimeout(async () => {
+        if (typeof loadSavedQRTable === "function") {
+          await loadSavedQRTable();
+        }
+      }, 2000); // 2000 milidetik = 2 detik
+
     } else {
       alert("❌ Gagal menghapus: " + (result.message || "Kesalahan server."));
     }
