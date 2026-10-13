@@ -1,11 +1,9 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <!-- Pengecekan Keamanan Sesi (RBAC Dynamic) -->
-<!-- Pengecekan Keamanan Sesi -->
+<!-- Pengecekan Keamanan Sesi (Debug Version) -->
 <script>
   (function () {
-    // 1. Ambil data dari berbagai kemungkinan format localStorage
     const isLoggedInDirect = localStorage.getItem('isLoggedIn') === 'true';
     const roleDirect = localStorage.getItem('role');
     const sessionStr = localStorage.getItem('user_session');
@@ -15,28 +13,27 @@
       try { sessionObj = JSON.parse(sessionStr); } catch (e) {}
     }
 
-    // 2. Evaluasi apakah user valid/sudah login
+    // Cek apakah ada data sesi sama sekali
     const isAuth = isLoggedInDirect || 
-                   (sessionObj && (sessionObj.isLoggedIn || sessionObj.isLoggedIn === 'true')) ||
+                   (sessionObj && (sessionObj.isLoggedIn || sessionObj.isLoggedIn === true)) ||
                    (roleDirect && roleDirect !== '');
 
     if (!isAuth) {
-      alert("Akses ditolak! Anda harus login terlebih dahulu.");
+      console.log("DEBUG AUTH FAIL:", { isLoggedInDirect, roleDirect, sessionStr });
+      alert("Akses ditolak! Anda belum login.");
       window.location.href = "login.html";
       return;
     }
 
-    // 3. Ambil role (bebas case-sensitivity)
     const userRole = (roleDirect || (sessionObj ? sessionObj.role : '') || '').toLowerCase();
-    const allowedRoles = ['superadmin', 'admin', 'operator'];
+    const allowedRoles = ['superadmin', 'admin', 'operator', 'guru', 'siswa'];
 
     if (!allowedRoles.includes(userRole)) {
-      alert(`Akses ditolak! Role [${userRole}] tidak diizinkan masuk ke Dashboard.`);
+      alert(`Akses ditolak! Role [${userRole}] tidak diizinkan.`);
       window.location.href = "login.html";
     }
   })();
 </script>
-  
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Dashboard Admin - SIS Absensi</title>
