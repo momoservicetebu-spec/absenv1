@@ -13,14 +13,24 @@ async function fetchAPI(action, payload = null) {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 20000); 
 
+  // ==========================================
+  // TAMBAHAN RBAC: Ambil Role User Saat Ini
+  // ==========================================
+  // Jika belum ada sistem login utuh, otomatis dianggap sebagai 'Superadmin' sementara
+  const userRole = localStorage.getItem('role') || 'Superadmin'; 
+
   try {
-    let url = `${API_URL}?action=${action}&t=${new Date().getTime()}`;
+    // Sisipkan roleAktif ke URL (untuk metode GET)
+    let url = `${API_URL}?action=${action}&roleAktif=${userRole}&t=${new Date().getTime()}`;
     let options = { 
       method: 'GET',
       signal: controller.signal // Kaitkan sinyal batas waktu
     };
 
     if (payload) {
+      // Sisipkan roleAktif ke dalam payload (untuk metode POST)
+      payload.roleAktif = userRole;
+      
       options = {
         method: 'POST',
         headers: { 'Content-Type': 'text/plain;charset=utf-8' },
