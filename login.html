@@ -374,26 +374,31 @@
         btn.style.backgroundColor = "#3b2667";
         btn.innerText = "Halo, " + (result.name || result.nama || user) + "!";
         
-        // Ambil role asli (misal: "Operator", "Admin", "Superadmin")
+        // Format role (misal: "operator" -> "Operator")
         const rawRole = result.role || 'Operator';
-        // Format agar huruf pertama kapital (contoh: "operator" -> "Operator")
         const formattedRole = rawRole.charAt(0).toUpperCase() + rawRole.slice(1);
+        const displayName = result.name || result.nama || user;
 
-        // 1. Simpan Kunci Role Langsung agar dibaca oleh fetchAPI / api.js
+        // ============================================================
+        // BAGIAN YANG DIPERBARUI: Simpan Kunci Sesi Secara Lengkap
+        // ============================================================
+        localStorage.setItem('isLoggedIn', 'true');
         localStorage.setItem('role', formattedRole);
+        localStorage.setItem('username', user);
+        localStorage.setItem('name', displayName);
 
-        // 2. Simpan Sesi Login Lengkap
+        // Simpan juga dalam format objek JSON untuk kompatibilitas
         localStorage.setItem('user_session', JSON.stringify({
           isLoggedIn: true,
           role: formattedRole,
-          name: result.name || result.nama || user
+          name: displayName,
+          username: user
         }));
 
-        // 3. Pengalihan Halaman (Semua Role Diarahkan ke Dashboard Utama)
+        // Pengalihan Halaman ke Dashboard Utama
         setTimeout(function() {
-          // Arahkan ke file dashboard utama Anda
-          window.location.href = "dashboard-admin.html"; // atau "index.html" sesuai file dashboard Anda
-        }, 1000);
+          window.location.href = "dashboard-admin.html";
+        }, 500);
 
       } else {
         showError(result.message || "Username atau password salah.");

@@ -1,18 +1,35 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <!-- Pengecekan Keamanan Sesi -->
-  <script>
-    (function () {
-      const sessionData = localStorage.getItem('user_session');
-      const session = sessionData ? JSON.parse(sessionData) : null;
+  <!-- Pengecekan Keamanan Sesi (RBAC Dynamic) -->
+<script>
+  (function () {
+    // 1. Ambil data sesi dari localStorage (baik format JSON maupun Kunci Langsung)
+    const sessionData = localStorage.getItem('user_session');
+    const session = sessionData ? JSON.parse(sessionData) : null;
+    const isLoggedInDirect = localStorage.getItem('isLoggedIn') === 'true';
 
-      if (!session || !session.isLoggedIn || (session.role !== 'admin' && session.role !== 'superadmin')) {
-        alert("Akses ditolak! Anda harus login terlebih dahulu.");
-        window.location.href = "login.html";
-      }
-    })();
-  </script>
+    // Check apakah user sudah terautentikasi
+    const isAuthenticated = (session && session.isLoggedIn) || isLoggedInDirect;
+
+    if (!isAuthenticated) {
+      alert("Akses ditolak! Anda harus login terlebih dahulu.");
+      window.location.href = "login.html";
+      return;
+    }
+
+    // 2. Ambil Role Aktif (Format Huruf Pertama Kapital)
+    const userRole = (localStorage.getItem('role') || (session ? session.role : '') || '').toLowerCase();
+
+    // 3. Batasi Akses Halaman Dashboard Utama (Izinkan Admin, Superadmin, dan Operator)
+    const allowedRoles = ['superadmin', 'admin', 'operator'];
+
+    if (!allowedRoles.includes(userRole)) {
+      alert(`Akses ditolak! Role [${userRole}] tidak memiliki izin mengakses Dashboard ini.`);
+      window.location.href = "login.html";
+    }
+  })();
+</script>
   
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
