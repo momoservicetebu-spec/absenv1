@@ -1493,44 +1493,49 @@
   </div>
 
   <!-- MODAL FORM ADMIN -->
-  <div id="modal-admin" class="modal-overlay" style="display: none;">
-    <div class="modal-card">
-      <div class="modal-header">
-        <h3 id="modal-admin-title">🛡️ Form Admin / Operator</h3>
-        <button class="modal-close-btn" onclick="closeModalAdmin()">&times;</button>
-      </div>
-      <form id="form-admin" onsubmit="simpanAdmin(event)">
-        <input type="hidden" id="admin-id">
-        <label style="display: block; margin-top: 15px; font-size: 0.9em; opacity: 0.8;">Username:</label>
-        <input type="text" id="admin-username" required style="width: 100%; padding: 10px; margin-top: 5px; background: #2a2640; color: white; border: 1px solid #4a4563; border-radius: 5px;">
-        
-        <label style="display: block; margin-top: 15px; font-size: 0.9em; opacity: 0.8;">Nama Lengkap:</label>
-        <input type="text" id="admin-nama" required style="width: 100%; padding: 10px; margin-top: 5px; background: #2a2640; color: white; border: 1px solid #4a4563; border-radius: 5px;">
-
-        <label style="display: block; margin-top: 15px; font-size: 0.9em; opacity: 0.8;">Password:</label>
-        <input type="password" id="admin-password" style="width: 100%; padding: 10px; margin-top: 5px; background: #2a2640; color: white; border: 1px solid #4a4563; border-radius: 5px;" placeholder="Isi untuk admin baru, kosongkan jika edit">
-        
-        <label style="display: block; margin-top: 15px; font-size: 0.9em; opacity: 0.8;">Role (Pilih Hak Akses):</label>
-        <select id="admin-role" style="width: 100%; padding: 10px; margin-top: 5px; background: #2a2640; color: white; border: 1px solid #4a4563; border-radius: 5px;">
-          <option value="Superadmin">Superadmin</option>
-          <option value="Admin">Admin</option>
-          <option value="Operator">Operator</option>
-          <option value="Guru Piket">Guru Piket</option>
-        </select>
-
-        <label style="display: block; margin-top: 15px; font-size: 0.9em; opacity: 0.8;">Status Aktif:</label>
-        <select id="admin-status" style="width: 100%; padding: 10px; margin-top: 5px; background: #2a2640; color: white; border: 1px solid #4a4563; border-radius: 5px;">
-          <option value="Active">Aktif</option>
-          <option value="Inactive">Tidak Aktif</option>
-        </select>
-        
-        <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 25px;">
-          <button type="button" onclick="closeModalAdmin()" style="background: transparent; color: #ff7675; border: 1px solid #ff7675; padding: 8px 15px; border-radius: 5px; cursor: pointer;">Batal</button>
-          <button type="submit" id="btn-simpan-admin" style="background: #1dd1a1; color: #161224; border: none; padding: 8px 15px; border-radius: 5px; font-weight: bold; cursor: pointer;">💾 Simpan</button>
-        </div>
-      </form>
+<div id="modal-admin" class="modal-overlay" style="display: none;">
+  <div class="modal-card">
+    <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+      <h3 id="modal-admin-title" style="margin: 0;">🛡️ Form Admin / Operator</h3>
+      <button class="modal-close-btn" onclick="closeModalAdmin()" style="background: transparent; border: none; color: #fff; font-size: 1.5rem; cursor: pointer;">&times;</button>
     </div>
+    
+    <form id="form-admin" onsubmit="simpanAdmin(event)">
+      <input type="hidden" id="admin-id">
+      
+      <label style="display: block; margin-top: 15px; font-size: 0.9em; opacity: 0.8;">Username:</label>
+      <input type="text" id="admin-username" required style="width: 100%; padding: 10px; margin-top: 5px; background: #2a2640; color: white; border: 1px solid #4a4563; border-radius: 5px; box-sizing: border-box;">
+      
+      <label style="display: block; margin-top: 15px; font-size: 0.9em; opacity: 0.8;">Nama Lengkap:</label>
+      <input type="text" id="admin-nama" required style="width: 100%; padding: 10px; margin-top: 5px; background: #2a2640; color: white; border: 1px solid #4a4563; border-radius: 5px; box-sizing: border-box;">
+
+      <label style="display: block; margin-top: 15px; font-size: 0.9em; opacity: 0.8;">Password:</label>
+      <input type="password" id="admin-password" style="width: 100%; padding: 10px; margin-top: 5px; background: #2a2640; color: white; border: 1px solid #4a4563; border-radius: 5px; box-sizing: border-box;" placeholder="Isi untuk admin baru, kosongkan jika edit">
+      
+      <label style="display: block; margin-top: 15px; font-size: 0.9em; opacity: 0.8;">Role (Pilih Hak Akses):</label>
+      <select id="admin-role">
+        <option value="Superadmin">Superadmin</option>
+        <option value="Admin">Admin</option>
+        <option value="Operator">Operator</option>
+        <option value="Guru Piket">Guru Piket</option>
+        <option value="Guru">Guru</option>
+        <option value="Siswa">Siswa</option>
+        <option value="Kepala Sekolah">Kepala Sekolah</option>
+      </select>
+
+      <label style="display: block; margin-top: 15px; font-size: 0.9em; opacity: 0.8;">Status Aktif:</label>
+      <select id="admin-status">
+        <option value="Active">Aktif</option>
+        <option value="Inactive">Tidak Aktif</option>
+      </select>
+      
+      <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 25px;">
+        <button type="button" onclick="closeModalAdmin()" style="background: transparent; color: #ff7675; border: 1px solid #ff7675; padding: 8px 15px; border-radius: 5px; cursor: pointer;">Batal</button>
+        <button type="submit" id="btn-simpan-admin" style="background: #1dd1a1; color: #161224; border: none; padding: 8px 15px; border-radius: 5px; font-weight: bold; cursor: pointer;">💾 Simpan</button>
+      </div>
+    </form>
   </div>
+</div>
 
   <!-- MODAL FORM ROLE -->
   <div id="modal-role" class="modal-overlay" style="display: none;">
