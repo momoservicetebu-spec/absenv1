@@ -2,30 +2,36 @@
 <html lang="id">
 <head>
   <!-- Pengecekan Keamanan Sesi (RBAC Dynamic) -->
+<!-- Pengecekan Keamanan Sesi -->
 <script>
   (function () {
-    // 1. Ambil data sesi dari localStorage (baik format JSON maupun Kunci Langsung)
-    const sessionData = localStorage.getItem('user_session');
-    const session = sessionData ? JSON.parse(sessionData) : null;
+    // 1. Ambil data dari berbagai kemungkinan format localStorage
     const isLoggedInDirect = localStorage.getItem('isLoggedIn') === 'true';
+    const roleDirect = localStorage.getItem('role');
+    const sessionStr = localStorage.getItem('user_session');
+    
+    let sessionObj = null;
+    if (sessionStr) {
+      try { sessionObj = JSON.parse(sessionStr); } catch (e) {}
+    }
 
-    // Check apakah user sudah terautentikasi
-    const isAuthenticated = (session && session.isLoggedIn) || isLoggedInDirect;
+    // 2. Evaluasi apakah user valid/sudah login
+    const isAuth = isLoggedInDirect || 
+                   (sessionObj && (sessionObj.isLoggedIn || sessionObj.isLoggedIn === 'true')) ||
+                   (roleDirect && roleDirect !== '');
 
-    if (!isAuthenticated) {
+    if (!isAuth) {
       alert("Akses ditolak! Anda harus login terlebih dahulu.");
       window.location.href = "login.html";
       return;
     }
 
-    // 2. Ambil Role Aktif (Format Huruf Pertama Kapital)
-    const userRole = (localStorage.getItem('role') || (session ? session.role : '') || '').toLowerCase();
-
-    // 3. Batasi Akses Halaman Dashboard Utama (Izinkan Admin, Superadmin, dan Operator)
+    // 3. Ambil role (bebas case-sensitivity)
+    const userRole = (roleDirect || (sessionObj ? sessionObj.role : '') || '').toLowerCase();
     const allowedRoles = ['superadmin', 'admin', 'operator'];
 
     if (!allowedRoles.includes(userRole)) {
-      alert(`Akses ditolak! Role [${userRole}] tidak memiliki izin mengakses Dashboard ini.`);
+      alert(`Akses ditolak! Role [${userRole}] tidak diizinkan masuk ke Dashboard.`);
       window.location.href = "login.html";
     }
   })();
