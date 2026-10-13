@@ -717,12 +717,12 @@
     </div>
     
 
-   <!-- KONTEN: HAK AKSES (ROLE) -->
+  <!-- KONTEN: HAK AKSES (ROLE) -->
     <div id="hak-akses" class="section card"> 
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
         <h2>🔐 Manajemen Hak Akses (Role)</h2>
-        <!-- Perbaikan: Panggil fungsi openModalRole() atau sesuai nama fungsi di JS Anda -->
-        <button class="btn-action" onclick="document.getElementById('modal-role').style.display='flex';" style="background: #1dd1a1; color: #161224; font-weight: bold;">
+        <!-- PERBAIKAN: Ganti onclick memanggil fungsi openModalTambahRole() -->
+        <button class="btn-action" onclick="openModalTambahRole()" style="background: #1dd1a1; color: #161224; font-weight: bold;">
          ➕ Tambah Role Baru
         </button>
       </div>

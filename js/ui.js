@@ -2558,3 +2558,48 @@ async function simpanKartuRFID() {
   btn.disabled = false;
 }
 
+// ==========================================
+// FUNGSI MODAL HAK AKSES (ROLE)
+// ==========================================
+
+function openModalTambahRole() {
+  const modal = document.getElementById('modal-role');
+  if (modal) {
+    modal.style.display = 'flex';
+  }
+  
+  // Ubah judul form kembali ke "Tambah Role Baru"
+  const judul = document.getElementById('modal-role-title');
+  if(judul) {
+    judul.innerHTML = '➕ Tambah Role Baru';
+  }
+
+  // Kosongkan isi ketikan sebelumnya
+  const form = document.getElementById('form-role');
+  if (form) {
+    form.reset();
+  }
+
+  // Kosongkan ID Lama (Penting agar tidak menimpa data saat simpan)
+  const inputOldId = document.getElementById('role-id-old');
+  if (inputOldId) {
+    inputOldId.value = '';
+  }
+
+  // Buka gembok (readonly) pada kolom Nama Role
+  const inputNama = document.getElementById('role-nama');
+  if (inputNama) {
+    inputNama.removeAttribute('readonly');
+    inputNama.removeAttribute('disabled');
+    inputNama.style.opacity = '1';
+    inputNama.style.backgroundColor = '#2a2640'; // Sesuaikan warna background asli input Anda
+  }
+}
+
+// Fungsi pelengkap untuk menutup modal (berjaga-jaga jika belum ada)
+function closeModalRole() {
+  const modal = document.getElementById('modal-role');
+  if (modal) {
+    modal.style.display = 'none';
+  }
+}
