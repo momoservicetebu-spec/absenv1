@@ -8,7 +8,7 @@ let lastDescriptor = null; // Ini variabel penyimpan embedding wajah
 let capturedFaceBase64 = "";
 
 // ==========================================
-// 1. Fungsi Membuka Kamera
+// 1. Fungsi Membuka Kamera (FIXED FOR MOBILE)
 // ==========================================
 async function startCamera() {
   const video = document.getElementById('video');
@@ -24,23 +24,110 @@ async function startCamera() {
       localStream.getTracks().forEach(track => track.stop());
     }
 
+    // PERBAIKAN: Hapus paksaan width/height 320x240. 
+    // Biarkan browser HP menyesuaikan rasio terbaiknya (Portrait/Landscape).
     localStream = await navigator.mediaDevices.getUserMedia({
-      video: { width: 320, height: 240, facingMode: "user" }
+      video: { facingMode: "user" }
     });
 
     video.srcObject = localStream;
-    video.play();
+    
+    // Tunggu metadata video termuat agar kita tahu resolusi aslinya
+    video.onloadedmetadata = () => {
+      video.play();
+      // Sinkronkan atribut ukuran video HTML dengan resolusi asli kamera
+      video.width = video.videoWidth;
+      video.height = video.videoHeight;
+    };
 
     statusText.innerText = "📷 Kamera Aktif. Siapkan wajah lalu klik 'Ambil Foto'.";
     statusText.style.color = "#1dd1a1";
 
-    // Muat model AI jika faceapi tersedia
     if (typeof faceapi !== 'undefined' && typeof CONFIG !== 'undefined') {
       loadFaceAIModels();
     }
   } catch (err) {
     statusText.innerText = "❌ Gagal Akses Kamera: " + err.message;
     statusText.style.color = "#ff6b6b";
+  }
+}
+
+// ==========================================
+// 3. Fungsi Ambil Foto & Pindai Biometrik Wajah (FIXED FOR MOBILE)
+// ==========================================
+async function captureFace() {
+  const video = document.getElementById('video');
+  const canvas = document.getElementById('faceCanvas');
+  const statusText = document.getElementById('statusText');
+  const btnEnroll = document.getElementById('btnEnroll');
+
+  if (!localStream || video.paused || video.ended) {
+    alert("Nyalakan kamera terlebih dahulu!");
+    return;
+  }
+
+  // PERBAIKAN: Ambil resolusi murni langsung dari sumber video saat itu juga
+  const vw = video.videoWidth;
+  const vh = video.videoHeight;
+
+  // Samakan ukuran canvas secara presisi dengan resolusi video asli
+  canvas.width = vw;
+  canvas.height = vh;
+  
+  // Pastikan elemen video juga memiliki atribut ukuran yang sama agar garis AI tidak meleset
+  video.width = vw;
+  video.height = vh;
+
+  const ctx = canvas.getContext('2d', { willReadFrequently: true });
+  
+  // Jepret foto dari video dengan ukuran proporsional
+  ctx.drawImage(video, 0, 0, vw, vh);
+  capturedFaceBase64 = canvas.toDataURL('image/jpeg', 0.8);
+
+  statusText.innerText = "⏳ Memproses pemindaian biometrik AI...";
+  statusText.style.color = "#feca57";
+
+  lastDescriptor = null; 
+
+  if (typeof faceapi !== 'undefined') {
+    try {
+      // Deteksi AI pada canvas
+      const detection = await faceapi.detectSingleFace(canvas, new faceapi.TinyFaceDetectorOptions())
+        .withFaceLandmarks()
+        .withFaceDescriptor();
+
+      if (detection) {
+        lastDescriptor = Array.from(detection.descriptor);
+        
+        const displaySize = { width: vw, height: vh };
+        
+        // Sesuaikan koordinat deteksi AI dengan ukuran layar yang dinamis
+        faceapi.matchDimensions(canvas, displaySize);
+        const resizedDetections = faceapi.resizeResults(detection, displaySize);
+
+        // Lukis ulang latar belakang dan biometrik
+        ctx.drawImage(video, 0, 0, vw, vh);
+        faceapi.draw.drawDetections(canvas, resizedDetections);
+        faceapi.draw.drawFaceLandmarks(canvas, resizedDetections);
+
+        statusText.innerText = "✅ Wajah & Biometrik Terdeteksi! Siap disimpan.";
+        statusText.style.color = "#1dd1a1";
+      } else {
+        statusText.innerText = "⚠️ Foto diambil, namun AI gagal mendeteksi wajah. Coba posisi lain.";
+        statusText.style.color = "#ff6b6b";
+        alert("Wajah tidak terdeteksi oleh AI. Mohon posisikan wajah lurus ke kamera dan cahaya cukup.");
+      }
+    } catch (e) {
+      console.error("Error Deteksi AI:", e);
+      statusText.innerText = "❌ Terjadi kesalahan pada proses AI.";
+      statusText.style.color = "#ff6b6b";
+    }
+  }
+
+  if (lastDescriptor && lastDescriptor.length > 0) {
+    btnEnroll.disabled = false;
+  } else {
+    btnEnroll.disabled = true; 
   }
 }
 
@@ -255,40 +342,45 @@ async function loadFaceTable() {
   const tbody = document.getElementById('faceTableBody');
   if (!tbody) return;
 
+  // Tampilkan efek loading setiap kali fungsi dipanggil
   tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding: 15px;">⏳ Memuat data...</td></tr>';
 
   try {
-    const result = await fetchAPI("getAllFaceData");
-    if (result && result.success) {
-      const data = result.data;
-      if (data.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding: 15px;">Belum ada wajah terdaftar.</td></tr>';
-        return;
-      }
+    // KUNCI PERBAIKAN 1: Tambahkan parameter _t untuk mematikan Cache Browser!
+    const result = await fetchAPI("getAllFaceData", { _t: new Date().getTime() });
+    
+    // Cegah error jika result.data kosong
+    if (!result || !result.data || result.data.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding: 15px; color: #9ca3af;">Belum ada wajah terdaftar atau data kosong.</td></tr>';
+      return; // Berhenti di sini
+    }
 
-      tbody.innerHTML = '';
-      data.forEach((row, index) => {
-        // Ambil ID sesuai nama kolom yang diubah (UserID)
+    if (result.success) {
+      tbody.innerHTML = ''; // Hapus tulisan loading
+      result.data.forEach((row, index) => {
+        // Ambil ID sesuai nama kolom yang ada di database
         const uid = row.UserID || row.userId || row.userid || row['UserID'] || row['UserID (SiswaID/GuruID)'] || "Tidak Ditemukan";
         const role = row.Role || row.role || "-";
         
         const tr = document.createElement('tr');
         tr.innerHTML = `
-          <td style="padding: 8px; border: 1px solid #444; text-align: center;">${index + 1}</td>
-          <td style="padding: 8px; border: 1px solid #444; font-weight: bold;">${uid}</td>
-          <td style="padding: 8px; border: 1px solid #444;">${role}</td>
-          <td style="padding: 8px; border: 1px solid #444; color: #1dd1a1;">✅ Terekam</td>
-          <td style="padding: 8px; border: 1px solid #444; text-align: center;">
-            <button class="btn-action btn-danger" style="padding: 5px 10px; font-size: 12px; cursor:pointer;" onclick="deleteFaceData('${uid}')">Hapus</button>
+          <td style="padding: 12px 16px; border-bottom: 1px solid #332d4a; text-align: center;">${index + 1}</td>
+          <td style="padding: 12px 16px; border-bottom: 1px solid #332d4a; font-weight: bold; color: #ffffff;">${uid}</td>
+          <td style="padding: 12px 16px; border-bottom: 1px solid #332d4a;">
+            <span style="background: ${role === 'Guru' ? '#f59e0b' : '#0284c7'}; color: ${role === 'Guru' ? '#000' : '#fff'}; padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold;">${role}</span>
+          </td>
+          <td style="padding: 12px 16px; border-bottom: 1px solid #332d4a; color: #10b981; font-weight: bold;">✅ Terekam</td>
+          <td style="padding: 12px 16px; border-bottom: 1px solid #332d4a; text-align: center;">
+            <button class="btn-action" style="background: transparent; color: #ef4444; border: 1px solid #dc2626; padding: 5px 12px; border-radius: 6px; font-size: 0.8rem; cursor:pointer;" onclick="deleteFaceData('${uid}')">🗑️ Hapus</button>
           </td>
         `;
         tbody.appendChild(tr);
       });
     } else {
-      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:red;">❌ Gagal memuat data tabel</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:#ef4444;">❌ Gagal memuat data tabel</td></tr>';
     }
   } catch (error) {
-    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:red;">❌ Error: ${error.message}</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:#ef4444;">❌ Error: ${error.message}</td></tr>`;
   }
 }
 
@@ -298,12 +390,28 @@ async function loadFaceTable() {
 async function deleteFaceData(userId) {
   if(!confirm(`Yakin ingin MENGHAPUS data wajah untuk ID: ${userId}?`)) return;
   
-  const result = await fetchAPI("deleteFace", { userId: userId });
-  if(result && result.success) {
-    alert("✅ " + result.message);
-    loadFaceTable(); 
-  } else {
-    alert("❌ Gagal menghapus: " + result?.message);
+  try {
+    const result = await fetchAPI("deleteFace", { userId: userId });
+    
+    if(result && result.success) {
+      alert("✅ " + result.message);
+      
+      // KOSONGKAN MANUAL LAYAR SAAT INI
+      const tbody = document.getElementById('faceTableBody');
+      if(tbody) tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding: 15px; color: #9ca3af;">⏳ Menunggu sinkronisasi database (2 detik)...</td></tr>';
+      
+      // KUNCI PERBAIKAN 2: Beri jeda 2 detik agar Google Sheets selesai menghapus baris
+      setTimeout(async () => {
+        if (typeof loadFaceTable === 'function') {
+          await loadFaceTable(); 
+        }
+      }, 2000); 
+
+    } else {
+      alert("❌ Gagal menghapus: " + (result?.message || "Error server"));
+    }
+  } catch (err) {
+    alert("❌ Terjadi kesalahan jaringan saat menghapus.");
   }
 }
 
