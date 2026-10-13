@@ -2700,5 +2700,56 @@ function renderSidebarByRole() {
   });
 }
 
+// ==========================================
+// FUNGSI HAPUS ADMIN / OPERATOR (FRONTEND)
+// ==========================================
+async function hapusAdmin(idAtauUsername) {
+  // 1. Validasi input
+  if (!idAtauUsername) {
+    alert("Error: ID atau Username tidak terbaca dari tombol Hapus!");
+    return;
+  }
+
+  // 2. Konfirmasi penghapusan
+  if (!confirm(`Apakah Anda yakin ingin menghapus data '${idAtauUsername}'?`)) {
+    return;
+  }
+
+  // 3. BUNGKUS DATA KE DALAM OBJEK YANG BENAR
+  // Pastikan kunci (key) sesuai dengan kolom di database Anda
+  const payload = {
+    action: 'deleteAdmin', // Sesuaikan dengan case di Router.gs Anda
+    UserID: idAtauUsername,
+    Username: idAtauUsername,
+    id: idAtauUsername
+  };
+
+  try {
+    // Tampilkan indikator loading (opsional)
+    // showLoading(); 
+
+    // 4. Panggil API (Sesuaikan 'fetchAPI' dengan fungsi fetch Anda)
+    // Pastikan metode pengirimannya mengirim objek 'payload' di atas
+    const response = await fetchAPI('deleteAdmin', payload); 
+
+    // 5. Tangani respons dari backend
+    if (response && response.success) {
+      alert(response.message || "Data berhasil dihapus!");
+      
+      // Refresh tabel agar data yang dihapus hilang dari layar
+      if (typeof loadDataAdmin === 'function') {
+        loadDataAdmin();
+      } else {
+        location.reload(); 
+      }
+    } else {
+      alert("Gagal menghapus: " + (response?.message || "Terjadi kesalahan server."));
+    }
+  } catch (error) {
+    console.error("Error saat menghapus:", error);
+    alert("Gagal menghubungi server!");
+  }
+}
+
 // Jalankan saat halaman selesai dimuat
 document.addEventListener("DOMContentLoaded", renderSidebarByRole);
