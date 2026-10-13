@@ -370,47 +370,48 @@
       const response = await fetch(GAS_URL, { method: "POST", body: formData });
       const result = await response.json();
 
-      if (result.success) {
-        btn.style.backgroundColor = "#3b2667";
-        btn.innerText = "Halo, " + (result.name || result.nama || user) + "!";
-        
-        // Format role (misal: "operator" -> "Operator")
-        const rawRole = result.role || 'Operator';
-        const formattedRole = rawRole.charAt(0).toUpperCase() + rawRole.slice(1);
-        const displayName = result.name || result.nama || user;
+    if (result.success) {
+    btn.style.backgroundColor = "#3b2667";
+    btn.innerText = "Halo, " + (result.name || result.nama || user) + "!";
+    
+    // Format role (misal: "operator" -> "Operator")
+    const rawRole = result.role || 'Operator';
+    const formattedRole = rawRole.charAt(0).toUpperCase() + rawRole.slice(1);
+    const displayName = result.name || result.nama || user;
 
-        // ============================================================
-        // BAGIAN YANG DIPERBARUI: Simpan Kunci Sesi Secara Lengkap
-        // ============================================================
-        localStorage.setItem('isLoggedIn', 'true');
-        localStorage.setItem('role', formattedRole);
-        localStorage.setItem('username', user);
-        localStorage.setItem('name', displayName);
+    // 1. SIMPAN DENGAN FORMAT STRING YANG PASTI & JELAS
+    localStorage.setItem('isLoggedIn', 'true');
+    localStorage.setItem('role', formattedRole);
+    localStorage.setItem('username', user);
+    localStorage.setItem('name', displayName);
 
-        // Simpan juga dalam format objek JSON untuk kompatibilitas
-        localStorage.setItem('user_session', JSON.stringify({
-          isLoggedIn: true,
-          role: formattedRole,
-          name: displayName,
-          username: user
-        }));
+    // 2. SIMPAN DALAM FORMAT OBJEK JSON
+    const sessionData = {
+      isLoggedIn: true,
+      role: formattedRole,
+      name: displayName,
+      username: user
+    };
+    localStorage.setItem('user_session', JSON.stringify(sessionData));
 
-        // Pengalihan Halaman ke Dashboard Utama
-        setTimeout(function() {
-          window.location.href = "dashboard-admin.html";
-        }, 500);
+    // 3. GUNAKAN location.replace AGAR BERSIH TANPA RIWAYAT REDIRECT
+    setTimeout(function() {
+      window.location.replace("dashboard-admin.html");
+    }, 800);
 
-      } else {
-        showError(result.message || "Username atau password salah.");
-        btn.disabled = false;
-        btn.innerText = "Masuk";
-      }
-    } catch (err) {
+  } else {
+    showError(result.message || "Username atau password salah.");
+    btn.disabled = false;
+    btn.innerText = "Masuk";
+  }
+
+ } catch (err) {
       showError("Terjadi kesalahan jaringan.");
       btn.disabled = false;
       btn.innerText = "Masuk";
     }
   }
+
 
   function showError(text) {
     const errMsg = document.getElementById('errorMsg');
