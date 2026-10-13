@@ -2703,7 +2703,7 @@ function renderSidebarByRole() {
 // ==========================================
 // FUNGSI HAPUS ADMIN / OPERATOR (FRONTEND)
 // ==========================================
-async function hapusAdmin(idAtauUsername) {
+async function hapusAdmin(idAtauUsername, btnElement) {
   // 1. Validasi input
   if (!idAtauUsername) {
     alert("Error: ID atau Username tidak terbaca dari tombol Hapus!");
@@ -2715,33 +2715,41 @@ async function hapusAdmin(idAtauUsername) {
     return;
   }
 
-  // 3. BUNGKUS DATA KE DALAM OBJEK YANG BENAR
-  // Pastikan kunci (key) sesuai dengan kolom di database Anda
+  // 3. BUNGKUS DATA KE DALAM OBJEK
   const payload = {
-    action: 'deleteAdmin', // Sesuaikan dengan case di Router.gs Anda
+    action: 'deleteAdmin',
     UserID: idAtauUsername,
     Username: idAtauUsername,
     id: idAtauUsername
   };
 
   try {
-    // Tampilkan indikator loading (opsional)
-    // showLoading(); 
-
-    // 4. Panggil API (Sesuaikan 'fetchAPI' dengan fungsi fetch Anda)
-    // Pastikan metode pengirimannya mengirim objek 'payload' di atas
     const response = await fetchAPI('deleteAdmin', payload); 
 
-    // 5. Tangani respons dari backend
     if (response && response.success) {
       alert(response.message || "Data berhasil dihapus!");
       
-      // Refresh tabel agar data yang dihapus hilang dari layar
+      // 4. HAPUS BARIS TABEL SEKERAS/SEKETIKA DARI DOM (EFEK INSTAN)
+      if (btnElement) {
+        const row = btnElement.closest('tr');
+        if (row) row.remove();
+      } else {
+        // Fallback: Cari baris tabel yang mengandung teks username lalu hapus
+        const allRows = document.querySelectorAll('tr');
+        allRows.forEach(row => {
+          if (row.innerText.includes(idAtauUsername)) {
+            row.remove();
+          }
+        });
+      }
+
+      // 5. Re-fetch data dari server jika ada fungsi loader
       if (typeof loadDataAdmin === 'function') {
         loadDataAdmin();
-      } else {
-        location.reload(); 
+      } else if (typeof loadAdminData === 'function') {
+        loadAdminData();
       }
+
     } else {
       alert("Gagal menghapus: " + (response?.message || "Terjadi kesalahan server."));
     }
