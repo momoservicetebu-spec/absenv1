@@ -342,90 +342,90 @@
     </div>
   </div>
 
-  <!-- Script Asli Tidak Ada yang Berubah Logic-nya -->
   <!-- Script Login Terupdate -->
-  <script>
-    const GAS_URL = "https://script.google.com/macros/s/AKfycbxx3BLAOh7RZwF2vvukhDPhytbAPXfMP3H_RAJNeWgxLe2LNcCzojm-6HQ1kktPQMTQ/exec";
+<script>
+  const GAS_URL = "https://script.google.com/macros/s/AKfycbxx3BLAOh7RZwF2vvukhDPhytbAPXfMP3H_RAJNeWgxLe2LNcCzojm-6HQ1kktPQMTQ/exec";
 
-    async function processLogin() {
-      const user = document.getElementById('username').value.trim();
-      const pass = document.getElementById('password').value.trim();
-      const btn = document.getElementById('btnLogin');
-      const errMsg = document.getElementById('errorMsg');
-      
-      if(user === "" || pass === "") {
-        showError("Username dan Password wajib diisi!");
-        return;
-      }
+  async function processLogin() {
+    const user = document.getElementById('username').value.trim();
+    const pass = document.getElementById('password').value.trim();
+    const btn = document.getElementById('btnLogin');
+    const errMsg = document.getElementById('errorMsg');
+    
+    if (user === "" || pass === "") {
+      showError("Username dan Password wajib diisi!");
+      return;
+    }
 
-      btn.disabled = true;
-      btn.innerText = "Memverifikasi...";
-      errMsg.style.display = "none";
+    btn.disabled = true;
+    btn.innerText = "Memverifikasi...";
+    errMsg.style.display = "none";
 
-      try {
-        const formData = new URLSearchParams();
-        formData.append("action", "login");
-        formData.append("username", user);
-        formData.append("password", pass);
+    try {
+      const formData = new URLSearchParams();
+      formData.append("action", "login");
+      formData.append("username", user);
+      formData.append("password", pass);
 
-        const response = await fetch(GAS_URL, { method: "POST", body: formData });
-        const result = await response.json();
+      const response = await fetch(GAS_URL, { method: "POST", body: formData });
+      const result = await response.json();
 
-        if (result.success) {
-          btn.style.backgroundColor = "#3b2667";
-          btn.innerText = "Halo, " + result.name + "!";
-          
-          // 1. Simpan Sesi Login ke Browser Storage
-          const userRole = result.role ? result.role.toLowerCase() : '';
-          localStorage.setItem('user_session', JSON.stringify({
-            isLoggedIn: true,
-            role: userRole,
-            name: result.name || user
-          }));
+      if (result.success) {
+        btn.style.backgroundColor = "#3b2667";
+        btn.innerText = "Halo, " + (result.name || result.nama || user) + "!";
+        
+        // Ambil role asli (misal: "Operator", "Admin", "Superadmin")
+        const rawRole = result.role || 'Operator';
+        // Format agar huruf pertama kapital (contoh: "operator" -> "Operator")
+        const formattedRole = rawRole.charAt(0).toUpperCase() + rawRole.slice(1);
 
-          // 2. Pengalihan Halaman Sesuai Hak Akses
-          setTimeout(function() {
-            if (userRole === "admin" || userRole === "superadmin") {
-              window.location.href = "dashboard-admin.html";
-            } else {
-              alert("Login Sukses! Anda masuk sebagai: " + result.role + ". Halaman ini belum dibuat.");
-              btn.disabled = false;
-              btn.innerText = "Masuk";
-              btn.style.backgroundColor = "#3b2667";
-            }
-          }, 1000);
+        // 1. Simpan Kunci Role Langsung agar dibaca oleh fetchAPI / api.js
+        localStorage.setItem('role', formattedRole);
 
-        } else {
-          showError(result.message);
-          btn.disabled = false;
-          btn.innerText = "Masuk";
-        }
-      } catch (err) {
-        showError("Terjadi kesalahan jaringan.");
+        // 2. Simpan Sesi Login Lengkap
+        localStorage.setItem('user_session', JSON.stringify({
+          isLoggedIn: true,
+          role: formattedRole,
+          name: result.name || result.nama || user
+        }));
+
+        // 3. Pengalihan Halaman (Semua Role Diarahkan ke Dashboard Utama)
+        setTimeout(function() {
+          // Arahkan ke file dashboard utama Anda
+          window.location.href = "dashboard-admin.html"; // atau "index.html" sesuai file dashboard Anda
+        }, 1000);
+
+      } else {
+        showError(result.message || "Username atau password salah.");
         btn.disabled = false;
         btn.innerText = "Masuk";
       }
+    } catch (err) {
+      showError("Terjadi kesalahan jaringan.");
+      btn.disabled = false;
+      btn.innerText = "Masuk";
     }
+  }
 
-    function showError(text) {
-      const errMsg = document.getElementById('errorMsg');
-      errMsg.innerText = text;
-      errMsg.style.display = "block";
+  function showError(text) {
+    const errMsg = document.getElementById('errorMsg');
+    errMsg.innerText = text;
+    errMsg.style.display = "block";
+  }
+
+  // Toggle Password Visibility Logic
+  document.getElementById('togglePassword').addEventListener('click', function () {
+    const passwordInput = document.getElementById('password');
+    const eyeIcon = document.getElementById('eyeIcon');
+    
+    if (passwordInput.type === 'password') {
+      passwordInput.type = 'text';
+      eyeIcon.setAttribute('d', 'M11.83 9L15 12.16V12a3 3 0 0 0-3-3h-.17zm-4.3.8l1.55 1.55c-.05.21-.08.43-.08.65a3 3 0 0 0 3 3c.22 0 .44-.03.65-.08l1.55 1.55c-.67.33-1.41.53-2.2.53-2.76 0-5-2.24-5-5 0-.79.2-1.53.53-2.2zm4.3-3.8c4.29 0 7.97 2.34 9.66 5.99-.44.95-1 1.83-1.66 2.6l-1.46-1.46C19.14 11.82 19.85 10.7 20.31 9.5c-1.48-3.32-4.85-5.69-8.59-5.69-1.22 0-2.4.24-3.48.67l1.55 1.55c.61-.17 1.25-.26 1.93-.26zM2.81 2.81L1.39 4.22l3.4 3.4C3.17 8.87 1.55 10.74 1 12c1.73 4.39 6 7.5 11 7.5 1.55 0 3.03-.3 4.38-.84l2.4 2.4 1.41-1.41L2.81 2.81z');
+    } else {
+      passwordInput.type = 'password';
+      eyeIcon.setAttribute('d', 'M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z');
     }
-
-    // Toggle Password Visibility Logic
-    document.getElementById('togglePassword').addEventListener('click', function () {
-      const passwordInput = document.getElementById('password');
-      const eyeIcon = document.getElementById('eyeIcon');
-      
-      if (passwordInput.type === 'password') {
-        passwordInput.type = 'text';
-        eyeIcon.setAttribute('d', 'M11.83 9L15 12.16V12a3 3 0 0 0-3-3h-.17zm-4.3.8l1.55 1.55c-.05.21-.08.43-.08.65a3 3 0 0 0 3 3c.22 0 .44-.03.65-.08l1.55 1.55c-.67.33-1.41.53-2.2.53-2.76 0-5-2.24-5-5 0-.79.2-1.53.53-2.2zm4.3-3.8c4.29 0 7.97 2.34 9.66 5.99-.44.95-1 1.83-1.66 2.6l-1.46-1.46C19.14 11.82 19.85 10.7 20.31 9.5c-1.48-3.32-4.85-5.69-8.59-5.69-1.22 0-2.4.24-3.48.67l1.55 1.55c.61-.17 1.25-.26 1.93-.26zM2.81 2.81L1.39 4.22l3.4 3.4C3.17 8.87 1.55 10.74 1 12c1.73 4.39 6 7.5 11 7.5 1.55 0 3.03-.3 4.38-.84l2.4 2.4 1.41-1.41L2.81 2.81z');
-      } else {
-        passwordInput.type = 'password';
-        eyeIcon.setAttribute('d', 'M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z');
-      }
-    });
-  </script>
+  });
+</script>
 </body>
 </html>
