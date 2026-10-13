@@ -5,7 +5,13 @@ const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxx3BLAOh7RZwF2vvukh
 
 async function fetchAPI(action, payload = {}) {
   try {
-    const response = await fetch(`${SCRIPT_URL}?action=${action}`, {
+    // TAMBAHAN RBAC: Ambil Role User Saat Ini (Default 'Superadmin' jika belum ada)
+    const userRole = localStorage.getItem('role') || 'Superadmin';
+    
+    // Sisipkan roleAktif ke dalam payload POST & URL parameter
+    payload.roleAktif = userRole;
+
+    const response = await fetch(`${SCRIPT_URL}?action=${action}&roleAktif=${userRole}`, {
       method: 'POST',
       headers: { 'Content-Type': 'text/plain;charset=utf-8' },
       body: JSON.stringify(payload)
@@ -30,7 +36,10 @@ async function loadDashboardData(role = 'semua') {
   try {
     console.log("1. Memulai fetch data dashboard untuk role:", role);
     
-    const response = await fetch(`${SCRIPT_URL}?action=getDashboardData&role=${role}`);
+    // TAMBAHAN RBAC: Sisipkan roleAktif ke query URL
+    const userRole = localStorage.getItem('role') || 'Superadmin';
+    
+    const response = await fetch(`${SCRIPT_URL}?action=getDashboardData&role=${role}&roleAktif=${userRole}`);
     console.log("2. Status Response HTTP:", response.status);
     
     const result = await response.json();
@@ -87,7 +96,7 @@ function renderList(id, arrayData, color) {
 function renderTable(id, arrayData) {
   const tbody = document.getElementById(id);
   if (!tbody) return;
-  tbody.innerHTML = arrayData.length === 0 ? "<tr><td colspan='4' style='text-align:center;'>N/A</li>" : "";
+  tbody.innerHTML = arrayData.length === 0 ? "<tr><td colspan='4' style='text-align:center;'>N/A</td></tr>" : "";
   arrayData.forEach(item => {
     tbody.innerHTML += `<tr style="border-bottom: 1px solid #333;">
       <td>${item.nama}</td><td>${item.hadir || 0}</td><td>${item.kedua || 0}</td><td>${item.ketiga || 0}</td>
