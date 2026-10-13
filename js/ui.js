@@ -2618,3 +2618,87 @@ function closeModalRole() {
     modal.style.display = 'none';
   }
 }
+
+// ==========================================
+// MAPPING AKSES TAB NAVIGASI SIDEBAR
+// ==========================================
+const TAB_PERMISSIONS = {
+  'Superadmin': ['*'], // Bebas akses semua tab
+
+  'Admin': [
+    'dashboard', 'data-siswa', 'data-guru', 'import',
+    'enrollment', 'fingerprint', 'rfid', 'barcode',
+    'admin-operator', 'hak-akses', 'jadwal-pelajaran',
+    'gate-pass', 'absensi-kelas', 'laporan-absensi',
+    'setting', 'backup', 'whatsapp-settings', 'geofencing'
+  ],
+
+  'Operator': [
+    'dashboard', 'data-siswa', 'data-guru',
+    'enrollment', 'fingerprint', 'rfid', 'barcode',
+    'absensi-kelas', 'laporan-absensi'
+  ],
+
+  'Guru Piket': [
+    'dashboard', 'data-siswa', 'data-guru',
+    'gate-pass', 'absensi-kelas', 'laporan-absensi'
+  ],
+
+  'Guru Mata Pelajaran': [
+    'dashboard', 'absensi-kelas', 'laporan-absensi'
+  ],
+
+  'Kepala Sekolah': [
+    'dashboard', 'laporan-absensi'
+  ]
+};
+
+function renderSidebarByRole() {
+  const userRole = localStorage.getItem('role') || 'Guest';
+  
+  // Match nama role (case-insensitive)
+  const formattedRole = Object.keys(TAB_PERMISSIONS).find(
+    r => r.toLowerCase() === userRole.trim().toLowerCase()
+  ) || 'Guest';
+
+  const allowedTabs = TAB_PERMISSIONS[formattedRole] || [];
+
+  // 1. Filter Tombol Navigasi
+  const navButtons = document.querySelectorAll('.sidebar .nav-btn');
+  navButtons.forEach(btn => {
+    // Ambil nama tab dari parameter onclick, contoh: switchTab('data-siswa', this) -> 'data-siswa'
+    const onclickAttr = btn.getAttribute('onclick') || '';
+    const match = onclickAttr.match(/switchTab\('([^']+)'/);
+    
+    if (match && match[1]) {
+      const tabName = match[1];
+      
+      if (allowedTabs.includes('*') || allowedTabs.includes(tabName)) {
+        btn.style.display = 'block';
+      } else {
+        btn.style.display = 'none';
+      }
+    }
+  });
+
+  // 2. Sembunyikan Judul Kelompok Menu (menu-group) Jika Semua Anaknya Tersembunyi
+  const menuGroups = document.querySelectorAll('.sidebar .menu-group');
+  menuGroups.forEach(group => {
+    let nextEl = group.nextElementSibling;
+    let hasVisibleChild = false;
+
+    // Periksa tombol-tombol di bawah kelompok menu ini
+    while (nextEl && !nextEl.classList.contains('menu-group') && !nextEl.classList.contains('logout-btn')) {
+      if (nextEl.classList.contains('nav-btn') && nextEl.style.display !== 'none') {
+        hasVisibleChild = true;
+        break;
+      }
+      nextEl = nextEl.nextElementSibling;
+    }
+
+    group.style.display = hasVisibleChild ? 'block' : 'none';
+  });
+}
+
+// Jalankan saat halaman selesai dimuat
+document.addEventListener("DOMContentLoaded", renderSidebarByRole);
