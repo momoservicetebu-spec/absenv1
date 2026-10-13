@@ -902,32 +902,37 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   async function loadDashboardData() {
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxx3BLAOh7RZwF2vvukhDPhytbAPXfMP3H_RAJNeWgxLe2LNcCzojm-6HQ1kktPQMTQ/exec"; 
-    let queryParams = `action=getDashboardData&periode=${currentPeriod}`;
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxx3BLAOh7RZwF2vvukhDPhytbAPXfMP3H_RAJNeWgxLe2LNcCzojm-6HQ1kktPQMTQ/exec"; 
+  
+  // 1. Ambil Role user yang sedang login (default ke Superadmin jika kosong)
+  const userRole = localStorage.getItem('role') || 'Superadmin';
+  
+  // 2. Sisipkan roleAktif ke dalam query URL
+  let queryParams = `action=getDashboardData&periode=${currentPeriod}&roleAktif=${userRole}`;
 
-    if (currentPeriod === 'harian') {
-      queryParams += `&tanggal=${filterHarian.value}`;
-    } else if (currentPeriod === 'bulanan') {
-      queryParams += `&bulan=${filterBulanan.value}`;
-    } else if (currentPeriod === 'tahunan') {
-      queryParams += `&tahun=${filterTahunan.value}`;
-    }
-
-    try {
-      const response = await fetch(`${SCRIPT_URL}?${queryParams}`);
-      const result = await response.json();
-
-      if (result.success === true || result.status === true) {
-        const realData = result.data; 
-        if (window.updateDashboardUI) window.updateDashboardUI(realData);
-        if (window.updateListsUI) window.updateListsUI(realData);
-      } else {
-        console.error("Gagal menarik data dari server:", result.message);
-      }
-    } catch (error) {
-      console.error('Koneksi dashboard bermasalah:', error);
-    }
+  if (currentPeriod === 'harian') {
+    queryParams += `&tanggal=${filterHarian.value}`;
+  } else if (currentPeriod === 'bulanan') {
+    queryParams += `&bulan=${filterBulanan.value}`;
+  } else if (currentPeriod === 'tahunan') {
+    queryParams += `&tahun=${filterTahunan.value}`;
   }
+
+  try {
+    const response = await fetch(`${SCRIPT_URL}?${queryParams}`);
+    const result = await response.json();
+
+    if (result.success === true || result.status === true) {
+      const realData = result.data; 
+      if (window.updateDashboardUI) window.updateDashboardUI(realData);
+      if (window.updateListsUI) window.updateListsUI(realData);
+    } else {
+      console.error("Gagal menarik data dari server:", result.message);
+    }
+  } catch (error) {
+    console.error('Koneksi dashboard bermasalah:', error);
+  }
+}
 
   function generateMockData(periode) {
     if (periode === 'bulanan') {
