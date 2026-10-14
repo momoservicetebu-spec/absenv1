@@ -2,39 +2,6 @@
 <html lang="id">
 <head>
 <!-- Pengecekan Keamanan Sesi (Debug Version) -->
-<script>
-  (function () {
-    // Ambil data dari LocalStorage
-    const isLoggedInDirect = localStorage.getItem('isLoggedIn') === 'true';
-    const roleDirect = localStorage.getItem('role');
-    const sessionStr = localStorage.getItem('user_session');
-    
-    let sessionObj = null;
-    if (sessionStr) {
-      try { sessionObj = JSON.parse(sessionStr); } catch (e) {}
-    }
-
-    // Cek apakah user dianggap terautentikasi
-    const isAuth = isLoggedInDirect || 
-                   (sessionObj && sessionObj.isLoggedIn === true) ||
-                   (roleDirect && roleDirect !== '');
-
-    if (!isAuth) {
-      alert("Akses ditolak! Anda harus login terlebih dahulu.");
-      window.location.replace("login.html");
-      return;
-    }
-
-    // Cek role izin masuk dashboard
-    const userRole = (roleDirect || (sessionObj ? sessionObj.role : '') || '').toLowerCase();
-    const allowedRoles = ['superadmin', 'admin', 'operator'];
-
-    if (!allowedRoles.includes(userRole)) {
-      alert(`Akses ditolak! Role [${userRole}] tidak diizinkan masuk ke Dashboard.`);
-      window.location.replace("login.html");
-    }
-  })();
-</script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Dashboard Admin - SIS Absensi</title>
@@ -1626,6 +1593,9 @@
     </div>
   </div>
 </div>
+
+<!-- KODE KEAMANAN / PENJAGA GERBANG (WAJIB PALING ATAS) -->
+<script src="./js/auth-guard.js?v=1.0"></script>
 
 <!-- Perbaiki jalur folder menjadi js/pages/ -->
 <script src="./js/pages/credentials.js?v=1.1"></script> 
