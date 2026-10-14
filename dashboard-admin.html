@@ -76,13 +76,32 @@
     <!-- 1. DASHBOARD ANALYTICS -->
     <div id="dashboard" class="section active">
       <div class="analytics-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-        <h2 class="analytics-title">📊 Absensi Analytics Dashboard</h2>
-        <!-- TABEL TOGGLE FILTER -->
-        <div class="filter-tabs">
-          <button class="filter-btn active" onclick="setDashboardMode('all')">Semua</button>
-          <button class="filter-btn" onclick="setDashboardMode('siswa')">Siswa</button>
-          <button class="filter-btn" onclick="setDashboardMode('guru')">Guru</button>
-        </div>
+        
+        <h2 class="analytics-title" style="margin: 0;">📊 Absensi Analytics Dashboard</h2>
+        
+        <!-- Wadah Kanan: Filter Tabs & Profil User -->
+        <div style="display: flex; align-items: center; gap: 20px;">
+          
+          <!-- TABEL TOGGLE FILTER -->
+          <div class="filter-tabs">
+            <button class="filter-btn active" onclick="setDashboardMode('all')">Semua</button>
+            <button class="filter-btn" onclick="setDashboardMode('siswa')">Siswa</button>
+            <button class="filter-btn" onclick="setDashboardMode('guru')">Guru</button>
+          </div>
+
+          <!-- PROFIL USER -->
+          <div id="user-profile" style="display: flex; align-items: center; gap: 10px; background: #2a2640; padding: 6px 15px; border-radius: 20px; border: 1px solid #4a4563;">
+            <div style="text-align: right; line-height: 1.2;">
+              <div id="display-nama" style="color: #fff; font-weight: bold; font-size: 0.9em;">Memuat...</div>
+              <div id="display-role" style="color: #1dd1a1; font-size: 0.75em; text-transform: uppercase;">Role</div>
+            </div>
+            <div style="width: 35px; height: 35px; background: #5f27cd; border-radius: 50%; display: flex; justify-content: center; align-items: center; color: white; font-size: 1.2em;">
+              👤
+            </div>
+          </div>
+
+        </div> <!-- Penutup Wadah Kanan -->
+        
       </div>
 
       <!-- ========================================== -->
