@@ -2640,8 +2640,7 @@ const TAB_PERMISSIONS = {
   ],
 
   'Guru Piket': [
-    'dashboard', 'data-siswa', 'data-guru',
-    'gate-pass', 'absensi-kelas', 'laporan-absensi'
+    'dashboard','gate-pass', 'absensi-kelas', 'laporan-absensi'
   ],
 
   'Guru Mata Pelajaran': [
