@@ -2649,7 +2649,12 @@ const TAB_PERMISSIONS = {
 
   'Kepala Sekolah': [
     'dashboard', 'laporan-absensi'
-  ]
+  ],
+
+  'Guru': [
+  'dashboard', 'absensi-kelas', 'laporan-absensi'
+  ],
+
 };
 
 function renderSidebarByRole() {
