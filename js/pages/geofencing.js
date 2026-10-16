@@ -3,8 +3,8 @@
 // FUNGSI: Keamanan Lokasi & Validasi Jarak dari Google Sheets
 // ==========================================
 
-// Masukkan URL Web App Google Apps Script Anda di sini!
-const API_LOKASI_URL = "https://script.google.com/macros/s/AKfycbxx3BLAOh7RZwF2vvukhDPhytbAPXfMP3H_RAJNeWgxLe2LNcCzojm-6HQ1kktPQMTQ/exec?action=getLocation";
+// Menggunakan SCRIPT_URL dari config.js agar dinamis dan mengarah ke getTerminalConfig
+const API_LOKASI_URL = CONFIG.SCRIPT_URL + "?action=getTerminalConfig";
 
 let KORDINAT_SEKOLAH = {}; // Akan diisi dari database
 
@@ -23,22 +23,25 @@ async function prosesAbsensiGPS() {
   }
 
   try {
-    // 1. Ambil kordinat dari Google Sheets
+    // 1. Ambil kordinat dari Google Sheets (Endpoint Baru)
     const response = await fetch(API_LOKASI_URL);
-    const dataServer = await response.json();
+    const resData = await response.json();
     
-    // Perbaikan: Ambil objek data utama jika terbungkus dalam `data`
-    const resData = dataServer.data || dataServer;
+    // Periksa jika respons dari server false/gagal
+    if (resData.success === false) {
+       throw new Error(resData.message || "Gagal mengambil data dari server.");
+    }
 
+    // Masukkan data ke variabel (Format sesuai Srv_Settings yang baru)
     KORDINAT_SEKOLAH = {
       latitude: parseFloat(resData.latitude),
       longitude: parseFloat(resData.longitude),
       radiusToleransi: parseInt(resData.radius)
     };
 
-    // Validasi pencegah NaN / undefined
-    if (isNaN(KORDINAT_SEKOLAH.latitude) || isNaN(KORDINAT_SEKOLAH.longitude) || isNaN(KORDINAT_SEKOLAH.radiusToleransi)) {
-      throw new Error("Data koordinat dari server tidak valid atau belum diatur di Dashboard Admin.");
+    // Validasi pencegah NaN / undefined / Kosong
+    if (isNaN(KORDINAT_SEKOLAH.latitude) || isNaN(KORDINAT_SEKOLAH.longitude) || isNaN(KORDINAT_SEKOLAH.radiusToleransi) || KORDINAT_SEKOLAH.latitude === 0) {
+      throw new Error("Data koordinat dari server masih kosong. Pastikan Sheet 'PengaturanLokasi' sudah terisi angka!");
     }
 
     // 2. Mulai cari sinyal GPS perangkat
