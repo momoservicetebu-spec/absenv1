@@ -1998,29 +1998,39 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // ============================================================================
-// FUNGSI: SIMPAN PENGATURAN LENGKAP (Versi GitHub / CORS Safe)
+// FUNGSI: SIMPAN PENGATURAN LENGKAP (Versi Final Sesuai Router.gs)
 // ============================================================================
 async function simpanPengaturanLengkap() {
     const btnSimpan = document.querySelector('button[onclick="simpanPengaturanLengkap()"]');
-    
-    // --- BARIS INI YANG SEBELUMNYA HILANG ---
     const textAsli = btnSimpan.innerHTML; 
     
     btnSimpan.innerHTML = '⏳ Menyimpan ke Database...';
     btnSimpan.disabled = true;
     btnSimpan.style.opacity = '0.7';
 
-    // 1. Ambil data sesi login dari localStorage
-    const userRole = localStorage.getItem('role') || sessionStorage.getItem('role') || 'Superadmin'; 
-    const userToken = localStorage.getItem('user_session') || sessionStorage.getItem('user_session');
-    const username = localStorage.getItem('username') || sessionStorage.getItem('username') || 'admin';
+    // 1. Ambil data sesi dari localStorage (memakai user_session sesuai browser Anda)
+    let userSessionData = localStorage.getItem('user_session') || sessionStorage.getItem('user_session');
+    let userRole = 'Superadmin';
+    let username = 'admin';
+
+    // Parse isi JSON dari user_session jika ada
+    if (userSessionData) {
+        try {
+            const parsedSession = JSON.parse(userSessionData);
+            userRole = parsedSession.role || 'Superadmin';
+            username = parsedSession.username || 'admin';
+        } catch (e) {
+            console.error("Gagal membaca session:", e);
+        }
+    }
 
     const payloadPengaturan = {
         action: "saveSettings", 
         
-        // 2. DATA AUTENTIKASI
-        role: userRole, 
-        token: userToken,
+        // 2. DATA AUTENTIKASI (KUNCI PERBAIKAN: roleAktif)
+        roleAktif: userRole,  // <--- Backend router.gs meminta "roleAktif"
+        role: userRole,       // Tetap dikirim untuk jaga-jaga
+        token: userSessionData,
         username: username,
 
         identitas: {
@@ -2049,37 +2059,26 @@ async function simpanPengaturanLengkap() {
         }
     };
 
-    // URL Web App Anda
     const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxx3BLAOh7RZwF2vvukhDPhytbAPXfMP3H_RAJNeWgxLe2LNcCzojm-6HQ1kktPQMTQ/exec';
-    const API_URL = `${WEB_APP_URL}?action=saveSettings`;
 
     try {
-        console.log("Mengirim data pengaturan:", payloadPengaturan);
-
-        const response = await fetch(API_URL, { 
+        const response = await fetch(WEB_APP_URL, { 
             method: 'POST',
-            headers: {
-                'Content-Type': 'text/plain;charset=utf-8' // KUNCI ANTI-ERROR CORS
-            },
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
             body: JSON.stringify(payloadPengaturan)
         });
 
         const result = await response.json();
 
-        // Mengakomodasi format response dari Apps Script
         if (result.success || result.status === 'success') {
             alert('✅ Pengaturan Sistem berhasil disimpan secara permanen!');
-            // Jika ada fungsi terapkanTemaLive, buka komentar di bawah ini:
-            // terapkanTemaLive(payloadPengaturan.tema.mode, payloadPengaturan.tema.aksen);
         } else {
             alert('❌ Gagal menyimpan pengaturan: ' + (result.message || 'Error tidak diketahui'));
         }
 
     } catch (error) {
-        console.error('Error Save Setting:', error);
         alert('⚠️ Terjadi kesalahan koneksi saat menyimpan pengaturan.');
     } finally {
-        // Mengembalikan tombol ke keadaan semula
         btnSimpan.innerHTML = textAsli;
         btnSimpan.disabled = false;
         btnSimpan.style.opacity = '1';
