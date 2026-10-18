@@ -2002,13 +2002,21 @@ document.addEventListener('DOMContentLoaded', () => {
 // ============================================================================
 async function simpanPengaturanLengkap() {
     const btnSimpan = document.querySelector('button[onclick="simpanPengaturanLengkap()"]');
-    const textAsli = btnSimpan.innerHTML;
-    btnSimpan.innerHTML = '⏳ Menyimpan ke Database...';
-    btnSimpan.disabled = true;
-    btnSimpan.style.opacity = '0.7';
+    // ... (kode visual tombol tetap sama)
+
+    // 1. Ambil data sesi login dari localStorage (Sesuaikan nama key-nya dengan yang Anda gunakan!)
+    const userRole = localStorage.getItem('role') || sessionStorage.getItem('role'); 
+    const userToken = localStorage.getItem('token') || sessionStorage.getItem('token');
+    const username = localStorage.getItem('username') || sessionStorage.getItem('username');
 
     const payloadPengaturan = {
-        action: "simpanPengaturan", // Tetap dipertahankan jika backend Anda butuh ini
+        action: "saveSettings", 
+        
+        // 2. TAMBAHKAN DATA AUTENTIKASI KE PAYLOAD
+        role: userRole, 
+        token: userToken,
+        username: username,
+
         identitas: {
             namaSekolah: document.getElementById('set-nama-sekolah').value,
             logoSekolah: document.getElementById('set-logo-sekolah').value,
