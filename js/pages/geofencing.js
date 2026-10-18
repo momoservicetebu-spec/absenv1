@@ -3,7 +3,8 @@
 // FUNGSI: Keamanan Lokasi & Validasi Jarak dari Google Sheets
 // ==========================================
 
-let KORDINAT_SEKOLAH = {}; // Akan diisi dari database
+// Cari baris ini di dalam fungsi prosesAbsensiGPS()
+const API_LOKASI_URL = CONFIG.SCRIPT_URL + "?action=getLocation";
 
 async function prosesAbsensiGPS() {
   const btn = document.getElementById("btnGps");
