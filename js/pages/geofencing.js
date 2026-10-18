@@ -3,9 +3,6 @@
 // FUNGSI: Keamanan Lokasi & Validasi Jarak dari Google Sheets
 // ==========================================
 
-// Menggunakan SCRIPT_URL dari config.js agar dinamis dan mengarah ke getTerminalConfig
-const API_LOKASI_URL = CONFIG.SCRIPT_URL + "?action=getTerminalConfig";
-
 let KORDINAT_SEKOLAH = {}; // Akan diisi dari database
 
 async function prosesAbsensiGPS() {
@@ -23,6 +20,10 @@ async function prosesAbsensiGPS() {
   }
 
   try {
+    // ---> PERBAIKAN: Pindahkan URL ke SINI (Di dalam fungsi) <---
+    // URL baru akan dibuat saat tombol benar-benar diklik
+    const API_LOKASI_URL = CONFIG.SCRIPT_URL + "?action=getTerminalConfig";
+    
     // 1. Ambil kordinat dari Google Sheets (Endpoint Baru)
     const response = await fetch(API_LOKASI_URL);
     const resData = await response.json();
