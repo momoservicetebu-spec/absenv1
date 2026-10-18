@@ -2012,7 +2012,7 @@ async function simpanPengaturanLengkap() {
 
     // 1. Ambil data sesi login dari localStorage
     const userRole = localStorage.getItem('role') || sessionStorage.getItem('role') || 'Superadmin'; 
-    const userToken = localStorage.getItem('token') || sessionStorage.getItem('token');
+    const userToken = localStorage.getItem('user_session') || sessionStorage.getItem('user_session');
     const username = localStorage.getItem('username') || sessionStorage.getItem('username') || 'admin';
 
     const payloadPengaturan = {
