@@ -2002,17 +2002,23 @@ document.addEventListener('DOMContentLoaded', () => {
 // ============================================================================
 async function simpanPengaturanLengkap() {
     const btnSimpan = document.querySelector('button[onclick="simpanPengaturanLengkap()"]');
-    // ... (kode visual tombol tetap sama)
+    
+    // --- BARIS INI YANG SEBELUMNYA HILANG ---
+    const textAsli = btnSimpan.innerHTML; 
+    
+    btnSimpan.innerHTML = '⏳ Menyimpan ke Database...';
+    btnSimpan.disabled = true;
+    btnSimpan.style.opacity = '0.7';
 
-    // 1. Ambil data sesi login dari localStorage (Sesuaikan nama key-nya dengan yang Anda gunakan!)
-    const userRole = localStorage.getItem('role') || sessionStorage.getItem('role'); 
+    // 1. Ambil data sesi login dari localStorage
+    const userRole = localStorage.getItem('role') || sessionStorage.getItem('role') || 'Superadmin'; 
     const userToken = localStorage.getItem('token') || sessionStorage.getItem('token');
-    const username = localStorage.getItem('username') || sessionStorage.getItem('username');
+    const username = localStorage.getItem('username') || sessionStorage.getItem('username') || 'admin';
 
     const payloadPengaturan = {
         action: "saveSettings", 
         
-        // 2. TAMBAHKAN DATA AUTENTIKASI KE PAYLOAD
+        // 2. DATA AUTENTIKASI
         role: userRole, 
         token: userToken,
         username: username,
@@ -2060,10 +2066,11 @@ async function simpanPengaturanLengkap() {
 
         const result = await response.json();
 
-        // Mengakomodasi format response dari Apps Script (success atau status='success')
+        // Mengakomodasi format response dari Apps Script
         if (result.success || result.status === 'success') {
             alert('✅ Pengaturan Sistem berhasil disimpan secara permanen!');
-            terapkanTemaLive(payloadPengaturan.tema.mode, payloadPengaturan.tema.aksen);
+            // Jika ada fungsi terapkanTemaLive, buka komentar di bawah ini:
+            // terapkanTemaLive(payloadPengaturan.tema.mode, payloadPengaturan.tema.aksen);
         } else {
             alert('❌ Gagal menyimpan pengaturan: ' + (result.message || 'Error tidak diketahui'));
         }
@@ -2072,6 +2079,7 @@ async function simpanPengaturanLengkap() {
         console.error('Error Save Setting:', error);
         alert('⚠️ Terjadi kesalahan koneksi saat menyimpan pengaturan.');
     } finally {
+        // Mengembalikan tombol ke keadaan semula
         btnSimpan.innerHTML = textAsli;
         btnSimpan.disabled = false;
         btnSimpan.style.opacity = '1';
