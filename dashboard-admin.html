@@ -1270,7 +1270,7 @@
                 </div>
             </div>
 
-            <!-- KARTU 2: TARGET PENERIMA & PENGATURAN -->
+           <!-- KARTU 2: TARGET PENERIMA & PENGATURAN -->
             <div style="background-color: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 24px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.3);">
                 <h3 style="font-size: 16px; font-weight: 600; color: #f3f4f6; margin: 0 0 20px 0;">Pengaturan Penerima & Pemicu</h3>
                 
@@ -1284,6 +1284,11 @@
                     <div style="display: flex; align-items: center; margin-bottom: 10px;">
                         <input type="checkbox" id="waSiswa" style="width: 16px; height: 16px; accent-color: #10b981; cursor: pointer;">
                         <label for="waSiswa" style="font-size: 14px; color: #e5e7eb; margin-left: 8px; cursor: pointer;">Nomor Siswa (Pribadi)</label>
+                    </div>
+                    <!-- OPSI WA GURU PRIBADI -->
+                    <div style="display: flex; align-items: center; margin-bottom: 10px;">
+                        <input type="checkbox" id="waGuruPribadi" checked style="width: 16px; height: 16px; accent-color: #10b981; cursor: pointer;">
+                        <label for="waGuruPribadi" style="font-size: 14px; color: #34d399; font-weight: 600; margin-left: 8px; cursor: pointer;">Guru (Nomor Pribadi)</label>
                     </div>
                     <div style="display: flex; align-items: center;">
                         <input type="checkbox" id="waGuru" checked style="width: 16px; height: 16px; accent-color: #10b981; cursor: pointer;">
@@ -1314,7 +1319,7 @@
                 </button>
             </div>
 
-            <!-- KARTU 3: TEMPLATE PESAN -->
+            <!-- KARTU 3: TEMPLATE PESAN WA -->
             <div style="background-color: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 24px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.3); grid-column: 1 / -1;">
                 <h3 style="font-size: 16px; font-weight: 600; color: #f3f4f6; margin: 0 0 20px 0;">Template Pesan WA</h3>
                 
@@ -1322,10 +1327,11 @@
                     <div style="flex: 1; min-width: 250px;">
                         <label style="display: block; font-size: 14px; font-weight: 500; color: #d1d5db; margin-bottom: 8px;">Pilih Jenis Template</label>
                         <select id="waTemplateType" onchange="loadSelectedTemplate()" style="width: 100%; padding: 10px; background-color: #0f172a; border: 1px solid #334155; border-radius: 6px; color: #f3f4f6; margin-bottom: 16px; outline: none;">
-                            <option value="masuk">Absensi Masuk (Hadir)</option>
-                            <option value="pulang">Absensi Pulang</option>
-                            <option value="terlambat">Peringatan Keterlambatan</option>
-                            <option value="alpa">Pemberitahuan Alpa</option>
+                            <option value="masuk">Absensi Siswa (Masuk)</option>
+                            <option value="pulang">Absensi Siswa (Pulang)</option>
+                            <option value="terlambat">Peringatan Keterlambatan Siswa</option>
+                            <option value="alpa">Pemberitahuan Alpa Siswa</option>
+                            <option value="guru_masuk">Absensi Guru (Masuk / Pulang)</option>
                         </select>
 
                         <label style="display: block; font-size: 14px; font-weight: 500; color: #d1d5db; margin-bottom: 8px;">Isi Pesan</label>
@@ -1337,11 +1343,10 @@
                         <p style="font-size: 13px; color: #9ca3af; margin-bottom: 12px; line-height: 1.5;">Gunakan kode di bawah ini di dalam template pesan Anda. Sistem akan mengubahnya otomatis.</p>
                         
                         <ul style="list-style: none; padding: 0; margin: 0; font-size: 13px; color: #cbd5e1; display: grid; gap: 8px;">
-                            <li><code style="background-color: #0f172a; padding: 2px 6px; border-radius: 4px; color: #34d399;">[nama_siswa]</code> : Nama lengkap siswa</li>
-                            <li><code style="background-color: #0f172a; padding: 2px 6px; border-radius: 4px; color: #34d399;">[nis]</code> : Nomor Induk Siswa</li>
+                            <li><code style="background-color: #0f172a; padding: 2px 6px; border-radius: 4px; color: #34d399;">[nama_siswa] / [nama_guru]</code> : Nama pengguna</li>
+                            <li><code style="background-color: #0f172a; padding: 2px 6px; border-radius: 4px; color: #34d399;">[nis] / [nip]</code> : Nomor Induk</li>
                             <li><code style="background-color: #0f172a; padding: 2px 6px; border-radius: 4px; color: #34d399;">[waktu]</code> : Jam absensi (HH:MM)</li>
                             <li><code style="background-color: #0f172a; padding: 2px 6px; border-radius: 4px; color: #34d399;">[tanggal]</code> : Tanggal absensi</li>
-                            <li><code style="background-color: #0f172a; padding: 2px 6px; border-radius: 4px; color: #34d399;">[lokasi_gate]</code> : Nama gerbang/gate</li>
                         </ul>
                     </div>
                 </div>

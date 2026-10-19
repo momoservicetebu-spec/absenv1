@@ -2431,6 +2431,7 @@ async function saveWaSettings() {
     penerima: {
       orangTua: document.getElementById("waOrangTua").checked,
       siswa: document.getElementById("waSiswa").checked,
+      guruPribadi: document.getElementById("waGuruPribadi") ? document.getElementById("waGuruPribadi").checked : true,
       guru: document.getElementById("waGuru").checked
     },
     pemicu: {
@@ -2458,14 +2459,16 @@ function loadSelectedTemplate() {
   const textarea = document.getElementById("waTemplateMessage");
 
   const templates = {
-    masuk: "Halo Bapak/Ibu Wali Murid,\nKami informasikan bahwa siswa an. *[nama_siswa]* telah melakukan absensi MASUK pada *[waktu]* di lokasi *[lokasi_gate]*.\n\nTerima Kasih.",
+    masuk: "Halo Bapak/Ibu Wali Murid,\nKami informasikan bahwa siswa an. *[nama_siswa]* telah melakukan absensi MASUK pada *[waktu]*.\n\nTerima Kasih.",
     pulang: "Halo Bapak/Ibu Wali Murid,\nKami informasikan bahwa siswa an. *[nama_siswa]* telah melakukan absensi PULANG pada *[waktu]*.\n\nTerima Kasih.",
     terlambat: "PEMBERITAHUAN!\nBapak/Ibu, siswa an. *[nama_siswa]* tercatat TERLAMBAT masuk sekolah pada *[waktu]*. Mohon kerjasamanya agar tidak terulang kembali.",
-    alpa: "INFO SEKOLAH:\nBapak/Ibu, siswa an. *[nama_siswa]* hari ini tanggal *[tanggal]* tidak hadir tanpa keterangan (ALPA). Mohon konfirmasinya ke pihak sekolah."
+    alpa: "INFO SEKOLAH:\nBapak/Ibu, siswa an. *[nama_siswa]* hari ini tanggal *[tanggal]* tidak hadir tanpa keterangan (ALPA). Mohon konfirmasinya ke pihak sekolah.",
+    guru_masuk: "Yth. Bapak/Ibu *[nama_guru]*,\nNIP/ID: *[nip]*\n\nAbsensi *[status]* Anda telah berhasil dicatat pada pukul *[waktu]*.\n\nTerima kasih atas dedikasi Anda hari ini."
   };
 
   textarea.value = templates[type] || "";
 }
+
 
 /**
  * 4. Simpan Template Pesan
