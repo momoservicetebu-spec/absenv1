@@ -92,30 +92,39 @@ function bukaKunciMetodeInput() {
 // 1. Mengunduh data referensi wajah sesuai Role (Face_Guru atau Face_Siswa)
 async function loadFaceDatabase() {
   const activeRole = (typeof TERMINAL_ROLE !== 'undefined') ? TERMINAL_ROLE : "SISWA";
-  console.log(`Mencoba mengunduh database wajah khusus role: ${activeRole}...`);
+  console.log(`Mengunduh database wajah untuk role: ${activeRole}...`);
   
-  // Kirim parameter role ke backend agar mengambil dari Face_Guru / Face_Siswa
   const result = await fetchAPI("getFaceReferences", { role: activeRole });
   
-  databaseWajah = []; // Reset database lokal
-  if (result.success && Array.isArray(result.data)) {
+  databaseWajah = []; 
+  if (result && result.success && Array.isArray(result.data)) {
     result.data.forEach(item => {
+      // Prioritas 1: Ambil langsung berdasarkan nama kolom presisi di Google Sheet
+      const rawUserID = item.UserID || item.user_id || item.NIP || item.NIS;
+      const rawEmbed = item['EmbeddingData (JSON)'] || item.EmbeddingData || item.descriptor;
+
+      // Fallback pencarian kunci (memastikan membuang 'FaceID')
       const keys = Object.keys(item);
-      const embedKey = keys.find(k => k.toLowerCase().includes('embed') || k.toLowerCase().includes('vektor') || k.toLowerCase().includes('face'));
-      const userKey = keys.find(k => k.toLowerCase().includes('id') || k.toLowerCase().includes('user') || k.toLowerCase().includes('nip') || k.toLowerCase().includes('nis'));
-      
-      if(embedKey && userKey) {
-        const rawEmbed = item[embedKey];
-        const userID = String(item[userKey]).trim();
-        if (rawEmbed && rawEmbed !== "undefined") {
-          try {
-            const parsed = typeof rawEmbed === 'string' ? JSON.parse(rawEmbed) : rawEmbed;
-            const descriptor = new Float32Array(parsed);
-            databaseWajah.push({ id: userID, descriptor: descriptor });
-          } catch(e){}
+      const userKey = rawUserID ? null : keys.find(k => {
+        const lower = k.toLowerCase();
+        return (lower.includes('user') || lower.includes('nip') || lower.includes('nis')) && !lower.includes('face');
+      });
+      const embedKey = rawEmbed ? null : keys.find(k => k.toLowerCase().includes('embed') || k.toLowerCase().includes('vektor'));
+
+      const finalUserID = String(rawUserID || (userKey ? item[userKey] : "")).trim();
+      const finalEmbed = rawEmbed || (embedKey ? item[embedKey] : null);
+
+      if (finalUserID && finalEmbed && finalEmbed !== "undefined") {
+        try {
+          const parsed = typeof finalEmbed === 'string' ? JSON.parse(finalEmbed) : finalEmbed;
+          const descriptor = new Float32Array(parsed);
+          databaseWajah.push({ id: finalUserID, descriptor: descriptor });
+        } catch(e) {
+          console.error("Gagal memproses data vektor wajah ID:", finalUserID, e);
         }
       }
     });
+    console.log(`Database Wajah Loaded (${activeRole}):`, databaseWajah);
   }
 }
 
