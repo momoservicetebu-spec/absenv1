@@ -172,10 +172,10 @@ if (nfcInput) {
 
 // 4. Verifikasi Wajah AI
 function startVerificationState(userID) {
-  if(isProcessing) return;
+  if (isProcessing) return;
   isProcessing = true;
 
-  const targetUser = databaseWajah.find(u => u.id === userID);
+  const targetUser = databaseWajah.find(u => String(u.id).trim() === String(userID).trim());
   
   if (!targetUser) {
     showAlert(`Data wajah untuk ID ${userID} belum didaftarkan.`, "#e74c3c");
@@ -184,21 +184,22 @@ function startVerificationState(userID) {
   }
 
   currentMFAUser = targetUser;
-  if(standbyUI) standbyUI.style.display = 'none';
-  if(videoContainer) videoContainer.style.display = 'flex';
-  statusText.innerText = `Verifikasi Wajah: ${userID}`;
+  if (standbyUI) standbyUI.style.display = 'none';
+  if (videoContainer) videoContainer.style.display = 'flex';
+  
+  statusText.innerText = `Pindai Wajah: ${userID}...`;
   statusText.style.color = "#3498db";
 
   let canvas = document.querySelector('canvas');
-  if(!canvas){
+  if (!canvas) {
     canvas = faceapi.createCanvasFromMedia(video);
     videoContainer.append(canvas);
   }
-  const displaySize = { width: video.width, height: video.height };
+  const displaySize = { width: video.width || 640, height: video.height || 480 };
   faceapi.matchDimensions(canvas, displaySize);
 
   verificationInterval = setInterval(async () => {
-    const detections = await faceapi.detectSingleFace(video, new faceapi.TinyFaceDetectorOptions())
+    const detections = await faceapi.detectSingleFace(video, new faceapi.TinyFaceDetectorOptions({ inputSize: 320, scoreThreshold: 0.5 }))
                                     .withFaceLandmarks()
                                     .withFaceDescriptor();
     
@@ -208,23 +209,36 @@ function startVerificationState(userID) {
       const resized = faceapi.resizeResults(detections, displaySize);
       faceapi.draw.drawDetections(canvas, resized);
 
+      // Hitung tingkat kemiripan (Distance)
       const distance = faceapi.euclideanDistance(detections.descriptor, currentMFAUser.descriptor);
-      
-      if (distance < 0.5) { 
+      console.log(`[AI Matching] ID: ${userID} | Jarak: ${distance.toFixed(3)} (Target: < 0.600)`);
+
+      // 0.6 adalah standar ideal face-api.js
+      if (distance < 0.6) { 
         clearInterval(verificationInterval);
+        verificationInterval = null;
         canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
+        
+        statusText.innerText = `Wajah Cocok! (${( (1 - distance) * 100 ).toFixed(0)}%)`;
+        statusText.style.color = "#2ecc71";
+        
+        // Eksekusi Absen
         executeAttendance(currentMFAUser.id);
+      } else {
+        statusText.innerText = `Membandingkan... (${distance.toFixed(2)})`;
       }
     }
   }, 200);
 
+  // Batas Waktu Pemindaian (12 Detik)
   setTimeout(() => {
-    if(isProcessing && verificationInterval) {
+    if (isProcessing && verificationInterval) {
       clearInterval(verificationInterval);
-      showAlert(`Wajah tidak cocok dengan ID ${userID}.`, "#e74c3c");
+      verificationInterval = null;
+      showAlert(`Wajah tidak cocok / tidak terdeteksi untuk ID ${userID}.`, "#e74c3c");
       setTimeout(resetToStandby, 3000);
     }
-  }, 10000);
+  }, 12000);
 }
 
 // 5. Eksekusi Pengiriman Absensi ke Server
