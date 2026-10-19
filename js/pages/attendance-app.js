@@ -12,19 +12,19 @@ let databaseWajah = [];
 let currentMFAUser = null; 
 let verificationInterval = null;
 let isProcessing = false;
-let modeAbsensiSaatIni = "Tap Kartu + Scan Wajah (MFA)"; // Default
+let modeAbsensiSaatIni = "rfid"; // Default fallback
 
-// 1. Inisialisasi AI dan Pengaturan secara bersamaan
+// 1. Inisialisasi AI & Pengaturan Terminal
 Promise.all([
   faceapi.nets.tinyFaceDetector.loadFromUri(CONFIG.MODEL_URL),
   faceapi.nets.faceLandmark68Net.loadFromUri(CONFIG.MODEL_URL),
   faceapi.nets.faceRecognitionNet.loadFromUri(CONFIG.MODEL_URL),
   loadFaceDatabase(),
-  terapkanPengaturanTerminal() // Panggil pengaturan dari database
+  terapkanPengaturanTerminal()
 ]).then(() => {
   startVideo();
 }).catch(err => {
-  statusText.innerText = "Gagal memuat AI atau Konfigurasi";
+  statusText.innerText = "Gagal memuat AI / Konfigurasi";
   console.error(err);
 });
 
@@ -34,53 +34,54 @@ function startVideo() {
     .catch(err => console.error(err));
 }
 
-// 2. Fungsi Mengambil Pengaturan MFA dari Backend
+// 2. Ambil Pengaturan Langsung dari Database Sheet (Key-Value)
 async function terapkanPengaturanTerminal() {
     statusText.innerText = "Mengambil konfigurasi terminal...";
     const result = await fetchAPI("getSettings"); 
 
     if (result && result.success) {
-        const config = result.data;
+        const config = result.data || {};
+        const activeRole = (typeof TERMINAL_ROLE !== 'undefined') ? TERMINAL_ROLE : "SISWA";
         
-        // Cek terminal mana yang sedang terbuka berdasarkan penanda di HTML
-        if (typeof TERMINAL_ROLE !== 'undefined') {
-            if (TERMINAL_ROLE === "SISWA") {
-                modeAbsensiSaatIni = config.keamanan.mfaSiswa;
-            } else if (TERMINAL_ROLE === "GURU") {
-                modeAbsensiSaatIni = config.keamanan.mfaGuru;
-            }
+        // Baca nilai MFA_STUDENT / MFA_TEACHER dari Sheet
+        if (activeRole === "SISWA") {
+            modeAbsensiSaatIni = config.MFA_STUDENT || config.keamanan?.mfaSiswa || "rfid";
+        } else if (activeRole === "GURU") {
+            modeAbsensiSaatIni = config.MFA_TEACHER || config.keamanan?.mfaGuru || "rfid";
         }
 
-        // Terapkan blokir Fake GPS jika aktif
-        const antiFakeGps = config.keamanan.antiFakeGps;
+        // Baca ANTI_FAKE_GPS dari Sheet
+        const antiFakeVal = config.ANTI_FAKE_GPS !== undefined ? config.ANTI_FAKE_GPS : config.keamanan?.antiFakeGps;
+        const isAntiFakeGpsActive = String(antiFakeVal).toUpperCase() === "TRUE" || antiFakeVal === true;
+        
         const boxGps = document.getElementById("btnGps");
         const statusGps = document.getElementById("gpsStatusText");
 
-        if (antiFakeGps === true || String(antiFakeGps) === "true") {
+        if (isAntiFakeGpsActive) {
             if(boxGps) boxGps.style.display = "inline-block";
             if(statusGps) statusGps.style.display = "block";
         } else {
             if(boxGps) boxGps.style.display = "none";
             if(statusGps) statusGps.style.display = "none";
-            bukaKunciMetodeInput(); // Langsung buka input jika GPS mati
+            bukaKunciMetodeInput(); 
         }
 
-        statusText.innerText = `Sistem Siap (${TERMINAL_ROLE})`;
+        statusText.innerText = `Sistem Siap (${activeRole})`;
         statusText.style.color = "#2ecc71";
     } else {
-        console.warn("Gagal memuat pengaturan, menggunakan default.");
+        console.warn("Gagal memuat API settings, menggunakan mode fallback.");
         bukaKunciMetodeInput();
     }
 }
 
 function bukaKunciMetodeInput() {
-    if (modeAbsensiSaatIni === "Hanya Scan Wajah (Face Recognition)") {
-        // Jika mode hanya wajah, sembunyikan NFC dan langsung jalankan kamera
-        standbyUI.style.display = 'none';
-        videoContainer.style.display = 'flex';
-        // (Opsional: Tambahkan logika deteksi wajah massal di sini jika diperlukan)
+    const modeLower = String(modeAbsensiSaatIni).toLowerCase();
+    
+    // Jika pengaturannya murni hanya wajah tanpa NFC
+    if (modeLower === "face" || modeLower.includes("hanya scan wajah")) {
+        if(standbyUI) standbyUI.style.display = 'none';
+        if(videoContainer) videoContainer.style.display = 'flex';
     } else {
-        // Jika butuh NFC/Barcode sebagai faktor pertama
         if (nfcInput) {
             nfcInput.disabled = false;
             nfcInput.focus();
@@ -113,45 +114,49 @@ async function loadFaceDatabase() {
   }
 }
 
-// ========================================================
-// EVENT LISTENER UNTUK INPUT KARTU NFC / BARCODE
-// ========================================================
-nfcInput.addEventListener('keypress', async function (e) {
-  if (e.key === 'Enter') {
-    const rfidNumber = this.value.trim();
-    this.value = ''; 
-    
-    if (rfidNumber !== '') {
-      if (isProcessing) return;
-      isProcessing = true;
+// 3. Listener Input Kartu NFC / Scan Barcode
+if (nfcInput) {
+  nfcInput.addEventListener('keypress', async function (e) {
+    if (e.key === 'Enter') {
+      const rfidNumber = this.value.trim();
+      this.value = ''; 
       
-      statusText.innerText = "Memverifikasi ID...";
-      statusText.style.color = "orange";
+      if (rfidNumber !== '') {
+        if (isProcessing) return;
+        isProcessing = true;
+        
+        const activeRole = (typeof TERMINAL_ROLE !== 'undefined') ? TERMINAL_ROLE : "SISWA";
+        statusText.innerText = "Memverifikasi ID...";
+        statusText.style.color = "orange";
 
-      const result = await fetchAPI("verifikasiRFID", { rfid: rfidNumber, role: TERMINAL_ROLE });
-      
-      if (result.success) {
-         const userID = result.data.userId || result.data.id; 
-         
-         // Jika aturan mengharuskan pakai Wajah
-         if (modeAbsensiSaatIni.includes("Scan Wajah")) {
-             statusText.innerText = `ID Dikenali! Memulai verifikasi wajah...`;
-             isProcessing = false; 
-             startVerificationState(userID); 
-         } 
-         // Jika aturan HANYA Tap Kartu (Tanpa MFA Wajah)
-         else {
-             executeAttendance(userID);
-         }
-         
-      } else {
-         showAlert(`❌ ID (${rfidNumber}) tidak terdaftar untuk ${TERMINAL_ROLE}.`, "#e74c3c");
-         setTimeout(resetToStandby, 3000);
+        const result = await fetchAPI("verifikasiRFID", { rfid: rfidNumber, role: activeRole });
+        
+        if (result.success) {
+           const userID = result.data.userId || result.data.id; 
+           const modeLower = String(modeAbsensiSaatIni).toLowerCase();
+           
+           // Cek apakah butuh verifikasi wajah (MFA / rfid_face / scan wajah)
+           const requiresFace = modeLower.includes("wajah") || modeLower.includes("face") || modeLower === "rfid_face" || modeLower === "mfa";
+
+           if (requiresFace) {
+               statusText.innerText = `ID Dikenali (${userID})! Memulai verifikasi wajah...`;
+               isProcessing = false; 
+               startVerificationState(userID); 
+           } else {
+               // Jika setting di Sheet "rfid", langsung catat absen
+               executeAttendance(userID);
+           }
+           
+        } else {
+           showAlert(`❌ ID (${rfidNumber}) tidak terdaftar untuk ${activeRole}.`, "#e74c3c");
+           setTimeout(resetToStandby, 3000);
+        }
       }
     }
-  }
-});
+  });
+}
 
+// 4. Verifikasi Wajah AI
 function startVerificationState(userID) {
   if(isProcessing) return;
   isProcessing = true;
@@ -159,14 +164,14 @@ function startVerificationState(userID) {
   const targetUser = databaseWajah.find(u => u.id === userID);
   
   if (!targetUser) {
-    showAlert(`Data wajah ID ${userID} belum didaftarkan di sistem.`, "#e74c3c");
+    showAlert(`Data wajah untuk ID ${userID} belum didaftarkan.`, "#e74c3c");
     setTimeout(resetToStandby, 3000);
     return;
   }
 
   currentMFAUser = targetUser;
-  standbyUI.style.display = 'none';
-  videoContainer.style.display = 'flex';
+  if(standbyUI) standbyUI.style.display = 'none';
+  if(videoContainer) videoContainer.style.display = 'flex';
   statusText.innerText = `Verifikasi Wajah: ${userID}`;
   statusText.style.color = "#3498db";
 
@@ -202,19 +207,22 @@ function startVerificationState(userID) {
   setTimeout(() => {
     if(isProcessing && verificationInterval) {
       clearInterval(verificationInterval);
-      showAlert(`Wajah tidak cocok dengan pemilik ID ${userID}.`, "#e74c3c");
+      showAlert(`Wajah tidak cocok dengan ID ${userID}.`, "#e74c3c");
       setTimeout(resetToStandby, 3000);
     }
   }, 10000);
 }
 
+// 5. Eksekusi Pengiriman Absensi ke Server
 async function executeAttendance(userID) {
   showAlert(`Mencatat Absensi...`, "#f1c40f");
   statusText.innerText = "Mengirim Data...";
 
+  const activeRole = (typeof TERMINAL_ROLE !== 'undefined') ? TERMINAL_ROLE : "SISWA";
+
   const result = await fetchAPI("submitAutoAttendance", {
     userId: userID,
-    role: TERMINAL_ROLE, // Otomatis menyesuaikan apakah GURU atau SISWA
+    role: activeRole,
     checkType: "IN"
   });
 
@@ -227,8 +235,9 @@ async function executeAttendance(userID) {
   setTimeout(resetToStandby, 3000);
 }
 
+// 6. Reset UI Kembali ke Standby
 function resetToStandby() {
-  clearInterval(verificationInterval);
+  if (verificationInterval) clearInterval(verificationInterval);
   verificationInterval = null;
   currentMFAUser = null;
   isProcessing = false;
@@ -238,13 +247,15 @@ function resetToStandby() {
 
   hideAlert();
   
-  // Kembalikan UI berdasarkan mode saat ini
-  if (modeAbsensiSaatIni !== "Hanya Scan Wajah (Face Recognition)") {
-      videoContainer.style.display = 'none';
-      standbyUI.style.display = 'block';
+  const modeLower = String(modeAbsensiSaatIni).toLowerCase();
+  const activeRole = (typeof TERMINAL_ROLE !== 'undefined') ? TERMINAL_ROLE : "SISWA";
+
+  if (modeLower !== "face" && !modeLower.includes("hanya scan wajah")) {
+      if(videoContainer) videoContainer.style.display = 'none';
+      if(standbyUI) standbyUI.style.display = 'block';
   }
   
-  statusText.innerText = `Sistem Siap (${TERMINAL_ROLE})`;
+  statusText.innerText = `Sistem Siap (${activeRole})`;
   statusText.style.color = "#2ecc71";
   
   if(nfcInput && !nfcInput.disabled) {
@@ -253,8 +264,11 @@ function resetToStandby() {
 }
 
 function showAlert(text, color) {
+  if (!alertBox) return;
   alertBox.style.display = "block";
   alertBox.style.backgroundColor = color;
   alertBox.innerText = text;
 }
-function hideAlert() { alertBox.style.display = "none"; }
+function hideAlert() { 
+  if (alertBox) alertBox.style.display = "none"; 
+}
