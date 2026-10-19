@@ -67,7 +67,7 @@ function berhasilDeteksi(position) {
   const btn = document.getElementById("btnGps");
   const gpsStatus = document.getElementById("gpsStatusText");
 
-  if (akurasi > 100) {
+  if (akurasi > 1000) {
     alert(`Sinyal GPS lemah atau tidak akurat (${akurasi.toFixed(0)} meter). Pastikan sinyal stabil.`);
     btn.innerText = "📍 Ulangi Verifikasi Lokasi";
     btn.disabled = false;
