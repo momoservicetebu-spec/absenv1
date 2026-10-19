@@ -3,10 +3,7 @@
 // FUNGSI: Keamanan Lokasi & Validasi Jarak dari Google Sheets
 // ==========================================
 
-// Menggunakan SCRIPT_URL dari config.js agar dinamis dan mengarah ke getTerminalConfig
-const API_LOKASI_URL = CONFIG.SCRIPT_URL + "?action=getTerminalConfig";
-
-let KORDINAT_SEKOLAH = {}; // Akan diisi dari database
+let KORDINAT_SEKOLAH = {}; // Wajib ada di luar agar bisa dibaca oleh semua fungsi
 
 async function prosesAbsensiGPS() {
   const btn = document.getElementById("btnGps");
@@ -23,7 +20,10 @@ async function prosesAbsensiGPS() {
   }
 
   try {
-    // 1. Ambil kordinat dari Google Sheets (Endpoint Baru)
+    // ---> PERBAIKAN: Hanya deklarasikan SATU KALI dengan action yang benar
+    const API_LOKASI_URL = CONFIG.SCRIPT_URL + "?action=getLocation";
+    
+    // 1. Ambil kordinat dari Google Sheets
     const response = await fetch(API_LOKASI_URL);
     const resData = await response.json();
     
@@ -32,11 +32,14 @@ async function prosesAbsensiGPS() {
        throw new Error(resData.message || "Gagal mengambil data dari server.");
     }
 
-    // Masukkan data ke variabel (Format sesuai Srv_Settings yang baru)
+    // Mengambil data spesifik dari response JSON (resData.data)
+    const dataLokasi = resData.data || resData;
+
+    // Masukkan data ke variabel
     KORDINAT_SEKOLAH = {
-      latitude: parseFloat(resData.latitude),
-      longitude: parseFloat(resData.longitude),
-      radiusToleransi: parseInt(resData.radius)
+      latitude: parseFloat(dataLokasi.latitude),
+      longitude: parseFloat(dataLokasi.longitude),
+      radiusToleransi: parseInt(dataLokasi.radius)
     };
 
     // Validasi pencegah NaN / undefined / Kosong
