@@ -5,7 +5,6 @@ const video = document.getElementById('video');
 const videoContainer = document.getElementById('video-container');
 const standbyUI = document.getElementById('standby-ui');
 const nfcInput = document.getElementById('nfcSimulator');
-const btnFingerprint = document.getElementById('btnFingerprint');
 const statusText = document.getElementById('statusText');
 const alertBox = document.getElementById('alertBox');
 
@@ -13,21 +12,19 @@ let databaseWajah = [];
 let currentMFAUser = null; 
 let verificationInterval = null;
 let isProcessing = false;
+let modeAbsensiSaatIni = "Tap Kartu + Scan Wajah (MFA)"; // Default
 
+// 1. Inisialisasi AI dan Pengaturan secara bersamaan
 Promise.all([
   faceapi.nets.tinyFaceDetector.loadFromUri(CONFIG.MODEL_URL),
   faceapi.nets.faceLandmark68Net.loadFromUri(CONFIG.MODEL_URL),
   faceapi.nets.faceRecognitionNet.loadFromUri(CONFIG.MODEL_URL),
-  loadFaceDatabase()
+  loadFaceDatabase(),
+  terapkanPengaturanTerminal() // Panggil pengaturan dari database
 ]).then(() => {
-  statusText.innerText = "Sistem Siap";
-  statusText.style.color = "green";
-  nfcInput.disabled = false;
-  btnFingerprint.disabled = false;
-  nfcInput.focus();
   startVideo();
 }).catch(err => {
-  statusText.innerText = "Gagal memuat AI";
+  statusText.innerText = "Gagal memuat AI atau Konfigurasi";
   console.error(err);
 });
 
@@ -35,6 +32,60 @@ function startVideo() {
   navigator.mediaDevices.getUserMedia({ video: true })
     .then(stream => { video.srcObject = stream; })
     .catch(err => console.error(err));
+}
+
+// 2. Fungsi Mengambil Pengaturan MFA dari Backend
+async function terapkanPengaturanTerminal() {
+    statusText.innerText = "Mengambil konfigurasi terminal...";
+    const result = await fetchAPI("getSettings"); 
+
+    if (result && result.success) {
+        const config = result.data;
+        
+        // Cek terminal mana yang sedang terbuka berdasarkan penanda di HTML
+        if (typeof TERMINAL_ROLE !== 'undefined') {
+            if (TERMINAL_ROLE === "SISWA") {
+                modeAbsensiSaatIni = config.keamanan.mfaSiswa;
+            } else if (TERMINAL_ROLE === "GURU") {
+                modeAbsensiSaatIni = config.keamanan.mfaGuru;
+            }
+        }
+
+        // Terapkan blokir Fake GPS jika aktif
+        const antiFakeGps = config.keamanan.antiFakeGps;
+        const boxGps = document.getElementById("btnGps");
+        const statusGps = document.getElementById("gpsStatusText");
+
+        if (antiFakeGps === true || String(antiFakeGps) === "true") {
+            if(boxGps) boxGps.style.display = "inline-block";
+            if(statusGps) statusGps.style.display = "block";
+        } else {
+            if(boxGps) boxGps.style.display = "none";
+            if(statusGps) statusGps.style.display = "none";
+            bukaKunciMetodeInput(); // Langsung buka input jika GPS mati
+        }
+
+        statusText.innerText = `Sistem Siap (${TERMINAL_ROLE})`;
+        statusText.style.color = "#2ecc71";
+    } else {
+        console.warn("Gagal memuat pengaturan, menggunakan default.");
+        bukaKunciMetodeInput();
+    }
+}
+
+function bukaKunciMetodeInput() {
+    if (modeAbsensiSaatIni === "Hanya Scan Wajah (Face Recognition)") {
+        // Jika mode hanya wajah, sembunyikan NFC dan langsung jalankan kamera
+        standbyUI.style.display = 'none';
+        videoContainer.style.display = 'flex';
+        // (Opsional: Tambahkan logika deteksi wajah massal di sini jika diperlukan)
+    } else {
+        // Jika butuh NFC/Barcode sebagai faktor pertama
+        if (nfcInput) {
+            nfcInput.disabled = false;
+            nfcInput.focus();
+        }
+    }
 }
 
 async function loadFaceDatabase() {
@@ -63,7 +114,7 @@ async function loadFaceDatabase() {
 }
 
 // ========================================================
-// PERBAIKAN: EVENT LISTENER UNTUK INPUT KARTU NFC / BARCODE
+// EVENT LISTENER UNTUK INPUT KARTU NFC / BARCODE
 // ========================================================
 nfcInput.addEventListener('keypress', async function (e) {
   if (e.key === 'Enter') {
@@ -71,52 +122,32 @@ nfcInput.addEventListener('keypress', async function (e) {
     this.value = ''; 
     
     if (rfidNumber !== '') {
-      // Mencegah spam enter / tap ganda
       if (isProcessing) return;
       isProcessing = true;
       
-      statusText.innerText = "Memverifikasi Kartu di Database...";
+      statusText.innerText = "Memverifikasi ID...";
       statusText.style.color = "orange";
 
-      // Memanggil backend untuk memeriksa Kartu RFID
-      // (Sesuaikan "action" ini dengan yang ada di 1_Router.gs Anda)
-      const result = await fetchAPI("verifikasiRFID", { rfid: rfidNumber });
+      const result = await fetchAPI("verifikasiRFID", { rfid: rfidNumber, role: TERMINAL_ROLE });
       
       if (result.success) {
-         // JIKA SISTEM MFA (Kartu valid -> Lanjut verifikasi wajah)
-         // Pastikan backend mengembalikan userId asli (misal: NIS/NIP) di result.data.userId
          const userID = result.data.userId || result.data.id; 
          
-         statusText.innerText = `Kartu Dikenali! Melanjutkan ke verifikasi wajah...`;
-         isProcessing = false; // Buka kunci agar kamera bisa memproses
-         
-         // Lemparkan ID asli (bukan nomor kartu) ke pendeteksi wajah
-         startVerificationState(userID); 
+         // Jika aturan mengharuskan pakai Wajah
+         if (modeAbsensiSaatIni.includes("Scan Wajah")) {
+             statusText.innerText = `ID Dikenali! Memulai verifikasi wajah...`;
+             isProcessing = false; 
+             startVerificationState(userID); 
+         } 
+         // Jika aturan HANYA Tap Kartu (Tanpa MFA Wajah)
+         else {
+             executeAttendance(userID);
+         }
          
       } else {
-         // Jika kartu tidak terdaftar di database
-         showAlert(`❌ Kartu RFID (${rfidNumber}) tidak terdaftar atau tidak valid.`, "red");
+         showAlert(`❌ ID (${rfidNumber}) tidak terdaftar untuk ${TERMINAL_ROLE}.`, "#e74c3c");
          setTimeout(resetToStandby, 3000);
       }
-
-      /* 
-      // -------------------------------------------------------------
-      // OPSI ALTERNATIF: JIKA TAP KARTU LANGSUNG ABSEN (TANPA WAJAH)
-      // Jika Anda tidak ingin pakai scan wajah untuk kartu, hapus 
-      // kode fetchAPI di atas, dan gunakan kode di bawah ini:
-      // -------------------------------------------------------------
-      // const absen = await fetchAPI("submitAutoAttendance", {
-      //   userId: rfidNumber,
-      //   role: "SISWA", // Atau GURU
-      //   checkType: "IN"
-      // });
-      // if (absen.success) {
-      //    showAlert(`✅ ABSEN BERHASIL!`, "green");
-      // } else {
-      //    showAlert(`❌ Gagal: ${absen.message}`, "red");
-      // }
-      // setTimeout(resetToStandby, 3000);
-      */
     }
   }
 });
@@ -128,7 +159,7 @@ function startVerificationState(userID) {
   const targetUser = databaseWajah.find(u => u.id === userID);
   
   if (!targetUser) {
-    showAlert(`ID ${userID} tidak ditemukan di database wajah.`, "red");
+    showAlert(`Data wajah ID ${userID} belum didaftarkan di sistem.`, "#e74c3c");
     setTimeout(resetToStandby, 3000);
     return;
   }
@@ -136,8 +167,8 @@ function startVerificationState(userID) {
   currentMFAUser = targetUser;
   standbyUI.style.display = 'none';
   videoContainer.style.display = 'flex';
-  statusText.innerText = `Halo ${userID}, Verifikasi Wajah Anda...`;
-  statusText.style.color = "blue";
+  statusText.innerText = `Verifikasi Wajah: ${userID}`;
+  statusText.style.color = "#3498db";
 
   let canvas = document.querySelector('canvas');
   if(!canvas){
@@ -171,26 +202,26 @@ function startVerificationState(userID) {
   setTimeout(() => {
     if(isProcessing && verificationInterval) {
       clearInterval(verificationInterval);
-      showAlert(`Verifikasi Wajah Gagal. Anda bukan ID ${userID}.`, "red");
+      showAlert(`Wajah tidak cocok dengan pemilik ID ${userID}.`, "#e74c3c");
       setTimeout(resetToStandby, 3000);
     }
   }, 10000);
 }
 
 async function executeAttendance(userID) {
-  showAlert(`✅ Verifikasi MFA Sukses! Mencatat Absen...`, "#d39e00");
+  showAlert(`Mencatat Absensi...`, "#f1c40f");
   statusText.innerText = "Mengirim Data...";
 
   const result = await fetchAPI("submitAutoAttendance", {
     userId: userID,
-    role: "GURU", 
+    role: TERMINAL_ROLE, // Otomatis menyesuaikan apakah GURU atau SISWA
     checkType: "IN"
   });
 
   if (result.success) {
-    showAlert(`✅ ABSEN BERHASIL: ${userID}`, "green");
+    showAlert(`✅ ABSENSI SUKSES: ${userID}`, "#2ecc71");
   } else {
-    showAlert(`❌ Gagal Server: ${result.message}`, "red");
+    showAlert(`❌ Gagal: ${result.message}`, "#e74c3c");
   }
 
   setTimeout(resetToStandby, 3000);
@@ -206,14 +237,19 @@ function resetToStandby() {
   if(canvas) canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
 
   hideAlert();
-  videoContainer.style.display = 'none';
-  standbyUI.style.display = 'block';
-  statusText.innerText = "Sistem Siap";
-  statusText.style.color = "green";
   
-  nfcInput.disabled = false;
-  btnFingerprint.disabled = false;
-  nfcInput.focus();
+  // Kembalikan UI berdasarkan mode saat ini
+  if (modeAbsensiSaatIni !== "Hanya Scan Wajah (Face Recognition)") {
+      videoContainer.style.display = 'none';
+      standbyUI.style.display = 'block';
+  }
+  
+  statusText.innerText = `Sistem Siap (${TERMINAL_ROLE})`;
+  statusText.style.color = "#2ecc71";
+  
+  if(nfcInput && !nfcInput.disabled) {
+      nfcInput.focus();
+  }
 }
 
 function showAlert(text, color) {
