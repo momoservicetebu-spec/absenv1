@@ -40,35 +40,37 @@ async function terapkanPengaturanTerminal() {
     const result = await fetchAPI("getSettings"); 
 
     if (result && result.success) {
-        const config = result.data;
+        // config sekarang berisi data langsung dari Sheet Anda
+        const config = result.data; 
         
-        // Cek terminal mana yang sedang terbuka berdasarkan penanda di HTML
+        // 1. Sinkronisasi Metode Absen berdasarkan Role (Siswa/Guru)
         if (typeof TERMINAL_ROLE !== 'undefined') {
             if (TERMINAL_ROLE === "SISWA") {
-                modeAbsensiSaatIni = config.keamanan.mfaSiswa;
+                modeAbsensiSaatIni = config.MFA_STUDENT; // Membaca baris 11
             } else if (TERMINAL_ROLE === "GURU") {
-                modeAbsensiSaatIni = config.keamanan.mfaGuru;
+                modeAbsensiSaatIni = config.MFA_TEACHER; // Membaca baris 12
             }
         }
 
-        // Terapkan blokir Fake GPS jika aktif
-        const antiFakeGps = config.keamanan.antiFakeGps;
+        // 2. Sinkronisasi Fitur Anti Fake GPS
+        // Konversi ke string & uppercase untuk jaga-jaga format dari Sheet
+        const antiFakeGps = String(config.ANTI_FAKE_GPS).toUpperCase() === "TRUE";
         const boxGps = document.getElementById("btnGps");
         const statusGps = document.getElementById("gpsStatusText");
 
-        if (antiFakeGps === true || String(antiFakeGps) === "true") {
+        if (antiFakeGps) {
             if(boxGps) boxGps.style.display = "inline-block";
             if(statusGps) statusGps.style.display = "block";
         } else {
             if(boxGps) boxGps.style.display = "none";
             if(statusGps) statusGps.style.display = "none";
-            bukaKunciMetodeInput(); // Langsung buka input jika GPS mati
+            bukaKunciMetodeInput(); 
         }
 
         statusText.innerText = `Sistem Siap (${TERMINAL_ROLE})`;
         statusText.style.color = "#2ecc71";
     } else {
-        console.warn("Gagal memuat pengaturan, menggunakan default.");
+        console.warn("Gagal memuat pengaturan API, menggunakan pengaturan bawaan.");
         bukaKunciMetodeInput();
     }
 }
