@@ -128,13 +128,15 @@ async function loadFaceDatabase() {
   }
 }
 
-// 3. Listener Input Kartu NFC / Scan Barcode
+// ==========================================
+// 3. LISTENER INPUT KARTU NFC / SCAN BARCODE
+// ==========================================
 if (nfcInput) {
   nfcInput.addEventListener('keypress', async function (e) {
     if (e.key === 'Enter') {
       const rfidNumber = this.value.trim();
       this.value = ''; 
-      
+    
       if (rfidNumber !== '') {
         if (isProcessing) return;
         isProcessing = true;
@@ -145,20 +147,21 @@ if (nfcInput) {
 
         const result = await fetchAPI("verifikasiRFID", { rfid: rfidNumber, role: activeRole });
         
-        if (result.success) {
+        if (result && result.success) {
            const userID = result.data.userId || result.data.id; 
+           const userName = result.data.nama || userID; // Mengambil nama lengkap dari backend
            const modeLower = String(modeAbsensiSaatIni).toLowerCase();
            
-           // Cek apakah butuh verifikasi wajah (MFA / rfid_face / scan wajah)
+           // Cek apakah mode absensi membutuhkan verifikasi wajah (MFA / RFID + FACE)
            const requiresFace = modeLower.includes("wajah") || modeLower.includes("face") || modeLower === "rfid_face" || modeLower === "mfa";
 
            if (requiresFace) {
-               statusText.innerText = `ID Dikenali (${userID})! Memulai verifikasi wajah...`;
+               statusText.innerText = `ID Dikenali (${userName})! Memulai verifikasi wajah...`;
                isProcessing = false; 
-               startVerificationState(userID); 
+               startVerificationState(userID, userName); 
            } else {
-               // Jika setting di Sheet "rfid", langsung catat absen
-               executeAttendance(userID);
+               // Jika hanya mode RFID, langsung catat absen
+               executeAttendance(userID, userName);
            }
            
         } else {
@@ -170,15 +173,19 @@ if (nfcInput) {
   });
 }
 
-// 4. Verifikasi Wajah AI
-function startVerificationState(userID) {
+// ==========================================
+// 4. VERIFIKASI WAJAH AI (DENGAN KOTAK & NAMA)
+// ==========================================
+function startVerificationState(userID, userName) {
   if (isProcessing) return;
   isProcessing = true;
 
+  const displayName = userName || userID;
+  // Pencarian aman dengan konversi String dan trim()
   const targetUser = databaseWajah.find(u => String(u.id).trim() === String(userID).trim());
   
   if (!targetUser) {
-    showAlert(`Data wajah untuk ID ${userID} belum didaftarkan.`, "#e74c3c");
+    showAlert(`Data wajah untuk ${displayName} belum didaftarkan.`, "#e74c3c");
     setTimeout(resetToStandby, 3000);
     return;
   }
@@ -187,7 +194,7 @@ function startVerificationState(userID) {
   if (standbyUI) standbyUI.style.display = 'none';
   if (videoContainer) videoContainer.style.display = 'flex';
   
-  statusText.innerText = `Pindai Wajah: ${userID}...`;
+  statusText.innerText = `Pindai Wajah: ${displayName}...`;
   statusText.style.color = "#3498db";
 
   let canvas = document.querySelector('canvas');
@@ -203,29 +210,38 @@ function startVerificationState(userID) {
                                     .withFaceLandmarks()
                                     .withFaceDescriptor();
     
-    canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
+    const context = canvas.getContext('2d');
+    context.clearRect(0, 0, canvas.width, canvas.height);
 
     if (detections) {
       const resized = faceapi.resizeResults(detections, displaySize);
-      faceapi.draw.drawDetections(canvas, resized);
-
-      // Hitung tingkat kemiripan (Distance)
+      
+      // Hitung jarak Euclidean (Semakin kecil semakin mirip)
       const distance = faceapi.euclideanDistance(detections.descriptor, currentMFAUser.descriptor);
-      console.log(`[AI Matching] ID: ${userID} | Jarak: ${distance.toFixed(3)} (Target: < 0.600)`);
+      const isMatch = distance < 0.6; // Standar ideal face-api.js
 
-      // 0.6 adalah standar ideal face-api.js
-      if (distance < 0.6) { 
+      // Pengaturan Label & Warna Kotak
+      const boxLabel = isMatch ? `✅ ${displayName}` : `Memindai... (${distance.toFixed(2)})`;
+      const boxColor = isMatch ? '#2ecc71' : '#e67e22';
+
+      const drawOptions = {
+        label: boxLabel,
+        lineWidth: 3,
+        boxColor: boxColor
+      };
+      const drawBox = new faceapi.draw.DrawBox(resized.detection.box, drawOptions);
+      drawBox.draw(canvas);
+
+      if (isMatch) {
         clearInterval(verificationInterval);
         verificationInterval = null;
-        canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
         
-        statusText.innerText = `Wajah Cocok! (${( (1 - distance) * 100 ).toFixed(0)}%)`;
+        statusText.innerText = `Wajah Cocok! (${displayName})`;
         statusText.style.color = "#2ecc71";
         
-        // Eksekusi Absen
-        executeAttendance(currentMFAUser.id);
+        executeAttendance(userID, displayName);
       } else {
-        statusText.innerText = `Membandingkan... (${distance.toFixed(2)})`;
+        statusText.innerText = `Membandingkan Wajah... (${distance.toFixed(2)})`;
       }
     }
   }, 200);
@@ -235,25 +251,23 @@ function startVerificationState(userID) {
     if (isProcessing && verificationInterval) {
       clearInterval(verificationInterval);
       verificationInterval = null;
-      showAlert(`Wajah tidak cocok / tidak terdeteksi untuk ID ${userID}.`, "#e74c3c");
+      showAlert(`Wajah tidak cocok untuk ${displayName}.`, "#e74c3c");
       setTimeout(resetToStandby, 3000);
     }
   }, 12000);
 }
 
-// 5. Eksekusi Pengiriman Absensi ke Server
-async function executeAttendance(userID) {
-  if (!userID) {
-    showAlert("Gagal: UserID tidak valid.", "#e74c3c");
-    setTimeout(resetToStandby, 3000);
-    return;
-  }
+// ==========================================
+// 5. EKSEKUSI PENGIRIMAN ABSENSI KE SERVER
+// ==========================================
+async function executeAttendance(userID, userName) {
+  const displayName = userName || userID;
+  showAlert(`Mencatat Absensi...`, "#f1c40f");
+  statusText.innerText = "Mengirim Data...";
 
   const activeRole = (typeof TERMINAL_ROLE !== 'undefined') ? TERMINAL_ROLE : "SISWA";
-  statusText.innerText = "Mengirim Data Absensi...";
-  statusText.style.color = "#f39c12";
 
-  // Payload lengkap dikirim ke backend
+  // Payload lengkap dikirimkan ke backend untuk mengisi 23 kolom
   const payload = {
     userId: String(userID).trim(),
     role: activeRole,
@@ -261,8 +275,8 @@ async function executeAttendance(userID) {
     primaryMethod: "RFID",
     secondaryMethod: "FACE",
     authLevel: "2FA",
-    lat: currentLat || "",
-    long: currentLng || "",
+    lat: (typeof currentLat !== 'undefined') ? currentLat : "",
+    long: (typeof currentLng !== 'undefined') ? currentLng : "",
     deviceId: "TERMINAL-" + activeRole,
     keterangan: "Absen Wajah & Kartu Sukses"
   };
@@ -270,19 +284,20 @@ async function executeAttendance(userID) {
   const result = await fetchAPI("submitAutoAttendance", payload);
 
   if (result && result.success) {
-    statusText.innerText = `✅ Absensi Berhasil (${userID})`;
+    showAlert(`✅ ABSENSI SUKSES: ${displayName}`, "#2ecc71");
+    statusText.innerText = `✅ Absensi Berhasil (${displayName})`;
     statusText.style.color = "#2ecc71";
-    
-    setTimeout(() => {
-      resetToStandby();
-    }, 3000);
   } else {
-    showAlert(`Gagal: ${result ? result.message : "Koneksi terputus"}`, "#e74c3c");
-    setTimeout(resetToStandby, 4000);
+    const errMessage = result ? result.message : "Koneksi terputus";
+    showAlert(`❌ Gagal: ${errMessage}`, "#e74c3c");
   }
+
+  setTimeout(resetToStandby, 3000);
 }
 
-// 6. Reset UI Kembali ke Standby
+// ==========================================
+// 6. RESET UI KEMBALI KE STANDBY
+// ==========================================
 function resetToStandby() {
   if (verificationInterval) clearInterval(verificationInterval);
   verificationInterval = null;
@@ -290,7 +305,7 @@ function resetToStandby() {
   isProcessing = false;
   
   const canvas = document.querySelector('canvas');
-  if(canvas) canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
+  if (canvas) canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
 
   hideAlert();
   
@@ -298,14 +313,14 @@ function resetToStandby() {
   const activeRole = (typeof TERMINAL_ROLE !== 'undefined') ? TERMINAL_ROLE : "SISWA";
 
   if (modeLower !== "face" && !modeLower.includes("hanya scan wajah")) {
-      if(videoContainer) videoContainer.style.display = 'none';
-      if(standbyUI) standbyUI.style.display = 'block';
+      if (videoContainer) videoContainer.style.display = 'none';
+      if (standbyUI) standbyUI.style.display = 'block';
   }
   
   statusText.innerText = `Sistem Siap (${activeRole})`;
   statusText.style.color = "#2ecc71";
   
-  if(nfcInput && !nfcInput.disabled) {
+  if (nfcInput && !nfcInput.disabled) {
       nfcInput.focus();
   }
 }
@@ -316,6 +331,7 @@ function showAlert(text, color) {
   alertBox.style.backgroundColor = color;
   alertBox.innerText = text;
 }
+
 function hideAlert() { 
   if (alertBox) alertBox.style.display = "none"; 
 }
