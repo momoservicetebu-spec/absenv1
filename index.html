@@ -2,57 +2,98 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8">
-  <title>Gate Masuk - MFA Absensi</title>
+  <title>Portal Utama - Sistem Absensi Multi-Biometrik</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="icon" href="data:,">
   
-  <!-- PEMANGGILAN CSS -->
-  <link rel="stylesheet" href="./css/terminal.css">
-  
-  <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(-45deg, #1e3c72, #2a5298, #0f2027, #203a43);
+      background-size: 400% 400%;
+      animation: gradientBG 15s ease infinite;
+      color: #ffffff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      text-align: center;
+    }
+    @keyframes gradientBG {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+    .card {
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 20px;
+      padding: 40px 30px;
+      width: 90%;
+      max-width: 500px;
+      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+    }
+    h1 {
+      margin-top: 0;
+      font-size: 24px;
+      letter-spacing: 1px;
+    }
+    p {
+      opacity: 0.8;
+      margin-bottom: 30px;
+    }
+    .btn-menu {
+      display: block;
+      width: 100%;
+      background: rgba(255, 255, 255, 0.2);
+      border: 1px solid rgba(255, 255, 255, 0.4);
+      color: white;
+      padding: 15px;
+      border-radius: 12px;
+      font-size: 18px;
+      font-weight: bold;
+      text-decoration: none;
+      margin-bottom: 15px;
+      transition: all 0.3s ease;
+      box-sizing: border-box;
+    }
+    .btn-menu:hover {
+      background: rgba(255, 255, 255, 0.4);
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    }
+    .btn-admin {
+      background: rgba(0, 0, 0, 0.3);
+      border-color: transparent;
+      font-size: 14px;
+      margin-top: 20px;
+    }
+    .btn-admin:hover {
+      background: rgba(0, 0, 0, 0.5);
+    }
+    hr {
+      border: 0;
+      border-top: 1px solid rgba(255,255,255,0.2);
+      margin: 30px 0;
+    }
+  </style>
 </head>
 <body>
+
   <div class="card">
-    <h2>Terminal Absensi MFA</h2>
-    <div class="status" id="statusText" style="color: orange;">Memuat Engine AI...</div>
-    
-    <!-- Tombol Verifikasi Lokasi -->
-    <button class="gps-btn" id="btnGps" onclick="prosesAbsensiGPS()">📍 Verifikasi Lokasi Perangkat Dulu</button>
-    <p id="gpsStatusText" style="font-size: 13px; font-weight:bold; color: #dc3545; margin-top: -5px; margin-bottom: 15px;">Sistem terkunci. Verifikasi GPS dibutuhkan.</p>
+    <h1>Sistem Informasi Absensi</h1>
+    <p>Silakan pilih mode terminal untuk perangkat ini</p>
 
-    <div id="standby-ui">
-      <p><b>Pilih Metode Faktor Pertama:</b></p>
-      
-      <!-- Area NFC (Awalnya Terkunci) -->
-      <div class="method-box" id="boxNfc">
-        <p style="margin: 0 0 10px 0; font-size: 14px;">📡 Tap Kartu NFC / Scan Barcode</p>
-        <input type="text" id="nfcSimulator" placeholder="Fokus di sini & Ketik ID -> Enter" disabled autocomplete="off">
-      </div>
-      
-      <!-- Area Fingerprint (Awalnya Terkunci) -->
-      <div class="method-box" id="boxFingerprint">
-        <p style="margin: 0 0 10px 0; font-size: 14px;">👆 Fingerprint (Localhost Bridge)</p>
-        <button id="btnFingerprint" class="fp-btn" onclick="simulateFingerprintBridge()" disabled>Simulasikan Tempel Jari</button>
-        <p id="fingerprintStatus" style="font-size: 13px; font-weight:bold; color: gray; margin-top: 10px;"></p>
-      </div>
-    </div>
+    <a href="terminal-siswa.html" class="btn-menu">🎓 Buka Terminal Siswa</a>
+    <a href="terminal-guru.html" class="btn-menu">💼 Buka Terminal Guru</a>
 
-    <div id="video-container">
-      <video id="video" width="480" height="360" autoplay muted playsinline></video>
-    </div>
-
-    <div class="alert-box" id="alertBox"></div>
     <hr>
-    <a href="login.html" class="login-btn">⚙️ Masuk ke Dashboard Login</a>
+    
+    <a href="login.html" class="btn-menu btn-admin">⚙️ Masuk ke Dashboard Admin</a>
   </div>
 
-  <!-- PEMANGGILAN SCRIPT -->
-  <!-- 1. Script Konfigurasi & API (HARUS DI ATAS) -->
-  <script src="./js/config.js?v=3.0"></script>
-  <script src="./js/api.js?v=3.0"></script>
-  
-  <!-- 2. Script Fitur Tambahan & Aplikasi -->
-  <script src="./js/pages/geofencing.js?v=3.0"></script>
-  <script src="./js/pages/attendance-app.js?v=3.0"></script>
 </body>
 </html>
