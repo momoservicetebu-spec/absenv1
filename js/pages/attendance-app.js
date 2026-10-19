@@ -128,7 +128,7 @@ async function loadFaceDatabase() {
   }
 }
 
-// 3. Listener Input Kartu NFC / Scan Barcode
+// A. Update Listener NFC/Barcode Input
 if (nfcInput) {
   nfcInput.addEventListener('keypress', async function (e) {
     if (e.key === 'Enter') {
@@ -145,19 +145,18 @@ if (nfcInput) {
 
         const result = await fetchAPI("verifikasiRFID", { rfid: rfidNumber, role: activeRole });
         
-        if (result.success) {
+        if (result && result.success) {
            const userID = result.data.userId || result.data.id; 
-           const modeLower = String(modeAbsensiSaatIni).toLowerCase();
+           const userName = result.data.nama || userID; // Menangkap Nama Lengkap
            
-           // Cek apakah butuh verifikasi wajah (MFA / rfid_face / scan wajah)
+           const modeLower = String(modeAbsensiSaatIni).toLowerCase();
            const requiresFace = modeLower.includes("wajah") || modeLower.includes("face") || modeLower === "rfid_face" || modeLower === "mfa";
 
            if (requiresFace) {
-               statusText.innerText = `ID Dikenali (${userID})! Memulai verifikasi wajah...`;
+               statusText.innerText = `ID Dikenali (${userName})! Memulai verifikasi wajah...`;
                isProcessing = false; 
-               startVerificationState(userID); 
+               startVerificationState(userID, userName); 
            } else {
-               // Jika setting di Sheet "rfid", langsung catat absen
                executeAttendance(userID);
            }
            
@@ -170,15 +169,16 @@ if (nfcInput) {
   });
 }
 
-// 4. Verifikasi Wajah AI
-function startVerificationState(userID) {
+// B. Update Fungsi Verifikasi Wajah AI dengan Nama
+function startVerificationState(userID, userName) {
   if (isProcessing) return;
   isProcessing = true;
 
+  const displayName = userName || userID;
   const targetUser = databaseWajah.find(u => String(u.id).trim() === String(userID).trim());
   
   if (!targetUser) {
-    showAlert(`Data wajah untuk ID ${userID} belum didaftarkan.`, "#e74c3c");
+    showAlert(`Data wajah untuk ${displayName} belum didaftarkan.`, "#e74c3c");
     setTimeout(resetToStandby, 3000);
     return;
   }
@@ -187,7 +187,7 @@ function startVerificationState(userID) {
   if (standbyUI) standbyUI.style.display = 'none';
   if (videoContainer) videoContainer.style.display = 'flex';
   
-  statusText.innerText = `Pindai Wajah: ${userID}...`;
+  statusText.innerText = `Pindai Wajah: ${displayName}...`;
   statusText.style.color = "#3498db";
 
   let canvas = document.querySelector('canvas');
@@ -203,39 +203,46 @@ function startVerificationState(userID) {
                                     .withFaceLandmarks()
                                     .withFaceDescriptor();
     
-    canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
+    const context = canvas.getContext('2d');
+    context.clearRect(0, 0, canvas.width, canvas.height);
 
     if (detections) {
       const resized = faceapi.resizeResults(detections, displaySize);
-      faceapi.draw.drawDetections(canvas, resized);
-
-      // Hitung tingkat kemiripan (Distance)
+      
       const distance = faceapi.euclideanDistance(detections.descriptor, currentMFAUser.descriptor);
-      console.log(`[AI Matching] ID: ${userID} | Jarak: ${distance.toFixed(3)} (Target: < 0.600)`);
+      const isMatch = distance < 0.6;
 
-      // 0.6 adalah standar ideal face-api.js
-      if (distance < 0.6) { 
+      // Menampilkan Nama Lengkap di atas kotak wajah
+      const boxLabel = isMatch ? `✅ ${displayName}` : `Memindai... (${distance.toFixed(2)})`;
+      const boxColor = isMatch ? '#2ecc71' : '#e67e22';
+
+      const drawOptions = {
+        label: boxLabel,
+        lineWidth: 3,
+        boxColor: boxColor
+      };
+      const drawBox = new faceapi.draw.DrawBox(resized.detection.box, drawOptions);
+      drawBox.draw(canvas);
+
+      if (isMatch) {
         clearInterval(verificationInterval);
         verificationInterval = null;
-        canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
         
-        statusText.innerText = `Wajah Cocok! (${( (1 - distance) * 100 ).toFixed(0)}%)`;
+        statusText.innerText = `Wajah Cocok! (${displayName})`;
         statusText.style.color = "#2ecc71";
         
-        // Eksekusi Absen
         executeAttendance(currentMFAUser.id);
       } else {
-        statusText.innerText = `Membandingkan... (${distance.toFixed(2)})`;
+        statusText.innerText = `Membandingkan Wajah... (${distance.toFixed(2)})`;
       }
     }
   }, 200);
 
-  // Batas Waktu Pemindaian (12 Detik)
   setTimeout(() => {
     if (isProcessing && verificationInterval) {
       clearInterval(verificationInterval);
       verificationInterval = null;
-      showAlert(`Wajah tidak cocok / tidak terdeteksi untuk ID ${userID}.`, "#e74c3c");
+      showAlert(`Wajah tidak cocok untuk ${displayName}.`, "#e74c3c");
       setTimeout(resetToStandby, 3000);
     }
   }, 12000);
