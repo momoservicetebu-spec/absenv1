@@ -62,34 +62,64 @@ async function loadFaceDatabase() {
   }
 }
 
-nfcInput.addEventListener('keypress', function (e) {
+// ========================================================
+// PERBAIKAN: EVENT LISTENER UNTUK INPUT KARTU NFC / BARCODE
+// ========================================================
+nfcInput.addEventListener('keypress', async function (e) {
   if (e.key === 'Enter') {
-    const inputID = this.value.trim();
+    const rfidNumber = this.value.trim();
     this.value = ''; 
-    if (inputID !== '') startVerificationState(inputID);
+    
+    if (rfidNumber !== '') {
+      // Mencegah spam enter / tap ganda
+      if (isProcessing) return;
+      isProcessing = true;
+      
+      statusText.innerText = "Memverifikasi Kartu di Database...";
+      statusText.style.color = "orange";
+
+      // Memanggil backend untuk memeriksa Kartu RFID
+      // (Sesuaikan "action" ini dengan yang ada di 1_Router.gs Anda)
+      const result = await fetchAPI("verifikasiRFID", { rfid: rfidNumber });
+      
+      if (result.success) {
+         // JIKA SISTEM MFA (Kartu valid -> Lanjut verifikasi wajah)
+         // Pastikan backend mengembalikan userId asli (misal: NIS/NIP) di result.data.userId
+         const userID = result.data.userId || result.data.id; 
+         
+         statusText.innerText = `Kartu Dikenali! Melanjutkan ke verifikasi wajah...`;
+         isProcessing = false; // Buka kunci agar kamera bisa memproses
+         
+         // Lemparkan ID asli (bukan nomor kartu) ke pendeteksi wajah
+         startVerificationState(userID); 
+         
+      } else {
+         // Jika kartu tidak terdaftar di database
+         showAlert(`❌ Kartu RFID (${rfidNumber}) tidak terdaftar atau tidak valid.`, "red");
+         setTimeout(resetToStandby, 3000);
+      }
+
+      /* 
+      // -------------------------------------------------------------
+      // OPSI ALTERNATIF: JIKA TAP KARTU LANGSUNG ABSEN (TANPA WAJAH)
+      // Jika Anda tidak ingin pakai scan wajah untuk kartu, hapus 
+      // kode fetchAPI di atas, dan gunakan kode di bawah ini:
+      // -------------------------------------------------------------
+      // const absen = await fetchAPI("submitAutoAttendance", {
+      //   userId: rfidNumber,
+      //   role: "SISWA", // Atau GURU
+      //   checkType: "IN"
+      // });
+      // if (absen.success) {
+      //    showAlert(`✅ ABSEN BERHASIL!`, "green");
+      // } else {
+      //    showAlert(`❌ Gagal: ${absen.message}`, "red");
+      // }
+      // setTimeout(resetToStandby, 3000);
+      */
+    }
   }
 });
-
-function simulateFingerprintBridge() {
-  if(isProcessing) return;
-  const fpStatus = document.getElementById('fingerprintStatus');
-  
-  btnFingerprint.disabled = true;
-  nfcInput.disabled = true;
-  fpStatus.innerText = "Menunggu mesin fingerprint memproses...";
-  fpStatus.style.color = "blue";
-
-  setTimeout(() => {
-    const detectedUserID = "FACE-1787924439928"; 
-    fpStatus.innerText = `Sidik jari terdeteksi: ID ${detectedUserID}! Mengaktifkan Kamera...`;
-    fpStatus.style.color = "green";
-
-    setTimeout(() => {
-      fpStatus.innerText = "";
-      startVerificationState(detectedUserID);
-    }, 1500);
-  }, 1500);
-}
 
 function startVerificationState(userID) {
   if(isProcessing) return;
