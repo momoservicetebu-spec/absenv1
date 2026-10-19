@@ -1998,15 +1998,17 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // ============================================================================
-// FUNGSI: SIMPAN PENGATURAN LENGKAP (Versi Final Sesuai Router.gs)
+// FUNGSI: SIMPAN PENGATURAN LENGKAP (DIPERBARUI: JAM MASUK & JAM PULANG)
 // ============================================================================
 async function simpanPengaturanLengkap() {
     const btnSimpan = document.querySelector('button[onclick="simpanPengaturanLengkap()"]');
-    const textAsli = btnSimpan.innerHTML; 
+    const textAsli = btnSimpan ? btnSimpan.innerHTML : '💾 Simpan Seluruh Pengaturan'; 
     
-    btnSimpan.innerHTML = '⏳ Menyimpan ke Database...';
-    btnSimpan.disabled = true;
-    btnSimpan.style.opacity = '0.7';
+    if (btnSimpan) {
+        btnSimpan.innerHTML = '⏳ Menyimpan ke Database...';
+        btnSimpan.disabled = true;
+        btnSimpan.style.opacity = '0.7';
+    }
 
     // 1. Ambil data sesi dari localStorage (memakai user_session sesuai browser Anda)
     let userSessionData = localStorage.getItem('user_session') || sessionStorage.getItem('user_session');
@@ -2027,35 +2029,35 @@ async function simpanPengaturanLengkap() {
     const payloadPengaturan = {
         action: "saveSettings", 
         
-        // 2. DATA AUTENTIKASI (KUNCI PERBAIKAN: roleAktif)
+        // 2. DATA AUTENTIKASI
         roleAktif: userRole,  // <--- Backend router.gs meminta "roleAktif"
         role: userRole,       // Tetap dikirim untuk jaga-jaga
         token: userSessionData,
         username: username,
 
         identitas: {
-            namaSekolah: document.getElementById('set-nama-sekolah').value,
-            logoSekolah: document.getElementById('set-logo-sekolah').value,
-            namaKepsek: document.getElementById('set-nama-kepsek').value,
-            nipKepsek: document.getElementById('set-nip-kepsek').value,
-            alamatKop: document.getElementById('set-alamat-kop').value
+            namaSekolah: document.getElementById('set-nama-sekolah')?.value || '',
+            logoSekolah: document.getElementById('set-logo-sekolah')?.value || '',
+            namaKepsek: document.getElementById('set-nama-kepsek')?.value || '',
+            nipKepsek: document.getElementById('set-nip-kepsek')?.value || '',
+            alamatKop: document.getElementById('set-alamat-kop')?.value || ''
         },
         tema: {
-            mode: document.getElementById('set-tema-mode').value,
-            aksen: document.getElementById('set-tema-aksen').value
+            mode: document.getElementById('set-tema-mode')?.value || 'dark',
+            aksen: document.getElementById('set-tema-aksen')?.value || 'default'
         },
         parameter: {
-            batasTelat: document.getElementById('set-batas-telat').value,
-            radiusAbsen: document.getElementById('set-radius').value
+            batasTelat: document.getElementById('set-batas-telat')?.value || '07:15',
+            batasPulang: document.getElementById('set-batas-pulang')?.value || '14:50' // Menggantikan radiusAbsen
         },
         keamanan: {
-            mfaSiswa: document.getElementById('set-mfa-siswa').value,
-            mfaGuru: document.getElementById('set-mfa-guru').value,
-            antiLiveness: document.getElementById('anti-liveness').checked,
-            antiFakeGps: document.getElementById('anti-fakegps').checked,
-            antiDeviceBind: document.getElementById('anti-devicebind').checked,
-            antiTimeSync: document.getElementById('anti-timesync').checked,
-            antiQr: document.getElementById('anti-qr').checked
+            mfaSiswa: document.getElementById('set-mfa-siswa')?.value || 'rfid_face',
+            mfaGuru: document.getElementById('set-mfa-guru')?.value || 'finger_face',
+            antiLiveness: document.getElementById('anti-liveness')?.checked ?? true,
+            antiFakeGps: document.getElementById('anti-fakegps')?.checked ?? true,
+            antiDeviceBind: document.getElementById('anti-devicebind')?.checked ?? true,
+            antiTimeSync: document.getElementById('anti-timesync')?.checked ?? true,
+            antiQr: document.getElementById('anti-qr')?.checked ?? true
         }
     };
 
@@ -2071,7 +2073,7 @@ async function simpanPengaturanLengkap() {
         const result = await response.json();
 
         if (result.success || result.status === 'success') {
-            alert('✅ Pengaturan Sistem berhasil disimpan secara permanen!');
+            alert('✅ Pengaturan Jam Masuk & Jam Pulang berhasil disimpan!');
         } else {
             alert('❌ Gagal menyimpan pengaturan: ' + (result.message || 'Error tidak diketahui'));
         }
@@ -2079,12 +2081,13 @@ async function simpanPengaturanLengkap() {
     } catch (error) {
         alert('⚠️ Terjadi kesalahan koneksi saat menyimpan pengaturan.');
     } finally {
-        btnSimpan.innerHTML = textAsli;
-        btnSimpan.disabled = false;
-        btnSimpan.style.opacity = '1';
+        if (btnSimpan) {
+            btnSimpan.innerHTML = textAsli;
+            btnSimpan.disabled = false;
+            btnSimpan.style.opacity = '1';
+        }
     }
 }
-
 // ============================================================================
 // FUNGSI: MUAT PENGATURAN (Saat menu dibuka)
 // ============================================================================
