@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>Gate Masuk - Absensi Guru</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="./css/terminal.css">
+  
+  <style>
+    /* Gunakan gaya CSS yang persis sama dengan terminal-siswa di atas */
+    body {
+      margin: 0; font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(-45deg, #4b134f, #c94b4b, #203a43, #0f2027); /* Warna tema sedikit dibedakan untuk guru */
+      background-size: 400% 400%; animation: gradientBG 15s ease infinite; color: #ffffff;
+      display: flex; justify-content: center; align-items: center; min-height: 100vh;
+    }
+    @keyframes gradientBG { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+    .card { background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 20px; padding: 30px; width: 90%; max-width: 500px; box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37); text-align: center; }
+    h2 { margin-top: 0; font-weight: 600; color: #fff;}
+    #nfcSimulator { width: 90%; padding: 12px; margin-top: 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.3); background: rgba(255, 255, 255, 0.9); font-size: 16px; text-align: center; transition: all 0.3s; }
+    #nfcSimulator:focus { outline: none; border-color: #ff9a9e; box-shadow: 0 0 10px rgba(255, 154, 158, 0.5); }
+    .status { font-weight: bold; margin-bottom: 15px; font-size: 1.1em; }
+    #gpsStatusText { color: #ff6b6b !important; }
+    .gps-btn, .login-btn { background: rgba(255, 255, 255, 0.15); border: 1px solid rgba(255,255,255,0.3); color: white; padding: 10px 20px; border-radius: 30px; cursor: pointer; font-weight: bold; transition: 0.3s; text-decoration: none; display: inline-block; }
+    .gps-btn:hover, .login-btn:hover { background: rgba(255, 255, 255, 0.3); }
+    hr { border-color: rgba(255,255,255,0.1); margin: 20px 0; }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
+</head>
+<body>
+  <div class="card">
+    <h2>💼 Terminal Absensi Guru</h2>
+    <div class="status" id="statusText" style="color: #feca57;">Memuat Engine AI...</div>
+    
+    <button class="gps-btn" id="btnGps" onclick="prosesAbsensiGPS()">📍 Verifikasi Lokasi Perangkat</button>
+    <p id="gpsStatusText" style="font-size: 13px; font-weight:bold; margin-top: 10px; margin-bottom: 15px;">Sistem terkunci. Verifikasi GPS dibutuhkan.</p>
+
+    <div id="standby-ui">
+      <p style="font-size: 14px; opacity: 0.8;"><b>Faktor Pertama: Tap Kartu / Scan Barcode</b></p>
+      <div class="method-box" id="boxNfc">
+        <input type="text" id="nfcSimulator" placeholder="📡 Fokus di sini & Tap Kartu / Barcode" disabled autocomplete="off">
+      </div>
+    </div>
+
+    <div id="video-container" style="display: none; justify-content: center; margin-top: 15px;">
+      <video id="video" width="480" height="360" style="border-radius: 10px; border: 2px solid rgba(255,255,255,0.2);" autoplay muted playsinline></video>
+    </div>
+
+    <div class="alert-box" id="alertBox" style="display: none; padding: 10px; border-radius: 8px; margin-top: 15px; font-weight: bold;"></div>
+    <hr>
+    <a href="login.html" class="login-btn">⚙️ Masuk ke Dashboard Admin</a>
+  </div>
+
+  <!-- PENANDA ROLE TERMINAL UNTUK JAVASCRIPT -->
+  <script>
+    const TERMINAL_ROLE = "GURU";
+  </script>
+
+  <!-- PEMANGGILAN SCRIPT -->
+  <script src="./js/config.js?v=4.0"></script>
+  <script src="./js/api.js?v=4.0"></script>
+  <script src="./js/pages/geofencing.js?v=4.0"></script>
+  <script src="./js/pages/attendance-app.js?v=4.0"></script>
+</body>
+</html>
