@@ -260,14 +260,19 @@ function startVerificationState(userID, userName) {
 // ==========================================
 // 5. EKSEKUSI PENGIRIMAN ABSENSI KE SERVER
 // ==========================================
+// Variabel Pengunci Eksekusi Ganda
+let isSubmittingAttendance = false;
+
 async function executeAttendance(userID, userName) {
+  if (isSubmittingAttendance) return; // Kunci jika sedang dalam proses pengiriman
+  isSubmittingAttendance = true;
+
   const displayName = userName || userID;
   showAlert(`Mencatat Absensi...`, "#f1c40f");
   statusText.innerText = "Mengirim Data...";
 
   const activeRole = (typeof TERMINAL_ROLE !== 'undefined') ? TERMINAL_ROLE : "SISWA";
 
-  // Payload lengkap dikirimkan ke backend untuk mengisi 23 kolom
   const payload = {
     userId: String(userID).trim(),
     role: activeRole,
@@ -293,6 +298,34 @@ async function executeAttendance(userID, userName) {
   }
 
   setTimeout(resetToStandby, 3000);
+}
+
+function resetToStandby() {
+  if (verificationInterval) clearInterval(verificationInterval);
+  verificationInterval = null;
+  currentMFAUser = null;
+  isProcessing = false;
+  isSubmittingAttendance = false; // Buka kunci pengiriman
+  
+  const canvas = document.querySelector('canvas');
+  if (canvas) canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
+
+  hideAlert();
+  
+  const modeLower = String(modeAbsensiSaatIni).toLowerCase();
+  const activeRole = (typeof TERMINAL_ROLE !== 'undefined') ? TERMINAL_ROLE : "SISWA";
+
+  if (modeLower !== "face" && !modeLower.includes("hanya scan wajah")) {
+      if (videoContainer) videoContainer.style.display = 'none';
+      if (standbyUI) standbyUI.style.display = 'block';
+  }
+  
+  statusText.innerText = `Sistem Siap (${activeRole})`;
+  statusText.style.color = "#2ecc71";
+  
+  if (nfcInput && !nfcInput.disabled) {
+      nfcInput.focus();
+  }
 }
 
 // ==========================================
