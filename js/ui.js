@@ -1711,6 +1711,100 @@ document.addEventListener('DOMContentLoaded', () => {
     aturInputTanggalLaporan();
   }
 });
+
+// ==========================================
+// FUNGSI INPUT ABSENSI MANUAL (GURU & SISWA)
+// ==========================================
+
+// 1. Memuat daftar nama Guru/Siswa ke Dropdown
+async function loadUserDropdownManual() {
+  const role = document.getElementById('man-role')?.value || 'GURU';
+  const selectUser = document.getElementById('man-user');
+  const dateInput = document.getElementById('man-date');
+
+  if (!selectUser) return;
+
+  // Setel tanggal otomatis ke hari ini jika kosong
+  if (dateInput && !dateInput.value) {
+    dateInput.value = new Date().toISOString().split('T')[0];
+  }
+
+  selectUser.innerHTML = '<option value="">⏳ Memuat data...</option>';
+
+  try {
+    const action = (role === 'GURU') ? 'getGuru' : 'getSiswa';
+    const res = await fetchAPI(action);
+
+    if (res && res.success && res.data) {
+      let optionsHtml = '<option value="">-- Pilih Nama Pengguna --</option>';
+
+      res.data.forEach(item => {
+        if (role === 'GURU') {
+          const id = item.NIP || item.GuruID || item.ID;
+          optionsHtml += `<option value="${id}">${item.Nama} (NIP/ID: ${id})</option>`;
+        } else {
+          const id = item.NIS || item.SiswaID || item.ID;
+          optionsHtml += `<option value="${id}">${item.Nama} (Kelas: ${item.KelasID || '-'})</option>`;
+        }
+      });
+
+      selectUser.innerHTML = optionsHtml;
+    } else {
+      selectUser.innerHTML = '<option value="">Gagal memuat data pengguna</option>';
+    }
+  } catch (err) {
+    console.error("Error load user dropdown:", err);
+    selectUser.innerHTML = '<option value="">Koneksi terputus</option>';
+  }
+}
+
+// 2. Mengirim data input manual ke Srv_Attendance.processManualInput
+async function submitAbsensiManual(event) {
+  if (event) event.preventDefault();
+
+  const btn = document.getElementById('btn-submit-manual');
+  const role = document.getElementById('man-role').value;
+  const userId = document.getElementById('man-user').value;
+  const status = document.getElementById('man-status').value;
+  const date = document.getElementById('man-date').value;
+  const keterangan = document.getElementById('man-keterangan').value;
+
+  if (!userId || !status || !date) {
+    alert("Harap lengkapi semua kolom yang wajib diisi!");
+    return;
+  }
+
+  const payload = {
+    userId: userId,
+    role: role,
+    status: status,
+    date: date,
+    keterangan: keterangan || `Input Manual (${status})`
+  };
+
+  btn.innerText = "⏳ Menyimpan Data...";
+  btn.disabled = true;
+
+  try {
+    const res = await fetchAPI('processManualInput', payload);
+
+    if (res && (res.success || res.attendanceId)) {
+      alert(`✅ Presensi manual untuk ${role} (${userId}) [${status}] berhasil dicatat!`);
+      document.getElementById('form-absensi-manual').reset();
+      document.getElementById('man-date').value = new Date().toISOString().split('T')[0];
+      loadUserDropdownManual();
+    } else {
+      alert("❌ Gagal menyimpan: " + (res?.message || "Terjadi kesalahan server"));
+    }
+  } catch (err) {
+    alert("⚠️ Terjadi kesalahan jaringan saat menyimpan data.");
+    console.error(err);
+  } finally {
+    btn.innerText = "💾 Simpan Presensi Manual";
+    btn.disabled = false;
+  }
+}
+
 // 2. Mengambil Data Laporan dari Server & Memunculkan Preview (Versi Google Apps Script)
 async function lihatPreviewLaporan() {
   const role = document.getElementById('lap-role').value;

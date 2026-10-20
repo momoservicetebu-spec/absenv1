@@ -51,6 +51,7 @@
     <button class="nav-btn" onclick="switchTab('jadwal-pelajaran', this)">📅 Jadwal Pelajaran</button>
     <button class="nav-btn" onclick="switchTab('gate-pass', this)">🎟️ Manajemen Gate Pass</button>
     <button class="nav-btn" onclick="switchTab('absensi-kelas', this); loadSemuaJadwalAdmin();">📝 Absensi Kelas</button>
+    <button class="nav-btn" onclick="switchTab('absensi-manual', this); loadUserDropdownManual();">✏️ Absensi Manual (Guru/Siswa)</button>
 
     <div class="menu-group">Sistem & Laporan</div>
     <button class="nav-btn" onclick="switchTab('laporan-absensi', this)">📊 Laporan Absensi</button>
@@ -944,6 +945,65 @@
         </div>
       </details>
     </div>
+     <!-- KONTEN: INPUT ABSENSI MANUAL (GURU & SISWA) -->
+      <div id="absensi-manual" class="section card" style="display: none;">
+        <h2 class="section-title">✏️ Input Absensi Manual (Guru & Siswa)</h2>
+        <p class="section-desc">Gunakan halaman ini untuk memasukkan status Sakit, Izin, Dinas Luar, Cuti, atau Hadir secara manual.</p>
+
+        <div style="background: #2a2640; padding: 20px; border-radius: 8px; border: 1px solid #4a4563; margin-bottom: 25px;">
+          <form id="form-absensi-manual" onsubmit="submitAbsensiManual(event)">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 15px;">
+              
+              <!-- 1. Peran -->
+              <div>
+                <label style="color: #a29bfe; font-size: 13px; display: block; margin-bottom: 6px; font-weight: 600;">Peran / Kategori</label>
+                <select id="man-role" onchange="loadUserDropdownManual()" style="width: 100%; padding: 10px; background: #161224; color: white; border: 1px solid #4a4563; border-radius: 6px; outline: none;">
+                  <option value="GURU">Guru & Staf</option>
+                  <option value="SISWA">Siswa</option>
+                </select>
+              </div>
+
+              <!-- 2. Pengguna -->
+              <div>
+                <label style="color: #a29bfe; font-size: 13px; display: block; margin-bottom: 6px; font-weight: 600;">Pilih Nama / ID</label>
+                <select id="man-user" required style="width: 100%; padding: 10px; background: #161224; color: white; border: 1px solid #4a4563; border-radius: 6px; outline: none;">
+                  <option value="">-- Memuat Data --</option>
+                </select>
+              </div>
+
+              <!-- 3. Status Presensi -->
+              <div>
+                <label style="color: #a29bfe; font-size: 13px; display: block; margin-bottom: 6px; font-weight: 600;">Status Presensi</label>
+                <select id="man-status" required style="width: 100%; padding: 10px; background: #161224; color: white; border: 1px solid #4a4563; border-radius: 6px; outline: none;">
+                  <option value="HADIR">✅ Hadir (Override Admin)</option>
+                  <option value="SAKIT">🏥 Sakit</option>
+                  <option value="IZIN">📩 Izin</option>
+                  <option value="DINAS LUAR">💼 Dinas Luar / Tugas</option>
+                  <option value="CUTI">🌴 Cuti</option>
+                  <option value="ALPA">❌ Alpa / Tanpa Keterangan</option>
+                </select>
+              </div>
+
+              <!-- 4. Tanggal -->
+              <div>
+                <label style="color: #a29bfe; font-size: 13px; display: block; margin-bottom: 6px; font-weight: 600;">Tanggal Presensi</label>
+                <input type="date" id="man-date" required style="width: 100%; padding: 9px; background: #161224; color: white; border: 1px solid #4a4563; border-radius: 6px; color-scheme: dark;">
+              </div>
+
+            </div>
+
+            <!-- Keterangan / Alasan -->
+            <div style="margin-bottom: 20px;">
+              <label style="color: #a29bfe; font-size: 13px; display: block; margin-bottom: 6px; font-weight: 600;">Keterangan / Catatan Admin</label>
+              <input type="text" id="man-keterangan" placeholder="Contoh: Surat Dokter / Tugas Kedinasan / Izin Acara Keluarga" style="width: 100%; padding: 10px; background: #161224; color: white; border: 1px solid #4a4563; border-radius: 6px; outline: none; box-sizing: border-box;">
+            </div>
+
+            <button type="submit" id="btn-submit-manual" class="btn-action btn-success" style="width: 100%; padding: 12px; font-weight: bold; font-size: 14px;">
+              💾 Simpan Presensi Manual
+            </button>
+          </form>
+        </div>
+      </div>
 
     <!-- KONTEN: LAPORAN ABSENSI -->
     <div id="laporan-absensi" class="section card">
