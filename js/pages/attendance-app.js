@@ -125,7 +125,6 @@ async function loadFaceDatabase() {
     console.log(`Database Wajah Loaded (${activeRole}):`, databaseWajah);
   }
 }
-
 // ==========================================
 // 3. LISTENER INPUT KARTU NFC / SCAN BARCODE
 // ==========================================
@@ -147,16 +146,42 @@ if (nfcInput) {
         
         if (result && result.success) {
            const userID = result.data.userId || result.data.id; 
-           const userName = result.data.nama || userID; 
-           const modeLower = String(modeAbsensiSaatIni).toLowerCase();
+           const userName = result.data.nama || result.data.Nama || userID; 
            
+           // ==========================================
+           // CEK STATUS GURU BERCADAR 
+           // ==========================================
+           // 1. Cek dari data respons API spreadsheet
+           let isBercadar = String(result.data.Bercadar || result.data.bercadar || "").toUpperCase().trim() === "YA";
+           
+           // 2. Jika tidak terbaca di API, cocokkan dari databaseWajah lokal
+           if (!isBercadar && typeof databaseWajah !== 'undefined') {
+               const targetUser = databaseWajah.find(u => String(u.id).trim() === String(userID).trim());
+               if (targetUser) {
+                   isBercadar = String(targetUser.Bercadar || targetUser.bercadar || "").toUpperCase().trim() === "YA";
+               }
+           }
+           // ==========================================
+
+           const modeLower = String(modeAbsensiSaatIni).toLowerCase();
            const requiresFace = modeLower.includes("wajah") || modeLower.includes("face") || modeLower === "rfid_face" || modeLower === "mfa";
 
-           if (requiresFace) {
+           if (isBercadar) {
+               // JIKA BERCADAR: Langsung absen, abaikan kamera
+               statusText.innerText = `Mode Khusus Aktif: Memproses absen untuk ${userName}...`;
+               isProcessing = false;
+               
+               // Panggil fungsi absen langsung
+               executeAttendance(userID, userName); 
+               
+           } else if (requiresFace) {
+               // JIKA TIDAK BERCADAR: Lanjut verifikasi wajah
                statusText.innerText = `ID Dikenali (${userName})! Memulai verifikasi wajah...`;
                isProcessing = false; 
                startVerificationState(userID, userName); 
+               
            } else {
+               // JIKA MODE ABSENSI SAAT INI HANYA RFID (Tanpa Wajah)
                executeAttendance(userID, userName);
            }
            
