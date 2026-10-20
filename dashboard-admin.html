@@ -50,8 +50,8 @@
     <div class="menu-group">Operasional & Absensi</div>
     <button class="nav-btn" onclick="switchTab('jadwal-pelajaran', this)">📅 Jadwal Pelajaran</button>
     <button class="nav-btn" onclick="switchTab('gate-pass', this)">🎟️ Manajemen Gate Pass</button>
-    <button class="nav-btn" onclick="switchTab('absensi-kelas', this); loadSemuaJadwalAdmin();">📝 Absensi Kelas</button>
-    <button class="nav-btn" onclick="switchTab('absensi-manual', this); loadUserDropdownManual();">✏️ Absensi Manual (Guru/Siswa)</button>
+    <button class="nav-btn" onclick="switchTab('absensi-kelas', this); loadSemuaJadwalAdmin();">📝 Absensi Kelas Siswa </button>
+    <button class="nav-btn" onclick="switchTab('absensi-manual', this); loadUserDropdownManual();">📝 Absensi Manual Guru </button>
 
     <div class="menu-group">Sistem & Laporan</div>
     <button class="nav-btn" onclick="switchTab('laporan-absensi', this)">📊 Laporan Absensi</button>
@@ -945,9 +945,9 @@
         </div>
       </details>
     </div>
-     <!-- KONTEN: INPUT ABSENSI MANUAL (GURU & SISWA) -->
+     <!-- KONTEN: INPUT ABSENSI MANUAL (GURU & TENDIK) -->
       <div id="absensi-manual" class="section card" style="display: none;">
-        <h2 class="section-title">✏️ Input Absensi Manual (Guru & Siswa)</h2>
+        <h2 class="section-title">✏️ Input Absensi Manual (Guru & Tendik)</h2>
         <p class="section-desc">Gunakan halaman ini untuk memasukkan status Sakit, Izin, Dinas Luar, Cuti, atau Hadir secara manual.</p>
 
         <div style="background: #2a2640; padding: 20px; border-radius: 8px; border: 1px solid #4a4563; margin-bottom: 25px;">
