@@ -177,8 +177,8 @@ function startVerificationState(userID, userName) {
   if (isProcessing) return;
   isProcessing = true;
 
-  const displayName = userName || userID;
   const targetUser = databaseWajah.find(u => String(u.id).trim() === String(userID).trim());
+  let displayName = userName || userID;
   
   if (!targetUser) {
     putarSuaraKonfirmasi(`Data wajah ${displayName} belum didaftarkan.`);
@@ -186,6 +186,10 @@ function startVerificationState(userID, userName) {
     setTimeout(resetToStandby, 3000);
     return;
   }
+
+  // --- PERBAIKAN DI SINI ---
+  // Ekstrak nama asli dari database wajah, timpa ID yang ada
+  displayName = targetUser.nama || targetUser.Nama || targetUser.namaLengkap || targetUser.label || displayName;
 
   currentMFAUser = targetUser;
   if (standbyUI) standbyUI.style.display = 'none';
