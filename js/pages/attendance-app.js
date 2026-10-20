@@ -89,7 +89,7 @@ function bukaKunciMetodeInput() {
     }
 }
 
-// 1. Mengunduh data referensi wajah sesuai Role (Face_Guru atau Face_Siswa)
+// Mengunduh data referensi wajah sesuai Role (Face_Guru atau Face_Siswa)
 async function loadFaceDatabase() {
   const activeRole = (typeof TERMINAL_ROLE !== 'undefined') ? TERMINAL_ROLE : "SISWA";
   console.log(`Mengunduh database wajah untuk role: ${activeRole}...`);
@@ -99,11 +99,9 @@ async function loadFaceDatabase() {
   databaseWajah = []; 
   if (result && result.success && Array.isArray(result.data)) {
     result.data.forEach(item => {
-      // Prioritas 1: Ambil langsung berdasarkan nama kolom presisi di Google Sheet
       const rawUserID = item.UserID || item.user_id || item.NIP || item.NIS;
       const rawEmbed = item['EmbeddingData (JSON)'] || item.EmbeddingData || item.descriptor;
 
-      // Fallback pencarian kunci (memastikan membuang 'FaceID')
       const keys = Object.keys(item);
       const userKey = rawUserID ? null : keys.find(k => {
         const lower = k.toLowerCase();
@@ -149,10 +147,9 @@ if (nfcInput) {
         
         if (result && result.success) {
            const userID = result.data.userId || result.data.id; 
-           const userName = result.data.nama || userID; // Mengambil nama lengkap dari backend
+           const userName = result.data.nama || userID; 
            const modeLower = String(modeAbsensiSaatIni).toLowerCase();
            
-           // Cek apakah mode absensi membutuhkan verifikasi wajah (MFA / RFID + FACE)
            const requiresFace = modeLower.includes("wajah") || modeLower.includes("face") || modeLower === "rfid_face" || modeLower === "mfa";
 
            if (requiresFace) {
@@ -160,11 +157,11 @@ if (nfcInput) {
                isProcessing = false; 
                startVerificationState(userID, userName); 
            } else {
-               // Jika hanya mode RFID, langsung catat absen
                executeAttendance(userID, userName);
            }
            
         } else {
+           putarSuaraKonfirmasi("Kartu atau ID tidak terdaftar.");
            showAlert(`❌ ID (${rfidNumber}) tidak terdaftar untuk ${activeRole}.`, "#e74c3c");
            setTimeout(resetToStandby, 3000);
         }
@@ -181,10 +178,10 @@ function startVerificationState(userID, userName) {
   isProcessing = true;
 
   const displayName = userName || userID;
-  // Pencarian aman dengan konversi String dan trim()
   const targetUser = databaseWajah.find(u => String(u.id).trim() === String(userID).trim());
   
   if (!targetUser) {
+    putarSuaraKonfirmasi(`Data wajah ${displayName} belum didaftarkan.`);
     showAlert(`Data wajah untuk ${displayName} belum didaftarkan.`, "#e74c3c");
     setTimeout(resetToStandby, 3000);
     return;
@@ -216,11 +213,9 @@ function startVerificationState(userID, userName) {
     if (detections) {
       const resized = faceapi.resizeResults(detections, displaySize);
       
-      // Hitung jarak Euclidean (Semakin kecil semakin mirip)
       const distance = faceapi.euclideanDistance(detections.descriptor, currentMFAUser.descriptor);
-      const isMatch = distance < 0.6; // Standar ideal face-api.js
+      const isMatch = distance < 0.6; 
 
-      // Pengaturan Label & Warna Kotak
       const boxLabel = isMatch ? `✅ ${displayName}` : `Memindai... (${distance.toFixed(2)})`;
       const boxColor = isMatch ? '#2ecc71' : '#e67e22';
 
@@ -251,6 +246,7 @@ function startVerificationState(userID, userName) {
     if (isProcessing && verificationInterval) {
       clearInterval(verificationInterval);
       verificationInterval = null;
+      putarSuaraKonfirmasi("Verifikasi wajah gagal.");
       showAlert(`Wajah tidak cocok untuk ${displayName}.`, "#e74c3c");
       setTimeout(resetToStandby, 3000);
     }
@@ -258,13 +254,12 @@ function startVerificationState(userID, userName) {
 }
 
 // ==========================================
-// 5. EKSEKUSI PENGIRIMAN ABSENSI KE SERVER
+// 5. EKSEKUSI PENGIRIMAN ABSENSI KE SERVER & VOICE
 // ==========================================
-// Variabel Pengunci Eksekusi Ganda
 let isSubmittingAttendance = false;
 
 async function executeAttendance(userID, userName) {
-  if (isSubmittingAttendance) return; // Kunci jika sedang dalam proses pengiriman
+  if (isSubmittingAttendance) return; 
   isSubmittingAttendance = true;
 
   const displayName = userName || userID;
@@ -289,43 +284,31 @@ async function executeAttendance(userID, userName) {
   const result = await fetchAPI("submitAutoAttendance", payload);
 
   if (result && result.success) {
+    const record = result.data || {};
+    const status = record["Status(Hadir/Telat/Izin/dll)"] || record.status || "Hadir";
+    const checkType = (record["CheckType (IN/OUT)"] || payload.checkType) === "OUT" ? "pulang" : "masuk";
+
+    // Susun Kalimat Ucapan Bahasa Indonesia
+    let pesanSuara = `Terima kasih ${displayName}. Absen ${checkType} berhasil.`;
+    if (status === "Telat") {
+      pesanSuara = `Absen ${checkType} berhasil. Maaf ${displayName}, Anda tercatat terlambat.`;
+    } else if (checkType === "pulang") {
+      pesanSuara = `Terima kasih ${displayName}. Selamat jalan dan sampai jumpa.`;
+    }
+
+    // Putar Suara Konfirmasi
+    putarSuaraKonfirmasi(pesanSuara);
+
     showAlert(`✅ ABSENSI SUKSES: ${displayName}`, "#2ecc71");
     statusText.innerText = `✅ Absensi Berhasil (${displayName})`;
     statusText.style.color = "#2ecc71";
   } else {
     const errMessage = result ? result.message : "Koneksi terputus";
+    putarSuaraKonfirmasi("Absensi gagal. Silakan coba lagi.");
     showAlert(`❌ Gagal: ${errMessage}`, "#e74c3c");
   }
 
   setTimeout(resetToStandby, 3000);
-}
-
-function resetToStandby() {
-  if (verificationInterval) clearInterval(verificationInterval);
-  verificationInterval = null;
-  currentMFAUser = null;
-  isProcessing = false;
-  isSubmittingAttendance = false; // Buka kunci pengiriman
-  
-  const canvas = document.querySelector('canvas');
-  if (canvas) canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
-
-  hideAlert();
-  
-  const modeLower = String(modeAbsensiSaatIni).toLowerCase();
-  const activeRole = (typeof TERMINAL_ROLE !== 'undefined') ? TERMINAL_ROLE : "SISWA";
-
-  if (modeLower !== "face" && !modeLower.includes("hanya scan wajah")) {
-      if (videoContainer) videoContainer.style.display = 'none';
-      if (standbyUI) standbyUI.style.display = 'block';
-  }
-  
-  statusText.innerText = `Sistem Siap (${activeRole})`;
-  statusText.style.color = "#2ecc71";
-  
-  if (nfcInput && !nfcInput.disabled) {
-      nfcInput.focus();
-  }
 }
 
 // ==========================================
@@ -336,6 +319,7 @@ function resetToStandby() {
   verificationInterval = null;
   currentMFAUser = null;
   isProcessing = false;
+  isSubmittingAttendance = false; 
   
   const canvas = document.querySelector('canvas');
   if (canvas) canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
@@ -367,4 +351,33 @@ function showAlert(text, color) {
 
 function hideAlert() { 
   if (alertBox) alertBox.style.display = "none"; 
+}
+
+// ==========================================
+// FUNGSI SUARA KONFIRMASI (TEXT-TO-SPEECH)
+// ==========================================
+function putarSuaraKonfirmasi(teks) {
+  if ('speechSynthesis' in window) {
+    window.speechSynthesis.cancel(); // Hentikan suara yang sedang berjalan
+
+    const utterance = new SpeechSynthesisUtterance(teks);
+    utterance.lang = 'id-ID'; // Pengaturan Bahasa Indonesia
+    utterance.rate = 1.0;     // Kecepatan standar
+    utterance.pitch = 1.0;    // Nada standar
+
+    const voices = window.speechSynthesis.getVoices();
+    const idVoice = voices.find(v => v.lang.includes('id') || v.lang.includes('IND'));
+    if (idVoice) utterance.voice = idVoice;
+
+    window.speechSynthesis.speak(utterance);
+  } else {
+    console.warn("Browser tidak mendukung Web Speech API");
+  }
+}
+
+// Inisialisasi daftar vokal browser saat halaman dimuat
+if ('speechSynthesis' in window) {
+  window.speechSynthesis.onvoiceschanged = () => {
+    window.speechSynthesis.getVoices();
+  };
 }
