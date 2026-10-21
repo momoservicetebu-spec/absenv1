@@ -196,28 +196,38 @@ if (nfcInput) {
 }
 
 // ==========================================
-// 4. VERIFIKASI WAJAH AI (DENGAN KOTAK & NAMA)
+// 4. VERIFIKASI WAJAH AI (DENGAN NAMA MASTER)
 // ==========================================
 function startVerificationState(userID, userName) {
   if (isProcessing) return;
   isProcessing = true;
 
-  // Coba cari data dari databaseWajah atau DB pengguna yang dimuat sebelumnya
-  const targetUser = (typeof databaseWajah !== 'undefined' ? databaseWajah : []).find(u => String(u.id).trim() === String(userID).trim());
-  
-  // Ambil nama dari database jika ada. Jika tidak, gunakan userName dari parameter, lalu fallback ke userID.
-  let displayName = userID;
-  if (targetUser && (targetUser.nama || targetUser.Nama || targetUser.namaLengkap || targetUser.label)) {
-      displayName = targetUser.nama || targetUser.Nama || targetUser.namaLengkap || targetUser.label;
-  } else if (userName && userName !== userID) {
-      displayName = userName;
-  }
+  // Cari data deskriptor wajah
+  const targetUser = (typeof databaseWajah !== 'undefined' ? databaseWajah : []).find(
+    u => String(u.id || u.UserID).trim().toUpperCase() === String(userID).trim().toUpperCase()
+  );
   
   if (!targetUser) {
-    putarSuaraKonfirmasi(`Data wajah ${displayName} belum didaftarkan.`);
-    showAlert(`Data wajah untuk ${displayName} belum didaftarkan.`, "#e74c3c");
+    putarSuaraKonfirmasi(`Data wajah belum didaftarkan.`);
+    showAlert(`Data wajah untuk ${userID} belum didaftarkan.`, "#e74c3c");
     setTimeout(resetToStandby, 3000);
     return;
+  }
+
+  // 🌟 PENCARIAN NAMA ASLI DARI MASTER DATA (Daftar Guru / Siswa)
+  let displayName = userID;
+  const masterGuru = typeof dataGuru !== 'undefined' ? dataGuru : (typeof listGuru !== 'undefined' ? listGuru : []);
+  const masterSiswa = typeof dataSiswa !== 'undefined' ? dataSiswa : (typeof listSiswa !== 'undefined' ? listSiswa : []);
+  const allUsers = [...masterGuru, ...masterSiswa];
+
+  const foundMaster = allUsers.find(
+    u => String(u.UserID || u.NIP || u.NIS || u.ID).trim().toUpperCase() === String(userID).trim().toUpperCase()
+  );
+
+  if (foundMaster) {
+    displayName = foundMaster.Nama || foundMaster.Nama_Lengkap || foundMaster.NamaLengkap || displayName;
+  } else if (userName && userName !== userID) {
+    displayName = userName;
   }
 
   currentMFAUser = targetUser;
@@ -245,17 +255,13 @@ function startVerificationState(userID, userName) {
 
     if (detections) {
       const resized = faceapi.resizeResults(detections, displaySize);
-      
       const distance = faceapi.euclideanDistance(detections.descriptor, currentMFAUser.descriptor);
       const isMatch = distance < 0.6; 
 
-      const boxLabel = isMatch ? `✅ ${displayName}` : `Memindai... (${distance.toFixed(2)})`;
-      const boxColor = isMatch ? '#2ecc71' : '#e67e22';
-
       const drawOptions = {
-        label: boxLabel,
+        label: isMatch ? `✅ ${displayName}` : `Memindai... (${distance.toFixed(2)})`,
         lineWidth: 3,
-        boxColor: boxColor
+        boxColor: isMatch ? '#2ecc71' : '#e67e22'
       };
       const drawBox = new faceapi.draw.DrawBox(resized.detection.box, drawOptions);
       drawBox.draw(canvas);
@@ -267,7 +273,6 @@ function startVerificationState(userID, userName) {
         statusText.innerText = `Wajah Cocok! (${displayName})`;
         statusText.style.color = "#2ecc71";
         
-        // Panggil fungsi absen dan sertakan nama asli yang sudah ditemukan
         executeAttendance(userID, displayName);
       } else {
         statusText.innerText = `Membandingkan Wajah... (${distance.toFixed(2)})`;
@@ -275,7 +280,6 @@ function startVerificationState(userID, userName) {
     }
   }, 200);
 
-  // Batas Waktu Pemindaian (12 Detik)
   setTimeout(() => {
     if (isProcessing && verificationInterval) {
       clearInterval(verificationInterval);
@@ -321,41 +325,37 @@ async function executeAttendance(userID, userName) {
     const backendMessage = result ? result.message : "";
     const customVoice = record.pesanSuara || "";
 
-    // 🌟 PAKSA AMBIL NAMA DARI DATABASE (Karena di file wajah hanya ada ID)
     if (record.Nama) {
        displayName = record.Nama;
     }
 
     if (result && result.success) {
-      // --- KONDISI 1: ABSENSI BERHASIL TEREKAM ---
       const checkType = record["CheckType (IN/OUT)"] || "IN";
       
-      // Putar pesan suara dari backend
       if (customVoice) {
         putarSuaraKonfirmasi(customVoice);
       } else {
         putarSuaraKonfirmasi(`Terima kasih ${displayName}. Absensi berhasil.`);
       }
 
-      // BEDAKAN WARNA: MASUK = HIJAU, PULANG = BIRU
       if (checkType === "OUT") {
-         showAlert(`🔵 ABSEN PULANG SUKSES: ${displayName}`, "#3498db"); // Biru
+         showAlert(`🔵 ABSEN PULANG SUKSES: ${displayName}`, "#3498db");
          statusText.innerText = `🔵 Absen Pulang (${displayName})`;
          statusText.style.color = "#3498db";
       } else {
-         showAlert(`✅ ABSEN MASUK SUKSES: ${displayName}`, "#2ecc71"); // Hijau
+         showAlert(`✅ ABSEN MASUK SUKSES: ${displayName}`, "#2ecc71");
          statusText.innerText = `✅ Absen Masuk (${displayName})`;
          statusText.style.color = "#2ecc71";
       }
 
     } else {
-      // --- KONDISI 2: DITOLAK (BELUM WAKTUNYA / SPAM / SUDAH ABSEN) ---
+      // PERINGATAN REPEAT TAP / SPAM / DI LUAR JAM
       const errMessage = backendMessage || "Koneksi terputus";
       const cleanMsg = errMessage.replace("[Sistem]", "").trim();
       
       putarSuaraKonfirmasi(customVoice || cleanMsg); 
       
-      showAlert(`⚠️ ${cleanMsg}`, "#e67e22"); // Oranye
+      showAlert(`⚠️ ${cleanMsg}`, "#e67e22"); // Warna Oranye
       statusText.innerText = `⚠️ Peringatan (${displayName})`;
       statusText.style.color = "#e67e22";
     }
