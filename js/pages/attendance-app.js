@@ -202,8 +202,16 @@ function startVerificationState(userID, userName) {
   if (isProcessing) return;
   isProcessing = true;
 
-  const targetUser = databaseWajah.find(u => String(u.id).trim() === String(userID).trim());
-  let displayName = userName || userID;
+  // Coba cari data dari databaseWajah atau DB pengguna yang dimuat sebelumnya
+  const targetUser = (typeof databaseWajah !== 'undefined' ? databaseWajah : []).find(u => String(u.id).trim() === String(userID).trim());
+  
+  // Ambil nama dari database jika ada. Jika tidak, gunakan userName dari parameter, lalu fallback ke userID.
+  let displayName = userID;
+  if (targetUser && (targetUser.nama || targetUser.Nama || targetUser.namaLengkap || targetUser.label)) {
+      displayName = targetUser.nama || targetUser.Nama || targetUser.namaLengkap || targetUser.label;
+  } else if (userName && userName !== userID) {
+      displayName = userName;
+  }
   
   if (!targetUser) {
     putarSuaraKonfirmasi(`Data wajah ${displayName} belum didaftarkan.`);
@@ -211,10 +219,6 @@ function startVerificationState(userID, userName) {
     setTimeout(resetToStandby, 3000);
     return;
   }
-
-  // --- PERBAIKAN DI SINI ---
-  // Ekstrak nama asli dari database wajah, timpa ID yang ada
-  displayName = targetUser.nama || targetUser.Nama || targetUser.namaLengkap || targetUser.label || displayName;
 
   currentMFAUser = targetUser;
   if (standbyUI) standbyUI.style.display = 'none';
@@ -263,6 +267,7 @@ function startVerificationState(userID, userName) {
         statusText.innerText = `Wajah Cocok! (${displayName})`;
         statusText.style.color = "#2ecc71";
         
+        // Panggil fungsi absen dan sertakan nama asli yang sudah ditemukan
         executeAttendance(userID, displayName);
       } else {
         statusText.innerText = `Membandingkan Wajah... (${distance.toFixed(2)})`;
@@ -310,34 +315,56 @@ async function executeAttendance(userID, userName) {
     keterangan: "Absen Wajah & Kartu Sukses"
   };
 
-  const result = await fetchAPI("submitAutoAttendance", payload);
+  try {
+    const result = await fetchAPI("submitAutoAttendance", payload);
 
-  if (result && result.success) {
-    const record = result.data || {};
-    const status = record["Status(Hadir/Telat/Izin/dll)"] || record.status || "Hadir";
-    const checkType = (record["CheckType (IN/OUT)"] || payload.checkType) === "OUT" ? "pulang" : "masuk";
+    const record = result && result.data ? result.data : {};
+    const backendMessage = result ? result.message : "";
+    const customVoice = record.pesanSuara || ""; // Menangkap suara khusus dari Apps Script
 
-    // Susun Kalimat Ucapan Bahasa Indonesia
-    let pesanSuara = `Terima kasih ${displayName}. Absen ${checkType} berhasil.`;
-    if (status === "Telat") {
-      pesanSuara = `Absen ${checkType} berhasil. Maaf ${displayName}, Anda tercatat terlambat.`;
-    } else if (checkType === "pulang") {
-      pesanSuara = `Terima kasih ${displayName}. Selamat jalan dan sampai jumpa.`;
+    if (result && result.success) {
+      // --- KONDISI 1: ABSENSI BERHASIL TEREKAM (MASUK / PULANG) ---
+      const status = record["Status(Hadir/Telat/Izin/dll)"] || record.status || "Hadir";
+      
+      // Putar pesan suara dari backend (atau fallback bawaan)
+      if (customVoice) {
+        putarSuaraKonfirmasi(customVoice);
+      } else {
+        putarSuaraKonfirmasi(`Terima kasih ${displayName}. Absensi berhasil.`);
+      }
+
+      showAlert(`✅ ABSENSI SUKSES: ${displayName}`, "#2ecc71"); // Hijau
+      statusText.innerText = `✅ Absensi Berhasil (${displayName})`;
+      statusText.style.color = "#2ecc71";
+
+    } else {
+      // --- KONDISI 2: DITOLAK SISTEM (BELUM WAKTUNYA / SPAM / SUDAH ABSEN) ---
+      const errMessage = backendMessage || "Koneksi terputus";
+      
+      if (errMessage.includes("[Sistem]")) {
+        // Penolakan logis dari Apps Script
+        const cleanMsg = errMessage.replace("[Sistem]", "").trim();
+        
+        // Putar suara spesifik penolakan
+        putarSuaraKonfirmasi(customVoice || cleanMsg); 
+        
+        showAlert(`⚠️ ${cleanMsg}`, "#e67e22"); // Oranye
+        statusText.innerText = `⚠️ Peringatan (${displayName})`;
+        statusText.style.color = "#e67e22";
+      } else {
+        // Error teknis/jaringan
+        putarSuaraKonfirmasi(`Absensi gagal. Silakan coba lagi.`);
+        showAlert(`❌ Gagal: ${errMessage}`, "#e74c3c"); // Merah
+        statusText.innerText = `❌ Gagal (${displayName})`;
+        statusText.style.color = "#e74c3c";
+      }
     }
-
-    // Putar Suara Konfirmasi
-    putarSuaraKonfirmasi(pesanSuara);
-
-    showAlert(`✅ ABSENSI SUKSES: ${displayName}`, "#2ecc71");
-    statusText.innerText = `✅ Absensi Berhasil (${displayName})`;
-    statusText.style.color = "#2ecc71";
-  } else {
-    const errMessage = result ? result.message : "Koneksi terputus";
-    putarSuaraKonfirmasi("Absensi gagal. Silakan coba lagi.");
-    showAlert(`❌ Gagal: ${errMessage}`, "#e74c3c");
+  } catch (error) {
+     putarSuaraKonfirmasi(`Terjadi kesalahan jaringan.`);
+     showAlert(`❌ Error Jaringan`, "#e74c3c");
   }
 
-  setTimeout(resetToStandby, 3000);
+  setTimeout(resetToStandby, 3500);
 }
 
 // ==========================================
