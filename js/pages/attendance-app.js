@@ -296,12 +296,11 @@ async function executeAttendance(userID, userName) {
   if (isSubmittingAttendance) return; 
   isSubmittingAttendance = true;
 
-  const displayName = userName || userID;
+  let displayName = userName || userID;
   showAlert(`Mencatat Absensi...`, "#f1c40f");
   statusText.innerText = "Mengirim Data...";
 
   const activeRole = (typeof TERMINAL_ROLE !== 'undefined') ? TERMINAL_ROLE : "SISWA";
-
   const payload = {
     userId: String(userID).trim(),
     role: activeRole,
@@ -317,47 +316,48 @@ async function executeAttendance(userID, userName) {
 
   try {
     const result = await fetchAPI("submitAutoAttendance", payload);
-
+    
     const record = result && result.data ? result.data : {};
     const backendMessage = result ? result.message : "";
-    const customVoice = record.pesanSuara || ""; // Menangkap suara khusus dari Apps Script
+    const customVoice = record.pesanSuara || "";
+
+    // 🌟 PAKSA AMBIL NAMA DARI DATABASE (Karena di file wajah hanya ada ID)
+    if (record.Nama) {
+       displayName = record.Nama;
+    }
 
     if (result && result.success) {
-      // --- KONDISI 1: ABSENSI BERHASIL TEREKAM (MASUK / PULANG) ---
-      const status = record["Status(Hadir/Telat/Izin/dll)"] || record.status || "Hadir";
+      // --- KONDISI 1: ABSENSI BERHASIL TEREKAM ---
+      const checkType = record["CheckType (IN/OUT)"] || "IN";
       
-      // Putar pesan suara dari backend (atau fallback bawaan)
+      // Putar pesan suara dari backend
       if (customVoice) {
         putarSuaraKonfirmasi(customVoice);
       } else {
         putarSuaraKonfirmasi(`Terima kasih ${displayName}. Absensi berhasil.`);
       }
 
-      showAlert(`✅ ABSENSI SUKSES: ${displayName}`, "#2ecc71"); // Hijau
-      statusText.innerText = `✅ Absensi Berhasil (${displayName})`;
-      statusText.style.color = "#2ecc71";
+      // BEDAKAN WARNA: MASUK = HIJAU, PULANG = BIRU
+      if (checkType === "OUT") {
+         showAlert(`🔵 ABSEN PULANG SUKSES: ${displayName}`, "#3498db"); // Biru
+         statusText.innerText = `🔵 Absen Pulang (${displayName})`;
+         statusText.style.color = "#3498db";
+      } else {
+         showAlert(`✅ ABSEN MASUK SUKSES: ${displayName}`, "#2ecc71"); // Hijau
+         statusText.innerText = `✅ Absen Masuk (${displayName})`;
+         statusText.style.color = "#2ecc71";
+      }
 
     } else {
-      // --- KONDISI 2: DITOLAK SISTEM (BELUM WAKTUNYA / SPAM / SUDAH ABSEN) ---
+      // --- KONDISI 2: DITOLAK (BELUM WAKTUNYA / SPAM / SUDAH ABSEN) ---
       const errMessage = backendMessage || "Koneksi terputus";
+      const cleanMsg = errMessage.replace("[Sistem]", "").trim();
       
-      if (errMessage.includes("[Sistem]")) {
-        // Penolakan logis dari Apps Script
-        const cleanMsg = errMessage.replace("[Sistem]", "").trim();
-        
-        // Putar suara spesifik penolakan
-        putarSuaraKonfirmasi(customVoice || cleanMsg); 
-        
-        showAlert(`⚠️ ${cleanMsg}`, "#e67e22"); // Oranye
-        statusText.innerText = `⚠️ Peringatan (${displayName})`;
-        statusText.style.color = "#e67e22";
-      } else {
-        // Error teknis/jaringan
-        putarSuaraKonfirmasi(`Absensi gagal. Silakan coba lagi.`);
-        showAlert(`❌ Gagal: ${errMessage}`, "#e74c3c"); // Merah
-        statusText.innerText = `❌ Gagal (${displayName})`;
-        statusText.style.color = "#e74c3c";
-      }
+      putarSuaraKonfirmasi(customVoice || cleanMsg); 
+      
+      showAlert(`⚠️ ${cleanMsg}`, "#e67e22"); // Oranye
+      statusText.innerText = `⚠️ Peringatan (${displayName})`;
+      statusText.style.color = "#e67e22";
     }
   } catch (error) {
      putarSuaraKonfirmasi(`Terjadi kesalahan jaringan.`);
