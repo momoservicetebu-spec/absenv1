@@ -3,8 +3,8 @@
 // SINKRONISASI DENGAN HTML ENROLLMENT RFID / NFC
 // ==========================================
 
-// ==========================================
-// 1. Simpan Data RFID ke Database (DENGAN NAMA)
+/// ==========================================
+// 1. Simpan Data RFID ke Database (FIX SELECT2 NAMA)
 // ==========================================
 async function registerCurrentRFID() {
   const userSelect = document.getElementById('rfidUserSelect');
@@ -24,15 +24,24 @@ async function registerCurrentRFID() {
     return;
   }
 
-  // --- AMBIL NAMA DARI DROPDOWN (Pemisah " - ") ---
-  let userName = "";
-  if (userSelect && userSelect.options[userSelect.selectedIndex]) {
-    const fullText = userSelect.options[userSelect.selectedIndex].text;
-    const parts = fullText.split(" - ");
-    userName = parts.length > 1 ? parts.slice(1).join(" - ").trim() : userId;
+  // --- EKSSTRAK TEKS OPTION (DUAL SUPPORT: SELECT2 & VANILLA JS) ---
+  let fullText = "";
+  if (typeof jQuery !== 'undefined' && jQuery('#rfidUserSelect').length > 0) {
+    fullText = jQuery('#rfidUserSelect option:selected').text();
+  } else if (userSelect && userSelect.selectedIndex >= 0) {
+    fullText = userSelect.options[userSelect.selectedIndex].text;
   }
 
-  const selectedText = userSelect.options[userSelect.selectedIndex].text.toLowerCase();
+  // EKSSTRAK NAMA SETELAH STRIP " - " (Misal: "GURU-014 - Budi Santoso" -> "Budi Santoso")
+  let userName = "";
+  if (fullText && fullText.includes(" - ")) {
+    const parts = fullText.split(" - ");
+    userName = parts.slice(1).join(" - ").trim();
+  } else {
+    userName = fullText.trim();
+  }
+
+  const selectedText = fullText.toLowerCase();
   let userRole = "Siswa";
   if (selectedText.includes('guru') || userId.toLowerCase().includes('guru') || userId.toLowerCase().includes('nip')) {
     userRole = "Guru";
@@ -46,10 +55,12 @@ async function registerCurrentRFID() {
   // PAYLOAD DIPASTIKAN MEMBAWA NAMA
   const payload = {
     userId: userId,
-    nama: userName, // <--- NAMA TERKIRIM
+    nama: userName || userId, // <--- Nama dijamin terisi
     role: userRole,
     rfidUid: rfidUid
   };
+
+  console.log("Payload terkirim ke server:", payload); // Cek via F12 Console
 
   const result = await fetchAPI("registerRFID", payload);
 
