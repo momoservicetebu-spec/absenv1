@@ -357,32 +357,27 @@ async function executeAttendance(userID, userName) {
          teksStatus = "Absen Pulang";
       }
 
-      // --- BAGIAN SUARA ---
-     // --- BAGIAN SUARA (DIPERBARUI) ---
-      // Langsung memutar suara sesuai kondisi yang terdeteksi di atas
-      putarSuaraKonfirmasi(teksSuara);
+     putarSuaraKonfirmasi(teksSuara);
 
-      // --- TAMPILKAN KE LAYAR ---
       showAlert(`${ikon} ${teksJudul}: ${displayName}`, warnaBg);
       statusText.innerText = `${ikon} ${teksStatus} (${displayName})`;
       statusText.style.color = warnaBg;
 
     } else {
-      // PERINGATAN REPEAT TAP PAGI / SPAM / DI LUAR JAM (Otomatis Oranye)
       const errMessage = backendMessage || "Koneksi terputus";
       const cleanMsg = errMessage.replace("[Sistem]", "").trim();
       
-      putarSuaraKonfirmasi(customVoice || cleanMsg); 
+      putarSuaraKonfirmasi(cleanMsg); 
       
-      showAlert(`⚠️ ${cleanMsg}`, "#e67e22"); // Warna Oranye
+      showAlert(`⚠️ ${cleanMsg}`, "#e67e22"); 
       statusText.innerText = `⚠️ Peringatan (${displayName})`;
       statusText.style.color = "#e67e22";
     }
-} catch (error) {
+  } catch (error) {
      console.error(error);
      putarSuaraKonfirmasi(`Terjadi kesalahan sistem.`);
      showAlert(`❌ Error Sistem / Jaringan`, "#e74c3c");
-}
+  }
 
   setTimeout(resetToStandby, 3500);
 }
