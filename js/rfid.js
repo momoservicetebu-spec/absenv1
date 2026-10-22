@@ -143,7 +143,8 @@ async function loadRFIDTable() {
         const tr = document.createElement('tr');
         tr.innerHTML = `
           <td style="padding: 8px; border: 1px solid #444;">${index + 1}</td>
-          <td style="padding: 8px; border: 1px solid #444; font-weight: bold;">${row.UserID}</td>
+          <td style="padding: 8px; border: 1px solid #444;">${row.UserID}</td>
+          <td style="padding: 8px; border: 1px solid #444; font-weight: bold;">${row.Nama}</td>
           <td style="padding: 8px; border: 1px solid #444;">${row.Role}</td>
           <td style="padding: 8px; border: 1px solid #444;">${row.UID_Kartu || row.UID}</td>
           <td style="padding: 8px; border: 1px solid #444; color: #1dd1a1;">${row.Status || 'Active'}</td>
