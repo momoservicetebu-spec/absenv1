@@ -309,7 +309,7 @@ async function executeAttendance(userID, userName) {
     userId: String(userID).trim(),
     nama: displayName,
     role: activeRole,
-    checkType: "AUTO", // <-- DIUBAH MENJADI AUTO AGAR SERVER YANG MENENTUKAN
+    checkType: "AUTO",
     primaryMethod: "RFID",
     secondaryMethod: "FACE",
     authLevel: "2FA",
@@ -324,40 +324,43 @@ async function executeAttendance(userID, userName) {
     
     const record = result && result.data ? result.data : {};
     const backendMessage = result ? result.message : "";
-    const customVoice = record.pesanSuara || "";
 
     if (record.Nama) {
        displayName = record.Nama;
     }
 
-   if (result && result.success) {
+    if (result && result.success) {
       
-      // --- DETEKSI STATUS SUPER SPESIFIK (MULTI-WARNA) ---
       const balasanServer = JSON.stringify(result).toLowerCase();
       
-      let warnaBg = "#2ecc71"; // Default: Hijau (Masuk)
+      // Deklarasikan semua variabel di awal
+      let warnaBg = "#2ecc71"; 
       let ikon = "✅";
       let teksJudul = "ABSEN MASUK SUKSES";
       let teksStatus = "Absen Masuk";
+      let teksSuara = `Terima kasih ${displayName}. Absen masuk berhasil. Selamat beraktivitas.`;
 
       if (balasanServer.includes("diperbarui") || balasanServer.includes("lembur")) {
-         warnaBg = "#9b59b6"; // Ungu (Tap 2+ Sore / Lembur)
+         warnaBg = "#9b59b6"; 
          ikon = "🟣";
          teksJudul = "ABSEN PULANG LEMBUR";
          teksStatus = "Pulang Lembur";
+         teksSuara = `Terima kasih ${displayName}, absen lembur berhasil. Selamat beristirahat, sehat selalu, sampai jumpa besok.`;
       } else if (balasanServer.includes("awal")) {
-         warnaBg = "#f39c12"; // Kuning/Jingga (Tap 1 Pulang Awal sblm 14:50)
+         warnaBg = "#f39c12"; 
          ikon = "🟡";
          teksJudul = "ABSEN PULANG AWAL";
          teksStatus = "Pulang Awal";
-      } else if (balasanServer.includes("pulang")) {
-         warnaBg = "#3498db"; // Biru (Tap 1 Pulang Normal)
+         teksSuara = `Absen pulang berhasil. Maaf ${displayName}, Anda pulang lebih awal.`;
+      } else if (balasanServer.includes("pulang") || balasanServer.includes("out")) {
+         warnaBg = "#3498db"; 
          ikon = "🔵";
          teksJudul = "ABSEN PULANG SUKSES";
          teksStatus = "Absen Pulang";
+         teksSuara = `Terima kasih ${displayName}, absen pulang berhasil. Hati-hati di jalan.`;
       }
 
-     putarSuaraKonfirmasi(teksSuara);
+      putarSuaraKonfirmasi(teksSuara);
 
       showAlert(`${ikon} ${teksJudul}: ${displayName}`, warnaBg);
       statusText.innerText = `${ikon} ${teksStatus} (${displayName})`;
@@ -374,7 +377,7 @@ async function executeAttendance(userID, userName) {
       statusText.style.color = "#e67e22";
     }
   } catch (error) {
-     console.error(error);
+     console.error("Error Absen:", error);
      putarSuaraKonfirmasi(`Terjadi kesalahan sistem.`);
      showAlert(`❌ Error Sistem / Jaringan`, "#e74c3c");
   }
