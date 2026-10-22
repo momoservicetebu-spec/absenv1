@@ -3,7 +3,9 @@
 // SINKRONISASI DENGAN HTML ENROLLMENT RFID / NFC
 // ==========================================
 
-// 1. Simpan Data RFID ke Database
+// ==========================================
+// 1. Simpan Data RFID ke Database (DENGAN NAMA)
+// ==========================================
 async function registerCurrentRFID() {
   const userSelect = document.getElementById('rfidUserSelect');
   const rfidInput = document.getElementById('rfidUidInput');
@@ -22,6 +24,18 @@ async function registerCurrentRFID() {
     return;
   }
 
+  // --- PERBAIKAN: Ambil Nama dari Dropdown (Teks "GURU-014 - Budi Santoso") ---
+  let userName = "";
+  if (userSelect && userSelect.options[userSelect.selectedIndex]) {
+    const selectedTextOption = userSelect.options[userSelect.selectedIndex].text;
+    const parts = selectedTextOption.split(" - ");
+    if (parts.length > 1) {
+      userName = parts.slice(1).join(" - ").trim(); // Mengambil "Budi Santoso"
+    } else {
+      userName = userId;
+    }
+  }
+
   const selectedText = userSelect.options[userSelect.selectedIndex].text.toLowerCase();
   let userRole = "Siswa";
   if (selectedText.includes('guru') || userId.toLowerCase().includes('guru') || userId.toLowerCase().includes('nip')) {
@@ -33,8 +47,10 @@ async function registerCurrentRFID() {
     btnEnroll.disabled = true;
   }
 
+  // PERBAIKAN: Tambahkan 'nama: userName' ke dalam payload
   const payload = {
     userId: userId,
+    nama: userName, // <--- INI KUNCI UTAMA YANG SEBELUMNYA KURANG
     role: userRole,
     rfidUid: rfidUid
   };
@@ -114,83 +130,100 @@ async function loadUserForRFID() {
 }
 
 // ==========================================
-// 3. FUNGSI CRUD: MUAT TABEL (READ)
+// 1. MUAT TABEL RFID (READ - REAL TIME)
 // ==========================================
 async function loadRFIDTable() {
-  // PASTIKAN ID 'rfidTableBody' INI SAMA DENGAN <tbody id="..."> DI HTML ANDA
   const tbody = document.getElementById('rfidTableBody');
-  if (!tbody) {
-    console.warn("Elemen tbody dengan ID 'rfidTableBody' tidak ditemukan di HTML!");
-    return;
-  }
+  if (!tbody) return;
 
-  // 1. Pastikan tabel dikosongkan dan diisi pesan loading
-  tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 15px;">⏳ Memuat data...</td></tr>';
+  tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding: 15px;">⏳ Memuat data...</td></tr>';
 
   try {
-    const result = await fetchAPI("getAllRFIDData");
+    const result = await fetchAPI("getAllRFIDData", { _t: new Date().getTime() });
     
-    // 2. Jika data kosong (Sudah terhapus di database)
     if (!result || !result.data || result.data.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 15px;">Belum ada kartu terdaftar atau data telah kosong.</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding: 15px; color: #9ca3af;">Belum ada kartu terdaftar atau data telah kosong.</td></tr>';
       return;
     }
 
-    // 3. Jika data ada, cetak barisnya
     if (result.success) {
-      tbody.innerHTML = ''; // Hapus pesan loading
+      tbody.innerHTML = '';
       result.data.forEach((row, index) => {
         const tr = document.createElement('tr');
         tr.innerHTML = `
-          <td style="padding: 8px; border: 1px solid #444;">${index + 1}</td>
+          <td style="padding: 8px; border: 1px solid #444; text-align:center;">${index + 1}</td>
           <td style="padding: 8px; border: 1px solid #444;">${row.UserID}</td>
-          <td style="padding: 8px; border: 1px solid #444; font-weight: bold;">${row.Nama}</td>
+          <td style="padding: 8px; border: 1px solid #444; font-weight: bold;">${row.Nama || '-'}</td>
           <td style="padding: 8px; border: 1px solid #444;">${row.Role}</td>
           <td style="padding: 8px; border: 1px solid #444;">${row.UID_Kartu || row.UID}</td>
           <td style="padding: 8px; border: 1px solid #444; color: #1dd1a1;">${row.Status || 'Active'}</td>
-          <td style="padding: 8px; border: 1px solid #444;">
+          <td style="padding: 8px; border: 1px solid #444; text-align:center;">
             <button class="btn-action btn-warning" style="padding: 5px 10px; font-size: 12px; margin-right: 5px;" onclick="editRFIDUI('${row.UserID}')">Edit</button>
-            <button class="btn-action btn-danger" style="padding: 5px 10px; font-size: 12px;" onclick="deleteRFIDData('${row.UserID}', '${row.Role}', '${row.UID_Kartu || row.RecordID}')">Hapus</button>
+            
+            <!-- PERBAIKAN: Mengirim parameter 'this' agar baris langsung bisa dihapus dari DOM -->
+            <button class="btn-action btn-danger" style="padding: 5px 10px; font-size: 12px;" onclick="deleteRFIDData('${row.UserID}', '${row.Role}', '${row.UID_Kartu || row.RecordID}', this)">Hapus</button>
           </td>
         `;
         tbody.appendChild(tr);
       });
     }
   } catch (error) {
-    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:red;">❌ Error: ${error.message}</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; color:#ef4444;">❌ Error: ${error.message}</td></tr>`;
   }
 }
 
 // ==========================================
-// 4. FUNGSI CRUD: HAPUS DATA (DELETE)
+// HAPUS RFID INSTAN & BEBAS DELAY
 // ==========================================
-async function deleteRFIDData(userId, role, recordId) {
-  const idTarget = userId || recordId;
-  if (!idTarget) {
-    alert("❌ Error: ID Kartu / UserID tidak ditemukan!");
-    return;
-  }
+async function deleteRFIDData(userId, role, uid, btnElement) {
+  if (!confirm(`Yakin ingin MENGHAPUS data RFID untuk UserID: ${userId}?`)) return;
 
-  if (!confirm(`Yakin ingin MENCABUT akses kartu RFID untuk ID: ${idTarget}?`)) return;
+  // Tangkap elemen baris tabel
+  const row = btnElement ? btnElement.closest('tr') : null;
+
+  // 1. Bikin baris agak transparan langsung saat diklik (indikasi proses)
+  if (row) {
+    row.style.opacity = '0.3';
+  }
 
   try {
-    const result = await fetchAPI("deleteRFID", { 
-      userId: userId,
-      role: role,
-      recordId: recordId || userId
-    });
+    const result = await fetchAPI("deleteRFID", { userId: userId, role: role, uid: uid });
 
     if (result && result.success) {
-      alert("✅ " + (result.message || "Kartu RFID berhasil dicabut!"));
-      // WAJIB: Panggil ulang tabel agar data yang terhapus menghilang dari layar
-      await loadRFIDTable();
+      // 2. HAPUS BARIS LANGSUNG DARI DOM
+      if (row) {
+        row.remove();
+        reindexTable('rfidTableBody');
+      } else {
+        loadRFIDTable();
+      }
+      
+      // 3. Jeda 50ms agar browser sempat menghapus gambar baris di layar SEBELUM alert muncul
+      setTimeout(() => {
+        alert("✅ Data RFID berhasil dihapus!");
+      }, 50);
+
     } else {
-      alert("❌ Gagal menghapus: " + (result?.message || "Kesalahan server."));
+      if (row) row.style.opacity = '1'; // Kembalikan jika gagal
+      alert("❌ Gagal menghapus: " + (result?.message || "Error server"));
     }
-  } catch (error) {
-    console.error("Error Hapus RFID:", error);
-    alert("❌ Error: " + error.message);
+  } catch (err) {
+    if (row) row.style.opacity = '1';
+    alert("❌ Error jaringan saat menghapus data.");
   }
+}
+
+// ==========================================
+// 3. PEMBANTU MERAPIKAN NOMOR URUT (1, 2, 3...)
+// ==========================================
+function reindexTable(tbodyId) {
+  const tbody = document.getElementById(tbodyId);
+  if (!tbody) return;
+  const rows = tbody.querySelectorAll('tr');
+  rows.forEach((row, index) => {
+    const firstCell = row.querySelector('td:first-child');
+    if (firstCell) firstCell.innerText = index + 1;
+  });
 }
 
 // ==========================================
@@ -208,6 +241,7 @@ function editRFIDUI(userId) {
   if(rfidInput) rfidInput.focus();
   alert(`Mode Edit Aktif: Silakan TAP KARTU BARU ke scanner untuk mengganti kartu ID ${userId}.`);
 }
+
 
 // ==========================================
 // 6. FUNGSI PENCARIAN REAL-TIME TABEL RFID

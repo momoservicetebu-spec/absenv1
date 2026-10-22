@@ -351,101 +351,90 @@ async function loadUserForFaceAI() {
 }
 
 // ==========================================
-// 1. MUAT TABEL RFID (READ - REAL TIME)
+// 6. Muat Tabel Wajah (READ)
 // ==========================================
-async function loadRFIDTable() {
-  const tbody = document.getElementById('rfidTableBody');
+async function loadFaceTable() {
+  const tbody = document.getElementById('faceTableBody');
   if (!tbody) return;
 
-  tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding: 15px;">⏳ Memuat data...</td></tr>';
+  // PERBAIKAN: Ubah colspan="5" menjadi "6"
+  tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 15px;">⏳ Memuat data...</td></tr>';
 
   try {
-    const result = await fetchAPI("getAllRFIDData", { _t: new Date().getTime() });
+    const result = await fetchAPI("getAllFaceData", { _t: new Date().getTime() });
     
     if (!result || !result.data || result.data.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding: 15px; color: #9ca3af;">Belum ada kartu terdaftar atau data telah kosong.</td></tr>';
-      return;
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 15px; color: #9ca3af;">Belum ada wajah terdaftar atau data kosong.</td></tr>';
+      return; 
     }
 
     if (result.success) {
-      tbody.innerHTML = '';
+      tbody.innerHTML = ''; 
       result.data.forEach((row, index) => {
+        const uid = row.UserID || row.userId || row.userid || row['UserID'] || row['UserID (SiswaID/GuruID)'] || "Tidak Ditemukan";
+        
+        // PERBAIKAN: Ambil variabel nama dari database
+        const nama = row.Nama || row.nama || "-"; 
+        
+        const role = row.Role || row.role || "-";
+        
         const tr = document.createElement('tr');
         tr.innerHTML = `
-          <td style="padding: 8px; border: 1px solid #444; text-align:center;">${index + 1}</td>
-          <td style="padding: 8px; border: 1px solid #444;">${row.UserID}</td>
-          <td style="padding: 8px; border: 1px solid #444; font-weight: bold;">${row.Nama || '-'}</td>
-          <td style="padding: 8px; border: 1px solid #444;">${row.Role}</td>
-          <td style="padding: 8px; border: 1px solid #444;">${row.UID_Kartu || row.UID}</td>
-          <td style="padding: 8px; border: 1px solid #444; color: #1dd1a1;">${row.Status || 'Active'}</td>
-          <td style="padding: 8px; border: 1px solid #444; text-align:center;">
-            <button class="btn-action btn-warning" style="padding: 5px 10px; font-size: 12px; margin-right: 5px;" onclick="editRFIDUI('${row.UserID}')">Edit</button>
-            
-            <!-- PERBAIKAN: Mengirim parameter 'this' agar baris langsung bisa dihapus dari DOM -->
-            <button class="btn-action btn-danger" style="padding: 5px 10px; font-size: 12px;" onclick="deleteRFIDData('${row.UserID}', '${row.Role}', '${row.UID_Kartu || row.RecordID}', this)">Hapus</button>
+          <td style="padding: 12px 16px; border-bottom: 1px solid #332d4a; text-align: center;">${index + 1}</td>
+          <td style="padding: 12px 16px; border-bottom: 1px solid #332d4a; font-weight: bold; color: #ffffff;">${uid}</td>
+          
+          <!-- PERBAIKAN: Tambahkan kolom NAMA di sini agar sejajar dengan HTML -->
+          <td style="padding: 12px 16px; border-bottom: 1px solid #332d4a; color: #e2e8f0;">${nama}</td>
+          
+          <td style="padding: 12px 16px; border-bottom: 1px solid #332d4a;">
+            <span style="background: ${role === 'Guru' ? '#f59e0b' : '#0284c7'}; color: ${role === 'Guru' ? '#000' : '#fff'}; padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold;">${role}</span>
+          </td>
+          <td style="padding: 12px 16px; border-bottom: 1px solid #332d4a; color: #10b981; font-weight: bold;">✅ Terekam</td>
+          <td style="padding: 12px 16px; border-bottom: 1px solid #332d4a; text-align: center;">
+            <button class="btn-action" style="background: transparent; color: #ef4444; border: 1px solid #dc2626; padding: 5px 12px; border-radius: 6px; font-size: 0.8rem; cursor:pointer;" onclick="deleteFaceData('${uid}')">🗑️ Hapus</button>
           </td>
         `;
         tbody.appendChild(tr);
       });
+    } else {
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:#ef4444;">❌ Gagal memuat data tabel</td></tr>';
     }
   } catch (error) {
-    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; color:#ef4444;">❌ Error: ${error.message}</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:#ef4444;">❌ Error: ${error.message}</td></tr>`;
   }
 }
 
 // ==========================================
-// 2. HAPUS RFID INSTAN (DELETE REAL-TIME)
+// 7. Hapus Data Wajah (DELETE)
 // ==========================================
-async function deleteRFIDData(userId, role, uid, btnElement) {
-  if (!confirm(`Yakin ingin MENGHAPUS data RFID untuk UserID: ${userId}?`)) return;
-
-  const row = btnElement ? btnElement.closest('tr') : null;
-
+async function deleteFaceData(userId) {
+  if(!confirm(`Yakin ingin MENGHAPUS data wajah untuk ID: ${userId}?`)) return;
+  
   try {
-    if (btnElement) {
-      btnElement.disabled = true;
-      btnElement.innerText = "⏳...";
-    }
+    const result = await fetchAPI("deleteFace", { userId: userId });
+    
+    if(result && result.success) {
+      alert("✅ " + result.message);
+      
+      // KOSONGKAN MANUAL LAYAR SAAT INI
+      const tbody = document.getElementById('faceTableBody');
+      if(tbody) tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding: 15px; color: #9ca3af;">⏳ Menunggu sinkronisasi database (2 detik)...</td></tr>';
+      
+      // KUNCI PERBAIKAN 2: Beri jeda 2 detik agar Google Sheets selesai menghapus baris
+      setTimeout(async () => {
+        if (typeof loadFaceTable === 'function') {
+          await loadFaceTable(); 
+        }
+      }, 2000); 
 
-    const result = await fetchAPI("deleteRFID", { userId: userId, role: role, uid: uid });
-
-    if (result && result.success) {
-      // INSTAN: Hapus baris dari tabel HTML seketika tanpa loading ulang
-      if (row) {
-        row.remove();
-        reindexTable('rfidTableBody');
-      } else {
-        loadRFIDTable();
-      }
-      alert("✅ Data RFID berhasil dihapus!");
     } else {
       alert("❌ Gagal menghapus: " + (result?.message || "Error server"));
-      if (btnElement) {
-        btnElement.disabled = false;
-        btnElement.innerText = "Hapus";
-      }
     }
   } catch (err) {
-    alert("❌ Error jaringan saat menghapus data.");
-    if (btnElement) {
-      btnElement.disabled = false;
-      btnElement.innerText = "Hapus";
-    }
+    alert("❌ Terjadi kesalahan jaringan saat menghapus.");
   }
 }
 
-// ==========================================
-// 3. PEMBANTU MERAPIKAN NOMOR URUT (1, 2, 3...)
-// ==========================================
-function reindexTable(tbodyId) {
-  const tbody = document.getElementById(tbodyId);
-  if (!tbody) return;
-  const rows = tbody.querySelectorAll('tr');
-  rows.forEach((row, index) => {
-    const firstCell = row.querySelector('td:first-child');
-    if (firstCell) firstCell.innerText = index + 1;
-  });
-}
 // ==========================================
 // 8. Search / Filter Tabel Wajah
 // ==========================================
