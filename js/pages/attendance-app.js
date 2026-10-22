@@ -292,6 +292,29 @@ function startVerificationState(userID, userName) {
 }
 
 // ==========================================
+// FUNGSI UTILITY: CAPTURE FOTO DARI KAMERA
+// ==========================================
+function captureKameraBase64() {
+  try {
+    const videoElem = document.getElementById("video");
+    if (!videoElem) return "";
+    
+    const canvas = document.createElement("canvas");
+    canvas.width = videoElem.videoWidth || 640;
+    canvas.height = videoElem.videoHeight || 480;
+    
+    const ctx = canvas.getContext("2d");
+    ctx.drawImage(videoElem, 0, 0, canvas.width, canvas.height);
+    
+    // Kompres gambar ke JPEG (kualitas 0.6 agar ukuran data ringan)
+    return canvas.toDataURL("image/jpeg", 0.6); 
+  } catch (err) {
+    console.error("Gagal capture foto:", err);
+    return "";
+  }
+}
+
+// ==========================================
 // 5. EKSEKUSI PENGIRIMAN ABSENSI KE SERVER & VOICE
 // ==========================================
 let isSubmittingAttendance = false;
@@ -303,6 +326,9 @@ async function executeAttendance(userID, userName) {
   let displayName = userName || userID;
   showAlert(`Mencatat Absensi...`, "#f1c40f");
   statusText.innerText = "Mengirim Data...";
+
+  // Ambil snapshot foto dari kamera terlebih dahulu
+  const fotoSnapshot = captureKameraBase64();
 
   const activeRole = (typeof TERMINAL_ROLE !== 'undefined') ? TERMINAL_ROLE : "SISWA";
   const payload = {
@@ -317,7 +343,7 @@ async function executeAttendance(userID, userName) {
     long: (typeof currentLng !== 'undefined') ? currentLng : "",
     deviceId: "TERMINAL-" + activeRole,
     keterangan: "Absen Wajah & Kartu Sukses",
-    fotoBase64: fotoSnapshot // <--- TAMBAHKAN LINE INI
+    fotoBase64: fotoSnapshot // Data foto Base64 dikirim ke Apps Script
   };
 
   try {
@@ -333,7 +359,7 @@ async function executeAttendance(userID, userName) {
     if (result && result.success) {
       
       const balasanServer = JSON.stringify(result).toLowerCase();
-      const jamSekarang = new Date().getHours(); // Ambil jam lokal saat ini (0-23)
+      const jamSekarang = new Date().getHours();
       
       let warnaBg = "#2ecc71"; 
       let ikon = "✅";
@@ -341,22 +367,20 @@ async function executeAttendance(userID, userName) {
       let teksStatus = "Absen Masuk";
       let teksSuara = `Terima kasih ${displayName}. Absen masuk berhasil. Selamat beraktivitas.`;
 
-      // Cek kata kunci dari server ATAU cek apakah waktu sudah di atas jam 12 siang
       if (balasanServer.includes("diperbarui") || balasanServer.includes("lembur")) {
-         warnaBg = "#9b59b6"; // Ungu
+         warnaBg = "#9b59b6"; 
          ikon = "🟣";
          teksJudul = "ABSEN PULANG LEMBUR";
          teksStatus = "Pulang Lembur";
          teksSuara = `Terima kasih ${displayName}, absen lembur berhasil. Selamat beristirahat, sehat selalu, sampai jumpa besok.`;
       } else if (balasanServer.includes("awal")) {
-         warnaBg = "#f39c12"; // Kuning
+         warnaBg = "#f39c12"; 
          ikon = "🟡";
          teksJudul = "ABSEN PULANG AWAL";
          teksStatus = "Pulang Awal";
          teksSuara = `Absen pulang berhasil. Maaf ${displayName}, Anda pulang lebih awal.`;
       } else if (balasanServer.includes("pulang") || balasanServer.includes("out") || jamSekarang >= 12) {
-         // Jika server mengembalikan "pulang" ATAU waktu lokal >= 12:00, paksakan ke status Pulang/Lembur
-         warnaBg = "#3498db"; // Biru (Default Sesi Siang/Sore)
+         warnaBg = "#3498db"; 
          ikon = "🔵";
          teksJudul = "ABSEN PULANG SUKSES";
          teksStatus = "Absen Pulang";
@@ -456,29 +480,4 @@ if ('speechSynthesis' in window) {
   window.speechSynthesis.onvoiceschanged = () => {
     window.speechSynthesis.getVoices();
   };
-}
-
-// FUNGSI UTILITAS SIMPAN FOTO (TARUH DI BAGIAN PALING BAWAH FILE)
-function simpanFotoAbsen(base64Image, namaUser) {
-  try {
-    if (!base64Image || !base64Image.includes("data:image")) return "";
-    
-    const FOLDER_ID = "1DB093nSU2NZNqIG3Hmlt6BKPvl3v9XlE"; // Folder ID Anda[cite: 8]
-    const folder = DriveApp.getFolderById(FOLDER_ID);
-    
-    const base64Data = base64Image.split(",")[1];
-    const blob = Utilities.newBlob(
-      Utilities.base64Decode(base64Data), 
-      "image/jpeg", 
-      "Absen_" + namaUser + "_" + new Date().getTime() + ".jpg"
-    );
-    
-    const file = folder.createFile(blob);
-    file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
-    
-    return file.getUrl();
-  } catch (e) {
-    Logger.log("Gagal simpan foto: " + e.toString());
-    return "";
-  }
 }
