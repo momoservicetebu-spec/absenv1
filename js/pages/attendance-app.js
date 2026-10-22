@@ -309,7 +309,7 @@ async function executeAttendance(userID, userName) {
     userId: String(userID).trim(),
     nama: displayName,
     role: activeRole,
-    checkType: "IN",
+    checkType: "AUTO", // <-- DIUBAH MENJADI AUTO AGAR SERVER YANG MENENTUKAN
     primaryMethod: "RFID",
     secondaryMethod: "FACE",
     authLevel: "2FA",
@@ -331,7 +331,11 @@ async function executeAttendance(userID, userName) {
     }
 
     if (result && result.success) {
-      const checkType = record["CheckType (IN/OUT)"] || "IN";
+      
+      // --- DETEKSI STATUS OTOMATIS LEBIH CERDAS ---
+      // Jika key tidak ditemukan, ia akan mengecek teks pesan suara. Jika ada kata "pulang", otomatis jadi OUT.
+      const strSuara = customVoice.toLowerCase();
+      const checkType = record["CheckType (IN/OUT)"] || record.checkType || record.CheckType || (strSuara.includes("pulang") ? "OUT" : "IN");
       
       if (customVoice) {
         putarSuaraKonfirmasi(customVoice);
