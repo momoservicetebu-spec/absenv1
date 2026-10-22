@@ -24,16 +24,12 @@ async function registerCurrentRFID() {
     return;
   }
 
-  // --- PERBAIKAN: Ambil Nama dari Dropdown (Teks "GURU-014 - Budi Santoso") ---
+  // --- AMBIL NAMA DARI DROPDOWN (Pemisah " - ") ---
   let userName = "";
   if (userSelect && userSelect.options[userSelect.selectedIndex]) {
-    const selectedTextOption = userSelect.options[userSelect.selectedIndex].text;
-    const parts = selectedTextOption.split(" - ");
-    if (parts.length > 1) {
-      userName = parts.slice(1).join(" - ").trim(); // Mengambil "Budi Santoso"
-    } else {
-      userName = userId;
-    }
+    const fullText = userSelect.options[userSelect.selectedIndex].text;
+    const parts = fullText.split(" - ");
+    userName = parts.length > 1 ? parts.slice(1).join(" - ").trim() : userId;
   }
 
   const selectedText = userSelect.options[userSelect.selectedIndex].text.toLowerCase();
@@ -47,10 +43,10 @@ async function registerCurrentRFID() {
     btnEnroll.disabled = true;
   }
 
-  // PERBAIKAN: Tambahkan 'nama: userName' ke dalam payload
+  // PAYLOAD DIPASTIKAN MEMBAWA NAMA
   const payload = {
     userId: userId,
-    nama: userName, // <--- INI KUNCI UTAMA YANG SEBELUMNYA KURANG
+    nama: userName, // <--- NAMA TERKIRIM
     role: userRole,
     rfidUid: rfidUid
   };
@@ -61,7 +57,7 @@ async function registerCurrentRFID() {
     alert(`✅ ${result.message}`);
     rfidInput.value = "";
     rfidInput.focus(); 
-    loadRFIDTable(); // Langsung perbarui tabel setelah berhasil simpan
+    loadRFIDTable();
   } else {
     alert(`❌ Gagal Menyimpan: ${result?.message || 'Terjadi kesalahan koneksi'}`);
   }
