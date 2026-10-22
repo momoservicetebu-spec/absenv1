@@ -357,30 +357,35 @@ async function loadFaceTable() {
   const tbody = document.getElementById('faceTableBody');
   if (!tbody) return;
 
-  // Tampilkan efek loading setiap kali fungsi dipanggil
-  tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding: 15px;">⏳ Memuat data...</td></tr>';
+  // PERBAIKAN: Ubah colspan="5" menjadi "6"
+  tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 15px;">⏳ Memuat data...</td></tr>';
 
   try {
-    // KUNCI PERBAIKAN 1: Tambahkan parameter _t untuk mematikan Cache Browser!
     const result = await fetchAPI("getAllFaceData", { _t: new Date().getTime() });
     
-    // Cegah error jika result.data kosong
     if (!result || !result.data || result.data.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding: 15px; color: #9ca3af;">Belum ada wajah terdaftar atau data kosong.</td></tr>';
-      return; // Berhenti di sini
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 15px; color: #9ca3af;">Belum ada wajah terdaftar atau data kosong.</td></tr>';
+      return; 
     }
 
     if (result.success) {
-      tbody.innerHTML = ''; // Hapus tulisan loading
+      tbody.innerHTML = ''; 
       result.data.forEach((row, index) => {
-        // Ambil ID sesuai nama kolom yang ada di database
         const uid = row.UserID || row.userId || row.userid || row['UserID'] || row['UserID (SiswaID/GuruID)'] || "Tidak Ditemukan";
+        
+        // PERBAIKAN: Ambil variabel nama dari database
+        const nama = row.Nama || row.nama || "-"; 
+        
         const role = row.Role || row.role || "-";
         
         const tr = document.createElement('tr');
         tr.innerHTML = `
           <td style="padding: 12px 16px; border-bottom: 1px solid #332d4a; text-align: center;">${index + 1}</td>
           <td style="padding: 12px 16px; border-bottom: 1px solid #332d4a; font-weight: bold; color: #ffffff;">${uid}</td>
+          
+          <!-- PERBAIKAN: Tambahkan kolom NAMA di sini agar sejajar dengan HTML -->
+          <td style="padding: 12px 16px; border-bottom: 1px solid #332d4a; color: #e2e8f0;">${nama}</td>
+          
           <td style="padding: 12px 16px; border-bottom: 1px solid #332d4a;">
             <span style="background: ${role === 'Guru' ? '#f59e0b' : '#0284c7'}; color: ${role === 'Guru' ? '#000' : '#fff'}; padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold;">${role}</span>
           </td>
@@ -392,10 +397,10 @@ async function loadFaceTable() {
         tbody.appendChild(tr);
       });
     } else {
-      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:#ef4444;">❌ Gagal memuat data tabel</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:#ef4444;">❌ Gagal memuat data tabel</td></tr>';
     }
   } catch (error) {
-    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:#ef4444;">❌ Error: ${error.message}</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:#ef4444;">❌ Error: ${error.message}</td></tr>`;
   }
 }
 
