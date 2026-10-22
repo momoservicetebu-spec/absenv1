@@ -332,28 +332,30 @@ async function executeAttendance(userID, userName) {
     if (result && result.success) {
       
       const balasanServer = JSON.stringify(result).toLowerCase();
+      const jamSekarang = new Date().getHours(); // Ambil jam lokal saat ini (0-23)
       
-      // Deklarasikan semua variabel di awal
       let warnaBg = "#2ecc71"; 
       let ikon = "✅";
       let teksJudul = "ABSEN MASUK SUKSES";
       let teksStatus = "Absen Masuk";
       let teksSuara = `Terima kasih ${displayName}. Absen masuk berhasil. Selamat beraktivitas.`;
 
+      // Cek kata kunci dari server ATAU cek apakah waktu sudah di atas jam 12 siang
       if (balasanServer.includes("diperbarui") || balasanServer.includes("lembur")) {
-         warnaBg = "#9b59b6"; 
+         warnaBg = "#9b59b6"; // Ungu
          ikon = "🟣";
          teksJudul = "ABSEN PULANG LEMBUR";
          teksStatus = "Pulang Lembur";
          teksSuara = `Terima kasih ${displayName}, absen lembur berhasil. Selamat beristirahat, sehat selalu, sampai jumpa besok.`;
       } else if (balasanServer.includes("awal")) {
-         warnaBg = "#f39c12"; 
+         warnaBg = "#f39c12"; // Kuning
          ikon = "🟡";
          teksJudul = "ABSEN PULANG AWAL";
          teksStatus = "Pulang Awal";
          teksSuara = `Absen pulang berhasil. Maaf ${displayName}, Anda pulang lebih awal.`;
-      } else if (balasanServer.includes("pulang") || balasanServer.includes("out")) {
-         warnaBg = "#3498db"; 
+      } else if (balasanServer.includes("pulang") || balasanServer.includes("out") || jamSekarang >= 12) {
+         // Jika server mengembalikan "pulang" ATAU waktu lokal >= 12:00, paksakan ke status Pulang/Lembur
+         warnaBg = "#3498db"; // Biru (Default Sesi Siang/Sore)
          ikon = "🔵";
          teksJudul = "ABSEN PULANG SUKSES";
          teksStatus = "Absen Pulang";
@@ -384,7 +386,6 @@ async function executeAttendance(userID, userName) {
 
   setTimeout(resetToStandby, 3500);
 }
-
 // ==========================================
 // 6. RESET UI KEMBALI KE STANDBY
 // ==========================================
