@@ -307,6 +307,7 @@ async function executeAttendance(userID, userName) {
   const activeRole = (typeof TERMINAL_ROLE !== 'undefined') ? TERMINAL_ROLE : "SISWA";
   const payload = {
     userId: String(userID).trim(),
+    nama: displayName,
     role: activeRole,
     checkType: "IN",
     primaryMethod: "RFID",
