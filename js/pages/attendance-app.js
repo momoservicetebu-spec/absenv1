@@ -456,3 +456,28 @@ if ('speechSynthesis' in window) {
     window.speechSynthesis.getVoices();
   };
 }
+
+// FUNGSI UTILITAS SIMPAN FOTO (TARUH DI BAGIAN PALING BAWAH FILE)
+function simpanFotoAbsen(base64Image, namaUser) {
+  try {
+    if (!base64Image || !base64Image.includes("data:image")) return "";
+    
+    const FOLDER_ID = "1DB093nSU2NZNqIG3Hmlt6BKPvl3v9XlE"; // Folder ID Anda[cite: 8]
+    const folder = DriveApp.getFolderById(FOLDER_ID);
+    
+    const base64Data = base64Image.split(",")[1];
+    const blob = Utilities.newBlob(
+      Utilities.base64Decode(base64Data), 
+      "image/jpeg", 
+      "Absen_" + namaUser + "_" + new Date().getTime() + ".jpg"
+    );
+    
+    const file = folder.createFile(blob);
+    file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+    
+    return file.getUrl();
+  } catch (e) {
+    Logger.log("Gagal simpan foto: " + e.toString());
+    return "";
+  }
+}
