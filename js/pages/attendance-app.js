@@ -378,13 +378,12 @@ async function executeAttendance(userID, userName) {
       statusText.innerText = `⚠️ Peringatan (${displayName})`;
       statusText.style.color = "#e67e22";
     }
+} catch (error) {
+     console.error(error);
+     putarSuaraKonfirmasi(`Terjadi kesalahan sistem.`);
+     showAlert(`❌ Error Sistem / Jaringan`, "#e74c3c");
+}
 
-    } catch (error) {
-     putarSuaraKonfirmasi(`Terjadi kesalahan jaringan.`);
-     showAlert(`❌ Error Jaringan`, "#e74c3c");
-  }
-
-  // INI WAJIB ADA AGAR KAMERA BISA MERESET UNTUK ORANG BERIKUTNYA
   setTimeout(resetToStandby, 3500);
 }
 
