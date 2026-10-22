@@ -316,7 +316,8 @@ async function executeAttendance(userID, userName) {
     lat: (typeof currentLat !== 'undefined') ? currentLat : "",
     long: (typeof currentLng !== 'undefined') ? currentLng : "",
     deviceId: "TERMINAL-" + activeRole,
-    keterangan: "Absen Wajah & Kartu Sukses"
+    keterangan: "Absen Wajah & Kartu Sukses",
+    fotoBase64: fotoSnapshot // <--- TAMBAHKAN LINE INI
   };
 
   try {
