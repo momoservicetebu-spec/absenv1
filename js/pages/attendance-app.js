@@ -330,33 +330,47 @@ async function executeAttendance(userID, userName) {
        displayName = record.Nama;
     }
 
-    if (result && result.success) {
+   if (result && result.success) {
       
-      // --- DETEKSI STATUS SAPU JAGAT ---
-      // Mengecek seluruh balasan dari server (teks, pesan, data). Jika ada kata "pulang", pasti OUT.
-      const seluruhBalasanServer = JSON.stringify(result).toLowerCase();
-      const checkType = seluruhBalasanServer.includes("pulang") ? "OUT" : "IN";
+      // --- DETEKSI STATUS SUPER SPESIFIK (MULTI-WARNA) ---
+      const balasanServer = JSON.stringify(result).toLowerCase();
       
-      // --- BAGIAN SUARA (YANG ANDA TANYAKAN, TETAP SAMA) ---
+      let warnaBg = "#2ecc71"; // Default: Hijau (Masuk)
+      let ikon = "✅";
+      let teksJudul = "ABSEN MASUK SUKSES";
+      let teksStatus = "Absen Masuk";
+
+      if (balasanServer.includes("diperbarui") || balasanServer.includes("lembur")) {
+         warnaBg = "#9b59b6"; // Ungu (Tap 2+ Sore / Lembur)
+         ikon = "🟣";
+         teksJudul = "ABSEN PULANG LEMBUR";
+         teksStatus = "Pulang Lembur";
+      } else if (balasanServer.includes("awal")) {
+         warnaBg = "#f39c12"; // Kuning/Jingga (Tap 1 Pulang Awal sblm 14:50)
+         ikon = "🟡";
+         teksJudul = "ABSEN PULANG AWAL";
+         teksStatus = "Pulang Awal";
+      } else if (balasanServer.includes("pulang")) {
+         warnaBg = "#3498db"; // Biru (Tap 1 Pulang Normal)
+         ikon = "🔵";
+         teksJudul = "ABSEN PULANG SUKSES";
+         teksStatus = "Absen Pulang";
+      }
+
+      // --- BAGIAN SUARA ---
       if (customVoice) {
         putarSuaraKonfirmasi(customVoice);
       } else {
         putarSuaraKonfirmasi(`Terima kasih ${displayName}. Absensi berhasil.`);
       }
 
-      // --- BAGIAN TAMPILAN VISUAL ---
-      if (checkType === "OUT") {
-         showAlert(`🔵 ABSEN PULANG SUKSES: ${displayName}`, "#3498db");
-         statusText.innerText = `🔵 Absen Pulang (${displayName})`;
-         statusText.style.color = "#3498db";
-      } else {
-         showAlert(`✅ ABSEN MASUK SUKSES: ${displayName}`, "#2ecc71");
-         statusText.innerText = `✅ Absen Masuk (${displayName})`;
-         statusText.style.color = "#2ecc71";
-      }
+      // --- TAMPILKAN KE LAYAR ---
+      showAlert(`${ikon} ${teksJudul}: ${displayName}`, warnaBg);
+      statusText.innerText = `${ikon} ${teksStatus} (${displayName})`;
+      statusText.style.color = warnaBg;
 
     } else {
-      // PERINGATAN REPEAT TAP / SPAM / DI LUAR JAM
+      // PERINGATAN REPEAT TAP PAGI / SPAM / DI LUAR JAM (Otomatis Oranye)
       const errMessage = backendMessage || "Koneksi terputus";
       const cleanMsg = errMessage.replace("[Sistem]", "").trim();
       
@@ -366,11 +380,13 @@ async function executeAttendance(userID, userName) {
       statusText.innerText = `⚠️ Peringatan (${displayName})`;
       statusText.style.color = "#e67e22";
     }
-  } catch (error) {
+    
+    } catch (error) {
      putarSuaraKonfirmasi(`Terjadi kesalahan jaringan.`);
      showAlert(`❌ Error Jaringan`, "#e74c3c");
   }
 
+  // INI WAJIB ADA AGAR KAMERA BISA MERESET UNTUK ORANG BERIKUTNYA
   setTimeout(resetToStandby, 3500);
 }
 
