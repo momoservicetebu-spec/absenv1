@@ -246,11 +246,26 @@ async function registerCurrentFace() {
     btnEnroll.innerText = "⏳ Menyimpan ke Database...";
   }
 
-  // PERBAIKAN: Format payload untuk Backend
+  // --- PERBAIKAN: Ambil Nama dari Dropdown ---
+  // Jika teks dropdown adalah "GURU-014 - Budi Santoso", kita akan mengambil "Budi Santoso"-nya
+  let userName = "";
+  if (userSelect && userSelect.options[userSelect.selectedIndex]) {
+      const selectedText = userSelect.options[userSelect.selectedIndex].text;
+      // Memisahkan teks berdasarkan tanda " - "
+      const parts = selectedText.split(" - "); 
+      if (parts.length > 1) {
+          userName = parts.slice(1).join(" - ").trim(); // Mengambil sisa teks sebagai nama
+      } else {
+          userName = userId; // Fallback jika tidak ada tanda hubung
+      }
+  }
+
+  // PERBAIKAN: Format payload untuk Backend (Tambahkan Nama)
   const payload = {
     userId: userId,
+    nama: userName, // <--- INI TAMBAHANNYA
     provider: "Face-API-JS",
-    embedding: JSON.stringify(lastDescriptor), // Stringify agar Google Sheets menerimanya dengan baik sebagai Text
+    embedding: JSON.stringify(lastDescriptor), 
     qualityScore: 98.5
   };
 
