@@ -358,11 +358,9 @@ async function executeAttendance(userID, userName) {
       }
 
       // --- BAGIAN SUARA ---
-      if (customVoice) {
-        putarSuaraKonfirmasi(customVoice);
-      } else {
-        putarSuaraKonfirmasi(`Terima kasih ${displayName}. Absensi berhasil.`);
-      }
+     // --- BAGIAN SUARA (DIPERBARUI) ---
+      // Langsung memutar suara sesuai kondisi yang terdeteksi di atas
+      putarSuaraKonfirmasi(teksSuara);
 
       // --- TAMPILKAN KE LAYAR ---
       showAlert(`${ikon} ${teksJudul}: ${displayName}`, warnaBg);
@@ -380,7 +378,7 @@ async function executeAttendance(userID, userName) {
       statusText.innerText = `⚠️ Peringatan (${displayName})`;
       statusText.style.color = "#e67e22";
     }
-    
+
     } catch (error) {
      putarSuaraKonfirmasi(`Terjadi kesalahan jaringan.`);
      showAlert(`❌ Error Jaringan`, "#e74c3c");
