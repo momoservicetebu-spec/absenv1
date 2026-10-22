@@ -81,7 +81,7 @@ async function registerCurrentRFID() {
 
 
 // ==========================================
-// 2. Muat Data Pengguna ke Dropdown RFID
+// 2. Muat Data Pengguna ke Dropdown RFID (FIXED)
 // ==========================================
 async function loadUserForRFID() {
   const selectElement = document.getElementById('rfidUserSelect');
@@ -113,7 +113,13 @@ async function loadUserForRFID() {
           if (userId !== "Tanpa ID" && userName !== "Tanpa Nama") {
             let option = document.createElement('option');
             option.value = userId; 
+            
+            // PERBAIKAN 1: Teks dibuat 1 baris murni dengan strip " - "
             option.text = `${userId} - ${userName}`; 
+            
+            // PERBAIKAN 2: Simpan Nama ke atribut data-nama (Kunci agar Select2 bisa baca Nama 100%)
+            option.setAttribute('data-nama', userName);
+            
             selectElement.appendChild(option);
           }
         });
