@@ -1963,17 +1963,11 @@ async function muatDaftarNamaLaporan() {
     // --- KODE YANG DIPERBARUI MULAI DARI SINI ---
     const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxx3BLAOh7RZwF2vvukhDPhytbAPXfMP3H_RAJNeWgxLe2LNcCzojm-6HQ1kktPQMTQ/exec';
     
-    const response = await fetch(`${WEB_APP_URL}?action=${action}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'text/plain;charset=utf-8'
-      },
-      body: JSON.stringify({}) // Payload kosong karena hanya butuh 'action' di URL
-    });
-    
+    // Cukup panggil URL langsung, default fetch adalah GET
+    const response = await fetch(`${WEB_APP_URL}?action=${action}`);
     const res = await response.json();
     // --- BATAS KODE YANG DIPERBARUI ---
-
+    
     if (res.success && res.data) {
       let optionsHtml = '';
 
