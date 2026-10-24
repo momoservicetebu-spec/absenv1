@@ -6,6 +6,8 @@
 // FUNGSI NAVIGASI TAB UTAMA & LOAD DATA
 // ==========================================
 
+const API_URL = "https://script.google.com/macros/s/AKfycbxx3BLAOh7RZwF2vvukhDPhytbAPXfMP3H_RAJNeWgxLe2LNcCzojm-6HQ1kktPQMTQ/exec";
+
 async function fetchAPI(action, payload = null) {
   showLoading("Memproses data..."); // 1. Tampilkan loading otomatis
 
@@ -1952,7 +1954,8 @@ async function muatDaftarNamaLaporan() {
   const dataList = document.getElementById('list-nama-laporan');
   const inputTarget = document.getElementById('lap-nama-target');
 
-  // Kosongkan list dan input setiap kali Tipe Pengguna diubah
+  if (!dataList || !inputTarget) return;
+
   dataList.innerHTML = '';
   inputTarget.value = '';
   inputTarget.placeholder = '⏳ Memuat daftar nama...';
@@ -1960,23 +1963,14 @@ async function muatDaftarNamaLaporan() {
   try {
     const action = (role === 'Siswa') ? 'getSiswa' : 'getGuru';
     
-    // --- KODE YANG DIPERBARUI MULAI DARI SINI ---
-    const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxx3BLAOh7RZwF2vvukhDPhytbAPXfMP3H_RAJNeWgxLe2LNcCzojm-6HQ1kktPQMTQ/exec';
-    
-    // Cukup panggil URL langsung, default fetch adalah GET
-    const response = await fetch(`${WEB_APP_URL}?action=${action}`);
-    const res = await response.json();
-    // --- BATAS KODE YANG DIPERBARUI ---
+    // GUNAKAN fetchAPI BAWAAN KODE ANDA
+    const res = await fetchAPI(action);
 
-    if (res.success && res.data) {
+    if (res && res.success && res.data) {
       let optionsHtml = '';
-
-      // Looping data untuk dimasukkan ke opsi dropdown
       res.data.forEach(item => {
         const nama = item.Nama || item.Nama_Lengkap || item.Nama_Guru || item.Nama_Siswa || '-';
         const id = item.SiswaID || item.GuruID || item.NISN || item.NIP || '';
-
-        // Memasukkan nama sebagai value, dan ID sebagai label tambahan
         optionsHtml += `<option value="${nama}">ID: ${id}</option>`;
       });
 
