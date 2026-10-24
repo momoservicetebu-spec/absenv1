@@ -48,6 +48,7 @@
 
     <!-- TAMBAHAN OPERASIONAL & ABSENSI (KODE BARU) -->
     <div class="menu-group">Operasional & Absensi</div>
+    <button class="nav-btn" onclick="switchTab('live-absen', this); initLiveAbsen();">📺 Live Absen Monitor</button>
     <button class="nav-btn" onclick="switchTab('jadwal-pelajaran', this)">📅 Jadwal Pelajaran</button>
     <button class="nav-btn" onclick="switchTab('gate-pass', this)">🎟️ Manajemen Gate Pass</button>
     <button class="nav-btn" onclick="switchTab('absensi-kelas', this); loadSemuaJadwalAdmin();">📝 Absensi Kelas Siswa </button>
@@ -750,6 +751,63 @@
           <tr><td colspan="4" style="text-align: center;">Memuat data...</td></tr>
         </tbody>
       </table>
+    </div>
+
+<!-- TAB CONTENT: LIVE ABSEN MONITOR -->
+<div id="live-absen" class="tab-content" style="display: none;">
+  <div class="header-section" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+    <div>
+      <h2>📺 Live Monitor Absensi Real-Time</h2>
+      <p style="color: #666; font-size: 0.9em;">Pemantauan absensi masuk, pulang, dan lembur secara langsung.</p>
+    </div>
+    <div style="display: flex; gap: 10px; align-items: center;">
+      <span id="live-status-badge" style="background: #2ecc71; color: white; padding: 6px 12px; border-radius: 20px; font-size: 0.85em; font-weight: bold;">
+        🟢 Live Refresh (5s)
+      </span>
+      <button class="btn-secondary" onclick="loadLiveAbsenData()" style="padding: 8px 15px; cursor: pointer;">🔄 Refresh Manual</button>
+    </div>
+  </div>
+
+      <!-- TOGGLE SUB-TAB: GURU vs SISWA -->
+      <div style="display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 2px solid #e0e0e0; padding-bottom: 10px;">
+        <button id="btn-live-guru" class="subtab-btn active" onclick="switchLiveRole('GURU')" style="padding: 10px 20px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; background: #3498db; color: white;">
+          👔 Live Absen Guru & Staf
+        </button>
+        <button id="btn-live-siswa" class="subtab-btn" onclick="switchLiveRole('SISWA')" style="padding: 10px 20px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; background: #e0e0e0; color: #333;">
+          🎓 Live Absen Siswa
+        </button>
+      </div>
+
+      <!-- RINGKASAN STATISTIK HARI INI -->
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: 20px;">
+        <div style="background: #ffffff; border-left: 5px solid #2ecc71; padding: 15px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
+          <small style="color: #777;">Masuk Tepat Waktu</small>
+          <h3 id="count-masuk" style="margin: 5px 0 0 0; color: #2ecc71; font-size: 1.8em;">0</h3>
+        </div>
+        <div style="background: #ffffff; border-left: 5px solid #f39c12; padding: 15px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
+          <small style="color: #777;">Pulang Awal / Telat</small>
+          <h3 id="count-awal" style="margin: 5px 0 0 0; color: #f39c12; font-size: 1.8em;">0</h3>
+        </div>
+        <div style="background: #ffffff; border-left: 5px solid #3498db; padding: 15px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
+          <small style="color: #777;">Pulang Normal</small>
+          <h3 id="count-pulang" style="margin: 5px 0 0 0; color: #3498db; font-size: 1.8em;">0</h3>
+        </div>
+        <div style="background: #ffffff; border-left: 5px solid #9b59b6; padding: 15px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
+          <small style="color: #777;">Pulang Lembur</small>
+          <h3 id="count-lembur" style="margin: 5px 0 0 0; color: #9b59b6; font-size: 1.8em;">0</h3>
+        </div>
+      </div>
+
+      <!-- SEARCH BAR -->
+      <div style="background: #fff; padding: 15px; border-radius: 8px; margin-bottom: 20px; display: flex; gap: 15px; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
+        <label><b>🔍 Cari Nama / ID:</b></label>
+        <input type="text" id="filter-live-search" onkeyup="renderLiveCards()" placeholder="Ketik nama atau ID..." style="padding: 8px 12px; border-radius: 5px; border: 1px solid #ccc; flex: 1;">
+      </div>
+
+      <!-- GRID CARD CONTAINER -->
+      <div id="live-absen-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 20px;">
+        <!-- Render Card Otomatis oleh JS -->
+      </div>
     </div>
 
     <!-- KONTEN: MANAJEMEN JADWAL PELAJARAN -->
@@ -1696,6 +1754,8 @@
 <script src="./js/fingerprint.js?V=1.0"></script> 
 <script src="./js/rfid.js?v=1.0"></script>
 <script src="./js/qr_code.js?v=9999"></script>
+<!-- MODUL LIVE ABSEN MONITOR REAL-TIME -->
+<script src="./js/live-absen.js?v=1.0"></script>
 
 
 <!-- INISIALISASI SELECT2 -->
