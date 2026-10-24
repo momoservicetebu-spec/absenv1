@@ -2777,5 +2777,52 @@ function getWarnaBadgeStatus(status) {
   return "#2d3436"; // Abu-abu gelap (Default)
 }
 
+function unduhLaporanCSV() {
+  // Cari elemen tabel yang ada di dalam form laporan
+  const table = document.querySelector("#laporan-absensi table"); 
+  
+  if (!table) {
+    alert("Silakan klik 'Tampilkan Preview' terlebih dahulu sebelum mengunduh.");
+    return;
+  }
+
+  let csv = [];
+  let rows = table.querySelectorAll("tr");
+
+  for (let i = 0; i < rows.length; i++) {
+    let row = [];
+    let cols = rows[i].querySelectorAll("td, th");
+    
+    for (let j = 0; j < cols.length; j++) {
+      // Membersihkan teks dan mengapit dengan tanda kutip untuk format CSV
+      let data = cols[j].innerText.replace(/"/g, '""');
+      row.push(`"${data}"`);
+    }
+    csv.push(row.join(","));
+  }
+
+  // Membuat file dan memicu proses download
+  let csvFile = new Blob([csv.join("\n")], { type: "text/csv" });
+  let downloadLink = document.createElement("a");
+  downloadLink.download = "Rekap_Laporan_Absensi.csv";
+  downloadLink.href = window.URL.createObjectURL(csvFile);
+  downloadLink.style.display = "none";
+  document.body.appendChild(downloadLink);
+  downloadLink.click();
+  document.body.removeChild(downloadLink);
+}
+
+function unduhLaporanPDF() {
+  const table = document.querySelector("#laporan-absensi table"); 
+  
+  if (!table) {
+    alert("Silakan klik 'Tampilkan Preview' terlebih dahulu sebelum mengunduh PDF.");
+    return;
+  }
+
+  // Opsi paling sederhana tanpa library pihak ketiga
+  window.print(); 
+}
+
 // Jalankan saat halaman selesai dimuat
 document.addEventListener("DOMContentLoaded", renderSidebarByRole);
