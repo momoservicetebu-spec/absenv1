@@ -362,63 +362,67 @@
     errMsg.style.display = "none";
 
     try {
-      const formData = new URLSearchParams();
-      formData.append("action", "login");
-      formData.append("username", user);
-      formData.append("password", pass);
+      // 1. UBAH PAYLOAD MENJADI OBJEK BISA DI-STRINGIFY (Bukan URLSearchParams)
+      const payload = {
+        action: "login",
+        username: user,
+        password: pass
+      };
 
-      const response = await fetch(GAS_URL, { method: "POST", body: formData });
+      // 2. TAMBAHKAN HEADER text/plain AGAR TIDAK DIBLOKIR CORS OLEH BROWSER
+      const response = await fetch(GAS_URL, { 
+        method: "POST",
+        headers: {
+          "Content-Type": "text/plain;charset=utf-8"
+        },
+        body: JSON.stringify(payload)
+      });
+      
       const result = await response.json();
 
-    if (result.success) {
-    btn.style.backgroundColor = "#3b2667";
-    btn.innerText = "Halo, " + (result.name || result.nama || user) + "!";
-    
-    // Format role (misal: "operator" -> "Operator")
-    const rawRole = result.role || 'Operator';
-    const formattedRole = rawRole.charAt(0).toUpperCase() + rawRole.slice(1);
-    const displayName = result.name || result.nama || user;
+      if (result && (result.success || result.status === true || result.status === 'success')) {
+        btn.style.backgroundColor = "#3b2667";
+        btn.innerText = "Halo, " + (result.name || result.nama || user) + "!";
+        
+        // Format role (misal: "operator" -> "Operator")
+        const rawRole = result.role || 'Operator';
+        const formattedRole = rawRole.charAt(0).toUpperCase() + rawRole.slice(1);
+        const displayName = result.name || result.nama || user;
 
-    // 1. SIMPAN DENGAN FORMAT STRING YANG PASTI & JELAS
-    localStorage.setItem('isLoggedIn', 'true');
-    localStorage.setItem('role', formattedRole);
-    localStorage.setItem('username', user);
-    localStorage.setItem('name', displayName);
+        // 1. SIMPAN DENGAN FORMAT STRING YANG PASTI & JELAS
+        localStorage.setItem('isLoggedIn', 'true');
+        localStorage.setItem('role', formattedRole);
+        localStorage.setItem('username', user);
+        localStorage.setItem('name', displayName);
 
-    // 2. SIMPAN DALAM FORMAT OBJEK JSON
-    const sessionData = {
-      isLoggedIn: true,
-      role: formattedRole,
-      name: displayName,
-      username: user
-    };
-    localStorage.setItem('user_session', JSON.stringify(sessionData));
+        // 2. SIMPAN DALAM FORMAT OBJEK JSON
+        const sessionData = {
+          isLoggedIn: true,
+          role: formattedRole,
+          name: displayName,
+          username: user
+        };
+        localStorage.setItem('user_session', JSON.stringify(sessionData));
 
-    // 3. GUNAKAN location.replace AGAR BERSIH TANPA RIWAYAT REDIRECT
-    setTimeout(function() {
-      window.location.replace("dashboard-admin.html");
-    }, 800);
+        // 3. REDIRECT KE DASHBOARD UTAMA
+        setTimeout(function() {
+          window.location.replace("index.html");
+        }, 800);
 
-  } else {
-    showError(result.message || "Username atau password salah.");
-    btn.disabled = false;
-    btn.innerText = "Masuk";
-  }
+      } else {
+        showError(result?.message || "Username atau password salah.");
+        btn.disabled = false;
+        btn.innerText = "Masuk";
+      }
 
- } catch (err) {
+    } catch (err) {
+      console.error("Login Error:", err);
       showError("Terjadi kesalahan jaringan.");
       btn.disabled = false;
       btn.innerText = "Masuk";
     }
   }
-
-
-  function showError(text) {
-    const errMsg = document.getElementById('errorMsg');
-    errMsg.innerText = text;
-    errMsg.style.display = "block";
-  }
-
+  
   // Toggle Password Visibility Logic
   document.getElementById('togglePassword').addEventListener('click', function () {
     const passwordInput = document.getElementById('password');
