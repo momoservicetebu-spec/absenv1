@@ -1812,7 +1812,7 @@ async function submitAbsensiManual(event) {
   }
 }
 
-// 2. Mengambil Data Laporan dari Server & Memunculkan Preview (Versi Google Apps Script)
+// 2. Mengambil Data Laporan dari Server & Memunculkan Preview
 async function lihatPreviewLaporan() {
   const role = document.getElementById('lap-role').value;
   const jenis = document.getElementById('lap-jenis').value;
@@ -1834,39 +1834,32 @@ async function lihatPreviewLaporan() {
   const tbody = document.getElementById('body-preview-laporan');
   if (tbody) tbody.innerHTML = `<tr><td colspan="10" style="text-align:center; padding:20px;">⏳ Memuat laporan dari server, silakan tunggu...</td></tr>`;
 
-  const payload = { role, jenis, tglMulai, tglSampai, namaTarget };
-
-  // ========================================================
-  // 1. MASUKKAN URL WEB APP GOOGLE APPS SCRIPT ANDA DI SINI
-  // ========================================================
-  const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxx3BLAOh7RZwF2vvukhDPhytbAPXfMP3H_RAJNeWgxLe2LNcCzojm-6HQ1kktPQMTQ/exec'; 
-  
-  // Kita tambahkan parameter ?action=tarikLaporan agar backend Anda tahu rutenya
-  const API_URL = `${WEB_APP_URL}?action=tarikLaporan`;
+  // PERBAIKAN 1: Sesuaikan nama payload dengan yang ditangkap di srv_laporan.gs
+  // Tambahkan roleAktif agar lolos satpam RBAC di 1_Router.gs
+  const payload = { 
+    roleAktif: localStorage.getItem('role') || 'Admin', 
+    roleTarget: role,          // Dikirim ke backend sebagai roleTarget
+    jenisLaporan: jenis,       // Dikirim ke backend sebagai jenisLaporan
+    tanggalMulai: tglMulai, 
+    tanggalSampai: tglSampai, 
+    namaTarget: namaTarget 
+  };
 
   try {
-    const response = await fetch(API_URL, {
-      method: 'POST',
-      // PENTING: Gunakan text/plain agar browser di GitHub tidak memicu preflight CORS error
-      headers: {
-        'Content-Type': 'text/plain;charset=utf-8'
-      },
-      body: JSON.stringify(payload)
-    });
+    // PERBAIKAN 2: Gunakan wrapper fetchAPI() bawaan aplikasi Anda 
+    // agar lebih rapi, tidak kena blokir CORS, dan loading otomatis ter-handle
+    const result = await fetchAPI("tarikLaporan", payload);
 
-    const result = await response.json();
-
-    // Karena backend Anda menggunakan responseJSON(success, message, data), formatnya seperti ini:
-    if (result.success) {
-      dataLaporanAktif = result.data; // Menyimpan data untuk fitur Download PDF/CSV
-      renderTabelLaporan(jenis, result.data); // Mencetak tabel ke layar
+    if (result && result.success) {
+      dataLaporanAktif = result.data; 
+      renderTabelLaporan(jenis, result.data); 
     } else {
-      tbody.innerHTML = `<tr><td colspan="10" style="text-align:center; padding:20px; color:red;">${result.message}</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="10" style="text-align:center; padding:20px; color:#ff7675;">❌ ${result ? result.message : 'Data tidak ditemukan'}</td></tr>`;
     }
 
   } catch (error) {
     console.error("Gagal memuat laporan:", error);
-    tbody.innerHTML = `<tr><td colspan="10" style="text-align:center; padding:20px; color:red;">❌ Gagal menghubungi server. Pastikan koneksi internet stabil.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="10" style="text-align:center; padding:20px; color:#ff7675;">❌ Gagal menghubungi server. Pastikan koneksi internet stabil.</td></tr>`;
   }
 }
 
@@ -1878,8 +1871,13 @@ function renderTabelLaporan(jenis, data) {
   let headHtml = '';
   let bodyHtml = '';
 
+  // PERBAIKAN 3: Cegah error jika data kosong dari backend
+  if (!data || data.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="10" style="text-align:center; padding:20px; color:#feca57;">Belum ada data absensi untuk pencarian ini.</td></tr>`;
+      return;
+  }
+
   if (jenis === 'Kategori') {
-    // Tampilan Tabel Rekap Kategori
     headHtml = `
       <tr>
         <th>NO</th>
@@ -1909,131 +1907,40 @@ function renderTabelLaporan(jenis, data) {
     });
 
   } else {
-    // Tampilan Tabel Transaksi Log Absensi Harian / Mgg / Bln / Thn
+    // Tampilan Tabel Harian / Mingguan / Bulanan
     headHtml = `
       <tr>
         <th>NO</th>
         <th>TANGGAL</th>
         <th>NAMA</th>
-        <th>KELAS/ROLE</th>
-        <th>MAPEL / JENIS</th>
+        <th>ROLE / KELAS</th>
+        <th>TIPE (IN/OUT)</th>
         <th>STATUS</th>
-        <th>WAKTU</th>
+        <th>WAKTU (JAM)</th>
       </tr>`;
 
     data.forEach((item, i) => {
+      // PERBAIKAN 4: Pemanggilan item dicocokkan dengan JSON output dari srv_laporan.gs
+      // Yaitu: item.Kelas, item.CheckType, item.Timestamp
       bodyHtml += `
         <tr style="border-bottom: 1px solid #3a3553;">
           <td>${i + 1}</td>
           <td>${item.Tanggal || '-'}</td>
           <td><strong>${item.Nama || '-'}</strong></td>
-          <td>${item.Kelas || item.Role || '-'}</td>
-          <td>${item.Mapel || item.Mata_Pelajaran || '-'}</td>
+          <td>${item.Kelas !== '-' ? item.Kelas : item.Role || '-'}</td>
+          <td>${item.CheckType || 'IN'}</td>
           <td>
             <span style="background:${getWarnaBadgeStatus(item.Status)}; color:white; padding:3px 8px; border-radius:4px; font-size:11px;">
-              ${item.Status || 'Alfa'}
+              ${item.Status || 'Hadir'}
             </span>
           </td>
-          <td>${item.Waktu || item.Jam_Masuk || '-'}</td>
+          <td style="color:#feca57; font-weight:bold;">${item.Timestamp || '-'}</td>
         </tr>`;
     });
   }
 
   thead.innerHTML = headHtml;
   tbody.innerHTML = bodyHtml;
-}
-
-// Helper Warna Badge Status
-function getWarnaBadgeStatus(status) {
-  if (!status) return '#e74c3c';
-  const st = status.toLowerCase();
-  if (st.includes('hadir')) return '#2ecc71';
-  if (st.includes('sakit')) return '#f1c40f';
-  if (st.includes('izin')) return '#e67e22';
-  if (st.includes('dispen')) return '#9b59b6';
-  if (st.includes('cuti')) return '#00cec9';
-  return '#e74c3c'; // Alfa / Bolos / default
-}
-
-// 4. Unduh Laporan format Excel (CSV)
-function unduhLaporanCSV() {
-  if (!dataLaporanAktif || dataLaporanAktif.length === 0) {
-    alert("Silakan tampilkan preview data terlebih dahulu sebelum mengunduh!");
-    return;
-  }
-
-  const jenis = document.getElementById('lap-jenis').value;
-  const role = document.getElementById('lap-role').value;
-  
-  let csvContent = "data:text/csv;charset=utf-8,\uFEFF"; // Tambah BOM UTF-8 agar Excel membaca huruf rapi
-
-  // Header CSV
-  const keys = Object.keys(dataLaporanAktif[0]);
-  csvContent += keys.join(",") + "\n";
-
-  // Isi Data CSV
-  dataLaporanAktif.forEach(row => {
-    let rowData = keys.map(k => {
-      let val = row[k] === undefined || row[k] === null ? "" : String(row[k]);
-      // Hindari error jika ada tanda koma di dalam teks
-      if (val.includes(",")) val = `"${val}"`; 
-      return val;
-    });
-    csvContent += rowData.join(",") + "\n";
-  });
-
-  // Trigger Download via Browser
-  const encodedUri = encodeURI(csvContent);
-  const link = document.createElement("a");
-  link.setAttribute("href", encodedUri);
-  link.setAttribute("download", `Laporan_Absensi_${role}_${jenis}_${new Date().toISOString().slice(0,10)}.csv`);
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-}
-
-// 5. Unduh Laporan PDF (Pratinjau Cetak / Save to PDF)
-function unduhLaporanPDF() {
-  if (!dataLaporanAktif || dataLaporanAktif.length === 0) {
-    alert("Silakan tampilkan preview data terlebih dahulu sebelum mengunduh PDF!");
-    return;
-  }
-
-  const tabelElement = document.getElementById('tabel-preview-laporan').outerHTML;
-  const role = document.getElementById('lap-role').value;
-  const jenis = document.getElementById('lap-jenis').value;
-  const tglMulai = document.getElementById('lap-tgl-mulai').value;
-
-  const printWindow = window.open('', '', 'height=700,width=900');
-  printWindow.document.write(`
-    <html>
-      <head>
-        <title>Laporan Absensi ${role} - ${jenis}</title>
-        <style>
-          body { font-family: Arial, sans-serif; padding: 20px; color: #333; }
-          h2 { margin-bottom: 5px; color: #2c3e50; }
-          p { margin-top: 0; color: #7f8c8d; font-size: 13px; }
-          table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-          th, td { border: 1px solid #ddd; padding: 8px; text-align: left; font-size: 12px; }
-          th { background-color: #f2f2f2; color: #333; font-weight: bold; }
-          tr:nth-child(even) { background-color: #f9f9f9; }
-        </style>
-      </head>
-      <body>
-        <h2>LAPORAN ABSENSI (${role.toUpperCase()})</h2>
-        <p>Jenis Laporan: ${jenis} | Periode Tanggal: ${tglMulai}</p>
-        <hr>
-        ${tabelElement}
-      </body>
-    </html>
-  `);
-
-  printWindow.document.close();
-  printWindow.focus();
-  setTimeout(() => {
-    printWindow.print();
-    printWindow.close();
-  }, 500);
 }
 
 // ==========================================
