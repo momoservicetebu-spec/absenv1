@@ -2524,33 +2524,39 @@ async function checkWaConnection() {
 /**
  * 2. Simpan Pengaturan WA & Token
  */
+/**
+ * Simpan Pengaturan WA & Token ke Server
+ */
 async function saveWaSettings() {
-  const tokenInput = document.getElementById("waApiToken").value;
-  
+  const tokenInput = document.getElementById("waApiToken") ? document.getElementById("waApiToken").value : "";
+  const noKepsek = document.getElementById("waNoKepsek") ? document.getElementById("waNoKepsek").value : "";
+
   const settingsData = {
     token: tokenInput,
-    noKepsek: document.getElementById("waNoKepsek") ? document.getElementById("waNoKepsek").value : "",
-    waOrangTua: document.getElementById("waOrangTua").checked,
+    noKepsek: noKepsek,
+    waOrangTua: document.getElementById("waOrangTua") ? document.getElementById("waOrangTua").checked : false,
     waSiswa: document.getElementById("waSiswa") ? document.getElementById("waSiswa").checked : false,
-    waGuruPribadi: document.getElementById("waGuruPribadi") ? document.getElementById("waGuruPribadi").checked : true,
-    waGuru: document.getElementById("waGuru").checked,
+    waGuruPribadi: document.getElementById("waGuruPribadi") ? document.getElementById("waGuruPribadi").checked : false,
+    waGuru: document.getElementById("waGuru") ? document.getElementById("waGuru").checked : false,
     pemicu: {
-      masuk: document.getElementById("trigMasuk").checked,
-      pulang: document.getElementById("trigPulang").checked,
-      terlambat: document.getElementById("trigTerlambat").checked,
-      alpa: document.getElementById("trigAlpa").checked
+      masuk: document.getElementById("trigMasuk") ? document.getElementById("trigMasuk").checked : false,
+      pulang: document.getElementById("trigPulang") ? document.getElementById("trigPulang").checked : false,
+      terlambat: document.getElementById("trigTerlambat") ? document.getElementById("trigTerlambat").checked : false,
+      alpa: document.getElementById("trigAlpa") ? document.getElementById("trigAlpa").checked : false
     }
   };
 
-  // PERBAIKAN: Masukkan action 'simpanPengaturanWA' sebagai argumen ke-1
+  // Panggil API backend Apps Script
   const response = await fetchAPI("simpanPengaturanWA", settingsData);
 
   if (response && response.success) {
-    alert("Pengaturan Notifikasi WA berhasil disimpan secara aman di Server!");
-    document.getElementById("waApiToken").value = ""; 
-    checkWaConnection(); 
+    alert("✅ " + response.message);
+    if (document.getElementById("waApiToken")) {
+      document.getElementById("waApiToken").value = ""; // Kosongkan input token setelah simpan
+    }
+    checkWaConnection(); // Cek status koneksi otomatis
   } else {
-    alert("Gagal menyimpan pengaturan: " + (response ? response.message : "Kesalahan sistem"));
+    alert("❌ Gagal menyimpan pengaturan: " + (response ? response.message : "Kesalahan sistem"));
   }
 }
 
