@@ -2492,26 +2492,21 @@ async function prosesRestore() {
 }
 
 // ==========================================
-// MODULE: WA NOTIFICATION SYSTEM (ui.js) - FIXED FOR GITHUB PAGES
+// MODULE: WA NOTIFICATION SYSTEM (ui.js) - AMANAH SERVER-SIDE
 // ==========================================
 
 /**
- * 1. Cek Koneksi & API Token Fonnte
+ * 1. Cek Koneksi WA (Backend seeraan token irraa dubbisa)
  */
 async function checkWaConnection() {
-  const token = document.getElementById("waApiToken").value;
   const badge = document.getElementById("waStatusBadge");
-
-  if (!token) {
-    alert("Harap masukkan Fonnte API Token terlebih dahulu.");
-    return;
-  }
 
   badge.textContent = "Mengecek...";
   badge.style.backgroundColor = "rgba(234, 179, 8, 0.2)";
   badge.style.color = "#facc15";
 
-  const response = await fetchAPI("cekKoneksiWA", { token: token });
+  // Token erguun hin barbaachisu, Backend ScriptProperties irraa dubbisa
+  const response = await fetchAPI({ action: "cekKoneksiWA" });
 
   if (response && response.success) {
     badge.textContent = "Terhubung";
@@ -2522,22 +2517,24 @@ async function checkWaConnection() {
     badge.textContent = "Terputus";
     badge.style.backgroundColor = "rgba(239, 68, 68, 0.2)";
     badge.style.color = "#f87171";
-    alert("Gagal terhubung: " + (response ? response.message : "Kesalahan sistem"));
+    alert("Gagal terhubung: " + (response ? response.message : "Token belum diatur / Kesalahan sistem"));
   }
 }
 
 /**
- * 2. Simpan Pengaturan WA
+ * 2. Simpan Pengaturan WA & Token ke Backend
  */
 async function saveWaSettings() {
+  const tokenInput = document.getElementById("waApiToken").value;
+  
   const settingsData = {
-    apiToken: document.getElementById("waApiToken").value,
-    penerima: {
-      orangTua: document.getElementById("waOrangTua").checked,
-      siswa: document.getElementById("waSiswa").checked,
-      guruPribadi: document.getElementById("waGuruPribadi") ? document.getElementById("waGuruPribadi").checked : true,
-      guru: document.getElementById("waGuru").checked
-    },
+    action: "simpanPengaturanWA",
+    token: tokenInput, // Yoo duudaa ta'e, backend token durii olka'a
+    noKepsek: document.getElementById("waNoKepsek") ? document.getElementById("waNoKepsek").value : "",
+    waOrangTua: document.getElementById("waOrangTua").checked,
+    waSiswa: document.getElementById("waSiswa") ? document.getElementById("waSiswa").checked : false,
+    waGuruPribadi: document.getElementById("waGuruPribadi") ? document.getElementById("waGuruPribadi").checked : true,
+    waGuru: document.getElementById("waGuru").checked,
     pemicu: {
       masuk: document.getElementById("trigMasuk").checked,
       pulang: document.getElementById("trigPulang").checked,
@@ -2546,10 +2543,12 @@ async function saveWaSettings() {
     }
   };
 
-  const response = await fetchAPI("simpanPengaturanWA", settingsData);
+  const response = await fetchAPI(settingsData);
 
   if (response && response.success) {
-    alert("Pengaturan Notifikasi WA berhasil disimpan!");
+    alert("Pengaturan Notifikasi WA berhasil disimpan secara aman di Server!");
+    document.getElementById("waApiToken").value = ""; // Input duudaa godhi
+    checkWaConnection(); // Status haaromsi
   } else {
     alert("Gagal menyimpan pengaturan: " + (response ? response.message : "Kesalahan sistem"));
   }
@@ -2573,7 +2572,6 @@ function loadSelectedTemplate() {
   textarea.value = templates[type] || "";
 }
 
-
 /**
  * 4. Simpan Template Pesan
  */
@@ -2586,7 +2584,7 @@ async function saveWaTemplate() {
     return;
   }
 
-  const response = await fetchAPI("simpanTemplateWA", { jenis: type, pesan: message });
+  const response = await fetchAPI({ action: "simpanTemplateWA", jenis: type, pesan: message });
 
   if (response && response.success) {
     alert("Template pesan '" + type + "' berhasil disimpan!");
@@ -2599,23 +2597,18 @@ async function saveWaTemplate() {
  * 5. Uji Kirim Pesan WA
  */
 async function testWaMessage() {
-  const token = document.getElementById("waApiToken").value;
-  if (!token) {
-    alert("Harap masukkan API Token terlebih dahulu sebelum menguji.");
-    return;
-  }
-
   const targetNo = prompt("Masukkan nomor WA tujuan untuk uji coba (contoh: 08123456789):");
   if (!targetNo) return;
 
   const testMsg = "Halo! Ini adalah pesan uji coba dari Sistem Absensi Sekolah. Jika pesan ini masuk, koneksi WA Anda sudah bekerja dengan baik ✅";
 
-  const response = await fetchAPI("ujiKirimWA", { token: token, targetNo: targetNo, msg: testMsg });
+  // Token erguun hin barbaachisu, backend server irraa dubbisa
+  const response = await fetchAPI({ action: "ujiKirimWA", targetNo: targetNo, msg: testMsg });
 
   if (response && response.success) {
     alert("Berhasil! Pesan uji coba telah dikirim ke " + targetNo);
   } else {
-    alert("Gagal mengirim pesan: " + (response ? response.message : "Cek kembali nomor tujuan atau token Anda."));
+    alert("Gagal mengirim pesan: " + (response ? response.message : "Cek kembali nomor tujuan atau Pengaturan Token Anda di server."));
   }
 }
 

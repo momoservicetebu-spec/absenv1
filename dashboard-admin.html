@@ -1372,126 +1372,107 @@
     <!-- 12. NOTIFIKASI WHATSAPP -->
     <div id="whatsapp-settings" class="section card" style="display: none;">
       <h2 class="section-title">📱 Notifikasi WhatsApp</h2>
-      <p class="section-desc">Atur koneksi WA Gateway, target penerima, dan template pesan otomatis.</p>
+      <p class="section-desc">Atur koneksi WA Gateway (Aman di Backend), target penerima, dan template pesan otomatis.</p>
 
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 24px; margin-top: 20px;">
-            
-            <!-- KARTU 1: KONEKSI & API TOKEN FONNTE -->
-            <div style="background-color: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 24px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.3);">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                    <h3 style="font-size: 16px; font-weight: 600; color: #f3f4f6; margin: 0;">Status Koneksi WA</h3>
-                    <span id="waStatusBadge" style="font-size: 12px; font-weight: 600; padding: 4px 12px; background-color: rgba(239, 68, 68, 0.2); color: #f87171; border-radius: 9999px;">Terputus</span>
-                </div>
-                
-                <div style="margin-bottom: 16px;">
-                    <label style="display: block; font-size: 13px; font-weight: 500; color: #cbd5e1; margin-bottom: 6px;">Fonnte API Token:</label>
-                    <input type="password" id="waApiToken" placeholder="Masukkan Token Fonnte Anda" style="width: 100%; padding: 10px; background-color: #0f172a; border: 1px solid #334155; border-radius: 6px; color: #f3f4f6; outline: none; box-sizing: border-box;">
-                </div>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 24px; margin-top: 20px;">
+          
+          <!-- KARTU 1: KONEKSI & API TOKEN FONNTE (AMAN SERVER-SIDE) -->
+          <div style="background-color: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 24px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.3);">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                  <h3 style="font-size: 16px; font-weight: 600; color: #f3f4f6; margin: 0;">Status Koneksi WA</h3>
+                  <span id="waStatusBadge" style="font-size: 12px; font-weight: 600; padding: 4px 12px; background-color: rgba(239, 68, 68, 0.2); color: #f87171; border-radius: 9999px;">Terputus</span>
+              </div>
+              
+              <div style="margin-bottom: 16px;">
+                  <label style="display: block; font-size: 13px; font-weight: 500; color: #cbd5e1; margin-bottom: 6px;">Fonnte API Token (Tersimpan di Server):</label>
+                  <input type="password" id="waApiToken" placeholder="Masukkan Token Fonnte Baru (Kosongkan jika tidak diubah)" style="width: 100%; padding: 10px; background-color: #0f172a; border: 1px solid #334155; border-radius: 6px; color: #f3f4f6; outline: none; box-sizing: border-box;">
+              </div>
 
-                <div style="background-color: #0f172a; border: 1px dashed #475569; border-radius: 8px; height: 140px; display: flex; flex-direction: column; justify-content: center; align-items: center; margin-bottom: 20px;">
-                    <i class="fas fa-qrcode" style="font-size: 36px; color: #64748b; margin-bottom: 8px;"></i>
-                    <p style="font-size: 12px; color: #9ca3af; text-align: center; padding: 0 15px; margin: 0;">Scan QR Code melalui aplikasi Fonnte atau cek status perangkat Anda.</p>
-                </div>
-                
-                <div style="display: flex; gap: 12px;">
-                    <button type="button" onclick="checkWaConnection()" style="flex: 1; background-color: #3b82f6; color: white; border: none; padding: 10px; border-radius: 6px; cursor: pointer; font-weight: 500; font-size: 14px; display: flex; justify-content: center; align-items: center; gap: 8px;">
-                        <i class="fas fa-sync-alt"></i> Cek Koneksi
-                    </button>
-                </div>
-            </div>
+              <div style="background-color: #0f172a; border: 1px dashed #475569; border-radius: 8px; height: 120px; display: flex; flex-direction: column; justify-content: center; align-items: center; margin-bottom: 20px;">
+                  <i class="fas fa-shield-alt" style="font-size: 32px; color: #10b981; margin-bottom: 8px;"></i>
+                  <p style="font-size: 12px; color: #9ca3af; text-align: center; padding: 0 15px; margin: 0;">Token aman & terenkripsi di Google Script Properties.</p>
+              </div>
+              
+              <div style="display: flex; gap: 12px;">
+                  <button type="button" onclick="checkWaConnection()" style="flex: 1; background-color: #3b82f6; color: white; border: none; padding: 10px; border-radius: 6px; cursor: pointer; font-weight: 500; font-size: 14px; display: flex; justify-content: center; align-items: center; gap: 8px;">
+                      <i class="fas fa-sync-alt"></i> Cek Koneksi Server
+                  </button>
+              </div>
+          </div>
 
-           <!-- KARTU 2: TARGET PENERIMA & PENGATURAN -->
-            <div style="background-color: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 24px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.3);">
-                <h3 style="font-size: 16px; font-weight: 600; color: #f3f4f6; margin: 0 0 20px 0;">Pengaturan Penerima & Pemicu</h3>
-                
-                <div style="margin-bottom: 24px;">
-                    <label style="display: block; font-size: 14px; font-weight: 500; color: #d1d5db; margin-bottom: 12px;">Kirim Notifikasi Kepada:</label>
-                    
-                    <div style="display: flex; align-items: center; margin-bottom: 10px;">
-                        <input type="checkbox" id="waOrangTua" checked style="width: 16px; height: 16px; accent-color: #10b981; cursor: pointer;">
-                        <label for="waOrangTua" style="font-size: 14px; color: #e5e7eb; margin-left: 8px; cursor: pointer;">Orang Tua / Wali Murid</label>
-                    </div>
-                    <div style="display: flex; align-items: center; margin-bottom: 10px;">
-                        <input type="checkbox" id="waSiswa" style="width: 16px; height: 16px; accent-color: #10b981; cursor: pointer;">
-                        <label for="waSiswa" style="font-size: 14px; color: #e5e7eb; margin-left: 8px; cursor: pointer;">Nomor Siswa (Pribadi)</label>
-                    </div>
-                    <!-- OPSI WA GURU PRIBADI -->
-                    <div style="display: flex; align-items: center; margin-bottom: 10px;">
-                        <input type="checkbox" id="waGuruPribadi" checked style="width: 16px; height: 16px; accent-color: #10b981; cursor: pointer;">
-                        <label for="waGuruPribadi" style="font-size: 14px; color: #34d399; font-weight: 600; margin-left: 8px; cursor: pointer;">Guru (Nomor Pribadi)</label>
-                    </div>
-                    <div style="display: flex; align-items: center;">
-                        <input type="checkbox" id="waGuru" checked style="width: 16px; height: 16px; accent-color: #10b981; cursor: pointer;">
-                        <label for="waGuru" style="font-size: 14px; color: #e5e7eb; margin-left: 8px; cursor: pointer;">Wali Kelas (Laporan Harian)</label>
-                    </div>
-                </div>
+        <!-- KARTU 2: TARGET PENERIMA & NOMOR KEPSEK -->
+          <div style="background-color: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 24px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.3);">
+              <h3 style="font-size: 16px; font-weight: 600; color: #f3f4f6; margin: 0 0 20px 0;">Pengaturan Penerima & Pemicu</h3>
+              
+              <!-- NOMOR KEPALA SEKOLAH -->
+              <div style="margin-bottom: 16px;">
+                  <label style="display: block; font-size: 13px; font-weight: 500; color: #34d399; margin-bottom: 6px;">Nomor WA Kepala Sekolah (Laporan Guru):</label>
+                  <input type="text" id="waNoKepsek" placeholder="Contoh: 628123456789" style="width: 100%; padding: 10px; background-color: #0f172a; border: 1px solid #334155; border-radius: 6px; color: #f3f4f6; outline: none; box-sizing: border-box;">
+              </div>
 
-                <div>
-                    <label style="display: block; font-size: 14px; font-weight: 500; color: #d1d5db; margin-bottom: 12px;">Pemicu Pesan Otomatis:</label>
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                        <label style="background-color: #0f172a; padding: 8px 12px; border-radius: 6px; border: 1px solid #334155; font-size: 13px; color: #cbd5e1; display: flex; align-items: center; gap: 8px; cursor: pointer;">
-                            <input type="checkbox" id="trigMasuk" checked style="accent-color: #10b981;"> Absen Masuk
-                        </label>
-                        <label style="background-color: #0f172a; padding: 8px 12px; border-radius: 6px; border: 1px solid #334155; font-size: 13px; color: #cbd5e1; display: flex; align-items: center; gap: 8px; cursor: pointer;">
-                            <input type="checkbox" id="trigPulang" checked style="accent-color: #10b981;"> Absen Pulang
-                        </label>
-                        <label style="background-color: #0f172a; padding: 8px 12px; border-radius: 6px; border: 1px solid #334155; font-size: 13px; color: #cbd5e1; display: flex; align-items: center; gap: 8px; cursor: pointer;">
-                            <input type="checkbox" id="trigTerlambat" checked style="accent-color: #10b981;"> Terlambat
-                        </label>
-                        <label style="background-color: #0f172a; padding: 8px 12px; border-radius: 6px; border: 1px solid #334155; font-size: 13px; color: #cbd5e1; display: flex; align-items: center; gap: 8px; cursor: pointer;">
-                            <input type="checkbox" id="trigAlpa" checked style="accent-color: #10b981;"> Alpa/Bolos
-                        </label>
-                    </div>
-                </div>
-                
-                <button type="button" onclick="saveWaSettings()" style="width: 100%; margin-top: 24px; background-color: #10b981; color: white; border: none; padding: 10px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 14px;">
-                    <i class="fas fa-save" style="margin-right: 6px;"></i> Simpan Pengaturan
-                </button>
-            </div>
+              <div style="margin-bottom: 20px;">
+                  <label style="display: block; font-size: 13px; font-weight: 500; color: #d1d5db; margin-bottom: 10px;">Target Notifikasi Absensi:</label>
+                  
+                  <div style="display: flex; align-items: center; margin-bottom: 8px;">
+                      <input type="checkbox" id="waOrangTua" checked style="width: 16px; height: 16px; accent-color: #10b981; cursor: pointer;">
+                      <label for="waOrangTua" style="font-size: 13px; color: #e5e7eb; margin-left: 8px; cursor: pointer;">Orang Tua / Wali Murid (Absen Siswa)</label>
+                  </div>
+                  <div style="display: flex; align-items: center; margin-bottom: 8px;">
+                      <input type="checkbox" id="waGuruPribadi" checked style="width: 16px; height: 16px; accent-color: #10b981; cursor: pointer;">
+                      <label for="waGuruPribadi" style="font-size: 13px; color: #34d399; font-weight: 600; margin-left: 8px; cursor: pointer;">Guru (Notif Tap Pribadi)</label>
+                  </div>
+                  <div style="display: flex; align-items: center;">
+                      <input type="checkbox" id="waGuru" checked style="width: 16px; height: 16px; accent-color: #10b981; cursor: pointer;">
+                      <label for="waGuru" style="font-size: 13px; color: #e5e7eb; margin-left: 8px; cursor: pointer;">Wali Kelas (Laporan Kelas Siswa)</label>
+                  </div>
+              </div>
 
-            <!-- KARTU 3: TEMPLATE PESAN WA -->
-            <div style="background-color: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 24px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.3); grid-column: 1 / -1;">
-                <h3 style="font-size: 16px; font-weight: 600; color: #f3f4f6; margin: 0 0 20px 0;">Template Pesan WA</h3>
-                
-                <div style="display: flex; gap: 20px; flex-wrap: wrap;">
-                    <div style="flex: 1; min-width: 250px;">
-                        <label style="display: block; font-size: 14px; font-weight: 500; color: #d1d5db; margin-bottom: 8px;">Pilih Jenis Template</label>
-                        <select id="waTemplateType" onchange="loadSelectedTemplate()" style="width: 100%; padding: 10px; background-color: #0f172a; border: 1px solid #334155; border-radius: 6px; color: #f3f4f6; margin-bottom: 16px; outline: none;">
-                            <option value="masuk">Absensi Siswa (Masuk)</option>
-                            <option value="pulang">Absensi Siswa (Pulang)</option>
-                            <option value="terlambat">Peringatan Keterlambatan Siswa</option>
-                            <option value="alpa">Pemberitahuan Alpa Siswa</option>
-                            <option value="guru_masuk">Absensi Guru (Masuk / Pulang)</option>
-                        </select>
+              <button type="button" onclick="saveWaSettings()" style="width: 100%; background-color: #10b981; color: white; border: none; padding: 10px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 14px;">
+                  <i class="fas fa-save" style="margin-right: 6px;"></i> Simpan Pengaturan
+              </button>
+          </div>
 
-                        <label style="display: block; font-size: 14px; font-weight: 500; color: #d1d5db; margin-bottom: 8px;">Isi Pesan</label>
-                        <textarea id="waTemplateMessage" rows="5" style="width: 100%; padding: 12px; background-color: #0f172a; border: 1px solid #334155; border-radius: 6px; color: #f3f4f6; resize: vertical; outline: none; font-family: inherit; line-height: 1.5; box-sizing: border-box;">Halo Bapak/Ibu Wali Murid,&#10;Kami informasikan bahwa siswa an. *[nama_siswa]* telah melakukan absensi MASUK pada *[waktu]* di lokasi *[lokasi_gate]*.&#10;&#10;Terima Kasih.</textarea>
-                    </div>
-                    
-                    <div style="flex: 1; min-width: 250px; background-color: rgba(139, 92, 246, 0.1); border: 1px solid rgba(139, 92, 246, 0.2); border-radius: 8px; padding: 16px;">
-                        <h4 style="font-size: 14px; color: #c084fc; margin: 0 0 12px 0;"><i class="fas fa-info-circle"></i> Variabel Tersedia</h4>
-                        <p style="font-size: 13px; color: #9ca3af; margin-bottom: 12px; line-height: 1.5;">Gunakan kode di bawah ini di dalam template pesan Anda. Sistem akan mengubahnya otomatis.</p>
-                        
-                        <ul style="list-style: none; padding: 0; margin: 0; font-size: 13px; color: #cbd5e1; display: grid; gap: 8px;">
-                            <li><code style="background-color: #0f172a; padding: 2px 6px; border-radius: 4px; color: #34d399;">[nama_siswa] / [nama_guru]</code> : Nama pengguna</li>
-                            <li><code style="background-color: #0f172a; padding: 2px 6px; border-radius: 4px; color: #34d399;">[nis] / [nip]</code> : Nomor Induk</li>
-                            <li><code style="background-color: #0f172a; padding: 2px 6px; border-radius: 4px; color: #34d399;">[waktu]</code> : Jam absensi (HH:MM)</li>
-                            <li><code style="background-color: #0f172a; padding: 2px 6px; border-radius: 4px; color: #34d399;">[tanggal]</code> : Tanggal absensi</li>
-                        </ul>
-                    </div>
-                </div>
+          <!-- KARTU 3: TEMPLATE PESAN WA -->
+          <div style="background-color: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 24px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.3); grid-column: 1 / -1;">
+              <h3 style="font-size: 16px; font-weight: 600; color: #f3f4f6; margin: 0 0 20px 0;">Template Pesan WA</h3>
+              
+              <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+                  <div style="flex: 1; min-width: 250px;">
+                      <label style="display: block; font-size: 14px; font-weight: 500; color: #d1d5db; margin-bottom: 8px;">Pilih Jenis Template</label>
+                      <select id="waTemplateType" onchange="loadSelectedTemplate()" style="width: 100%; padding: 10px; background-color: #0f172a; border: 1px solid #334155; border-radius: 6px; color: #f3f4f6; margin-bottom: 16px; outline: none;">
+                          <option value="masuk">Absensi Siswa (Masuk)</option>
+                          <option value="pulang">Absensi Siswa (Pulang)</option>
+                          <option value="terlambat">Peringatan Keterlambatan Siswa</option>
+                          <option value="alpa">Pemberitahuan Alpa Siswa</option>
+                          <option value="guru_masuk">Absensi Guru (Masuk / Pulang)</option>
+                      </select>
 
-                <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 20px;">
-                    <button type="button" onclick="testWaMessage()" style="background-color: #334155; color: white; border: none; padding: 10px 16px; border-radius: 6px; cursor: pointer; font-weight: 500; font-size: 14px;">
-                        <i class="fas fa-paper-plane" style="margin-right: 6px;"></i> Uji Kirim Pesan
-                    </button>
-                    <button type="button" onclick="saveWaTemplate()" style="background-color: #10b981; color: white; border: none; padding: 10px 16px; border-radius: 6px; cursor: pointer; font-weight: 500; font-size: 14px;">
-                        <i class="fas fa-save" style="margin-right: 6px;"></i> Simpan Template
-                    </button>
-                </div>
-            </div>
+                      <label style="display: block; font-size: 14px; font-weight: 500; color: #d1d5db; margin-bottom: 8px;">Isi Pesan</label>
+                      <textarea id="waTemplateMessage" rows="5" style="width: 100%; padding: 12px; background-color: #0f172a; border: 1px solid #334155; border-radius: 6px; color: #f3f4f6; resize: vertical; outline: none; font-family: inherit; line-height: 1.5; box-sizing: border-box;">Halo Bapak/Ibu Wali Murid,&#10;Kami informasikan bahwa siswa an. *[nama_siswa]* telah melakukan absensi MASUK pada *[waktu]* di lokasi *[lokasi_gate]*.&#10;&#10;Terima Kasih.</textarea>
+                  </div>
+                  
+                  <div style="flex: 1; min-width: 250px; background-color: rgba(139, 92, 246, 0.1); border: 1px solid rgba(139, 92, 246, 0.2); border-radius: 8px; padding: 16px;">
+                      <h4 style="font-size: 14px; color: #c084fc; margin: 0 0 12px 0;"><i class="fas fa-info-circle"></i> Variabel Tersedia</h4>
+                      <ul style="list-style: none; padding: 0; margin: 0; font-size: 13px; color: #cbd5e1; display: grid; gap: 8px;">
+                          <li><code style="background-color: #0f172a; padding: 2px 6px; border-radius: 4px; color: #34d399;">[nama_siswa] / [nama_guru]</code> : Nama pengguna</li>
+                          <li><code style="background-color: #0f172a; padding: 2px 6px; border-radius: 4px; color: #34d399;">[nis] / [nip]</code> : Nomor Induk</li>
+                          <li><code style="background-color: #0f172a; padding: 2px 6px; border-radius: 4px; color: #34d399;">[waktu]</code> : Jam absensi (HH:MM)</li>
+                          <li><code style="background-color: #0f172a; padding: 2px 6px; border-radius: 4px; color: #34d399;">[tanggal]</code> : Tanggal absensi</li>
+                      </ul>
+                  </div>
+              </div>
 
-        </div>
+              <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 20px;">
+                  <button type="button" onclick="testWaMessage()" style="background-color: #334155; color: white; border: none; padding: 10px 16px; border-radius: 6px; cursor: pointer; font-weight: 500; font-size: 14px;">
+                      <i class="fas fa-paper-plane" style="margin-right: 6px;"></i> Uji Kirim Pesan
+                  </button>
+                  <button type="button" onclick="saveWaTemplate()" style="background-color: #10b981; color: white; border: none; padding: 10px 16px; border-radius: 6px; cursor: pointer; font-weight: 500; font-size: 14px;">
+                      <i class="fas fa-save" style="margin-right: 6px;"></i> Simpan Template
+                  </button>
+              </div>
+          </div>
+
+      </div>
     </div>
 
     <!-- 13. GEOFENCING & GPS -->
