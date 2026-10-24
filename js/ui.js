@@ -59,14 +59,20 @@ async function fetchAPI(action, payload = null) {
 }
 // -----------------------------------------------------
 function switchTab(tabId, btnElement) {
-  // 1. Cari SEMUA elemen yang memiliki class 'section' (semua halaman menu)
-  const allSections = document.querySelectorAll('.section');
+  // 1. Cari SEMUA elemen halaman yang memiliki class 'section' maupun 'tab-content'
+  const allSections = document.querySelectorAll('.section, .tab-content');
   
   // Sembunyikan semuanya tanpa kecuali
   allSections.forEach(sec => {
     sec.classList.remove('active');
     sec.style.display = 'none';
   });
+  
+  // Hentikan interval polling live monitor jika pengguna berpindah ke tab lain
+  if (tabId !== 'live-absen' && typeof liveAbsenInterval !== 'undefined' && liveAbsenInterval) {
+    clearInterval(liveAbsenInterval);
+    liveAbsenInterval = null;
+  }
   
   // Hapus class 'active' dari semua tombol sidebar
   document.querySelectorAll('.nav-btn').forEach(btn => {
@@ -85,11 +91,12 @@ function switchTab(tabId, btnElement) {
     btnElement.classList.add('active');
   }
   
-  // --- Pemicu Fungsi Spesifik (Biarkan seperti ini) ---
-  if(tabId === 'enrollment' && !window.aiLoaded) {
+  // --- Pemicu Fungsi Spesifik ---
+  if (tabId === 'live-absen') {
+    if (typeof initLiveAbsen === 'function') initLiveAbsen();
+  } else if (tabId === 'enrollment' && !window.aiLoaded) {
     if (typeof initFaceAI === 'function') initFaceAI();
-  }
-  if (tabId === 'data-siswa') {
+  } else if (tabId === 'data-siswa') {
     if (typeof loadDataSiswa === 'function') loadDataSiswa();
   } else if (tabId === 'data-guru') {
     if (typeof loadDataGuru === 'function') loadDataGuru();
