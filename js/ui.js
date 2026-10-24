@@ -1967,7 +1967,7 @@ async function muatDaftarNamaLaporan() {
     const response = await fetch(`${WEB_APP_URL}?action=${action}`);
     const res = await response.json();
     // --- BATAS KODE YANG DIPERBARUI ---
-    
+
     if (res.success && res.data) {
       let optionsHtml = '';
 
@@ -2766,6 +2766,15 @@ async function hapusAdmin(idAtauUsername, btnElement) {
     console.error("Error saat menghapus:", error);
     alert("Gagal menghubungi server!");
   }
+}
+
+function getWarnaBadgeStatus(status) {
+  const st = String(status || "").toLowerCase().trim();
+  if (st.includes("hadir")) return "#00b894"; // Hijau
+  if (st.includes("telat")) return "#fdcb6e"; // Kuning/Oranye
+  if (st.includes("izin") || st.includes("sakit")) return "#0984e3"; // Biru
+  if (st.includes("alpa") || st.includes("absen")) return "#d63031"; // Merah
+  return "#2d3436"; // Abu-abu gelap (Default)
 }
 
 // Jalankan saat halaman selesai dimuat
