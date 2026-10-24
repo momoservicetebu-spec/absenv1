@@ -2778,38 +2778,131 @@ function getWarnaBadgeStatus(status) {
 }
 
 function unduhLaporanCSV() {
-  // Cari elemen tabel yang ada di dalam form laporan
   const table = document.querySelector("#laporan-absensi table"); 
-  
   if (!table) {
-    alert("Silakan klik 'Tampilkan Preview' terlebih dahulu sebelum mengunduh.");
+    alert("Silakan klik 'Tampilkan Preview' terlebih dahulu.");
     return;
   }
 
-  let csv = [];
-  let rows = table.querySelectorAll("tr");
+  // Tarik data dari input Pengaturan (sesuaikan ID-nya) atau gunakan teks baku
+  const instansiAtas = document.getElementById("setting-instansi-atas")?.value || "PEMERINTAH PROVINSI LAMPUNG";
+  const dinas = document.getElementById("setting-dinas")?.value || "DINAS PENDIDIKAN DAN KEBUDAYAAN";
+  const namaSekolah = document.getElementById("setting-nama-sekolah")?.value || "SMA NEGERI 1 BUMI AGUNG";
+  const alamatSekolah = document.getElementById("setting-alamat")?.value || "Alamat: JL. Protokol No 1 Pisang Baru, Kec. Bumi Agung, Kabupaten Way Kanan, Kode Pos: 34782, E-mail : smansatubuma@gmail.com, Terakreditasi B, NSS: 301120813017, NPSN: 10810190";
 
+  let csv = [];
+  
+  csv.push(instansiAtas);
+  csv.push(dinas);
+  csv.push(namaSekolah);
+  csv.push(alamatSekolah);
+  csv.push(""); 
+  csv.push("LAPORAN REKAPITULASI ABSENSI");
+  csv.push(""); 
+
+  let rows = table.querySelectorAll("tr");
   for (let i = 0; i < rows.length; i++) {
     let row = [];
     let cols = rows[i].querySelectorAll("td, th");
-    
     for (let j = 0; j < cols.length; j++) {
-      // Membersihkan teks dan mengapit dengan tanda kutip untuk format CSV
       let data = cols[j].innerText.replace(/"/g, '""');
       row.push(`"${data}"`);
     }
-    csv.push(row.join(","));
+    csv.push(row.join(";"));
   }
 
-  // Membuat file dan memicu proses download
-  let csvFile = new Blob([csv.join("\n")], { type: "text/csv" });
+  let csvFile = new Blob([csv.join("\n")], { type: "text/csv;charset=utf-8;" });
   let downloadLink = document.createElement("a");
-  downloadLink.download = "Rekap_Laporan_Absensi.csv";
+  downloadLink.download = "Laporan_Absensi.csv";
   downloadLink.href = window.URL.createObjectURL(csvFile);
   downloadLink.style.display = "none";
   document.body.appendChild(downloadLink);
   downloadLink.click();
   document.body.removeChild(downloadLink);
+}
+
+function unduhLaporanPDF() {
+  const table = document.querySelector("#laporan-absensi table");
+  if (!table) {
+    alert("Silakan klik 'Tampilkan Preview' terlebih dahulu.");
+    return;
+  }
+
+  // Tarik data dari input Pengaturan (sesuaikan ID-nya) atau gunakan teks baku sesuai gambar
+  const instansiAtas = document.getElementById("setting-instansi-atas")?.value || "PEMERINTAH PROVINSI LAMPUNG";
+  const dinas = document.getElementById("setting-dinas")?.value || "DINAS PENDIDIKAN DAN KEBUDAYAAN";
+  const namaSekolah = document.getElementById("setting-nama-sekolah")?.value || "SMA NEGERI 1 BUMI AGUNG";
+  const alamatSekolah = document.getElementById("setting-alamat")?.value || "Alamat: JL. Protokol No 1 Pisang Baru, Kec. Bumi Agung, Kabupaten Way Kanan, Kode Pos: 34782, E-mail : smansatubuma@gmail.com, Terakreditasi B, NSS: 301120813017, NPSN: 10810190";
+  const website = document.getElementById("setting-website")?.value || "Website: sman1ba.sch.id";
+  
+  // Karena ada 2 logo, pastikan di menu UI setting Anda menyiapkan 2 kolom input URL logo
+  const logoKiri = document.getElementById("setting-logo-kiri")?.value || "URL_LOGO_PROVINSI_ANDA"; 
+  const logoKanan = document.getElementById("setting-logo-kanan")?.value || "URL_LOGO_SEKOLAH_ANDA";
+  const namaKepsek = document.getElementById("setting-nama-kepsek")?.value || "Nama Kepala Sekolah";
+  const nipKepsek = document.getElementById("setting-nip")?.value || "-";
+
+  const element = document.createElement("div");
+  element.style.padding = "20px";
+  // Gunakan font serif standar resmi
+  element.style.fontFamily = "'Times New Roman', Times, serif";
+  element.style.color = "#000"; 
+
+  // Merakit Struktur Kop Surat dengan Flexbox agar logo sejajar di kiri dan kanan
+  const imgKiriTag = logoKiri !== "URL_LOGO_PROVINSI_ANDA" ? `<img src="${logoKiri}" style="width: 80px; height: auto;">` : '<div style="width: 80px;"></div>';
+  const imgKananTag = logoKanan !== "URL_LOGO_SEKOLAH_ANDA" ? `<img src="${logoKanan}" style="width: 80px; height: auto;">` : '<div style="width: 80px;"></div>';
+  
+  const kopSurat = `
+    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 4px double black; padding-bottom: 10px; margin-bottom: 20px;">
+      ${imgKiriTag}
+      <div style="text-align: center; flex-grow: 1; padding: 0 10px;">
+        <h2 style="margin: 0; font-size: 14pt; font-weight: normal;">${instansiAtas}</h2>
+        <h2 style="margin: 0; font-size: 14pt; font-weight: normal;">${dinas}</h2>
+        <h1 style="margin: 3px 0; font-size: 16pt; font-weight: bold;">${namaSekolah}</h1>
+        <p style="margin: 0; font-size: 9pt; font-style: italic;">${alamatSekolah}</p>
+        <p style="margin: 0; font-size: 9pt; font-style: italic;">${website}</p>
+      </div>
+      ${imgKananTag}
+    </div>
+    <div style="text-align: center; margin-bottom: 20px;">
+      <h3 style="margin: 0; text-decoration: underline; font-size: 12pt; font-family: Arial, sans-serif;">LAPORAN REKAPITULASI ABSENSI</h3>
+    </div>
+  `;
+
+  const tandaTangan = `
+    <div style="margin-top: 40px; text-align: right; font-size: 12pt;">
+      <p>Mengetahui,</p>
+      <p style="margin-bottom: 70px;">Kepala Sekolah</p>
+      <p style="font-weight: bold; margin: 0; text-decoration: underline;">${namaKepsek}</p>
+      <p style="margin: 0;">NIP. ${nipKepsek}</p>
+    </div>
+  `;
+
+  const tableClone = table.cloneNode(true);
+  tableClone.style.width = "100%";
+  tableClone.style.borderCollapse = "collapse";
+  tableClone.style.fontSize = "11pt";
+  tableClone.style.fontFamily = "Arial, sans-serif";
+  
+  const cells = tableClone.querySelectorAll("th, td");
+  cells.forEach(cell => {
+    cell.style.border = "1px solid black";
+    cell.style.padding = "6px";
+    cell.style.color = "black"; 
+  });
+
+  element.innerHTML = kopSurat;
+  element.appendChild(tableClone);
+  element.insertAdjacentHTML('beforeend', tandaTangan);
+
+  const opt = {
+    margin:       10,
+    filename:     'Laporan_Absensi_Resmi.pdf',
+    image:        { type: 'jpeg', quality: 0.98 },
+    html2canvas:  { scale: 2, useCORS: true }, 
+    jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+  };
+
+  html2pdf().set(opt).from(element).save();
 }
 
 function unduhLaporanPDF() {
