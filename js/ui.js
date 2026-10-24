@@ -2492,11 +2492,11 @@ async function prosesRestore() {
 }
 
 // ==========================================
-// MODULE: WA NOTIFICATION SYSTEM (ui.js) - AMANAH SERVER-SIDE
+// MODULE: NOTIFIKASI WHATSAPP (FIXED FETCH_API)
 // ==========================================
 
 /**
- * 1. Cek Koneksi WA (Backend seeraan token irraa dubbisa)
+ * 1. Cek Koneksi WA
  */
 async function checkWaConnection() {
   const badge = document.getElementById("waStatusBadge");
@@ -2505,8 +2505,8 @@ async function checkWaConnection() {
   badge.style.backgroundColor = "rgba(234, 179, 8, 0.2)";
   badge.style.color = "#facc15";
 
-  // Token erguun hin barbaachisu, Backend ScriptProperties irraa dubbisa
-  const response = await fetchAPI({ action: "cekKoneksiWA" });
+  // PERBAIKAN: Masukkan action sebagai string di parameter ke-1
+  const response = await fetchAPI("cekKoneksiWA", {});
 
   if (response && response.success) {
     badge.textContent = "Terhubung";
@@ -2517,19 +2517,18 @@ async function checkWaConnection() {
     badge.textContent = "Terputus";
     badge.style.backgroundColor = "rgba(239, 68, 68, 0.2)";
     badge.style.color = "#f87171";
-    alert("Gagal terhubung: " + (response ? response.message : "Token belum diatur / Kesalahan sistem"));
+    alert("Gagal terhubung: " + (response ? response.message : "Token belum diatur atau terjadi kesalahan sistem"));
   }
 }
 
 /**
- * 2. Simpan Pengaturan WA & Token ke Backend
+ * 2. Simpan Pengaturan WA & Token
  */
 async function saveWaSettings() {
   const tokenInput = document.getElementById("waApiToken").value;
   
   const settingsData = {
-    action: "simpanPengaturanWA",
-    token: tokenInput, // Yoo duudaa ta'e, backend token durii olka'a
+    token: tokenInput,
     noKepsek: document.getElementById("waNoKepsek") ? document.getElementById("waNoKepsek").value : "",
     waOrangTua: document.getElementById("waOrangTua").checked,
     waSiswa: document.getElementById("waSiswa") ? document.getElementById("waSiswa").checked : false,
@@ -2543,37 +2542,20 @@ async function saveWaSettings() {
     }
   };
 
-  const response = await fetchAPI(settingsData);
+  // PERBAIKAN: Masukkan action 'simpanPengaturanWA' sebagai argumen ke-1
+  const response = await fetchAPI("simpanPengaturanWA", settingsData);
 
   if (response && response.success) {
     alert("Pengaturan Notifikasi WA berhasil disimpan secara aman di Server!");
-    document.getElementById("waApiToken").value = ""; // Input duudaa godhi
-    checkWaConnection(); // Status haaromsi
+    document.getElementById("waApiToken").value = ""; 
+    checkWaConnection(); 
   } else {
     alert("Gagal menyimpan pengaturan: " + (response ? response.message : "Kesalahan sistem"));
   }
 }
 
 /**
- * 3. Ganti Isi Textarea Berdasarkan Template yang Dipilih
- */
-function loadSelectedTemplate() {
-  const type = document.getElementById("waTemplateType").value;
-  const textarea = document.getElementById("waTemplateMessage");
-
-  const templates = {
-    masuk: "Halo Bapak/Ibu Wali Murid,\nKami informasikan bahwa siswa an. *[nama_siswa]* telah melakukan absensi MASUK pada *[waktu]*.\n\nTerima Kasih.",
-    pulang: "Halo Bapak/Ibu Wali Murid,\nKami informasikan bahwa siswa an. *[nama_siswa]* telah melakukan absensi PULANG pada *[waktu]*.\n\nTerima Kasih.",
-    terlambat: "PEMBERITAHUAN!\nBapak/Ibu, siswa an. *[nama_siswa]* tercatat TERLAMBAT masuk sekolah pada *[waktu]*. Mohon kerjasamanya agar tidak terulang kembali.",
-    alpa: "INFO SEKOLAH:\nBapak/Ibu, siswa an. *[nama_siswa]* hari ini tanggal *[tanggal]* tidak hadir tanpa keterangan (ALPA). Mohon konfirmasinya ke pihak sekolah.",
-    guru_masuk: "Yth. Bapak/Ibu *[nama_guru]*,\nNIP/ID: *[nip]*\n\nAbsensi *[status]* Anda telah berhasil dicatat pada pukul *[waktu]*.\n\nTerima kasih atas dedikasi Anda hari ini."
-  };
-
-  textarea.value = templates[type] || "";
-}
-
-/**
- * 4. Simpan Template Pesan
+ * 3. Simpan Template Pesan
  */
 async function saveWaTemplate() {
   const type = document.getElementById("waTemplateType").value;
@@ -2584,7 +2566,8 @@ async function saveWaTemplate() {
     return;
   }
 
-  const response = await fetchAPI({ action: "simpanTemplateWA", jenis: type, pesan: message });
+  // PERBAIKAN: Masukkan action 'simpanTemplateWA' sebagai argumen ke-1
+  const response = await fetchAPI("simpanTemplateWA", { jenis: type, pesan: message });
 
   if (response && response.success) {
     alert("Template pesan '" + type + "' berhasil disimpan!");
@@ -2594,7 +2577,7 @@ async function saveWaTemplate() {
 }
 
 /**
- * 5. Uji Kirim Pesan WA
+ * 4. Uji Kirim Pesan WA
  */
 async function testWaMessage() {
   const targetNo = prompt("Masukkan nomor WA tujuan untuk uji coba (contoh: 08123456789):");
@@ -2602,8 +2585,8 @@ async function testWaMessage() {
 
   const testMsg = "Halo! Ini adalah pesan uji coba dari Sistem Absensi Sekolah. Jika pesan ini masuk, koneksi WA Anda sudah bekerja dengan baik ✅";
 
-  // Token erguun hin barbaachisu, backend server irraa dubbisa
-  const response = await fetchAPI({ action: "ujiKirimWA", targetNo: targetNo, msg: testMsg });
+  // PERBAIKAN: Masukkan action 'ujiKirimWA' sebagai argumen ke-1
+  const response = await fetchAPI("ujiKirimWA", { targetNo: targetNo, msg: testMsg });
 
   if (response && response.success) {
     alert("Berhasil! Pesan uji coba telah dikirim ke " + targetNo);
