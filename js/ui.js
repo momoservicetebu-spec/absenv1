@@ -2000,10 +2000,10 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // ============================================================================
-// FUNGSI: SIMPAN PENGATURAN LENGKAP (DIPERBARUI: JAM MASUK & JAM PULANG)
+// FUNGSI: SIMPAN PENGATURAN LENGKAP (VERSI RINGKAS & BERSIH)
 // ============================================================================
 async function simpanPengaturanLengkap() {
-    const btnSimpan = document.querySelector('button[onclick="simpanPengaturanLengkap()"]');
+    const btnSimpan = document.querySelector('button[onclick="simpanPengaturanLengkap()"], button[onclick="simpanDataPengaturan()"]');
     const textAsli = btnSimpan ? btnSimpan.innerHTML : '💾 Simpan Seluruh Pengaturan'; 
     
     if (btnSimpan) {
@@ -2012,37 +2012,20 @@ async function simpanPengaturanLengkap() {
         btnSimpan.style.opacity = '0.7';
     }
 
-    // 1. Ambil data sesi dari localStorage (memakai user_session sesuai browser Anda)
-    let userSessionData = localStorage.getItem('user_session') || sessionStorage.getItem('user_session');
-    let userRole = 'Superadmin';
-    let username = 'admin';
-
-    // Parse isi JSON dari user_session jika ada
-    if (userSessionData) {
-        try {
-            const parsedSession = JSON.parse(userSessionData);
-            userRole = parsedSession.role || 'Superadmin';
-            username = parsedSession.username || 'admin';
-        } catch (e) {
-            console.error("Gagal membaca session:", e);
-        }
-    }
-
+    // Payload bersih: fetchAPI() di ui.js akan menyisipkan roleAktif secara otomatis
     const payloadPengaturan = {
-        action: "saveSettings", 
-        
-        // 2. DATA AUTENTIKASI
-        roleAktif: userRole,  // <--- Backend router.gs meminta "roleAktif"
-        role: userRole,       // Tetap dikirim untuk jaga-jaga
-        token: userSessionData,
-        username: username,
-
         identitas: {
+            instansiAtas: document.getElementById('set-instansi-atas')?.value || '',
+            dinas: document.getElementById('set-dinas')?.value || '',
             namaSekolah: document.getElementById('set-nama-sekolah')?.value || '',
-            logoSekolah: document.getElementById('set-logo-sekolah')?.value || '',
+            alamatKop: document.getElementById('set-alamat-kop')?.value || '',
+            website: document.getElementById('set-website')?.value || '',
+            nomorSurat: document.getElementById('set-nomor-surat')?.value || '',
+            logoKiri: document.getElementById('set-logo-kiri')?.value || '',
+            logoKanan: document.getElementById('set-logo-kanan')?.value || '',
             namaKepsek: document.getElementById('set-nama-kepsek')?.value || '',
             nipKepsek: document.getElementById('set-nip-kepsek')?.value || '',
-            alamatKop: document.getElementById('set-alamat-kop')?.value || ''
+            ttdKepsek: document.getElementById('set-ttd-kepsek')?.value || ''
         },
         tema: {
             mode: document.getElementById('set-tema-mode')?.value || 'dark',
@@ -2050,7 +2033,9 @@ async function simpanPengaturanLengkap() {
         },
         parameter: {
             batasTelat: document.getElementById('set-batas-telat')?.value || '07:15',
-            batasPulang: document.getElementById('set-batas-pulang')?.value || '14:50' // Menggantikan radiusAbsen
+            batasPulang: document.getElementById('set-batas-pulang')?.value || '14:50',
+            latitude: parseFloat(document.getElementById('latInput')?.value) || 0,
+            longitude: parseFloat(document.getElementById('lngInput')?.value) || 0
         },
         keamanan: {
             mfaSiswa: document.getElementById('set-mfa-siswa')?.value || 'rfid_face',
@@ -2063,24 +2048,18 @@ async function simpanPengaturanLengkap() {
         }
     };
 
-    const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxx3BLAOh7RZwF2vvukhDPhytbAPXfMP3H_RAJNeWgxLe2LNcCzojm-6HQ1kktPQMTQ/exec';
-
     try {
-        const response = await fetch(WEB_APP_URL, { 
-            method: 'POST',
-            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-            body: JSON.stringify(payloadPengaturan)
-        });
+        // Menggunakan fetchAPI bawaan yang otomatis menambahkan action, roleAktif, dan batas timeout
+        const result = await fetchAPI("simpanPengaturan", payloadPengaturan);
 
-        const result = await response.json();
-
-        if (result.success || result.status === 'success') {
-            alert('✅ Pengaturan Jam Masuk & Jam Pulang berhasil disimpan!');
+        if (result && (result.success || result.status === 'success')) {
+            alert('✅ Seluruh Pengaturan Sistem & Kop Surat Berhasil Disimpan!');
         } else {
-            alert('❌ Gagal menyimpan pengaturan: ' + (result.message || 'Error tidak diketahui'));
+            alert('❌ Gagal menyimpan: ' + (result ? result.message : 'Terjadi kesalahan sistem'));
         }
 
     } catch (error) {
+        console.error("Error Simpan Pengaturan:", error);
         alert('⚠️ Terjadi kesalahan koneksi saat menyimpan pengaturan.');
     } finally {
         if (btnSimpan) {
@@ -2091,55 +2070,97 @@ async function simpanPengaturanLengkap() {
     }
 }
 // ============================================================================
-// FUNGSI: MUAT PENGATURAN (Saat menu dibuka)
+// FUNGSI: MUAT PENGATURAN (SINKRON DENGAN DOKUMEN & FORM KOP SURAT)
 // ============================================================================
 async function muatPengaturanLengkap() {
   try {
-    const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxx3BLAOh7RZwF2vvukhDPhytbAPXfMP3H_RAJNeWgxLe2LNcCzojm-6HQ1kktPQMTQ/exec';
-    
-    // Kita gunakan POST dan text/plain seperti laporan agar pengambilannya lancar
-    const response = await fetch(`${WEB_APP_URL}?action=ambilPengaturan`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify({}) 
-    });
-    
-    const result = await response.json();
+    // Menggunakan fetchAPI bawaan ui.js agar penanganan endpoint & role otomatis
+    const result = await fetchAPI("ambilPengaturan");
 
-    if ((result.success || result.status === 'success') && result.data) {
+    if (result && (result.success || result.status === 'success') && result.data) {
       const d = result.data;
+      const iden = d.identitas || {};
+      const tm = d.tema || {};
+      const param = d.parameter || {};
+      const aman = d.keamanan || {};
 
-      // Isikan ke form jika datanya tersedia
-      if (d.namaSekolah) document.getElementById('set-nama-sekolah').value = d.namaSekolah;
-      if (d.logoSekolah) document.getElementById('set-logo-sekolah').value = d.logoSekolah;
-      if (d.namaKepsek) document.getElementById('set-nama-kepsek').value = d.namaKepsek;
-      if (d.nipKepsek) document.getElementById('set-nip-kepsek').value = d.nipKepsek;
-      if (d.alamatKop) document.getElementById('set-alamat-kop').value = d.alamatKop;
-
-      if (d.temaMode) document.getElementById('set-tema-mode').value = d.temaMode;
-      if (d.temaAksen) document.getElementById('set-tema-aksen').value = d.temaAksen;
-
-      if (d.batasTelat) document.getElementById('set-batas-telat').value = d.batasTelat;
-      if (d.radiusAbsen) document.getElementById('set-radius').value = d.radiusAbsen;
-
-      if (d.mfaSiswa) document.getElementById('set-mfa-siswa').value = d.mfaSiswa;
-      if (d.mfaGuru) document.getElementById('set-mfa-guru').value = d.mfaGuru;
-
-      // Set Checkbox
-      document.getElementById('anti-liveness').checked = (d.antiLiveness === true || d.antiLiveness === 'true');
-      document.getElementById('anti-fakegps').checked = (d.antiFakeGps === true || d.antiFakeGps === 'true');
-      document.getElementById('anti-devicebind').checked = (d.antiDeviceBind === true || d.antiDeviceBind === 'true');
-      document.getElementById('anti-timesync').checked = (d.antiTimeSync === true || d.antiTimeSync === 'true');
-      document.getElementById('anti-qr').checked = (d.antiQr === true || d.antiQr === 'true');
+      // 1. ISIKAN FORM IDENTITAS SEKOLAH & KOP SURAT
+      if (document.getElementById('set-instansi-atas')) 
+        document.getElementById('set-instansi-atas').value = iden.instansiAtas || d.INSTANSI_ATAS || '';
       
-      // Opsional: Terapkan tema saat data dimuat
-      if (d.temaMode && d.temaAksen) terapkanTemaLive(d.temaMode, d.temaAksen);
+      if (document.getElementById('set-dinas')) 
+        document.getElementById('set-dinas').value = iden.dinas || d.DINAS || '';
+      
+      if (document.getElementById('set-nama-sekolah')) 
+        document.getElementById('set-nama-sekolah').value = iden.namaSekolah || d.SCHOOL_NAME || '';
+      
+      if (document.getElementById('set-alamat-kop')) 
+        document.getElementById('set-alamat-kop').value = iden.alamatKop || d.SCHOOL_ADDRESS || '';
+      
+      if (document.getElementById('set-website')) 
+        document.getElementById('set-website').value = iden.website || d.WEBSITE || '';
+      
+      if (document.getElementById('set-nomor-surat')) 
+        document.getElementById('set-nomor-surat').value = iden.nomorSurat || d.NOMOR_SURAT || '';
+
+      // 2. ISIKAN ASET VISUAL & KEPALA SEKOLAH
+      if (document.getElementById('set-logo-kiri')) 
+        document.getElementById('set-logo-kiri').value = iden.logoKiri || d.LOGO_KIRI || '';
+      
+      if (document.getElementById('set-logo-kanan')) 
+        document.getElementById('set-logo-kanan').value = iden.logoKanan || d.LOGO_KANAN || d.SCHOOL_LOGO_URL || '';
+      
+      if (document.getElementById('set-nama-kepsek')) 
+        document.getElementById('set-nama-kepsek').value = iden.namaKepsek || d.HEADMASTER_NAME || '';
+      
+      if (document.getElementById('set-nip-kepsek')) 
+        document.getElementById('set-nip-kepsek').value = iden.nipKepsek || d.HEADMASTER_NIP || '';
+      
+      if (document.getElementById('set-ttd-kepsek')) 
+        document.getElementById('set-ttd-kepsek').value = iden.ttdKepsek || d.TTD_KEPSEK || '';
+
+      // 3. ISIKAN TEMA & PARAMETER WAKTU
+      if (document.getElementById('set-tema-mode')) 
+        document.getElementById('set-tema-mode').value = tm.mode || d.THEME_MODE || 'dark';
+      
+      if (document.getElementById('set-tema-aksen')) 
+        document.getElementById('set-tema-aksen').value = tm.aksen || d.THEME_ACCENT || 'default';
+      
+      if (document.getElementById('set-batas-telat')) 
+        document.getElementById('set-batas-telat').value = param.batasTelat || d.ENTRY_TIME_LIMIT || '07:15';
+      
+      if (document.getElementById('set-batas-pulang')) 
+        document.getElementById('set-batas-pulang').value = param.batasPulang || d.EXIT_TIME_LIMIT || '14:50';
+
+      // 4. ISIKAN MFA & CHECKBOX KEAMANAN
+      if (document.getElementById('set-mfa-siswa')) 
+        document.getElementById('set-mfa-siswa').value = aman.mfaSiswa || d.MFA_STUDENT || 'rfid_face';
+      
+      if (document.getElementById('set-mfa-guru')) 
+        document.getElementById('set-mfa-guru').value = aman.mfaGuru || d.MFA_TEACHER || 'finger_face';
+
+      const setCheck = (id, val) => {
+        const el = document.getElementById(id);
+        if (el) el.checked = (val === true || val === 'true');
+      };
+
+      setCheck('anti-liveness', aman.antiLiveness ?? d.ANTI_LIVENESS);
+      setCheck('anti-fakegps', aman.antiFakeGps ?? d.ANTI_FAKE_GPS);
+      setCheck('anti-devicebind', aman.antiDeviceBind ?? d.ANTI_DEVICE_BIND);
+      setCheck('anti-timesync', aman.antiTimeSync ?? d.ANTI_TIME_SYNC);
+      setCheck('anti-qr', aman.antiQr ?? d.ANTI_DYNAMIC_QR);
+
+      // Terapkan tema secara dinamis jika fungsi pembantu tersedia
+      const modeAktif = tm.mode || d.THEME_MODE;
+      const aksenAktif = tm.aksen || d.THEME_ACCENT;
+      if (modeAktif && aksenAktif && typeof terapkanTemaLive === 'function') {
+        terapkanTemaLive(modeAktif, aksenAktif);
+      }
     }
   } catch (err) {
     console.error("Gagal memuat data pengaturan:", err);
   }
 }
-
 // ============================================================================
 // FUNGSI TAMBAHAN: TERAPKAN TEMA LANGSUNG (LIVE PREVIEW) - FINAL FIX
 // ============================================================================
