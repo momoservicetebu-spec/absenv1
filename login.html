@@ -255,7 +255,7 @@
       <h2>Portal Akses</h2>
       <p class="subtitle">Silakan masuk dengan kredensial terdaftar Anda.</p>
 
-      <form id="loginForm" onsubmit="event.preventDefault(); processLogin();">
+      <form id="loginForm">
         <div class="input-group">
           <label>Username</label>
           <div class="input-wrapper">
@@ -280,7 +280,7 @@
           <a href="#" class="forgot-password">Forgot Password?</a>
         </div>
 
-        <button type="submit" class="btn-login" id="btnLogin">Masuk</button>
+        <button type="button" class="btn-login" id="btnLogin" onclick="processLogin()">Masuk</button>
         <div class="error-text" id="errorMsg"></div>
       </form>
 
@@ -295,6 +295,7 @@
       <h3>Senang melihat Anda kembali,</h3>
       <h1>Selamat Datang</h1>
       <div class="illustration-box">
+        <!-- KODE BARU (SUDAH DIPERBAIKI) -->
           <svg viewBox="0 0 400 300" style="width: 100%; height: auto;">
           <!-- Floor Base -->
           <ellipse cx="200" cy="245" rx="145" ry="24" fill="#e2d8f3"/>
@@ -341,7 +342,7 @@
     </div>
   </div>
 
-<!-- Script Login Bebas CORS -->
+  <!-- Script Login Terupdate -->
 <script>
   const GAS_URL = "https://script.google.com/macros/s/AKfycbxx3BLAOh7RZwF2vvukhDPhytbAPXfMP3H_RAJNeWgxLe2LNcCzojm-6HQ1kktPQMTQ/exec";
 
@@ -360,62 +361,57 @@
     btn.innerText = "Memverifikasi...";
     errMsg.style.display = "none";
 
-    // FORMAT PAYLOAD BERSIH BEBAS CORS PROXIES
-    const payload = {
-      action: "login",
-      username: user,
-      password: pass
-    };
-
     try {
-      const response = await fetch(GAS_URL, {
-        method: "POST",
-        headers: {
-          "Content-Type": "text/plain;charset=utf-8"
-        },
-        body: JSON.stringify(payload)
-      });
+      const formData = new URLSearchParams();
+      formData.append("action", "login");
+      formData.append("username", user);
+      formData.append("password", pass);
 
+      const response = await fetch(GAS_URL, { method: "POST", body: formData });
       const result = await response.json();
 
-      if (result && (result.success || result.status === "success" || result.status === true)) {
-        btn.style.backgroundColor = "#3b2667";
-        btn.innerText = "Halo, " + (result.name || result.nama || user) + "!";
-        
-        const rawRole = result.role || 'Superadmin';
-        const formattedRole = rawRole.charAt(0).toUpperCase() + rawRole.slice(1);
-        const displayName = result.name || result.nama || user;
+    if (result.success) {
+    btn.style.backgroundColor = "#3b2667";
+    btn.innerText = "Halo, " + (result.name || result.nama || user) + "!";
+    
+    // Format role (misal: "operator" -> "Operator")
+    const rawRole = result.role || 'Operator';
+    const formattedRole = rawRole.charAt(0).toUpperCase() + rawRole.slice(1);
+    const displayName = result.name || result.nama || user;
 
-        localStorage.setItem('isLoggedIn', 'true');
-        localStorage.setItem('role', formattedRole);
-        localStorage.setItem('username', user);
-        localStorage.setItem('name', displayName);
+    // 1. SIMPAN DENGAN FORMAT STRING YANG PASTI & JELAS
+    localStorage.setItem('isLoggedIn', 'true');
+    localStorage.setItem('role', formattedRole);
+    localStorage.setItem('username', user);
+    localStorage.setItem('name', displayName);
 
-        const sessionData = {
-          isLoggedIn: true,
-          role: formattedRole,
-          name: displayName,
-          username: user
-        };
-        localStorage.setItem('user_session', JSON.stringify(sessionData));
+    // 2. SIMPAN DALAM FORMAT OBJEK JSON
+    const sessionData = {
+      isLoggedIn: true,
+      role: formattedRole,
+      name: displayName,
+      username: user
+    };
+    localStorage.setItem('user_session', JSON.stringify(sessionData));
 
-        setTimeout(function() {
-          window.location.replace("index.html");
-        }, 800);
+    // 3. GUNAKAN location.replace AGAR BERSIH TANPA RIWAYAT REDIRECT
+    setTimeout(function() {
+      window.location.replace("dashboard-admin.html");
+    }, 800);
 
-      } else {
-        showError(result?.message || "Username atau password salah.");
-        btn.disabled = false;
-        btn.innerText = "Masuk";
-      }
+  } else {
+    showError(result.message || "Username atau password salah.");
+    btn.disabled = false;
+    btn.innerText = "Masuk";
+  }
 
-    } catch (err) {
-      console.error("Login Error:", err);
-      showError("Terjadi kesalahan jaringan atau server.");
+ } catch (err) {
+      showError("Terjadi kesalahan jaringan.");
       btn.disabled = false;
       btn.innerText = "Masuk";
     }
   }
+
 
   function showError(text) {
     const errMsg = document.getElementById('errorMsg');
