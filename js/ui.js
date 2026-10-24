@@ -1,9 +1,6 @@
 // ==========================================
-// FILE: js/ui.js (PENGGABUNGAN LENGKAP & FIX API)
+// FILE: js/ui.js (PENGGABUNGAN LENGKAP)
 // ==========================================
-
-// KONFIGURASI URL SERVER GOOGLE APPS SCRIPT
-const API_URL = "https://script.google.com/macros/s/AKfycbxx3BLAOh7RZwF2vvukhDPhytbAPXfMP3H_RAJNeWgxLe2LNcCzojm-6HQ1kktPQMTQ/exec";
 
 // ==========================================
 // FUNGSI NAVIGASI TAB UTAMA & LOAD DATA
@@ -912,7 +909,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   async function loadDashboardData() {
-  const SCRIPT_URL = API_URL; 
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxx3BLAOh7RZwF2vvukhDPhytbAPXfMP3H_RAJNeWgxLe2LNcCzojm-6HQ1kktPQMTQ/exec"; 
   
   // 1. Ambil Role user yang sedang login (default ke Superadmin jika kosong)
   const userRole = localStorage.getItem('role') || 'Superadmin';
@@ -943,6 +940,61 @@ document.addEventListener('DOMContentLoaded', () => {
     console.error('Koneksi dashboard bermasalah:', error);
   }
 }
+
+  function generateMockData(periode) {
+    if (periode === 'bulanan') {
+      return {
+        kpiSiswa: { total: 320, hadir: 94.5, telat: 42, alpa: 8 },
+        kpiGuru: { total: 45, hadir: 97.2, telat: 5, cuti: 3 },
+        statusSiswa: [280, 25, 10, 5],
+        statusGuru: [42, 2, 1, 0],
+        trenSiswa: [92, 95, 96, 94, 93],
+        trenGuru: [98, 97, 99, 96, 97],
+        angkatanSiswa: [105, 98, 95],
+        jabatanGuru: [20, 12, 8, 5],
+        distribusiJamSiswa: [120, 150, 30, 15, 5],
+        distribusiJamGuru: [25, 15, 3, 2, 0],
+        metodeSiswa: [210, 80, 20, 10],
+        metodeGuru: [40, 5],
+        telatBulanSiswa: [15, 12, 8, 7],
+        pulangAwalGuru: [1, 2, 0, 1]
+      };
+    } else if (periode === 'tahunan') {
+      return {
+        kpiSiswa: { total: 320, hadir: 92.8, telat: 310, alpa: 64 },
+        kpiGuru: { total: 45, hadir: 96.5, telat: 32, cuti: 18 },
+        statusSiswa: [2700, 210, 120, 50],
+        statusGuru: [410, 18, 12, 5],
+        trenSiswa: [88, 91, 94, 92, 95],
+        trenGuru: [96, 97, 95, 98, 97],
+        angkatanSiswa: [100, 95, 90],
+        jabatanGuru: [20, 12, 8, 5],
+        distribusiJamSiswa: [110, 140, 40, 20, 10],
+        distribusiJamGuru: [22, 18, 3, 2, 0],
+        metodeSiswa: [200, 85, 25, 10],
+        metodeGuru: [38, 7],
+        telatBulanSiswa: [80, 75, 90, 65],
+        pulangAwalGuru: [5, 4, 6, 3]
+      };
+    } else {
+      return {
+        kpiSiswa: { total: 10, hadir: 60.0, telat: 4, alpa: 0 },
+        kpiGuru: { total: 10, hadir: 90.0, telat: 1, cuti: 1 },
+        statusSiswa: [6, 4, 0, 0],
+        statusGuru: [8, 1, 1, 0],
+        trenSiswa: [60, 70, 80, 75, 90],
+        trenGuru: [90, 90, 100, 90, 90],
+        angkatanSiswa: [2, 2, 2],
+        jabatanGuru: [3, 2, 3, 1],
+        distribusiJamSiswa: [2, 4, 2, 1, 1],
+        distribusiJamGuru: [4, 4, 1, 0, 0],
+        metodeSiswa: [4, 2, 0, 0],
+        metodeGuru: [8, 1],
+        telatBulanSiswa: [2, 3, 1, 4],
+        pulangAwalGuru: [0, 1, 0, 0]
+      };
+    }
+  }
 
   loadDashboardData();
 });
@@ -999,7 +1051,7 @@ function handleImportJadwal(event) {
     if(dataJadwal.length > 0) {
       tableBody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: #feca57; padding: 20px;">Memproses dan mengirim ${dataJadwal.length} baris data ke database... ⏳</td></tr>`;
       
-      const GAS_URL = `${API_URL}?action=importJadwal`; 
+      const GAS_URL = "https://script.google.com/macros/s/AKfycbxx3BLAOh7RZwF2vvukhDPhytbAPXfMP3H_RAJNeWgxLe2LNcCzojm-6HQ1kktPQMTQ/exec?action=importJadwal"; 
       
       fetch(GAS_URL, {
         method: "POST",
@@ -1066,6 +1118,7 @@ window.downloadTemplateJadwal = function() {
 // KODE UTAMA CRUD JADWAL PELAJARAN
 // ==========================================
 
+const GAS_BASE_URL = "https://script.google.com/macros/s/AKfycbxx3BLAOh7RZwF2vvukhDPhytbAPXfMP3H_RAJNeWgxLe2LNcCzojm-6HQ1kktPQMTQ/exec";
 let dataJadwalGlobal = []; 
 
 window.loadJadwal = function() {
@@ -1074,7 +1127,7 @@ window.loadJadwal = function() {
 
   tableBody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: #feca57; padding: 20px;">Memuat data jadwal... ⏳</td></tr>';
 
-  fetch(`${API_URL}?action=getJadwal`)
+  fetch(`${GAS_BASE_URL}?action=getJadwal`)
   .then(response => response.json())
   .then(result => {
     const data = result.data || result;
@@ -1173,7 +1226,7 @@ window.tutupModalJadwal = function() {
 window.hapusJadwal = function(id) {
   if (!confirm("Apakah Anda yakin ingin menghapus jadwal ini?")) return;
 
-  const GAS_URL = `${API_URL}?action=deleteJadwal`;
+  const GAS_URL = `${GAS_BASE_URL}?action=deleteJadwal`;
   
   fetch(GAS_URL, {
     method: "POST",
@@ -1230,7 +1283,7 @@ document.addEventListener('DOMContentLoaded', () => {
       };
 
       const bodyData = isEdit ? payload : [payload];
-      const GAS_URL = `${API_URL}?action=${action}`;
+      const GAS_URL = `${GAS_BASE_URL}?action=${action}`;
 
       const submitBtn = document.getElementById('btn-submit-modal') || this.querySelector('button[type="submit"]');
       submitBtn.innerText = "Menyimpan...";
@@ -1368,6 +1421,7 @@ window.loadGatepassData = async function() {
   const tbody = document.getElementById('gate-pass-body');
   if (!tbody) return;
   
+  // colspan diubah menjadi 7 karena ada tambahan kolom Waktu Kembali
   tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: #a2a3b7; padding: 15px;">Memuat data...</td></tr>';
   
   try {
@@ -1379,12 +1433,14 @@ window.loadGatepassData = async function() {
       const items = [...data.data].reverse();
       
       items.forEach(item => {
+        // Rapikan format Waktu Keluar jika dari Google formatnya ISO (mengandung 'T')
         let wKeluar = item.WaktuKeluar || item.Waktu_Keluar || '-';
         if(wKeluar.includes('T')) {
            const d = new Date(wKeluar);
            wKeluar = `${d.getDate().toString().padStart(2,'0')}/${(d.getMonth()+1).toString().padStart(2,'0')}/${d.getFullYear()} ${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')}`;
         }
         
+        // Rapikan format Waktu Kembali
         let wKembali = item.WaktuKembali || item.Waktu_Kembali || '-';
         if(wKembali.includes('T')) {
            const dk = new Date(wKembali);
@@ -1439,12 +1495,14 @@ window.akhiriGatepass = async function(gatepassId) {
 // FITUR MANAJEMEN ABSEN CERDAS (PER MAPEL)
 // ==========================================
 
+// State penyimpan sesi absensi aktif
 let currentActiveAbsen = {
   kelas: "",
   mapel: "",
   jamKe: ""
 };
 
+// 1. Membuka modal otomatis dari Jadwal Cerdas
 window.bukaModalAbsenJadwal = function() {
   const kelas = document.getElementById('label-jadwal-kelas').innerText.trim();
   const mapel = document.getElementById('label-jadwal-mapel').innerText.trim();
@@ -1453,6 +1511,7 @@ window.bukaModalAbsenJadwal = function() {
   openModalAbsenProcess(kelas, mapel, jamKe);
 };
 
+// 2. Membuka modal dari Opsi Manual (Guru Piket / Pengganti)
 window.bukaModalAbsenManual = function() {
   const kelas = document.getElementById('select-kelas-manual').value;
   const mapel = document.getElementById('select-mapel-manual').value;
@@ -1465,6 +1524,7 @@ window.bukaModalAbsenManual = function() {
   openModalAbsenProcess(kelas, mapel, "Manual");
 };
 
+// 3. Alur proses pembukaan modal & pemicu fetch data siswa
 async function openModalAbsenProcess(kelas, mapel, jamKe) {
   currentActiveAbsen = { kelas, mapel, jamKe };
   
@@ -1474,10 +1534,12 @@ async function openModalAbsenProcess(kelas, mapel, jamKe) {
   await fetchDaftarSiswaAbsen(kelas, mapel);
 }
 
+// 4. Tutup Modal
 window.closeModalAbsen = function() {
   document.getElementById('modal-absensi-kelas').style.display = 'none';
 };
 
+// 5. Fetch daftar siswa + status digital & status mapel
 async function fetchDaftarSiswaAbsen(kelas, mapel) {
   const tbody = document.getElementById('tabel-absensi-kelas-body');
   tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:20px;">⏳ Memuat daftar siswa & status digital...</td></tr>';
@@ -1492,8 +1554,10 @@ async function fetchDaftarSiswaAbsen(kelas, mapel) {
         const badgeBg = isDigitalHadir ? "#2ecc71" : "#e74c3c";
         const textDigital = siswa.StatusDigital || "Belum Absen";
 
+        // Gunakan status mapel jika sudah pernah diabsen, jika belum default ke status digital
         const statusSelected = siswa.StatusMapel || (isDigitalHadir ? "Hadir" : "Alpa");
 
+        // Penambahan opsi Telat dan Bolos pada dropdown
         html += `
         <tr style="border-bottom: 1px solid #3a3553;">
           <td style="padding: 10px;">${index + 1}</td>
@@ -1522,6 +1586,7 @@ async function fetchDaftarSiswaAbsen(kelas, mapel) {
   }
 }
 
+// 6. Mengirim hasil input presensi per mapel ke backend
 window.simpanAbsensiMapel = async function() {
   const btn = document.getElementById('btn-simpan-absensi');
   const selects = document.querySelectorAll('.absen-status-select');
@@ -1562,7 +1627,7 @@ window.simpanAbsensiMapel = async function() {
     btn.disabled = false;
   }
 };
-
+// Panggil fungsi ini saat halaman / menu "Absensi Kelas" diklik oleh Super Admin
 async function loadSemuaJadwalAdmin() {
   const container = document.getElementById('admin-jadwal-container');
   
@@ -1571,9 +1636,13 @@ async function loadSemuaJadwalAdmin() {
     
     if (res.success && res.data && res.data.length > 0) {
       let html = '';
+      
+      // Mengelompokkan atau langsung menampilkan semua jadwal
       res.data.forEach(jdwl => {
+        // Fallback jika Nama_Guru belum terisi dari backend, maka tampilkan Kode_Guru
         const namaGuruTampil = jdwl.Nama_Guru ? jdwl.Nama_Guru : jdwl.Kode_Guru;
 
+        // Render setiap baris database menjadi sebuah card jadwal
         html += `
         <div style="background: rgba(108, 92, 231, 0.1); border-left: 4px solid #6c5ce7; padding: 15px 20px; border-radius: 5px; display: flex; justify-content: space-between; align-items: center;">
           <div>
@@ -1603,16 +1672,20 @@ async function loadSemuaJadwalAdmin() {
   }
 }
 
+// Fungsi untuk mencari jadwal di menu Absensi Kelas (Super Admin)
 function filterJadwalAdmin() {
   const input = document.getElementById('search-jadwal-admin').value.toLowerCase();
   const container = document.getElementById('admin-jadwal-container');
-  const cards = container.children;
+  const cards = container.children; // Mengambil semua kotak jadwal
 
   for (let i = 0; i < cards.length; i++) {
     const card = cards[i];
+    // Abaikan jika itu teks "Memuat..."
     if (card.innerText.includes('Memuat')) continue; 
 
     const textContent = card.innerText.toLowerCase();
+    
+    // Jika teks di kotak cocok dengan pencarian, tampilkan. Jika tidak, sembunyikan.
     if (textContent.includes(input)) {
       card.style.display = ""; 
     } else {
@@ -1621,8 +1694,10 @@ function filterJadwalAdmin() {
   }
 }
 
+// Variable global untuk menyimpan data laporan yang sedang ditampilkan (untuk kebutuhan eksport CSV/PDF)
 let dataLaporanAktif = [];
 
+// 1. Mengatur Tampilan Input Tanggal Sesuai Jenis Laporan
 function aturInputTanggalLaporan() {
   const jenis = document.getElementById('lap-jenis').value;
   const wadahTgl2 = document.getElementById('wadah-tanggal-2');
@@ -1637,6 +1712,7 @@ function aturInputTanggalLaporan() {
   }
 }
 
+// Setel tampilan awal saat halaman dimuat
 document.addEventListener('DOMContentLoaded', () => {
   if (document.getElementById('lap-jenis')) {
     aturInputTanggalLaporan();
@@ -1647,6 +1723,7 @@ document.addEventListener('DOMContentLoaded', () => {
 // FUNGSI INPUT ABSENSI MANUAL (GURU & SISWA)
 // ==========================================
 
+// 1. Memuat daftar nama Guru/Siswa ke Dropdown
 async function loadUserDropdownManual() {
   const role = document.getElementById('man-role')?.value || 'GURU';
   const selectUser = document.getElementById('man-user');
@@ -1654,6 +1731,7 @@ async function loadUserDropdownManual() {
 
   if (!selectUser) return;
 
+  // Setel tanggal otomatis ke hari ini jika kosong
   if (dateInput && !dateInput.value) {
     dateInput.value = new Date().toISOString().split('T')[0];
   }
@@ -1687,6 +1765,7 @@ async function loadUserDropdownManual() {
   }
 }
 
+// 2. Mengirim data input manual ke Srv_Attendance.processManualInput
 async function submitAbsensiManual(event) {
   if (event) event.preventDefault();
 
@@ -1733,6 +1812,7 @@ async function submitAbsensiManual(event) {
   }
 }
 
+// 2. Mengambil Data Laporan dari Server & Memunculkan Preview
 async function lihatPreviewLaporan() {
   const role = document.getElementById('lap-role').value;
   const jenis = document.getElementById('lap-jenis').value;
@@ -1754,16 +1834,20 @@ async function lihatPreviewLaporan() {
   const tbody = document.getElementById('body-preview-laporan');
   if (tbody) tbody.innerHTML = `<tr><td colspan="10" style="text-align:center; padding:20px;">⏳ Memuat laporan dari server, silakan tunggu...</td></tr>`;
 
+  // PERBAIKAN 1: Sesuaikan nama payload dengan yang ditangkap di srv_laporan.gs
+  // Tambahkan roleAktif agar lolos satpam RBAC di 1_Router.gs
   const payload = { 
     roleAktif: localStorage.getItem('role') || 'Admin', 
-    roleTarget: role,          
-    jenisLaporan: jenis,       
+    roleTarget: role,          // Dikirim ke backend sebagai roleTarget
+    jenisLaporan: jenis,       // Dikirim ke backend sebagai jenisLaporan
     tanggalMulai: tglMulai, 
     tanggalSampai: tglSampai, 
     namaTarget: namaTarget 
   };
 
   try {
+    // PERBAIKAN 2: Gunakan wrapper fetchAPI() bawaan aplikasi Anda 
+    // agar lebih rapi, tidak kena blokir CORS, dan loading otomatis ter-handle
     const result = await fetchAPI("tarikLaporan", payload);
 
     if (result && result.success) {
@@ -1779,6 +1863,7 @@ async function lihatPreviewLaporan() {
   }
 }
 
+// 3. Render Header dan Isi Tabel Laporan secara Dinamis
 function renderTabelLaporan(jenis, data) {
   const thead = document.getElementById('head-preview-laporan');
   const tbody = document.getElementById('body-preview-laporan');
@@ -1786,6 +1871,7 @@ function renderTabelLaporan(jenis, data) {
   let headHtml = '';
   let bodyHtml = '';
 
+  // PERBAIKAN 3: Cegah error jika data kosong dari backend
   if (!data || data.length === 0) {
       tbody.innerHTML = `<tr><td colspan="10" style="text-align:center; padding:20px; color:#feca57;">Belum ada data absensi untuk pencarian ini.</td></tr>`;
       return;
@@ -1821,6 +1907,7 @@ function renderTabelLaporan(jenis, data) {
     });
 
   } else {
+    // Tampilan Tabel Harian / Mingguan / Bulanan
     headHtml = `
       <tr>
         <th>NO</th>
@@ -1833,6 +1920,8 @@ function renderTabelLaporan(jenis, data) {
       </tr>`;
 
     data.forEach((item, i) => {
+      // PERBAIKAN 4: Pemanggilan item dicocokkan dengan JSON output dari srv_laporan.gs
+      // Yaitu: item.Kelas, item.CheckType, item.Timestamp
       bodyHtml += `
         <tr style="border-bottom: 1px solid #3a3553;">
           <td>${i + 1}</td>
@@ -1859,27 +1948,35 @@ function renderTabelLaporan(jenis, data) {
 // ==========================================
 
 async function muatDaftarNamaLaporan() {
-  const roleEl = document.getElementById('lap-role');
+  const role = document.getElementById('lap-role').value;
   const dataList = document.getElementById('list-nama-laporan');
   const inputTarget = document.getElementById('lap-nama-target');
 
-  if (!roleEl || !dataList || !inputTarget) return;
-
-  const role = roleEl.value;
+  // Kosongkan list dan input setiap kali Tipe Pengguna diubah
   dataList.innerHTML = '';
   inputTarget.value = '';
   inputTarget.placeholder = '⏳ Memuat daftar nama...';
 
   try {
     const action = (role === 'Siswa') ? 'getSiswa' : 'getGuru';
-    const res = await fetchAPI(action);
+    
+    // --- KODE YANG DIPERBARUI MULAI DARI SINI ---
+    const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxx3BLAOh7RZwF2vvukhDPhytbAPXfMP3H_RAJNeWgxLe2LNcCzojm-6HQ1kktPQMTQ/exec';
+    
+    // Cukup panggil URL langsung, default fetch adalah GET
+    const response = await fetch(`${WEB_APP_URL}?action=${action}`);
+    const res = await response.json();
+    // --- BATAS KODE YANG DIPERBARUI ---
 
-    if (res && res.success && res.data) {
+    if (res.success && res.data) {
       let optionsHtml = '';
 
+      // Looping data untuk dimasukkan ke opsi dropdown
       res.data.forEach(item => {
         const nama = item.Nama || item.Nama_Lengkap || item.Nama_Guru || item.Nama_Siswa || '-';
         const id = item.SiswaID || item.GuruID || item.NISN || item.NIP || '';
+
+        // Memasukkan nama sebagai value, dan ID sebagai label tambahan
         optionsHtml += `<option value="${nama}">ID: ${id}</option>`;
       });
 
@@ -1894,17 +1991,19 @@ async function muatDaftarNamaLaporan() {
   }
 }
 
+// Tambahkan pemanggilan fungsi ini saat halaman web pertama kali dimuat
 document.addEventListener('DOMContentLoaded', () => {
+  // ... (kode yang sudah ada) ...
   if (document.getElementById('lap-nama-target')) {
     muatDaftarNamaLaporan(); 
   }
 });
 
 // ============================================================================
-// FUNGSI: SIMPAN PENGATURAN LENGKAP
+// FUNGSI: SIMPAN PENGATURAN LENGKAP (DIPERBARUI: JAM MASUK & JAM PULANG)
 // ============================================================================
 async function simpanPengaturanLengkap() {
-    const btnSimpan = document.querySelector('button[onclick="simpanPengaturanLengkap()"], button[onclick="simpanDataPengaturan()"]');
+    const btnSimpan = document.querySelector('button[onclick="simpanPengaturanLengkap()"]');
     const textAsli = btnSimpan ? btnSimpan.innerHTML : '💾 Simpan Seluruh Pengaturan'; 
     
     if (btnSimpan) {
@@ -1913,19 +2012,37 @@ async function simpanPengaturanLengkap() {
         btnSimpan.style.opacity = '0.7';
     }
 
+    // 1. Ambil data sesi dari localStorage (memakai user_session sesuai browser Anda)
+    let userSessionData = localStorage.getItem('user_session') || sessionStorage.getItem('user_session');
+    let userRole = 'Superadmin';
+    let username = 'admin';
+
+    // Parse isi JSON dari user_session jika ada
+    if (userSessionData) {
+        try {
+            const parsedSession = JSON.parse(userSessionData);
+            userRole = parsedSession.role || 'Superadmin';
+            username = parsedSession.username || 'admin';
+        } catch (e) {
+            console.error("Gagal membaca session:", e);
+        }
+    }
+
     const payloadPengaturan = {
+        action: "saveSettings", 
+        
+        // 2. DATA AUTENTIKASI
+        roleAktif: userRole,  // <--- Backend router.gs meminta "roleAktif"
+        role: userRole,       // Tetap dikirim untuk jaga-jaga
+        token: userSessionData,
+        username: username,
+
         identitas: {
-            instansiAtas: document.getElementById('set-instansi-atas')?.value || '',
-            dinas: document.getElementById('set-dinas')?.value || '',
             namaSekolah: document.getElementById('set-nama-sekolah')?.value || '',
-            alamatKop: document.getElementById('set-alamat-kop')?.value || '',
-            website: document.getElementById('set-website')?.value || '',
-            nomorSurat: document.getElementById('set-nomor-surat')?.value || '',
-            logoKiri: document.getElementById('set-logo-kiri')?.value || '',
-            logoKanan: document.getElementById('set-logo-kanan')?.value || '',
+            logoSekolah: document.getElementById('set-logo-sekolah')?.value || '',
             namaKepsek: document.getElementById('set-nama-kepsek')?.value || '',
             nipKepsek: document.getElementById('set-nip-kepsek')?.value || '',
-            ttdKepsek: document.getElementById('set-ttd-kepsek')?.value || ''
+            alamatKop: document.getElementById('set-alamat-kop')?.value || ''
         },
         tema: {
             mode: document.getElementById('set-tema-mode')?.value || 'dark',
@@ -1933,9 +2050,7 @@ async function simpanPengaturanLengkap() {
         },
         parameter: {
             batasTelat: document.getElementById('set-batas-telat')?.value || '07:15',
-            batasPulang: document.getElementById('set-batas-pulang')?.value || '14:50',
-            latitude: parseFloat(document.getElementById('latInput')?.value) || 0,
-            longitude: parseFloat(document.getElementById('lngInput')?.value) || 0
+            batasPulang: document.getElementById('set-batas-pulang')?.value || '14:50' // Menggantikan radiusAbsen
         },
         keamanan: {
             mfaSiswa: document.getElementById('set-mfa-siswa')?.value || 'rfid_face',
@@ -1948,17 +2063,24 @@ async function simpanPengaturanLengkap() {
         }
     };
 
-    try {
-        const result = await fetchAPI("simpanPengaturan", payloadPengaturan);
+    const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxx3BLAOh7RZwF2vvukhDPhytbAPXfMP3H_RAJNeWgxLe2LNcCzojm-6HQ1kktPQMTQ/exec';
 
-        if (result && (result.success || result.status === 'success')) {
-            alert('✅ Seluruh Pengaturan Sistem & Kop Surat Berhasil Disimpan!');
+    try {
+        const response = await fetch(WEB_APP_URL, { 
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: JSON.stringify(payloadPengaturan)
+        });
+
+        const result = await response.json();
+
+        if (result.success || result.status === 'success') {
+            alert('✅ Pengaturan Jam Masuk & Jam Pulang berhasil disimpan!');
         } else {
-            alert('❌ Gagal menyimpan: ' + (result ? result.message : 'Terjadi kesalahan sistem'));
+            alert('❌ Gagal menyimpan pengaturan: ' + (result.message || 'Error tidak diketahui'));
         }
 
     } catch (error) {
-        console.error("Error Simpan Pengaturan:", error);
         alert('⚠️ Terjadi kesalahan koneksi saat menyimpan pengaturan.');
     } finally {
         if (btnSimpan) {
@@ -1968,88 +2090,50 @@ async function simpanPengaturanLengkap() {
         }
     }
 }
-
 // ============================================================================
-// FUNGSI: MUAT PENGATURAN LENGKAP
+// FUNGSI: MUAT PENGATURAN (Saat menu dibuka)
 // ============================================================================
 async function muatPengaturanLengkap() {
   try {
-    const result = await fetchAPI("ambilPengaturan");
+    const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxx3BLAOh7RZwF2vvukhDPhytbAPXfMP3H_RAJNeWgxLe2LNcCzojm-6HQ1kktPQMTQ/exec';
+    
+    // Kita gunakan POST dan text/plain seperti laporan agar pengambilannya lancar
+    const response = await fetch(`${WEB_APP_URL}?action=ambilPengaturan`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({}) 
+    });
+    
+    const result = await response.json();
 
-    if (result && (result.success || result.status === 'success') && result.data) {
+    if ((result.success || result.status === 'success') && result.data) {
       const d = result.data;
-      const iden = d.identitas || {};
-      const tm = d.tema || {};
-      const param = d.parameter || {};
-      const aman = d.keamanan || {};
 
-      if (document.getElementById('set-instansi-atas')) 
-        document.getElementById('set-instansi-atas').value = iden.instansiAtas || d.INSTANSI_ATAS || '';
-      
-      if (document.getElementById('set-dinas')) 
-        document.getElementById('set-dinas').value = iden.dinas || d.DINAS || '';
-      
-      if (document.getElementById('set-nama-sekolah')) 
-        document.getElementById('set-nama-sekolah').value = iden.namaSekolah || d.SCHOOL_NAME || '';
-      
-      if (document.getElementById('set-alamat-kop')) 
-        document.getElementById('set-alamat-kop').value = iden.alamatKop || d.SCHOOL_ADDRESS || '';
-      
-      if (document.getElementById('set-website')) 
-        document.getElementById('set-website').value = iden.website || d.WEBSITE || '';
-      
-      if (document.getElementById('set-nomor-surat')) 
-        document.getElementById('set-nomor-surat').value = iden.nomorSurat || d.NOMOR_SURAT || '';
+      // Isikan ke form jika datanya tersedia
+      if (d.namaSekolah) document.getElementById('set-nama-sekolah').value = d.namaSekolah;
+      if (d.logoSekolah) document.getElementById('set-logo-sekolah').value = d.logoSekolah;
+      if (d.namaKepsek) document.getElementById('set-nama-kepsek').value = d.namaKepsek;
+      if (d.nipKepsek) document.getElementById('set-nip-kepsek').value = d.nipKepsek;
+      if (d.alamatKop) document.getElementById('set-alamat-kop').value = d.alamatKop;
 
-      if (document.getElementById('set-logo-kiri')) 
-        document.getElementById('set-logo-kiri').value = iden.logoKiri || d.LOGO_KIRI || '';
-      
-      if (document.getElementById('set-logo-kanan')) 
-        document.getElementById('set-logo-kanan').value = iden.logoKanan || d.LOGO_KANAN || d.SCHOOL_LOGO_URL || '';
-      
-      if (document.getElementById('set-nama-kepsek')) 
-        document.getElementById('set-nama-kepsek').value = iden.namaKepsek || d.HEADMASTER_NAME || '';
-      
-      if (document.getElementById('set-nip-kepsek')) 
-        document.getElementById('set-nip-kepsek').value = iden.nipKepsek || d.HEADMASTER_NIP || '';
-      
-      if (document.getElementById('set-ttd-kepsek')) 
-        document.getElementById('set-ttd-kepsek').value = iden.ttdKepsek || d.TTD_KEPSEK || '';
+      if (d.temaMode) document.getElementById('set-tema-mode').value = d.temaMode;
+      if (d.temaAksen) document.getElementById('set-tema-aksen').value = d.temaAksen;
 
-      if (document.getElementById('set-tema-mode')) 
-        document.getElementById('set-tema-mode').value = tm.mode || d.THEME_MODE || 'dark';
-      
-      if (document.getElementById('set-tema-aksen')) 
-        document.getElementById('set-tema-aksen').value = tm.aksen || d.THEME_ACCENT || 'default';
-      
-      if (document.getElementById('set-batas-telat')) 
-        document.getElementById('set-batas-telat').value = param.batasTelat || d.ENTRY_TIME_LIMIT || '07:15';
-      
-      if (document.getElementById('set-batas-pulang')) 
-        document.getElementById('set-batas-pulang').value = param.batasPulang || d.EXIT_TIME_LIMIT || '14:50';
+      if (d.batasTelat) document.getElementById('set-batas-telat').value = d.batasTelat;
+      if (d.radiusAbsen) document.getElementById('set-radius').value = d.radiusAbsen;
 
-      if (document.getElementById('set-mfa-siswa')) 
-        document.getElementById('set-mfa-siswa').value = aman.mfaSiswa || d.MFA_STUDENT || 'rfid_face';
+      if (d.mfaSiswa) document.getElementById('set-mfa-siswa').value = d.mfaSiswa;
+      if (d.mfaGuru) document.getElementById('set-mfa-guru').value = d.mfaGuru;
+
+      // Set Checkbox
+      document.getElementById('anti-liveness').checked = (d.antiLiveness === true || d.antiLiveness === 'true');
+      document.getElementById('anti-fakegps').checked = (d.antiFakeGps === true || d.antiFakeGps === 'true');
+      document.getElementById('anti-devicebind').checked = (d.antiDeviceBind === true || d.antiDeviceBind === 'true');
+      document.getElementById('anti-timesync').checked = (d.antiTimeSync === true || d.antiTimeSync === 'true');
+      document.getElementById('anti-qr').checked = (d.antiQr === true || d.antiQr === 'true');
       
-      if (document.getElementById('set-mfa-guru')) 
-        document.getElementById('set-mfa-guru').value = aman.mfaGuru || d.MFA_TEACHER || 'finger_face';
-
-      const setCheck = (id, val) => {
-        const el = document.getElementById(id);
-        if (el) el.checked = (val === true || val === 'true');
-      };
-
-      setCheck('anti-liveness', aman.antiLiveness ?? d.ANTI_LIVENESS);
-      setCheck('anti-fakegps', aman.antiFakeGps ?? d.ANTI_FAKE_GPS);
-      setCheck('anti-devicebind', aman.antiDeviceBind ?? d.ANTI_DEVICE_BIND);
-      setCheck('anti-timesync', aman.antiTimeSync ?? d.ANTI_TIME_SYNC);
-      setCheck('anti-qr', aman.antiQr ?? d.ANTI_DYNAMIC_QR);
-
-      const modeAktif = tm.mode || d.THEME_MODE;
-      const aksenAktif = tm.aksen || d.THEME_ACCENT;
-      if (modeAktif && aksenAktif && typeof terapkanTemaLive === 'function') {
-        terapkanTemaLive(modeAktif, aksenAktif);
-      }
+      // Opsional: Terapkan tema saat data dimuat
+      if (d.temaMode && d.temaAksen) terapkanTemaLive(d.temaMode, d.temaAksen);
     }
   } catch (err) {
     console.error("Gagal memuat data pengaturan:", err);
@@ -2057,9 +2141,11 @@ async function muatPengaturanLengkap() {
 }
 
 // ============================================================================
-// FUNGSI TAMBAHAN: TERAPKAN TEMA LANGSUNG (LIVE PREVIEW)
+// FUNGSI TAMBAHAN: TERAPKAN TEMA LANGSUNG (LIVE PREVIEW) - FINAL FIX
 // ============================================================================
 function terapkanTemaLive(mode, aksen) {
+    console.log(`Mengubah tema ke Mode: ${mode}, Aksen: ${aksen}`);
+
     let styleEl = document.getElementById('dynamic-theme-style');
     if (!styleEl) {
         styleEl = document.createElement('style');
@@ -2067,6 +2153,7 @@ function terapkanTemaLive(mode, aksen) {
         document.head.appendChild(styleEl);
     }
 
+    // 1. Siapkan Variabel Warna Latar & Teks
     let bgBody, bgCard, bgInput, textMain, textMuted, borderCol, shadow;
     
     if (mode === 'light') {
@@ -2095,6 +2182,7 @@ function terapkanTemaLive(mode, aksen) {
         shadow = '0 4px 6px rgba(0,0,0,0.5)';
     }
 
+    // 2. Siapkan Warna Aksen
     let accentColor, accentHover;
     if (aksen === 'blue') {
         accentColor = '#0d6efd';  
@@ -2112,6 +2200,7 @@ function terapkanTemaLive(mode, aksen) {
 
     let titleAccent = (mode === 'light') ? accentColor : accentHover;
 
+    // 3. Susun Aturan CSS Ajaib
     const cssRules = `
         body, .main-content {
             background-color: ${bgBody} !important;
@@ -2119,6 +2208,8 @@ function terapkanTemaLive(mode, aksen) {
             transition: all 0.3s ease;
         }
 
+        /* --- KUNCI PERBAIKAN ADA DI SINI --- */
+        /* Kita sasar secara spesifik div yang masih terkunci warna HTML bawaan */
         .card, .section, .analytics-table-wrap,
         div[style*="#2a2640"], 
         div[style*="#231f36"], 
@@ -2182,6 +2273,7 @@ function terapkanTemaLive(mode, aksen) {
             border-right: 1px solid ${borderCol} !important;
         }
 
+        /* Hover dinamis sidebar */
         .sidebar button, .sidebar a, .sidebar .menu-item {
             background-color: transparent !important;
             color: ${textMain} !important;
@@ -2198,18 +2290,22 @@ function terapkanTemaLive(mode, aksen) {
 
     styleEl.innerHTML = cssRules;
 }
-
 // ============================================================================
-// FUNGSI BACKUP & RESTORE DATABASE
+// FUNGSI BACKUP & RESTORE DATABASE (Versi GitHub / CORS Safe)
 // ============================================================================
 
+// DEKLARASIKAN URL API DISINI (Ganti dengan link Web App Anda)
+const urlAPI = "https://script.google.com/macros/s/AKfycbxx3BLAOh7RZwF2vvukhDPhytbAPXfMP3H_RAJNeWgxLe2LNcCzojm-6HQ1kktPQMTQ/exec";
+
+// Meminta seluruh data dari server dan mendownloadnya sebagai file JSON
 async function prosesBackup() {
     const btn = document.getElementById('btnBackup');
     btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Menyiapkan Data...';
     btn.disabled = true;
 
     try {
-        const response = await fetch(API_URL + "?action=doBackup", { 
+        // Panggil endpoint ke Google Apps Script dengan redirect 'follow'
+        const response = await fetch(urlAPI + "?action=doBackup", { 
             method: "GET",
             redirect: "follow" 
         });
@@ -2217,8 +2313,10 @@ async function prosesBackup() {
         const result = await response.json();
 
         if (result.success) {
+            // Konversi data dari server menjadi format string JSON
             const dataStr = JSON.stringify(result.data, null, 2);
             
+            // Buat file Blob virtual di browser untuk diunduh otomatis
             const blob = new Blob([dataStr], { type: "application/json" });
             const url = URL.createObjectURL(blob);
             
@@ -2243,6 +2341,7 @@ async function prosesBackup() {
     }
 }
 
+// Membaca file JSON dari komputer dan mengirimnya ke server
 async function prosesRestore() {
     const fileInput = document.getElementById('fileRestore');
     if (!fileInput.files || fileInput.files.length === 0) {
@@ -2264,7 +2363,8 @@ async function prosesRestore() {
         try {
             const parsedData = JSON.parse(e.target.result);
             
-            const response = await fetch(API_URL + "?action=doRestore", {
+            // PERBAIKAN: Menambahkan ?action=doRestore pada urlAPI agar terbaca oleh router backend
+            const response = await fetch(urlAPI + "?action=doRestore", {
                 method: 'POST',
                 headers: { 'Content-Type': 'text/plain;charset=utf-8' },
                 redirect: "follow",
@@ -2288,13 +2388,17 @@ async function prosesRestore() {
         }
     };
     
+    // Baca file sebagai teks
     reader.readAsText(file);
 }
 
 // ==========================================
-// MODULE: NOTIFIKASI WHATSAPP
+// MODULE: NOTIFIKASI WHATSAPP (FIXED FETCH_API)
 // ==========================================
 
+/**
+ * 1. Cek Koneksi WA
+ */
 async function checkWaConnection() {
   const badge = document.getElementById("waStatusBadge");
 
@@ -2302,6 +2406,7 @@ async function checkWaConnection() {
   badge.style.backgroundColor = "rgba(234, 179, 8, 0.2)";
   badge.style.color = "#facc15";
 
+  // PERBAIKAN: Masukkan action sebagai string di parameter ke-1
   const response = await fetchAPI("cekKoneksiWA", {});
 
   if (response && response.success) {
@@ -2317,6 +2422,12 @@ async function checkWaConnection() {
   }
 }
 
+/**
+ * 2. Simpan Pengaturan WA & Token
+ */
+/**
+ * Simpan Pengaturan WA & Token ke Server
+ */
 async function saveWaSettings() {
   const tokenInput = document.getElementById("waApiToken") ? document.getElementById("waApiToken").value : "";
   const noKepsek = document.getElementById("waNoKepsek") ? document.getElementById("waNoKepsek").value : "";
@@ -2336,19 +2447,23 @@ async function saveWaSettings() {
     }
   };
 
+  // Panggil API backend Apps Script
   const response = await fetchAPI("simpanPengaturanWA", settingsData);
 
   if (response && response.success) {
     alert("✅ " + response.message);
     if (document.getElementById("waApiToken")) {
-      document.getElementById("waApiToken").value = ""; 
+      document.getElementById("waApiToken").value = ""; // Kosongkan input token setelah simpan
     }
-    checkWaConnection(); 
+    checkWaConnection(); // Cek status koneksi otomatis
   } else {
     alert("❌ Gagal menyimpan pengaturan: " + (response ? response.message : "Kesalahan sistem"));
   }
 }
 
+/**
+ * 3. Simpan Template Pesan
+ */
 async function saveWaTemplate() {
   const type = document.getElementById("waTemplateType").value;
   const message = document.getElementById("waTemplateMessage").value;
@@ -2358,6 +2473,7 @@ async function saveWaTemplate() {
     return;
   }
 
+  // PERBAIKAN: Masukkan action 'simpanTemplateWA' sebagai argumen ke-1
   const response = await fetchAPI("simpanTemplateWA", { jenis: type, pesan: message });
 
   if (response && response.success) {
@@ -2367,12 +2483,16 @@ async function saveWaTemplate() {
   }
 }
 
+/**
+ * 4. Uji Kirim Pesan WA
+ */
 async function testWaMessage() {
   const targetNo = prompt("Masukkan nomor WA tujuan untuk uji coba (contoh: 08123456789):");
   if (!targetNo) return;
 
   const testMsg = "Halo! Ini adalah pesan uji coba dari Sistem Absensi Sekolah. Jika pesan ini masuk, koneksi WA Anda sudah bekerja dengan baik ✅";
 
+  // PERBAIKAN: Masukkan action 'ujiKirimWA' sebagai argumen ke-1
   const response = await fetchAPI("ujiKirimWA", { targetNo: targetNo, msg: testMsg });
 
   if (response && response.success) {
@@ -2382,11 +2502,18 @@ async function testWaMessage() {
   }
 }
 
+
 // ==========================================
 // PENGELOLA KREDENSIAL TERPADU (FP, RFID, QR)
+// (WAJAH SUDAH DIURUS OLEH face-ai.js)
 // ==========================================
 
+// ------------------------------------------
+// 0. LOADER DROPDOWN USER (OTOMATIS)
+// ------------------------------------------
+
 async function loadAllUserDropdowns() {
+  // faceUserSelect dihapus dari sini agar tidak bentrok dengan fungsi loadUserForFaceAI()
   const dropdownIds = ["fpUserSelect", "rfidUserSelect", "qrUserSelect"];
   
   const result = await fetchAPI("getDashboardData", { role: "semua" });
@@ -2422,6 +2549,10 @@ async function loadAllUserDropdowns() {
   });
 }
 
+
+// ------------------------------------------
+// 2. LOGIKA RFID / NFC
+// ------------------------------------------
 async function simpanKartuRFID() {
   const userID = document.getElementById("rfidUserSelect").value;
   const cardUID = document.getElementById("rfidCardInput").value.trim();
@@ -2456,31 +2587,36 @@ function openModalTambahRole() {
   if (modal) {
     modal.style.display = 'flex';
   }
-
+  
+  // Ubah judul form kembali ke "Tambah Role Baru"
   const judul = document.getElementById('modal-role-title');
   if(judul) {
     judul.innerHTML = '➕ Tambah Role Baru';
   }
 
+  // Kosongkan isi ketikan sebelumnya
   const form = document.getElementById('form-role');
   if (form) {
     form.reset();
   }
 
+  // Kosongkan ID Lama (Penting agar tidak menimpa data saat simpan)
   const inputOldId = document.getElementById('role-id-old');
   if (inputOldId) {
     inputOldId.value = '';
   }
 
+  // Buka gembok (readonly) pada kolom Nama Role
   const inputNama = document.getElementById('role-nama');
   if (inputNama) {
     inputNama.removeAttribute('readonly');
     inputNama.removeAttribute('disabled');
     inputNama.style.opacity = '1';
-    inputNama.style.backgroundColor = '#2a2640'; 
+    inputNama.style.backgroundColor = '#2a2640'; // Sesuaikan warna background asli input Anda
   }
 }
 
+// Fungsi pelengkap untuk menutup modal (berjaga-jaga jika belum ada)
 function closeModalRole() {
   const modal = document.getElementById('modal-role');
   if (modal) {
@@ -2492,7 +2628,7 @@ function closeModalRole() {
 // MAPPING AKSES TAB NAVIGASI SIDEBAR
 // ==========================================
 const TAB_PERMISSIONS = {
-  'Superadmin': ['*'], 
+  'Superadmin': ['*'], // Bebas akses semua tab
 
   'Admin': [
     'dashboard', 'data-siswa', 'data-guru', 'import',
@@ -2523,19 +2659,23 @@ const TAB_PERMISSIONS = {
   'Guru': [
   'dashboard', 'absensi-kelas', 'laporan-absensi'
   ],
+
 };
 
 function renderSidebarByRole() {
   const userRole = localStorage.getItem('role') || 'Guest';
   
+  // Match nama role (case-insensitive)
   const formattedRole = Object.keys(TAB_PERMISSIONS).find(
     r => r.toLowerCase() === userRole.trim().toLowerCase()
   ) || 'Guest';
 
   const allowedTabs = TAB_PERMISSIONS[formattedRole] || [];
 
+  // 1. Filter Tombol Navigasi
   const navButtons = document.querySelectorAll('.sidebar .nav-btn');
   navButtons.forEach(btn => {
+    // Ambil nama tab dari parameter onclick, contoh: switchTab('data-siswa', this) -> 'data-siswa'
     const onclickAttr = btn.getAttribute('onclick') || '';
     const match = onclickAttr.match(/switchTab\('([^']+)'/);
     
@@ -2550,11 +2690,13 @@ function renderSidebarByRole() {
     }
   });
 
+  // 2. Sembunyikan Judul Kelompok Menu (menu-group) Jika Semua Anaknya Tersembunyi
   const menuGroups = document.querySelectorAll('.sidebar .menu-group');
   menuGroups.forEach(group => {
     let nextEl = group.nextElementSibling;
     let hasVisibleChild = false;
 
+    // Periksa tombol-tombol di bawah kelompok menu ini
     while (nextEl && !nextEl.classList.contains('menu-group') && !nextEl.classList.contains('logout-btn')) {
       if (nextEl.classList.contains('nav-btn') && nextEl.style.display !== 'none') {
         hasVisibleChild = true;
@@ -2571,15 +2713,18 @@ function renderSidebarByRole() {
 // FUNGSI HAPUS ADMIN / OPERATOR (FRONTEND)
 // ==========================================
 async function hapusAdmin(idAtauUsername, btnElement) {
+  // 1. Validasi input
   if (!idAtauUsername) {
     alert("Error: ID atau Username tidak terbaca dari tombol Hapus!");
     return;
   }
 
+  // 2. Konfirmasi penghapusan
   if (!confirm(`Apakah Anda yakin ingin menghapus data '${idAtauUsername}'?`)) {
     return;
   }
 
+  // 3. BUNGKUS DATA KE DALAM OBJEK
   const payload = {
     action: 'deleteAdmin',
     UserID: idAtauUsername,
@@ -2593,10 +2738,12 @@ async function hapusAdmin(idAtauUsername, btnElement) {
     if (response && response.success) {
       alert(response.message || "Data berhasil dihapus!");
       
+      // 4. HAPUS BARIS TABEL SEKERAS/SEKETIKA DARI DOM (EFEK INSTAN)
       if (btnElement) {
         const row = btnElement.closest('tr');
         if (row) row.remove();
       } else {
+        // Fallback: Cari baris tabel yang mengandung teks username lalu hapus
         const allRows = document.querySelectorAll('tr');
         allRows.forEach(row => {
           if (row.innerText.includes(idAtauUsername)) {
@@ -2605,6 +2752,7 @@ async function hapusAdmin(idAtauUsername, btnElement) {
         });
       }
 
+      // 5. Re-fetch data dari server jika ada fungsi loader
       if (typeof loadDataAdmin === 'function') {
         loadDataAdmin();
       } else if (typeof loadAdminData === 'function') {
@@ -2622,11 +2770,11 @@ async function hapusAdmin(idAtauUsername, btnElement) {
 
 function getWarnaBadgeStatus(status) {
   const st = String(status || "").toLowerCase().trim();
-  if (st.includes("hadir")) return "#00b894"; 
-  if (st.includes("telat")) return "#fdcb6e"; 
-  if (st.includes("izin") || st.includes("sakit")) return "#0984e3"; 
-  if (st.includes("alpa") || st.includes("absen")) return "#d63031"; 
-  return "#2d3436"; 
+  if (st.includes("hadir")) return "#00b894"; // Hijau
+  if (st.includes("telat")) return "#fdcb6e"; // Kuning/Oranye
+  if (st.includes("izin") || st.includes("sakit")) return "#0984e3"; // Biru
+  if (st.includes("alpa") || st.includes("absen")) return "#d63031"; // Merah
+  return "#2d3436"; // Abu-abu gelap (Default)
 }
 
 function unduhLaporanCSV() {
@@ -2636,10 +2784,11 @@ function unduhLaporanCSV() {
     return;
   }
 
-  const instansiAtas = document.getElementById("set-instansi-atas")?.value || "PEMERINTAH PROVINSI LAMPUNG";
-  const dinas = document.getElementById("set-dinas")?.value || "DINAS PENDIDIKAN DAN KEBUDAYAAN";
-  const namaSekolah = document.getElementById("set-nama-sekolah")?.value || "SMA NEGERI 1 BUMI AGUNG";
-  const alamatSekolah = document.getElementById("set-alamat-kop")?.value || "Alamat: JL. Protokol No 1 Pisang Baru, Kec. Bumi Agung, Kabupaten Way Kanan, Kode Pos: 34782";
+  // Tarik data dari input Pengaturan (sesuaikan ID-nya) atau gunakan teks baku
+  const instansiAtas = document.getElementById("setting-instansi-atas")?.value || "PEMERINTAH PROVINSI LAMPUNG";
+  const dinas = document.getElementById("setting-dinas")?.value || "DINAS PENDIDIKAN DAN KEBUDAYAAN";
+  const namaSekolah = document.getElementById("setting-nama-sekolah")?.value || "SMA NEGERI 1 BUMI AGUNG";
+  const alamatSekolah = document.getElementById("setting-alamat")?.value || "Alamat: JL. Protokol No 1 Pisang Baru, Kec. Bumi Agung, Kabupaten Way Kanan, Kode Pos: 34782, E-mail : smansatubuma@gmail.com, Terakreditasi B, NSS: 301120813017, NPSN: 10810190";
 
   let csv = [];
   
@@ -2679,24 +2828,28 @@ function unduhLaporanPDF() {
     return;
   }
 
-  const instansiAtas = document.getElementById("set-instansi-atas")?.value || "PEMERINTAH PROVINSI LAMPUNG";
-  const dinas = document.getElementById("set-dinas")?.value || "DINAS PENDIDIKAN DAN KEBUDAYAAN";
-  const namaSekolah = document.getElementById("set-nama-sekolah")?.value || "SMA NEGERI 1 BUMI AGUNG";
-  const alamatSekolah = document.getElementById("set-alamat-kop")?.value || "Alamat: JL. Protokol No 1 Pisang Baru, Kec. Bumi Agung, Kabupaten Way Kanan, Kode Pos: 34782";
-  const website = document.getElementById("set-website")?.value || "Website: sman1ba.sch.id";
+  // Tarik data dari input Pengaturan (sesuaikan ID-nya) atau gunakan teks baku sesuai gambar
+  const instansiAtas = document.getElementById("setting-instansi-atas")?.value || "PEMERINTAH PROVINSI LAMPUNG";
+  const dinas = document.getElementById("setting-dinas")?.value || "DINAS PENDIDIKAN DAN KEBUDAYAAN";
+  const namaSekolah = document.getElementById("setting-nama-sekolah")?.value || "SMA NEGERI 1 BUMI AGUNG";
+  const alamatSekolah = document.getElementById("setting-alamat")?.value || "Alamat: JL. Protokol No 1 Pisang Baru, Kec. Bumi Agung, Kabupaten Way Kanan, Kode Pos: 34782, E-mail : smansatubuma@gmail.com, Terakreditasi B, NSS: 301120813017, NPSN: 10810190";
+  const website = document.getElementById("setting-website")?.value || "Website: sman1ba.sch.id";
   
-  const logoKiri = document.getElementById("set-logo-kiri")?.value || ""; 
-  const logoKanan = document.getElementById("set-logo-kanan")?.value || "";
-  const namaKepsek = document.getElementById("set-nama-kepsek")?.value || "Nama Kepala Sekolah";
-  const nipKepsek = document.getElementById("set-nip-kepsek")?.value || "-";
+  // Karena ada 2 logo, pastikan di menu UI setting Anda menyiapkan 2 kolom input URL logo
+  const logoKiri = document.getElementById("setting-logo-kiri")?.value || "URL_LOGO_PROVINSI_ANDA"; 
+  const logoKanan = document.getElementById("setting-logo-kanan")?.value || "URL_LOGO_SEKOLAH_ANDA";
+  const namaKepsek = document.getElementById("setting-nama-kepsek")?.value || "Nama Kepala Sekolah";
+  const nipKepsek = document.getElementById("setting-nip")?.value || "-";
 
   const element = document.createElement("div");
   element.style.padding = "20px";
+  // Gunakan font serif standar resmi
   element.style.fontFamily = "'Times New Roman', Times, serif";
   element.style.color = "#000"; 
 
-  const imgKiriTag = logoKiri ? `<img src="${logoKiri}" style="width: 80px; height: auto;">` : '<div style="width: 80px;"></div>';
-  const imgKananTag = logoKanan ? `<img src="${logoKanan}" style="width: 80px; height: auto;">` : '<div style="width: 80px;"></div>';
+  // Merakit Struktur Kop Surat dengan Flexbox agar logo sejajar di kiri dan kanan
+  const imgKiriTag = logoKiri !== "URL_LOGO_PROVINSI_ANDA" ? `<img src="${logoKiri}" style="width: 80px; height: auto;">` : '<div style="width: 80px;"></div>';
+  const imgKananTag = logoKanan !== "URL_LOGO_SEKOLAH_ANDA" ? `<img src="${logoKanan}" style="width: 80px; height: auto;">` : '<div style="width: 80px;"></div>';
   
   const kopSurat = `
     <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 4px double black; padding-bottom: 10px; margin-bottom: 20px;">
@@ -2752,5 +2905,17 @@ function unduhLaporanPDF() {
   html2pdf().set(opt).from(element).save();
 }
 
-// Inisialisasi utama saat halaman dimuat
+function unduhLaporanPDF() {
+  const table = document.querySelector("#laporan-absensi table"); 
+  
+  if (!table) {
+    alert("Silakan klik 'Tampilkan Preview' terlebih dahulu sebelum mengunduh PDF.");
+    return;
+  }
+
+  // Opsi paling sederhana tanpa library pihak ketiga
+  window.print(); 
+}
+
+// Jalankan saat halaman selesai dimuat
 document.addEventListener("DOMContentLoaded", renderSidebarByRole);
