@@ -327,9 +327,6 @@ async function executeAttendance(userID, userName) {
   showAlert(`Mencatat Absensi...`, "#f1c40f");
   statusText.innerText = "Mengirim Data...";
 
-  // Ambil snapshot foto dari kamera terlebih dahulu
-  const fotoSnapshot = captureKameraBase64();
-
   const activeRole = (typeof TERMINAL_ROLE !== 'undefined') ? TERMINAL_ROLE : "SISWA";
   const payload = {
     userId: String(userID).trim(),
@@ -342,8 +339,7 @@ async function executeAttendance(userID, userName) {
     lat: (typeof currentLat !== 'undefined') ? currentLat : "",
     long: (typeof currentLng !== 'undefined') ? currentLng : "",
     deviceId: "TERMINAL-" + activeRole,
-    keterangan: "Absen Wajah & Kartu Sukses",
-    fotoBase64: fotoSnapshot // Data foto Base64 dikirim ke Apps Script
+    keterangan: "Absen Wajah & Kartu Sukses"
   };
 
   try {
@@ -359,7 +355,7 @@ async function executeAttendance(userID, userName) {
     if (result && result.success) {
       
       const balasanServer = JSON.stringify(result).toLowerCase();
-      const jamSekarang = new Date().getHours();
+      const jamSekarang = new Date().getHours(); // Ambil jam lokal saat ini (0-23)
       
       let warnaBg = "#2ecc71"; 
       let ikon = "✅";
@@ -367,20 +363,22 @@ async function executeAttendance(userID, userName) {
       let teksStatus = "Absen Masuk";
       let teksSuara = `Terima kasih ${displayName}. Absen masuk berhasil. Selamat beraktivitas.`;
 
+      // Cek kata kunci dari server ATAU cek apakah waktu sudah di atas jam 12 siang
       if (balasanServer.includes("diperbarui") || balasanServer.includes("lembur")) {
-         warnaBg = "#9b59b6"; 
+         warnaBg = "#9b59b6"; // Ungu
          ikon = "🟣";
          teksJudul = "ABSEN PULANG LEMBUR";
          teksStatus = "Pulang Lembur";
          teksSuara = `Terima kasih ${displayName}, absen lembur berhasil. Selamat beristirahat, sehat selalu, sampai jumpa besok.`;
       } else if (balasanServer.includes("awal")) {
-         warnaBg = "#f39c12"; 
+         warnaBg = "#f39c12"; // Kuning
          ikon = "🟡";
          teksJudul = "ABSEN PULANG AWAL";
          teksStatus = "Pulang Awal";
          teksSuara = `Absen pulang berhasil. Maaf ${displayName}, Anda pulang lebih awal.`;
       } else if (balasanServer.includes("pulang") || balasanServer.includes("out") || jamSekarang >= 12) {
-         warnaBg = "#3498db"; 
+         // Jika server mengembalikan "pulang" ATAU waktu lokal >= 12:00, paksakan ke status Pulang/Lembur
+         warnaBg = "#3498db"; // Biru (Default Sesi Siang/Sore)
          ikon = "🔵";
          teksJudul = "ABSEN PULANG SUKSES";
          teksStatus = "Absen Pulang";
