@@ -1746,11 +1746,13 @@ async function loadUserDropdownManual() {
 
       res.data.forEach(item => {
         if (role === 'GURU') {
-          const id = item.NIP || item.GuruID || item.ID;
+          // Hapus item.NIP dan prioritaskan GuruID / UserID (Format GURU-XXX)
+          const id = item.GuruID || item.UserID || item.ID; 
+          
           // Tambahkan data-nama agar mudah ditangkap saat disubmit
-          optionsHtml += `<option value="${id}" data-nama="${item.Nama}">${item.Nama} (NIP/ID: ${id})</option>`;
+          optionsHtml += `<option value="${id}" data-nama="${item.Nama}">${item.Nama} (ID: ${id})</option>`;
         } else {
-          const id = item.NIS || item.SiswaID || item.ID;
+          const id = item.SiswaID || item.NIS || item.ID;
           optionsHtml += `<option value="${id}" data-nama="${item.Nama}">${item.Nama} (Kelas: ${item.KelasID || '-'})</option>`;
         }
       });
