@@ -1731,7 +1731,6 @@ async function loadUserDropdownManual() {
 
   if (!selectUser) return;
 
-  // Setel tanggal otomatis ke hari ini jika kosong
   if (dateInput && !dateInput.value) {
     dateInput.value = new Date().toISOString().split('T')[0];
   }
@@ -1748,10 +1747,11 @@ async function loadUserDropdownManual() {
       res.data.forEach(item => {
         if (role === 'GURU') {
           const id = item.NIP || item.GuruID || item.ID;
-          optionsHtml += `<option value="${id}">${item.Nama} (NIP/ID: ${id})</option>`;
+          // Tambahkan data-nama agar mudah ditangkap saat disubmit
+          optionsHtml += `<option value="${id}" data-nama="${item.Nama}">${item.Nama} (NIP/ID: ${id})</option>`;
         } else {
           const id = item.NIS || item.SiswaID || item.ID;
-          optionsHtml += `<option value="${id}">${item.Nama} (Kelas: ${item.KelasID || '-'})</option>`;
+          optionsHtml += `<option value="${id}" data-nama="${item.Nama}">${item.Nama} (Kelas: ${item.KelasID || '-'})</option>`;
         }
       });
 
@@ -1771,7 +1771,8 @@ async function submitAbsensiManual(event) {
 
   const btn = document.getElementById('btn-submit-manual');
   const role = document.getElementById('man-role').value;
-  const userId = document.getElementById('man-user').value;
+  const selectUser = document.getElementById('man-user');
+  const userId = selectUser.value;
   const status = document.getElementById('man-status').value;
   const date = document.getElementById('man-date').value;
   const keterangan = document.getElementById('man-keterangan').value;
@@ -1781,8 +1782,14 @@ async function submitAbsensiManual(event) {
     return;
   }
 
+  // Tangkap atribut data-nama dari option yang dipilih
+  const selectedOption = selectUser.options[selectUser.selectedIndex];
+  const namaUser = selectedOption.getAttribute('data-nama') || "-";
+
+  // Tambahkan nama ke dalam payload
   const payload = {
     userId: userId,
+    nama: namaUser,
     role: role,
     status: status,
     date: date,
@@ -1796,7 +1803,7 @@ async function submitAbsensiManual(event) {
     const res = await fetchAPI('processManualInput', payload);
 
     if (res && (res.success || res.attendanceId)) {
-      alert(`✅ Presensi manual untuk ${role} (${userId}) [${status}] berhasil dicatat!`);
+      alert(`✅ Presensi manual untuk ${role} ${namaUser} (${userId}) [${status}] berhasil dicatat!`);
       document.getElementById('form-absensi-manual').reset();
       document.getElementById('man-date').value = new Date().toISOString().split('T')[0];
       loadUserDropdownManual();
