@@ -210,19 +210,7 @@ function startVerificationState(userID, userName) {
   if (isProcessing) return;
   isProcessing = true;
 
-  // Cari data deskriptor wajah
-  const targetUser = (typeof databaseWajah !== 'undefined' ? databaseWajah : []).find(
-    u => String(u.id || u.UserID).trim().toUpperCase() === String(userID).trim().toUpperCase()
-  );
-  
-  if (!targetUser) {
-    putarSuaraKonfirmasi(`Data wajah belum didaftarkan.`);
-    showAlert(`Data wajah untuk ${userID} belum didaftarkan.`, "#e74c3c");
-    setTimeout(resetToStandby, 3000);
-    return;
-  }
-
-  // 🌟 PENCARIAN NAMA ASLI DARI MASTER DATA (Daftar Guru / Siswa)
+  // 1. PENCARIAN NAMA & STATUS BERCADAR DARI MASTER DATA 
   let displayName = userID;
   const masterGuru = typeof dataGuru !== 'undefined' ? dataGuru : (typeof listGuru !== 'undefined' ? listGuru : []);
   const masterSiswa = typeof dataSiswa !== 'undefined' ? dataSiswa : (typeof listSiswa !== 'undefined' ? listSiswa : []);
@@ -234,10 +222,35 @@ function startVerificationState(userID, userName) {
 
   if (foundMaster) {
     displayName = foundMaster.Nama || foundMaster.Nama_Lengkap || foundMaster.NamaLengkap || displayName;
+    
+    // 🌟 BYPASS WAJAH KHUSUS GURU BERCADAR
+    let statusBercadar = foundMaster.Bercadar || foundMaster.bercadar || "";
+    if (statusBercadar === true || String(statusBercadar).toUpperCase().trim() === "YA") {
+      if (standbyUI) standbyUI.style.display = 'none';
+      statusText.innerText = `Bypass Terverifikasi (${displayName})`;
+      statusText.style.color = "#2ecc71";
+      
+      // Langsung eksekusi absensi tanpa kamera
+      executeAttendance(userID, displayName);
+      return; // Hentikan fungsi di sini
+    }
   } else if (userName && userName !== userID) {
     displayName = userName;
   }
 
+  // 2. CEK DATA WAJAH (Hanya untuk yang tidak bercadar)
+  const targetUser = (typeof databaseWajah !== 'undefined' ? databaseWajah : []).find(
+    u => String(u.id || u.UserID).trim().toUpperCase() === String(userID).trim().toUpperCase()
+  );
+  
+  if (!targetUser) {
+    putarSuaraKonfirmasi(`Data wajah belum didaftarkan.`);
+    showAlert(`Data wajah untuk ${userID} belum didaftarkan.`, "#e74c3c");
+    setTimeout(resetToStandby, 3000);
+    return;
+  }
+
+  // 3. PROSES PEMINDAIAN WAJAH KAMERA
   currentMFAUser = targetUser;
   if (standbyUI) standbyUI.style.display = 'none';
   if (videoContainer) videoContainer.style.display = 'flex';
