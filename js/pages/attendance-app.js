@@ -151,14 +151,22 @@ if (nfcInput) {
            // ==========================================
            // CEK STATUS GURU BERCADAR 
            // ==========================================
-           // 1. Cek dari data respons API spreadsheet
-           let isBercadar = String(result.data.Bercadar || result.data.bercadar || "").toUpperCase().trim() === "YA";
+           // 1. Cek dari data respons API (Tipe Boolean dari Backend yang baru)
+           let isBercadar = false;
+           if (result.data.bercadar === true || result.data.Bercadar === true) {
+               isBercadar = true;
+           } else if (String(result.data.bercadar || result.data.Bercadar).toUpperCase().trim() === "YA") {
+               isBercadar = true;
+           }
            
            // 2. Jika tidak terbaca di API, cocokkan dari databaseWajah lokal
            if (!isBercadar && typeof databaseWajah !== 'undefined') {
                const targetUser = databaseWajah.find(u => String(u.id).trim() === String(userID).trim());
                if (targetUser) {
-                   isBercadar = String(targetUser.Bercadar || targetUser.bercadar || "").toUpperCase().trim() === "YA";
+                   const lokalBercadar = targetUser.Bercadar || targetUser.bercadar || "";
+                   if (lokalBercadar === true || String(lokalBercadar).toUpperCase().trim() === "YA") {
+                       isBercadar = true;
+                   }
                }
            }
            // ==========================================
