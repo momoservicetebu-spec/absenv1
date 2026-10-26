@@ -24,7 +24,7 @@ async function registerCurrentRFID() {
     return;
   }
 
-  // --- EKSSTRAK NAMA (DUAL SUPPORT: DATA-NAMA & SPLIT TEXT) ---
+// --- EKSTRAK NAMA & DETERMINASI ROLE (DUAL SUPPORT: DATA-NAMA & SPLIT TEXT) ---
   let userName = "";
   let fullText = "";
 
@@ -38,18 +38,33 @@ async function registerCurrentRFID() {
     fullText = opt.text;
   }
 
-  // Jika data-nama belum terbaca, ekstrak dari fullText "GURU-014 - Budi Santoso"
+  // Bersihkan karakter baris baru / newline yang tidak sengaja terbaca
+  fullText = fullText.replace(/[\r\n]+/g, " ").trim();
+
+  // Jika data-nama belum terbaca, ekstrak dari fullText (Mendukung format "ID - NAMA" atau "ID NAMA")
   if (!userName && fullText) {
     if (fullText.includes(" - ")) {
       userName = fullText.split(" - ").slice(1).join(" - ").trim();
+    } else if (fullText.includes(" ")) {
+      // Pembacaan cadangan jika opsi berupa "GURU-001 Alamah"
+      userName = fullText.split(" ").slice(1).join(" ").trim();
     } else {
       userName = fullText.trim();
     }
   }
 
+  // Penetapan Role Otomatis (Mendukung GURU, NIP, dan STAF TU)
   const selectedText = fullText.toLowerCase();
+  const userIdClean = userId.toLowerCase();
   let userRole = "Siswa";
-  if (selectedText.includes('guru') || userId.toLowerCase().includes('guru') || userId.toLowerCase().includes('nip')) {
+  
+  if (
+    selectedText.includes('guru') || 
+    selectedText.includes('tenaga kependidikan') ||
+    userIdClean.includes('guru') || 
+    userIdClean.includes('nip') || 
+    userIdClean.includes('tu')
+  ) {
     userRole = "Guru";
   }
 
