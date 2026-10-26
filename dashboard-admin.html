@@ -30,43 +30,41 @@
     <div id="loadingText">Memuat Data...</div>
   </div>
 
-  <!-- SIDEBAR NAVIGASI -->
+ <!-- SIDEBAR NAVIGASI -->
   <div class="sidebar">
-    <h2>⚙️ Admin Panel</h2>
-    <button class="nav-btn active" onclick="switchTab('dashboard', this)">🏠 Dashboard Utama</button>
+    <h2 data-lang="navAdminPanel">⚙️ Admin Panel</h2>
+    <button class="nav-btn active" onclick="switchTab('dashboard', this)" data-lang="navDashboardUtama">🏠 Dashboard Utama</button>
     
-    <div class="menu-group">Manajemen Data</div>
-    <button class="nav-btn" onclick="switchTab('data-siswa', this)">🎓 Data Siswa</button>
-    <button class="nav-btn" onclick="switchTab('data-guru', this)">👔 Data Guru</button>
-    <button class="nav-btn" onclick="switchTab('import', this)">📁 Import Data (CSV)</button>
+    <div class="menu-group" data-lang="navManajemenData">Manajemen Data</div>
+    <button class="nav-btn" onclick="switchTab('data-siswa', this)" data-lang="navDataSiswa">🎓 Data Siswa</button>
+    <button class="nav-btn" onclick="switchTab('data-guru', this)" data-lang="navDataGuru">👔 Data Guru</button>
+    <button class="nav-btn" onclick="switchTab('import', this)" data-lang="navImportCsv">📁 Import Data (CSV)</button>
     
-    <div class="menu-group">Pendaftaran Kredensial</div>
-    <button class="nav-btn" onclick="switchTab('enrollment', this)">📸 Daftar Wajah (AI)</button>
-    <button class="nav-btn" onclick="switchTab('fingerprint', this)">👆 Daftar Fingerprint</button>
-    <button class="nav-btn" onclick="switchTab('rfid', this)">💳 Daftar RFID / NFC</button>
-    <button class="nav-btn" onclick="switchTab('barcode', this)">🎫 Buat Barcode / QR</button>
+    <div class="menu-group" data-lang="navPendaftaranKredensial">Pendaftaran Kredensial</div>
+    <button class="nav-btn" onclick="switchTab('enrollment', this)" data-lang="navDaftarWajah">📸 Daftar Wajah (AI)</button>
+    <button class="nav-btn" onclick="switchTab('fingerprint', this)" data-lang="navDaftarFingerprint">👆 Daftar Fingerprint</button>
+    <button class="nav-btn" onclick="switchTab('rfid', this)" data-lang="navDaftarRfid">💳 Daftar RFID / NFC</button>
+    <button class="nav-btn" onclick="switchTab('barcode', this)" data-lang="navBuatBarcode">🎫 Buat Barcode / QR</button>
     
-    <!-- TAMBAHAN MANAJEMEN USER -->
-    <div class="menu-group">Manajemen User</div>
-    <button class="nav-btn" onclick="switchTab('admin-operator', this)">🛡️ Admin & Operator</button>
-    <button class="nav-btn" onclick="switchTab('hak-akses', this)">🔐 Hak Akses (Role)</button>
+    <div class="menu-group" data-lang="navManajemenUser">Manajemen User</div>
+    <button class="nav-btn" onclick="switchTab('admin-operator', this)" data-lang="navAdminOperator">🛡️ Admin & Operator</button>
+    <button class="nav-btn" onclick="switchTab('hak-akses', this)" data-lang="navHakAkses">🔐 Hak Akses (Role)</button>
 
-    <!-- TAMBAHAN OPERASIONAL & ABSENSI (KODE BARU) -->
-    <div class="menu-group">Operasional & Absensi</div>
-    <button class="nav-btn" onclick="switchTab('live-absen', this); initLiveAbsen();">📺 Live Absen Monitor</button>
-    <button class="nav-btn" onclick="switchTab('jadwal-pelajaran', this)">📅 Jadwal Pelajaran</button>
-    <button class="nav-btn" onclick="switchTab('gate-pass', this)">🎟️ Manajemen Gate Pass</button>
-    <button class="nav-btn" onclick="switchTab('absensi-kelas', this); loadSemuaJadwalAdmin();">📝 Absensi Kelas Siswa </button>
-    <button class="nav-btn" onclick="switchTab('absensi-manual', this); loadUserDropdownManual();">📝 Absensi Manual Guru </button>
+    <div class="menu-group" data-lang="navOperasionalAbsensi">Operasional & Absensi</div>
+    <button class="nav-btn" onclick="switchTab('live-absen', this); initLiveAbsen();" data-lang="navLiveAbsen">📺 Live Absen Monitor</button>
+    <button class="nav-btn" onclick="switchTab('jadwal-pelajaran', this)" data-lang="navJadwalPelajaran">📅 Jadwal Pelajaran</button>
+    <button class="nav-btn" onclick="switchTab('gate-pass', this)" data-lang="navManajemenGatePass">🎟️ Manajemen Gate Pass</button>
+    <button class="nav-btn" onclick="switchTab('absensi-kelas', this); loadSemuaJadwalAdmin();" data-lang="navAbsensiKelasSiswa">📝 Absensi Kelas Siswa </button>
+    <button class="nav-btn" onclick="switchTab('absensi-manual', this); loadUserDropdownManual();" data-lang="navAbsensiManualGuru">📝 Absensi Manual Guru </button>
 
-    <div class="menu-group">Sistem & Laporan</div>
-    <button class="nav-btn" onclick="switchTab('laporan-absensi', this)">📊 Laporan Absensi</button>
-    <button class="nav-btn" onclick="switchTab('setting', this)">🛠️️ Pengaturan (Setting)</button>
-    <button class="nav-btn" onclick="switchTab('backup', this)">💾 Backup & Restore</button>
-    <button class="nav-btn" onclick="switchTab('whatsapp-settings', this)">💬 Notifikasi WhatsApp</button>
-    <button class="nav-btn" onclick="switchTab('geofencing', this)">📍 Lokasi & Geofencing</button>
+    <div class="menu-group" data-lang="navSistemLaporan">Sistem & Laporan</div>
+    <button class="nav-btn" onclick="switchTab('laporan-absensi', this)" data-lang="navLaporanAbsensi">📊 Laporan Absensi</button>
+    <button class="nav-btn" onclick="switchTab('setting', this)" data-lang="navPengaturan">🛠 Pengaturan (Setting)</button>
+    <button class="nav-btn" onclick="switchTab('backup', this)" data-lang="navBackupRestore">💾 Backup & Restore</button>
+    <button class="nav-btn" onclick="switchTab('whatsapp-settings', this)" data-lang="navNotifikasiWa">💬 Notifikasi WhatsApp</button>
+    <button class="nav-btn" onclick="switchTab('geofencing', this)" data-lang="navLokasiGeofencing">📍 Lokasi & Geofencing</button>
     
-    <button class="logout-btn" onclick="window.location.href='login.html'">🚪 Keluar Sistem</button>
+    <button class="logout-btn" onclick="window.location.href='login.html'" data-lang="navKeluarSistem">🚪 Keluar Sistem</button>
   </div>
   <!-- Header khusus Mobile -->
   <div class="mobile-header">
