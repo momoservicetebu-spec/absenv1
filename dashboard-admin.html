@@ -435,7 +435,16 @@
           <!-- Hapus atribut width/height, biarkan CSS yang mengatur agar responsif -->
           <video id="video" autoplay muted playsinline style="width: 100%; max-width: 100%; height: auto; background:#000; border-radius:8px; object-fit:cover; border: 2px solid #555; display: block; position: relative; z-index: 1;"></video>
         </div>
-        
+
+        <!-- TOMBOL AKSI ENROLLMENT WAJAH -->
+        <div class="camera-action-btns">
+          <button type="button" class="btn-action" onclick="startCamera()">📷 Nyalakan Kamera</button>
+          <button type="button" class="btn-action btn-danger" onclick="stopCamera()" style="background: #e74c3c; color: #fff;">🚫 Matikan Kamera</button>
+          <button type="button" class="btn-action btn-warning" onclick="switchCamera()" style="background: #e67e22; color: #fff;">🔄 Ganti Kamera</button>
+          <button type="button" class="btn-action btn-warning" onclick="captureFace()">📸 Ambil Foto</button>
+          <button type="button" class="btn-action btn-success" id="btnEnroll" onclick="registerCurrentFace()" disabled>💾 Simpan Wajah</button>
+        </div>
+
         <!-- Hasil Tangkapan (AI Canvas) -->
         <div style="display: flex; flex-direction: column; align-items: center; width: 100%; max-width: 400px;">
           <label style="font-size: 12px; margin-bottom: 5px;">Hasil Tangkapan</label>
@@ -445,12 +454,6 @@
 
       </div>
 
-      <!-- TOMBOL AKSI -->
-      <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-        <button type="button" class="btn-action" onclick="startCamera()">📷 Nyalakan Kamera</button>
-        <button type="button" class="btn-action btn-warning" onclick="captureFace()">📸 Ambil Foto</button>
-        <button type="button" class="btn-action btn-success" id="btnEnroll" onclick="registerCurrentFace()" disabled>💾 Simpan Wajah</button>
-      </div>
       
       <!-- Pembatas Form dan Tabel -->
       <hr style="margin: 30px 0; border: 1px solid #444;">

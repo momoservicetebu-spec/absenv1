@@ -6,9 +6,10 @@
 let localStream = null;
 let lastDescriptor = null; // Ini variabel penyimpan embedding wajah
 let capturedFaceBase64 = "";
+let currentFacingMode = "user"; // "user" (depan) atau "environment" (belakang)
 
 // ==========================================
-// 1. Fungsi Membuka Kamera (FIXED FOR MOBILE)
+// 1. Fungsi Membuka Kamera (FIXED FOR MOBILE & SWITCHING)
 // ==========================================
 async function startCamera() {
   const video = document.getElementById('video');
@@ -16,40 +17,85 @@ async function startCamera() {
 
   if (!video) return;
 
-  statusText.innerText = "⏳ Membuka kamera...";
-  statusText.style.color = "#feca57";
+  if (statusText) {
+    statusText.innerText = "⏳ Membuka kamera...";
+    statusText.style.color = "#feca57";
+  }
 
   try {
+    // Matikan stream lama jika sedang berjalan
     if (localStream) {
       localStream.getTracks().forEach(track => track.stop());
+      localStream = null;
     }
 
-    // PERBAIKAN: Hapus paksaan width/height 320x240. 
-    // Biarkan browser HP menyesuaikan rasio terbaiknya (Portrait/Landscape).
+    // Panggil kamera dengan facingMode dinamis
     localStream = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode: "user" }
+      video: { facingMode: currentFacingMode },
+      audio: false
     });
 
     video.srcObject = localStream;
     
-    // Tunggu metadata video termuat agar kita tahu resolusi aslinya
+    // Efek mirror hanya untuk kamera depan
+    if (currentFacingMode === "user") {
+      video.style.transform = "scaleX(-1)";
+    } else {
+      video.style.transform = "scaleX(1)";
+    }
+
+    // Tunggu metadata video termuat agar tahu resolusi aslinya
     video.onloadedmetadata = () => {
       video.play();
-      // Sinkronkan atribut ukuran video HTML dengan resolusi asli kamera
       video.width = video.videoWidth;
       video.height = video.videoHeight;
     };
 
-    statusText.innerText = "📷 Kamera Aktif. Siapkan wajah lalu klik 'Ambil Foto'.";
-    statusText.style.color = "#1dd1a1";
+    if (statusText) {
+      const cameraLabel = currentFacingMode === "user" ? "Depan" : "Belakang";
+      statusText.innerText = `📷 Kamera ${cameraLabel} Aktif. Siapkan wajah lalu klik 'Ambil Foto'.`;
+      statusText.style.color = "#1dd1a1";
+    }
 
     if (typeof faceapi !== 'undefined' && typeof CONFIG !== 'undefined') {
       loadFaceAIModels();
     }
   } catch (err) {
-    statusText.innerText = "❌ Gagal Akses Kamera: " + err.message;
-    statusText.style.color = "#ff6b6b";
+    if (statusText) {
+      statusText.innerText = "❌ Gagal Akses Kamera: " + err.message;
+      statusText.style.color = "#ff6b6b";
+    }
   }
+}
+
+// ==========================================
+// 2. Fungsi Mematikan Kamera
+// ==========================================
+function stopCamera() {
+  const video = document.getElementById('video');
+  const statusText = document.getElementById('statusText');
+
+  if (localStream) {
+    localStream.getTracks().forEach(track => track.stop());
+    localStream = null;
+  }
+
+  if (video) {
+    video.srcObject = null;
+  }
+
+  if (statusText) {
+    statusText.innerText = "🚫 Kamera dimatikan.";
+    statusText.style.color = "#a2a3b7";
+  }
+}
+
+// ==========================================
+// 3. Fungsi Beralih Kamera (Depan <-> Belakang)
+// ==========================================
+function switchCamera() {
+  currentFacingMode = (currentFacingMode === "user") ? "environment" : "user";
+  startCamera();
 }
 
 // ==========================================
