@@ -106,7 +106,7 @@
         </div> <!-- Penutup Wadah Kanan -->
         
       </div>
-<!-- ========================================== -->
+      <!-- ========================================== -->
       <!-- HEADER CONTROL BAR: FILTER PERIODE DASHBOARD -->
       <!-- ========================================== -->
       <div class="dashboard-header-controls">
@@ -117,12 +117,13 @@
           <button type="button" class="btn-period" data-period="tahunan" data-lang="btnTahunan">Tahunan</button>
         </div>
 
-        <!-- Input Filter Dinamis -->
-        <div class="filter-input-group">
-          <!-- Switcher Bahasa Sederhana -->
-          <div class="lang-switcher" style="display: inline-block; margin-right: 5px;">
-            <button id="btn-lang-id" onclick="setLanguage('id')" type="button" class="btn-period">ID</button>
-            <button id="btn-lang-en" onclick="setLanguage('en')" type="button" class="btn-period">EN</button>
+        <!-- Input Filter Dinamis & Fitur Tambahan -->
+        <div class="filter-input-group" style="display: inline-flex; align-items: center; gap: 8px; flex-wrap: nowrap;">
+          
+          <!-- Switcher Bahasa Rapi Menyamping -->
+          <div class="lang-switcher" style="display: inline-flex; border: 1px solid #4a4563; border-radius: 6px; overflow: hidden; height: 36px;">
+            <button id="btn-lang-id" onclick="setLanguage('id')" type="button" style="background: #6c5ce7; color: white; border: none; padding: 0 10px; cursor: pointer; font-weight: bold; font-size: 12px;">ID</button>
+            <button id="btn-lang-en" onclick="setLanguage('en')" type="button" style="background: #2d2b42; color: #a0aec0; border: none; padding: 0 10px; cursor: pointer; font-weight: bold; font-size: 12px;">EN</button>
           </div>
 
           <input type="date" id="filterHarian" class="filter-control" value="2026-09-06">
@@ -135,10 +136,13 @@
 
           <button id="btnApplyFilter" class="btn-apply" data-lang="btnTampilkan">Tampilkan Data</button>
 
-          <!-- Widget Jam Real-Time -->
-          <span id="clock-widget" style="margin-left: 10px; font-family: monospace; font-weight: bold; color: #55efc4;">
-            <span id="widget-date" style="color: #00d2d3;">--/--/----</span> | <span id="widget-clock">00:00:00 WIB</span>
-          </span>
+          <!-- Widget Jam Real-Time 1 Baris Sejajar -->
+          <div id="clock-widget" style="display: inline-flex; align-items: center; white-space: nowrap; margin-left: 6px; font-family: monospace; font-size: 13px; background: #161224; border: 1px solid #4a4563; padding: 6px 12px; border-radius: 6px;">
+            <span id="widget-date" style="color: #00d2d3; font-weight: bold;">--/--/----</span>
+            <span style="color: #6c5ce7; margin: 0 6px;">|</span>
+            <span id="widget-clock" style="color: #55efc4; font-weight: bold;">00:00:00 WIB</span>
+          </div>
+
         </div>
       </div>
 
