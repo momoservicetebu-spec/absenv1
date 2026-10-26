@@ -93,7 +93,11 @@
             <button class="filter-btn" onclick="setDashboardMode('siswa')">Siswa</button>
             <button class="filter-btn" onclick="setDashboardMode('guru')">Guru</button>
           </div>
-
+          <!-- 🌟 POSISI BARU: SWITCHER BAHASA (ID / EN) -->
+          <div class="lang-switcher" style="display: inline-flex; border: 1px solid #4a4563; border-radius: 8px; overflow: hidden; background: #161224; height: 34px;">
+            <button id="btn-lang-id" onclick="setLanguage('id')" type="button" style="background: #6c5ce7; color: white; border: none; padding: 0 10px; cursor: pointer; font-weight: bold; font-size: 12px;">ID</button>
+            <button id="btn-lang-en" onclick="setLanguage('en')" type="button" style="background: transparent; color: #a0aec0; border: none; padding: 0 10px; cursor: pointer; font-weight: bold; font-size: 12px;">EN</button>
+          </div>
           <!-- PROFIL USER -->
           <div id="user-profile" style="display: flex; align-items: center; gap: 10px; background: #2a2640; padding: 6px 15px; border-radius: 20px; border: 1px solid #4a4563;">
             <div style="text-align: right; line-height: 1.2;">
@@ -119,13 +123,7 @@
           <button type="button" class="btn-period" data-period="tahunan" data-lang="btnTahunan">Tahunan</button>
         </div>
 
-        <!-- 2. Switcher Bahasa (ID / EN) Berdiri Sendiri -->
-        <div class="lang-switcher" style="display: inline-flex; border: 1px solid #4a4563; border-radius: 8px; overflow: hidden; background: #161224; height: 38px; margin: 0 5px; vertical-align: middle;">
-          <button id="btn-lang-id" onclick="setLanguage('id')" type="button" style="background: #6c5ce7; color: white; border: none; padding: 0 12px; cursor: pointer; font-weight: bold; font-size: 13px;">ID</button>
-          <button id="btn-lang-en" onclick="setLanguage('en')" type="button" style="background: transparent; color: #a0aec0; border: none; padding: 0 12px; cursor: pointer; font-weight: bold; font-size: 13px;">EN</button>
-        </div>
-
-        <!-- 3. Input Filter Dinamis -->
+        <!-- 2. Input Filter Dinamis -->
         <div class="filter-input-group">
           <input type="date" id="filterHarian" class="filter-control" value="2026-09-06">
           <input type="month" id="filterBulanan" class="filter-control hidden" value="2026-09">
@@ -137,7 +135,7 @@
 
           <button id="btnApplyFilter" class="btn-apply" data-lang="btnTampilkan">Tampilkan Data</button>
 
-          <!-- 4. Widget Jam Real-Time -->
+          <!-- 3. Widget Jam Real-Time -->
           <div id="clock-widget" style="display: inline-flex; align-items: center; white-space: nowrap; margin-left: 10px; font-family: monospace; font-size: 13px; background: #161224; border: 1px solid #4a4563; padding: 6px 12px; border-radius: 6px; vertical-align: middle;">
             <span id="widget-date" style="color: #00d2d3; font-weight: bold;">--/--/----</span>
             <span style="color: #6c5ce7; margin: 0 6px;">|</span>
