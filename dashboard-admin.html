@@ -110,30 +110,52 @@
       <!-- ========================================== -->
       <!-- HEADER CONTROL BAR: FILTER PERIODE DASHBOARD -->
       <!-- ========================================== -->
-      <div class="dashboard-header-controls">
-        <!-- Toggle Mode Periode -->
-        <div class="period-toggle-group">
-          <button type="button" class="btn-period active" data-period="harian">Harian</button>
-          <button type="button" class="btn-period" data-period="bulanan">Bulanan</button>
-          <button type="button" class="btn-period" data-period="tahunan">Tahunan</button>
+      <div class="dashboard-header-controls" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
+        
+        <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+          
+          <!-- 🌟 1. TARUH DI SINI: SWITCHER BAHASA (ID / EN) -->
+          <div class="lang-switcher" style="display: inline-flex; gap: 5px; align-items: center;">
+            <button id="btn-lang-id" onclick="setLanguage('id')" style="color: white; border: 1px solid #4a4563; padding: 4px 10px; border-radius: 6px; cursor: pointer; font-weight: bold;">ID</button>
+            <button id="btn-lang-en" onclick="setLanguage('en')" style="color: white; border: 1px solid #4a4563; padding: 4px 10px; border-radius: 6px; cursor: pointer; font-weight: bold;">EN</button>
+          </div>
+
+          <!-- 2. Toggle Mode Periode -->
+          <div class="period-toggle-group">
+            <button type="button" class="btn-period active" data-period="harian" data-lang="btnHarian">Harian</button>
+            <button type="button" class="btn-period" data-period="bulanan" data-lang="btnBulanan">Bulanan</button>
+            <button type="button" class="btn-period" data-period="tahunan" data-lang="btnTahunan">Tahunan</button>
+          </div>
+
+          <!-- 3. Input Filter Dinamis -->
+          <div class="filter-input-group">
+            <input type="date" id="filterHarian" class="filter-control" value="2026-09-06">
+            <input type="month" id="filterBulanan" class="filter-control hidden" value="2026-09">
+            <select id="filterTahunan" class="filter-control hidden">
+              <option value="2026" selected>Tahun 2026</option>
+              <option value="2025">Tahun 2025</option>
+            </select>
+
+            <button id="btnApplyFilter" class="btn-apply" data-lang="btnTampilkan">Tampilkan Data</button>
+          </div>
         </div>
 
-        <!-- Input Filter Dinamis -->
-        <div class="filter-input-group">
-          <!-- Input Harian -->
-          <input type="date" id="filterHarian" class="filter-control" value="2026-09-06">
-          
-          <!-- Input Bulanan -->
-          <input type="month" id="filterBulanan" class="filter-control hidden" value="2026-09">
-          
-          <!-- Input Tahunan -->
-          <select id="filterTahunan" class="filter-control hidden">
-            <option value="2026" selected>Tahun 2026</option>
-            <option value="2025">Tahun 2025</option>
-          </select>
-
-          <button id="btnApplyFilter" class="btn-apply">Tampilkan Data</button>
+        <!-- 4. Widget Jam Digital -->
+        <div id="clock-widget" style="background: #161224; border: 1px solid #4a4563; padding: 6px 14px; border-radius: 8px; color: #fff; display: inline-flex; align-items: center; gap: 8px; font-family: monospace; font-size: 14px;">
+          <span id="widget-date" style="color: #00d2d3; font-weight: bold;">--/--/----</span>
+          <span style="color: #6c5ce7;">|</span>
+          <span id="widget-clock" style="color: #55efc4; font-weight: bold; font-size: 15px;">00:00:00 WIB</span>
         </div>
+
+      </div>
+
+        <!-- 🌟 WIDGET TANGGAL & JAM DIGITAL REAL-TIME -->
+        <div id="clock-widget" style="background: #161224; border: 1px solid #4a4563; padding: 6px 14px; border-radius: 8px; color: #fff; display: inline-flex; align-items: center; gap: 8px; font-family: monospace; font-size: 14px;">
+          <span id="widget-date" style="color: #00d2d3; font-weight: bold;">--/--/----</span>
+          <span style="color: #6c5ce7;">|</span>
+          <span id="widget-clock" style="color: #55efc4; font-weight: bold; font-size: 15px;">00:00:00 WIB</span>
+        </div>
+
       </div>
 
       <!-- CONTAINER 12 WIDGET GRID -->
@@ -1785,6 +1807,8 @@
 <script src="./js/qr_code.js?v=9999"></script>
 <!-- MODUL LIVE ABSEN MONITOR REAL-TIME -->
 <script src="./js/live-absen.js?v=1.0"></script>
+<script src="./js/clock.js"></script>
+<script src="./js/lang.js"></script>
 
 
 <!-- INISIALISASI SELECT2 -->
