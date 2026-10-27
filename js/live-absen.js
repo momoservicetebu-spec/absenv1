@@ -78,7 +78,7 @@ function renderLiveCards() {
 
   if (!container) return;
 
-  // Filter 1: Pemisahan berdasarkan Role terpilih (GURU / SISWA)
+  // Filter 1: Pemisahan berdasarkan Role
   let filteredByRole = rawLiveAbsenData.filter(item => {
     const roleItem = String(item.Role || "GURU").toUpperCase();
     return (currentLiveRole === "GURU") ? (roleItem === "GURU") : (roleItem === "SISWA");
@@ -103,21 +103,34 @@ function renderLiveCards() {
     const role = item.Role || currentLiveRole;
     const waktu = item.Timestamp || item.Time || "-";
     const foto = (item.Foto || item.ImageURL) ? (item.Foto || item.ImageURL) : "https://via.placeholder.com/150?text=No+Photo";
-    const statusText = item.Status || item.Keterangan || "Absen Masuk";
+    
+    // 🌟 PERBAIKAN: Baca dari kolom Spreadsheet yang baru
+    const statusText = item["Status(Hadir/Telat/Izin/dll)"] || item.Status || item.Keterangan || "Hadir";
+    const checkType = item["CheckType (IN/OUT)"] || "IN";
 
-    let colorTheme = "#2ecc71"; // Hijau (Masuk)
+    let colorTheme = "#2ecc71"; // Hijau (Masuk Normal)
     let statusLabel = "✅ MASUK";
 
     const stLow = statusText.toLowerCase();
-    if (stLow.includes("lembur") || stLow.includes("diperbarui")) {
-      colorTheme = "#9b59b6"; // Ungu (Lembur)
-      statusLabel = "🟣 PULANG LEMBUR";
-    } else if (stLow.includes("awal")) {
-      colorTheme = "#f39c12"; // Kuning (Pulang Awal)
-      statusLabel = "🟡 PULANG AWAL";
-    } else if (stLow.includes("pulang") || stLow.includes("out")) {
-      colorTheme = "#3498db"; // Biru (Pulang Normal)
-      statusLabel = "🔵 PULANG";
+    const typeUp = String(checkType).toUpperCase();
+
+    // Logika Warna Label Sesuai Tipe dan Status
+    if (typeUp === "OUT") {
+      if (stLow.includes("lembur") || stLow.includes("diperbarui")) {
+        colorTheme = "#9b59b6"; // Ungu (Lembur)
+        statusLabel = "🟣 PULANG LEMBUR";
+      } else if (stLow.includes("awal")) {
+        colorTheme = "#f39c12"; // Kuning (Pulang Awal)
+        statusLabel = "🟡 PULANG AWAL";
+      } else {
+        colorTheme = "#3498db"; // Biru (Pulang Normal)
+        statusLabel = "🔵 PULANG";
+      }
+    } else { // Jika IN (Masuk)
+      if (stLow.includes("terlambat") || stLow.includes("telat")) {
+        colorTheme = "#e74c3c"; // Merah (Terlambat)
+        statusLabel = "🔴 TERLAMBAT";
+      }
     }
 
     return `
@@ -148,14 +161,21 @@ function renderLiveCards() {
 
 // 5. FUNGSI HITUNG COUNTER STATISTIK HARI INI
 function updateStatistikCounter(data) {
-  let masuk = 0, awal = 0, pulang = 0, lembur = 0;
+  let masuk = 0, awalTelat = 0, pulang = 0, lembur = 0;
 
   data.forEach(item => {
-    const status = String(item.Status || item.Keterangan || "").toLowerCase();
-    if (status.includes("lembur") || status.includes("diperbarui")) lembur++;
-    else if (status.includes("awal") || status.includes("telat")) awal++;
-    else if (status.includes("pulang") || status.includes("out")) pulang++;
-    else masuk++;
+    // 🌟 PERBAIKAN: Baca dari kolom Spreadsheet yang baru
+    const status = String(item["Status(Hadir/Telat/Izin/dll)"] || item.Status || "").toLowerCase();
+    const type = String(item["CheckType (IN/OUT)"] || "").toUpperCase();
+
+    if (type === "OUT") {
+      if (status.includes("lembur") || status.includes("diperbarui")) lembur++;
+      else if (status.includes("awal")) awalTelat++; // Digabung ke blok Pulang Awal / Telat
+      else pulang++;
+    } else {
+      if (status.includes("terlambat") || status.includes("telat")) awalTelat++; // Masuk telat
+      else masuk++; // Tepat waktu
+    }
   });
 
   const elMasuk = document.getElementById("count-masuk");
@@ -164,7 +184,7 @@ function updateStatistikCounter(data) {
   const elLembur = document.getElementById("count-lembur");
 
   if (elMasuk) elMasuk.innerText = masuk;
-  if (elAwal) elAwal.innerText = awal;
+  if (elAwal) elAwal.innerText = awalTelat;
   if (elPulang) elPulang.innerText = pulang;
   if (elLembur) elLembur.innerText = lembur;
 }
