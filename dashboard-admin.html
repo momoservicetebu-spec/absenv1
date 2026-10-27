@@ -1332,6 +1332,64 @@
             </label>
         </div>
       </div>
+      <!-- 5. KALENDER PENDIDIKAN & HARI LIBUR -->
+      <div style="margin-top: 20px; padding: 18px; border: 1px solid #4a4563; border-radius: 8px; background: #231f36;">
+        <h3 style="color: #00d2d3; font-size: 15px; margin-bottom: 15px; border-bottom: 1px solid #4a4563; padding-bottom: 8px;" data-lang="kaldikTitle">
+          📅 Kalender Pendidikan & Libur Sekolah
+        </h3>
+        <p style="color: #a29bfe; font-size: 12px; margin-bottom: 15px;" data-lang="kaldikDesc">
+          Atur hari libur nasional, libur semester, dan kegiatan sekolah agar sistem tidak menghitung status ALPA pada hari libur.
+        </p>
+
+        <!-- Pilihan Hari Libur Rutin Mingguan -->
+        <div style="margin-bottom: 20px;">
+          <label style="color: #fff; font-size: 13px; font-weight: bold; display: block; margin-bottom: 8px;" data-lang="liburRutin">Hari Libur Rutin (Mingguan):</label>
+          <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+            <label style="color: #fff; font-size: 13px; cursor: pointer;">
+              <input type="checkbox" id="libur-sabtu" checked style="accent-color: #6c5ce7;"> Sabtu
+            </label>
+            <label style="color: #fff; font-size: 13px; cursor: pointer;">
+              <input type="checkbox" id="libur-minggu" checked style="accent-color: #6c5ce7;"> Minggu
+            </label>
+          </div>
+        </div>
+
+        <!-- Opsi Upload CSV Kalender Pendidikan -->
+        <div style="margin-bottom: 20px;">
+          <label style="color: #fff; font-size: 13px; font-weight: bold; display: block; margin-bottom: 8px;" data-lang="uploadKaldik">
+            Upload Kalender Pendidikan (.CSV):
+          </label>
+          <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
+            <input type="file" id="fileKaldikCsv" accept=".csv" style="display: none;" onchange="handleUploadKaldik(event)">
+            <button type="button" class="btn-action" onclick="document.getElementById('fileKaldikCsv').click()" style="background: #6c5ce7; color: #fff;">
+              📁 Pilih File CSV Kaldik
+            </button>
+            <button type="button" class="btn-action" onclick="downloadTemplateKaldik()" style="background: #161224; border: 1px solid #6c5ce7; color: #a29bfe;">
+              📥 Unduh Template CSV Kaldik
+            </button>
+          </div>
+        </div>
+
+        <!-- Tabel Daftar Hari Libur & Tanggal Merah -->
+        <h4 style="color: #feca57; font-size: 13px; margin-top: 15px; margin-bottom: 10px;">📋 Daftar Tanggal Libur / Agenda Khusus</h4>
+        <div class="analytics-table-wrap" style="max-height: 250px; overflow-y: auto;">
+          <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+            <thead>
+              <tr style="background: #161224; color: #a29bfe;">
+                <th style="padding: 8px; border: 1px solid #4a4563;">TANGGAL</th>
+                <th style="padding: 8px; border: 1px solid #4a4563;">KETERANGAN LIBUR / AGENDA</th>
+                <th style="padding: 8px; border: 1px solid #4a4563;">TIPE</th>
+                <th style="padding: 8px; border: 1px solid #4a4563; text-align: center;">AKSI</th>
+              </tr>
+            </thead>
+            <tbody id="table-kaldik-body">
+              <tr>
+                <td colspan="4" style="text-align: center; padding: 15px; color: #a29bfe;">Belum ada data kalender pendidikan dimuat.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
 
       <button class="btn-action btn-success" onclick="simpanPengaturanLengkap()" style="width: 100%; font-size: 15px; padding: 12px; font-weight: bold; border-radius: 8px;">
         💾 Simpan Seluruh Pengaturan
@@ -1789,6 +1847,10 @@
 <script src="./js/pages/credentials.js?v=1.1"></script> 
 <script src="./js/config.js?v=2.0"></script>
 <script src="./js/api.js?v=999"></script>
+
+<!-- 🌟 POSISI TERBAIK: MODUL KALENDER PENDIDIKAN & HARI LIBUR -->
+<script src="./js/kaldik.js?v=1.0"></script>
+
 <script src="./js/charts.js?v=1.0"></script>
 <script src="./js/ui.js?v=2.1"></script>
 <script src="./js/users.js?v=2.0"></script>
@@ -1796,11 +1858,11 @@
 <script src="./js/fingerprint.js?V=1.0"></script> 
 <script src="./js/rfid.js?v=1.0"></script>
 <script src="./js/qr_code.js?v=9999"></script>
+
 <!-- MODUL LIVE ABSEN MONITOR REAL-TIME -->
 <script src="./js/live-absen.js?v=1.0"></script>
 <script src="./js/clock.js"></script>
 <script src="./js/lang.js"></script>
-
 
 <!-- INISIALISASI SELECT2 -->
 <script>

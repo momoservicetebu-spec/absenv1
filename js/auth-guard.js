@@ -1,6 +1,9 @@
 // ==========================================
-// 1. BLOK KEAMANAN & PENJAGA GERBANG
+// FILE: js/auth-guard.js
+// BLOK KEAMANAN & PENJAGA GERBANG
 // ==========================================
+
+// 1. BLOK KEAMANAN (Berjalan Langsung Sebelum DOM Render)
 (function () {
   const isLoggedInDirect = localStorage.getItem('isLoggedIn') === 'true';
   const roleDirect = localStorage.getItem('role');
@@ -12,7 +15,7 @@
   }
 
   const isAuth = isLoggedInDirect || 
-                 (sessionObj && sessionObj.isLoggedIn === true) ||
+                 (sessionObj && (sessionObj.isLoggedIn === true || sessionObj.token)) ||
                  (roleDirect && roleDirect !== '');
 
   if (!isAuth) {
@@ -39,18 +42,21 @@
   }
 })();
 
-// ==========================================
-// 2. BLOK TAMPILAN PROFIL (Berjalan saat HTML selesai dimuat)
-// ==========================================
+// 2. BLOK TAMPILAN PROFIL (Berjalan Saat Halaman Selesai Dimuat)
 document.addEventListener("DOMContentLoaded", function() {
   const sessionStr = localStorage.getItem('user_session');
-  let nama = "Pengguna";
+  let nama = localStorage.getItem('nama') || localStorage.getItem('userName') || "Pengguna";
   let role = localStorage.getItem('role') || "Guest";
 
   if (sessionStr) {
     try {
       const sessionObj = JSON.parse(sessionStr);
-      if (sessionObj.name) nama = sessionObj.name;
+      // Mendukung kunci 'nama', 'name', atau 'userName' di dalam objek JSON
+      if (sessionObj.nama) nama = sessionObj.nama;
+      else if (sessionObj.name) nama = sessionObj.name;
+      else if (sessionObj.userName) nama = sessionObj.userName;
+
+      if (sessionObj.role) role = sessionObj.role;
     } catch (e) {}
   }
 

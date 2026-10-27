@@ -113,6 +113,8 @@ function applyLanguage() {
   }
 }
 
+
 document.addEventListener('DOMContentLoaded', () => {
   applyLanguage();
 });
+
