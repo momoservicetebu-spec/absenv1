@@ -346,9 +346,13 @@ async function executeAttendance(userID, userName) {
 
   let displayName = userName || userID;
   showAlert(`Mencatat Absensi...`, "#f1c40f");
-  statusText.innerText = "Mengirim Data...";
+  if (typeof statusText !== 'undefined' && statusText) {
+    statusText.innerText = "Mengirim Data...";
+  }
 
-  const activeRole = (typeof TERMINAL_ROLE !== 'undefined') ? TERMINAL_ROLE : "SISWA";
+  const activeRole = (typeof TERMINAL_ROLE !== 'undefined') ? TERMINAL_ROLE : "GURU";
+  const JAM_MASUK_CONFIG = (typeof CONFIG !== 'undefined' && CONFIG.jamMasuk) ? CONFIG.jamMasuk : (localStorage.getItem('jam_masuk') || "07:15");
+
   const payload = {
     userId: String(userID).trim(),
     nama: displayName,
@@ -357,75 +361,85 @@ async function executeAttendance(userID, userName) {
     primaryMethod: "RFID",
     secondaryMethod: "FACE",
     authLevel: "2FA",
-    lat: (typeof currentLat !== 'undefined') ? currentLat : "",
-    long: (typeof currentLng !== 'undefined') ? currentLng : "",
+    jamMasukConfig: JAM_MASUK_CONFIG,
     deviceId: "TERMINAL-" + activeRole,
     keterangan: "Absen Wajah & Kartu Sukses"
   };
 
   try {
     const result = await fetchAPI("submitAutoAttendance", payload);
-    
     const record = result && result.data ? result.data : {};
     const backendMessage = result ? result.message : "";
 
-    if (record.Nama) {
-       displayName = record.Nama;
-    }
+    if (record.Nama) displayName = record.Nama;
 
     if (result && result.success) {
-      
-      const balasanServer = JSON.stringify(result).toLowerCase();
-      const jamSekarang = new Date().getHours(); // Ambil jam lokal saat ini (0-23)
-      
-      let warnaBg = "#2ecc71"; 
+      const statusAbsen = record.status || "";
+
+      let warnaBg = "#2ecc71"; // Hijau
       let ikon = "✅";
       let teksJudul = "ABSEN MASUK SUKSES";
-      let teksStatus = "Absen Masuk";
-      let teksSuara = `Terima kasih ${displayName}. Absen masuk berhasil. Selamat beraktivitas.`;
+      let teksStatus = "Masuk Tepat Waktu";
+      let teksSuara = `Terima kasih ${displayName}. Absen masuk berhasil. Selamat mengajar.`;
 
-      // Cek kata kunci dari server ATAU cek apakah waktu sudah di atas jam 12 siang
-      if (balasanServer.includes("diperbarui") || balasanServer.includes("lembur")) {
-         warnaBg = "#9b59b6"; // Ungu
-         ikon = "🟣";
-         teksJudul = "ABSEN PULANG LEMBUR";
-         teksStatus = "Pulang Lembur";
-         teksSuara = `Terima kasih ${displayName}, absen lembur berhasil. Selamat beristirahat, sehat selalu, sampai jumpa besok.`;
-      } else if (balasanServer.includes("awal")) {
-         warnaBg = "#f39c12"; // Kuning
-         ikon = "🟡";
-         teksJudul = "ABSEN PULANG AWAL";
-         teksStatus = "Pulang Awal";
-         teksSuara = `Absen pulang berhasil. Maaf ${displayName}, Anda pulang lebih awal.`;
-      } else if (balasanServer.includes("pulang") || balasanServer.includes("out") || jamSekarang >= 12) {
-         // Jika server mengembalikan "pulang" ATAU waktu lokal >= 12:00, paksakan ke status Pulang/Lembur
-         warnaBg = "#3498db"; // Biru (Default Sesi Siang/Sore)
-         ikon = "🔵";
-         teksJudul = "ABSEN PULANG SUKSES";
-         teksStatus = "Absen Pulang";
-         teksSuara = `Terima kasih ${displayName}, absen pulang berhasil. Hati-hati di jalan.`;
+      // 1. MASUK TERLAMBAT
+      if (statusAbsen === "TERLAMBAT") {
+        warnaBg = "#e67e22"; // Oranye
+        ikon = "⚠️";
+        teksJudul = "ABSEN MASUK (TERLAMBAT)";
+        teksStatus = "Masuk Terlambat";
+        teksSuara = `Absen masuk berhasil. Maaf ${displayName}, Anda tercatat terlambat.`;
+      
+      // 2. PULANG AWAL (12:01 - 14:40)
+      } else if (statusAbsen === "PULANG AWAL") {
+        warnaBg = "#f39c12"; // Kuning
+        ikon = "🟡";
+        teksJudul = "ABSEN PULANG AWAL";
+        teksStatus = "Pulang Awal";
+        teksSuara = `Absen pulang berhasil. Maaf ${displayName}, Anda pulang lebih awal.`;
+
+      // 3. PULANG NORMAL (14:41 - 15:00)
+      } else if (statusAbsen === "PULANG NORMAL") {
+        warnaBg = "#3498db"; // Biru
+        ikon = "🔵";
+        teksJudul = "ABSEN PULANG SUKSES";
+        teksStatus = "Pulang Normal";
+        teksSuara = `Terima kasih ${displayName}, absen pulang berhasil. Hati-hati di jalan.`;
+
+      // 4. PULANG LEMBUR (15:01 - 24:00)
+      } else if (statusAbsen === "PULANG LEMBUR") {
+        warnaBg = "#9b59b6"; // Ungu
+        ikon = "🟣";
+        teksJudul = "ABSEN PULANG LEMBUR";
+        teksStatus = "Pulang Lembur";
+        teksSuara = `Terima kasih ${displayName}, absen lembur berhasil. Selamat beristirahat, sampai jumpa besok.`;
       }
 
       putarSuaraKonfirmasi(teksSuara);
-
       showAlert(`${ikon} ${teksJudul}: ${displayName}`, warnaBg);
-      statusText.innerText = `${ikon} ${teksStatus} (${displayName})`;
-      statusText.style.color = warnaBg;
+
+      if (typeof statusText !== 'undefined' && statusText) {
+        statusText.innerText = `${ikon} ${teksStatus} (${displayName})`;
+        statusText.style.color = warnaBg;
+      }
 
     } else {
-      const errMessage = backendMessage || "Koneksi terputus";
+      // PENANGANAN JIKA DITOLAK (RE-TAP SEBELUM JAM 12:00)
+      const errMessage = backendMessage || "Absensi Ditolak";
       const cleanMsg = errMessage.replace("[Sistem]", "").trim();
       
       putarSuaraKonfirmasi(cleanMsg); 
-      
       showAlert(`⚠️ ${cleanMsg}`, "#e67e22"); 
-      statusText.innerText = `⚠️ Peringatan (${displayName})`;
-      statusText.style.color = "#e67e22";
+
+      if (typeof statusText !== 'undefined' && statusText) {
+        statusText.innerText = `⚠️ ${cleanMsg}`;
+        statusText.style.color = "#e67e22";
+      }
     }
   } catch (error) {
-     console.error("Error Absen:", error);
-     putarSuaraKonfirmasi(`Terjadi kesalahan sistem.`);
-     showAlert(`❌ Error Sistem / Jaringan`, "#e74c3c");
+    console.error("Error Absen:", error);
+    putarSuaraKonfirmasi(`Terjadi kesalahan sistem.`);
+    showAlert(`❌ Error Sistem / Jaringan`, "#e74c3c");
   }
 
   setTimeout(resetToStandby, 3500);
