@@ -70,6 +70,31 @@ async function loadLiveAbsenData(isSilent = false) {
   }
 }
 
+// Helper konversi URL Google Drive ke Link Gambar Langsung (Anti-Error)
+function fixDrivePhotoUrl(url) {
+  try {
+    if (!url || typeof url !== 'string') return '';
+    let cleanUrl = url.trim();
+    if (!cleanUrl) return '';
+    
+    // Jika sudah format lh3, langsung gunakan
+    if (cleanUrl.includes('lh3.googleusercontent.com')) return cleanUrl;
+    
+    // Ekstrak ID File dari URL Drive
+    let fileId = '';
+    const matchD = cleanUrl.match(/\/d\/([^\/\?]+)/);
+    const matchId = cleanUrl.match(/id=([^&]+)/);
+    
+    if (matchD && matchD[1]) fileId = matchD[1];
+    else if (matchId && matchId[1]) fileId = matchId[1];
+    
+    return fileId ? 'https://lh3.googleusercontent.com/d/' + fileId : cleanUrl;
+  } catch (e) {
+    console.error("Error fixDrivePhotoUrl:", e);
+    return url || '';
+  }
+}
+
 // 4. FUNGSI FILTER DAN RENDER TAMPILAN KARTU ABSENSI
 function renderLiveCards() {
   const searchElem = document.getElementById("filter-live-search");
@@ -79,7 +104,7 @@ function renderLiveCards() {
   if (!container) return;
 
   // Filter 1: Pemisahan berdasarkan Role
-  let filteredByRole = rawLiveAbsenData.filter(item => {
+  let filteredByRole = (rawLiveAbsenData || []).filter(item => {
     const roleItem = String(item.Role || "GURU").toUpperCase();
     return (currentLiveRole === "GURU") ? (roleItem === "GURU") : (roleItem === "SISWA");
   });
@@ -103,16 +128,18 @@ function renderLiveCards() {
     const role = item.Role || currentLiveRole;
     const waktu = item.Timestamp || item.Time || "-";
     
-    // 🌟 PERBAIKAN: Pembacaan berbagai kemungkinan nama kolom foto + konversi URL Drive
+    // Ambil foto dari berbagai kemungkinan nama kolom
     const rawFoto = item.Foto || item.ImageURL || item["Foto (URL)"] || item["Foto"] || "";
-    const foto = fixDrivePhotoUrl(rawFoto) || "https://via.placeholder.com/150?text=No+Photo";
-    
+    const fotoProcessed = fixDrivePhotoUrl(rawFoto);
+    const foto = fotoProcessed ? fotoProcessed : "https://via.placeholder.com/150?text=Foto+Tidak+Ada";
+
     const statusText = item["Status(Hadir/Telat/Izin/dll)"] || item.Status || item.Keterangan || "Hadir";
     const checkType = item["CheckType (IN/OUT)"] || "IN";
+
     let colorTheme = "#2ecc71"; // Hijau (Masuk Normal)
     let statusLabel = "✅ MASUK";
 
-    const stLow = statusText.toLowerCase();
+    const stLow = String(statusText).toLowerCase();
     const typeUp = String(checkType).toUpperCase();
 
     // Logika Warna Label Sesuai Tipe dan Status
@@ -151,7 +178,7 @@ function renderLiveCards() {
             <p style="margin: 0; color: #777; font-size: 0.85em;">⏰ ${waktu}</p>
           </div>
           <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid #eee; font-size: 0.8em; color: #555; display: flex; justify-content: space-between; align-items: center;">
-            <span>ID: <b>${item.UserID}</b></span>
+            <span>ID: <b>${item.UserID || "-"}</b></span>
             <a href="${foto}" target="_blank" style="color: ${colorTheme}; text-decoration: none; font-weight: bold;">🔍 Lihat Foto</a>
           </div>
         </div>
