@@ -32,11 +32,11 @@ function isHariLibur(dateObj = new Date()) {
 
 function downloadTemplateKaldik() {
   // Isi struktur data CSV template
-  const csvContent = "tanggal,keterangan,tipe\n" +
-                     "2026-08-17,HUT Kemerdekaan RI Ke-81,Libur Nasional\n" +
-                     "2026-10-01,Hari Kesaktian Pancasila,Agenda Sekolah\n" +
-                     "2026-12-25,Hari Raya Natal,Libur Nasional\n" +
-                     "2027-01-01,Tahun Baru 2027,Libur Nasional";
+  const csvContent = "tanggal;keterangan;tipe\n" +
+                     "2026-08-17;HUT Kemerdekaan RI Ke-81;Libur Nasional\n" +
+                     "2026-10-01;Hari Kesaktian Pancasila;Agenda Sekolah\n" +
+                     "2026-12-25;Hari Raya Natal;Libur Nasional\n" +
+                     "2027-01-01;Tahun Baru 2027;Libur Nasional";
 
   // Buat Blob data CSV
   const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
