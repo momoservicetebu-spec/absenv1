@@ -352,7 +352,7 @@ async function executeAttendance(userID, userName) {
 
   const activeRole = (typeof TERMINAL_ROLE !== 'undefined') ? TERMINAL_ROLE : "GURU";
   const JAM_MASUK_CONFIG = (typeof CONFIG !== 'undefined' && CONFIG.jamMasuk) ? CONFIG.jamMasuk : (localStorage.getItem('jam_masuk') || "07:15");
-
+  const fotoTangkapan = captureKameraBase64();
   const payload = {
     userId: String(userID).trim(),
     nama: displayName,
@@ -363,7 +363,8 @@ async function executeAttendance(userID, userName) {
     authLevel: "2FA",
     jamMasukConfig: JAM_MASUK_CONFIG,
     deviceId: "TERMINAL-" + activeRole,
-    keterangan: "Absen Wajah & Kartu Sukses"
+    keterangan: "Absen Wajah & Kartu Sukses",
+    fotoBase64: fotoTangkapan
   };
 
   try {
