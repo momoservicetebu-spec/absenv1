@@ -24,3 +24,31 @@ function isHariLibur(dateObj = new Date()) {
 
   return { isLibur: false, alasan: "Hari Efektif" };
 }
+
+// ==========================================
+// FILE: js/kaldik.js
+// FUNGSI UNDUH TEMPLATE CSV KALENDER PENDIDIKAN
+// ==========================================
+
+function downloadTemplateKaldik() {
+  // Isi struktur data CSV template
+  const csvContent = "tanggal,keterangan,tipe\n" +
+                     "2026-08-17,HUT Kemerdekaan RI Ke-81,Libur Nasional\n" +
+                     "2026-10-01,Hari Kesaktian Pancasila,Agenda Sekolah\n" +
+                     "2026-12-25,Hari Raya Natal,Libur Nasional\n" +
+                     "2027-01-01,Tahun Baru 2027,Libur Nasional";
+
+  // Buat Blob data CSV
+  const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  
+  // Buat elemen anchor unduhan virtual
+  const link = document.createElement("a");
+  link.setAttribute("href", url);
+  link.setAttribute("download", "Template_Kalender_Pendidikan.csv");
+  document.body.appendChild(link);
+  
+  // Triger unduh otomatis
+  link.click();
+  document.body.removeChild(link);
+}
