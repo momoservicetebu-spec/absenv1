@@ -336,7 +336,7 @@ function captureKameraBase64() {
 }
 
 // ==========================================
-// 5. EKSEKUSI PENGIRIMAN ABSENSI KE SERVER & VOICE
+// 5. EKSEKUSI PENGIRIMAN ABSENSI KE SERVER & VOICE (FIXED STATUS & VOICE)
 // ==========================================
 let isSubmittingAttendance = false;
 
@@ -373,46 +373,54 @@ async function executeAttendance(userID, userName) {
 
     if (record.Nama) displayName = record.Nama;
 
+    // -----------------------------------------------------------
+    // 1. RESPON BERHASIL (TAP PERTAMA SAH)
+    // -----------------------------------------------------------
     if (result && result.success) {
-      const statusAbsen = record.status || "";
+      
+      // PERBAIKAN DUKUNGAN KUNCI HEADER SPREADSHEET & APPS SCRIPT
+      const statusAbsen = String(
+        record["Status(Hadir/Telat/Izin/dll)"] || 
+        record.Status || 
+        record.status || 
+        ""
+      ).toUpperCase().trim();
 
-      let warnaBg = "#2ecc71"; // Hijau
+      let warnaBg = "#2ecc71"; // Hijau Default (Tepat Waktu)
       let ikon = "✅";
       let teksJudul = "ABSEN MASUK SUKSES";
       let teksStatus = "Masuk Tepat Waktu";
-      let teksSuara = `Terima kasih ${displayName}. Absen masuk berhasil. Selamat mengajar.`;
+      
+      // Ambil pesan suara khusus dari backend jika ada
+      let teksSuara = record.pesanSuara || `Terima kasih ${displayName}. Absen masuk berhasil. Selamat mengajar.`;
 
-      // 1. MASUK TERLAMBAT
-      if (statusAbsen === "TERLAMBAT") {
+      // A. STATUS TERLAMBAT (07:16 - 12:00)
+      if (statusAbsen.includes("TELAT") || statusAbsen.includes("TERLAMBAT")) {
         warnaBg = "#e67e22"; // Oranye
         ikon = "⚠️";
         teksJudul = "ABSEN MASUK (TERLAMBAT)";
         teksStatus = "Masuk Terlambat";
-        teksSuara = `Absen masuk berhasil. Maaf ${displayName}, Anda tercatat terlambat.`;
-      
-      // 2. PULANG AWAL (12:01 - 14:40)
-      } else if (statusAbsen === "PULANG AWAL") {
+
+      // B. STATUS PULANG AWAL (12:01 - 14:40)
+      } else if (statusAbsen.includes("PULANG AWAL")) {
         warnaBg = "#f39c12"; // Kuning
         ikon = "🟡";
         teksJudul = "ABSEN PULANG AWAL";
         teksStatus = "Pulang Awal";
-        teksSuara = `Absen pulang berhasil. Maaf ${displayName}, Anda pulang lebih awal.`;
 
-      // 3. PULANG NORMAL (14:41 - 15:00)
-      } else if (statusAbsen === "PULANG NORMAL") {
+      // C. STATUS PULANG NORMAL (14:41 - 15:00)
+      } else if (statusAbsen.includes("PULANG NORMAL") || statusAbsen === "PULANG") {
         warnaBg = "#3498db"; // Biru
         ikon = "🔵";
         teksJudul = "ABSEN PULANG SUKSES";
         teksStatus = "Pulang Normal";
-        teksSuara = `Terima kasih ${displayName}, absen pulang berhasil. Hati-hati di jalan.`;
 
-      // 4. PULANG LEMBUR (15:01 - 24:00)
-      } else if (statusAbsen === "PULANG LEMBUR") {
+      // D. STATUS PULANG LEMBUR (15:01 - 24:00)
+      } else if (statusAbsen.includes("LEMBUR")) {
         warnaBg = "#9b59b6"; // Ungu
         ikon = "🟣";
         teksJudul = "ABSEN PULANG LEMBUR";
         teksStatus = "Pulang Lembur";
-        teksSuara = `Terima kasih ${displayName}, absen lembur berhasil. Selamat beristirahat, sampai jumpa besok.`;
       }
 
       putarSuaraKonfirmasi(teksSuara);
@@ -423,12 +431,16 @@ async function executeAttendance(userID, userName) {
         statusText.style.color = warnaBg;
       }
 
+    // -----------------------------------------------------------
+    // 2. RESPON PERINGATAN / DITOLAK (RE-TAP SEBELUM JAM 12:00)
+    // -----------------------------------------------------------
     } else {
-      // PENANGANAN JIKA DITOLAK (RE-TAP SEBELUM JAM 12:00)
-      const errMessage = backendMessage || "Absensi Ditolak";
-      const cleanMsg = errMessage.replace("[Sistem]", "").trim();
+      const cleanMsg = (backendMessage || "Absensi Ditolak").replace("[Sistem]", "").trim();
       
-      putarSuaraKonfirmasi(cleanMsg); 
+      // Utamakan pesan suara rinci dari backend (misal: "Maaf Guntoro, Anda sudah absen masuk jam 08:43")
+      const pesanSuaraAlert = (record && record.pesanSuara) ? record.pesanSuara : cleanMsg;
+
+      putarSuaraKonfirmasi(pesanSuaraAlert); 
       showAlert(`⚠️ ${cleanMsg}`, "#e67e22"); 
 
       if (typeof statusText !== 'undefined' && statusText) {
