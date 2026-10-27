@@ -42,24 +42,7 @@ function switchLiveRole(role) {
     btnGuru.style.background = "#e0e0e0";
     btnGuru.style.color = "#333";
   }
-// Helper konversi URL Google Drive ke Link Gambar Langsung
-function fixDrivePhotoUrl(url) {
-  if (!url || typeof url !== 'string') return '';
-  
-  // Jika sudah format lh3, langsung gunakan
-  if (url.includes('lh3.googleusercontent.com')) return url;
-  
-  // Ekstrak ID File dari URL Drive
-  let fileId = '';
-  const matchD = url.match(/\/d\/([^\/\?]+)/);
-  const matchId = url.match(/id=([^&]+)/);
-  
-  if (matchD && matchD[1]) fileId = matchD[1];
-  else if (matchId && matchId[1]) fileId = matchId[1];
-  
-  // Ubah ke format direct image link
-  return fileId ? `https://lh3.googleusercontent.com/d/${fileId}` : url;
-}
+
   // Render ulang data kartu sesuai role terpilih
   renderLiveCards();
 }
