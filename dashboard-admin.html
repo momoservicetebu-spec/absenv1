@@ -1333,7 +1333,16 @@
         </div>
       </div>
 
-      <!-- Opsi Upload CSV Kalender Pendidikan -->
+     <!-- 5. KALENDER PENDIDIKAN & HARI LIBUR -->
+      <div style="margin-top: 20px; padding: 18px; border: 1px solid #4a4563; border-radius: 8px; background: #231f36;">
+        <h3 style="color: #00d2d3; font-size: 15px; margin-bottom: 15px; border-bottom: 1px solid #4a4563; padding-bottom: 8px;" data-lang="kaldikTitle">
+          📅 Kalender Pendidikan & Libur Sekolah
+        </h3>
+        <p style="color: #a29bfe; font-size: 12px; margin-bottom: 15px;" data-lang="kaldikDesc">
+          Atur hari libur nasional, libur semester, dan kegiatan sekolah agar sistem tidak menghitung status ALPA pada hari libur.
+        </p>
+
+        <!-- Opsi Upload CSV Kalender Pendidikan -->
         <div style="margin-bottom: 20px;">
           <label style="color: #fff; font-size: 13px; font-weight: bold; display: block; margin-bottom: 8px;" data-lang="uploadKaldik">
             Upload Kalender Pendidikan (.CSV):
@@ -1345,7 +1354,6 @@
               📁 Pilih File CSV Kaldik
             </button>
             
-            <!-- Perbaikan Fungsi Onclick Download -->
             <button type="button" class="btn-action" onclick="downloadTemplateKaldik()" style="background: #161224; border: 1px solid #6c5ce7; color: #a29bfe; display: inline-flex; align-items: center; gap: 6px; padding: 10px 16px; cursor: pointer;">
               📥 Unduh Template CSV Kaldik
             </button>
@@ -1373,11 +1381,13 @@
         </div>
       </div>
 
-      <!-- Perbaikan Spasi Margin Tombol Simpan -->
+      <!-- 🌟 TOMBOL SIMPAN HARUS ADA DI DALAM DIV ID="SETTING" SEBEULM PENUTUP SECTION -->
       <button class="btn-action btn-success" onclick="simpanPengaturanLengkap()" style="width: 100%; font-size: 15px; padding: 14px; font-weight: bold; border-radius: 8px; margin-top: 25px; cursor: pointer;">
         💾 Simpan Seluruh Pengaturan
       </button>
-      
+
+    </div> <!-- 👈 PENUTUP SECTION SETTING ADA DI SINI -->
+
     <!-- 11. BACKUP & RESTORE -->
     <div id="backup" class="section card">
         <h2 class="section-title">💾 Backup & Restore Database</h2>
