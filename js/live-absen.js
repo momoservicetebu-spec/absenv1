@@ -13,13 +13,13 @@ function initLiveAbsen() {
   // Hentikan interval lama jika ada
   if (liveAbsenInterval) clearInterval(liveAbsenInterval);
   
-  // Auto-refresh interval (polling) setiap 5 detik
+  // Auto-refresh interval (polling) setiap 15 detik
   liveAbsenInterval = setInterval(() => {
     const liveTab = document.getElementById("live-absen");
     if (liveTab && liveTab.style.display !== "none") {
       loadLiveAbsenData(true); // true = reload otomatis tanpa menampilkan spinner/loading
     }
-  }, 5000);
+  }, 15000);
 }
 
 // 2. FUNGSI BERPINDAH SUB-TAB ROLE (GURU / SISWA)
@@ -42,7 +42,24 @@ function switchLiveRole(role) {
     btnGuru.style.background = "#e0e0e0";
     btnGuru.style.color = "#333";
   }
-
+// Helper konversi URL Google Drive ke Link Gambar Langsung
+function fixDrivePhotoUrl(url) {
+  if (!url || typeof url !== 'string') return '';
+  
+  // Jika sudah format lh3, langsung gunakan
+  if (url.includes('lh3.googleusercontent.com')) return url;
+  
+  // Ekstrak ID File dari URL Drive
+  let fileId = '';
+  const matchD = url.match(/\/d\/([^\/\?]+)/);
+  const matchId = url.match(/id=([^&]+)/);
+  
+  if (matchD && matchD[1]) fileId = matchD[1];
+  else if (matchId && matchId[1]) fileId = matchId[1];
+  
+  // Ubah ke format direct image link
+  return fileId ? `https://lh3.googleusercontent.com/d/${fileId}` : url;
+}
   // Render ulang data kartu sesuai role terpilih
   renderLiveCards();
 }
@@ -102,12 +119,13 @@ function renderLiveCards() {
     const nama = item.Nama || item.UserID || "Tanpa Nama";
     const role = item.Role || currentLiveRole;
     const waktu = item.Timestamp || item.Time || "-";
-    const foto = (item.Foto || item.ImageURL) ? (item.Foto || item.ImageURL) : "https://via.placeholder.com/150?text=No+Photo";
     
-    // 🌟 PERBAIKAN: Baca dari kolom Spreadsheet yang baru
+    // 🌟 PERBAIKAN: Pembacaan berbagai kemungkinan nama kolom foto + konversi URL Drive
+    const rawFoto = item.Foto || item.ImageURL || item["Foto (URL)"] || item["Foto"] || "";
+    const foto = fixDrivePhotoUrl(rawFoto) || "https://via.placeholder.com/150?text=No+Photo";
+    
     const statusText = item["Status(Hadir/Telat/Izin/dll)"] || item.Status || item.Keterangan || "Hadir";
     const checkType = item["CheckType (IN/OUT)"] || "IN";
-
     let colorTheme = "#2ecc71"; // Hijau (Masuk Normal)
     let statusLabel = "✅ MASUK";
 
