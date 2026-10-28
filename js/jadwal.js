@@ -1,10 +1,11 @@
 // ==========================================
-// KODE UTAMA CRUD JADWAL PELAJARAN
+// FILE: js/pages/jadwal.js (FULL CLEAN FIX)
 // ==========================================
 
 const GAS_BASE_URL = "https://script.google.com/macros/s/AKfycbxx3BLAOh7RZwF2vvukhDPhytbAPXfMP3H_RAJNeWgxLe2LNcCzojm-6HQ1kktPQMTQ/exec";
 let dataJadwalGlobal = []; 
 
+// 1. MEMUAT DATA JADWAL DARI SERVER
 window.loadJadwal = function() {
   const tableBody = document.getElementById('jadwal-table-body');
   if (!tableBody) return;
@@ -24,6 +25,7 @@ window.loadJadwal = function() {
   });
 };
 
+// 2. RENDER TABEL JADWAL
 function renderTabelJadwal(data) {
   const tableBody = document.getElementById('jadwal-table-body');
   if (!tableBody) return;
@@ -46,21 +48,26 @@ function renderTabelJadwal(data) {
     const mapel = item.Mata_Pelajaran || item.mata_pelajaran || '-';
     const kodeGuru = item.Kode_Guru || item.kode_guru || item.guru_pengajar || '-';
 
-    const waktuText = (waktuMulai || waktuSelesai) ? `${waktuMulai} - ${waktuSelesai}` : '-';
+    let waktuText = '-';
+    if (waktuMulai && waktuSelesai) {
+      waktuText = `${waktuMulai} - ${waktuSelesai}`;
+    } else if (waktuMulai) {
+      waktuText = waktuMulai;
+    }
 
     html += `
     <tr>
-      <td>${hari}</td>
-      <td>${jamKe}</td>
-      <td>${waktuText}</td>
-      <td>${kelas}</td>
-      <td>${mapel}</td>
-      <td><span style="background:#6c5ce7; padding:2px 8px; border-radius:4px; color:white;">${kodeGuru}</span></td>
+      <td><b>${hari}</b></td>
+      <td>Jam ke-${jamKe}</td>
+      <td>⏰ ${waktuText}</td>
+      <td><span style="background:#2c3e50; color:#fff; padding:3px 8px; border-radius:4px; font-weight:bold;">${kelas}</span></td>
+      <td><b>${mapel}</b></td>
+      <td><span style="background:#6c5ce7; padding:3px 8px; border-radius:4px; color:white; font-weight:bold;">${kodeGuru}</span></td>
       <td style="text-align: center; white-space: nowrap;">
-        <button onclick="editJadwal('${rowId}')" style="background:#f1c40f; color:#1e202e; border:none; padding:4px 8px; border-radius:4px; cursor:pointer; font-size:12px; font-weight:bold; margin-right:4px;">
+        <button onclick="editJadwal('${rowId}')" style="background:#f1c40f; color:#1e202e; border:none; padding:5px 10px; border-radius:4px; cursor:pointer; font-size:12px; font-weight:bold; margin-right:4px;">
           ✏️ Edit
         </button>
-        <button onclick="hapusJadwal('${rowId}')" style="background:#ff6b6b; color:white; border:none; padding:4px 8px; border-radius:4px; cursor:pointer; font-size:12px; font-weight:bold;">
+        <button onclick="hapusJadwal('${rowId}')" style="background:#ff6b6b; color:white; border:none; padding:5px 10px; border-radius:4px; cursor:pointer; font-size:12px; font-weight:bold;">
           🗑️ Hapus
         </button>
       </td>
@@ -70,19 +77,18 @@ function renderTabelJadwal(data) {
   tableBody.innerHTML = html;
 }
 
+// 3. EDIT JADWAL MANUAL
 window.editJadwal = function(id) {
   const item = dataJadwalGlobal.find((j, idx) => 
     (j.JadwalID == id || j.jadwalid == id || j.id == id || idx == id)
   );
   
   if (!item) {
-    console.error("Data jadwal tidak ditemukan untuk ID:", id);
     alert("Data tidak ditemukan di sistem.");
     return;
   }
 
   document.getElementById('modal-title').innerText = "Edit Jadwal Pelajaran";
-  
   document.getElementById('input-jadwal-id').value = item.JadwalID || item.id || id;
   document.getElementById('input-hari').value = item.Hari || item.hari || 'Senin';
   document.getElementById('input-jam').value = item.Jam_Ke || item.jam_ke || '';
@@ -92,21 +98,28 @@ window.editJadwal = function(id) {
   document.getElementById('input-mapel').value = item.Mata_Pelajaran || item.mata_pelajaran || '';
   document.getElementById('input-kodeguru').value = item.Kode_Guru || item.kode_guru || item.guru_pengajar || '';
 
-  document.getElementById('modal-tambah-jadwal').style.display = 'block';
+  const modal = document.getElementById('modal-tambah-jadwal');
+  if (modal) modal.style.display = 'block';
 };
 
+// 4. UTILS MODAL
 window.bukaModalJadwal = function() {
   document.getElementById('modal-title').innerText = "Tambah Jadwal Manual";
   document.getElementById('input-jadwal-id').value = "";
-  document.getElementById('form-tambah-jadwal').reset();
-  document.getElementById('modal-tambah-jadwal').style.display = 'block';
+  const form = document.getElementById('form-tambah-jadwal');
+  if (form) form.reset();
+  const modal = document.getElementById('modal-tambah-jadwal');
+  if (modal) modal.style.display = 'block';
 };
 
 window.tutupModalJadwal = function() {
-  document.getElementById('modal-tambah-jadwal').style.display = 'none';
-  document.getElementById('form-tambah-jadwal').reset();
+  const modal = document.getElementById('modal-tambah-jadwal');
+  if (modal) modal.style.display = 'none';
+  const form = document.getElementById('form-tambah-jadwal');
+  if (form) form.reset();
 };
 
+// 5. HAPUS JADWAL
 window.hapusJadwal = function(id) {
   if (!confirm("Apakah Anda yakin ingin menghapus jadwal ini?")) return;
 
@@ -114,7 +127,7 @@ window.hapusJadwal = function(id) {
   
   fetch(GAS_URL, {
     method: "POST",
-    body: JSON.stringify({ id: id })
+    body: JSON.stringify({ id: id, JadwalID: id })
   })
   .then(response => response.json())
   .then(result => {
@@ -131,6 +144,7 @@ window.hapusJadwal = function(id) {
   });
 };
 
+// 6. INITIALIZATION LISTENERS
 document.addEventListener('DOMContentLoaded', () => {
   window.loadJadwal();
 
@@ -140,11 +154,13 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   const modalJadwal = document.getElementById('modal-tambah-jadwal');
-  window.addEventListener('click', (event) => {
-    if (event.target === modalJadwal) {
-      window.tutupModalJadwal();
-    }
-  });
+  if (modalJadwal) {
+    window.addEventListener('click', (event) => {
+      if (event.target === modalJadwal) {
+        window.tutupModalJadwal();
+      }
+    });
+  }
 
   const formTambahJadwal = document.getElementById('form-tambah-jadwal');
   if (formTambahJadwal) {
@@ -157,6 +173,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const payload = {
         id: jadwalId,
+        JadwalID: jadwalId,
         hari: document.getElementById('input-hari').value,
         jam_ke: document.getElementById('input-jam').value,
         waktu_mulai: document.getElementById('input-mulai').value,
@@ -170,8 +187,10 @@ document.addEventListener('DOMContentLoaded', () => {
       const GAS_URL = `${GAS_BASE_URL}?action=${action}`;
 
       const submitBtn = document.getElementById('btn-submit-modal') || this.querySelector('button[type="submit"]');
-      submitBtn.innerText = "Menyimpan...";
-      submitBtn.disabled = true;
+      if (submitBtn) {
+        submitBtn.innerText = "Menyimpan...";
+        submitBtn.disabled = true;
+      }
 
       fetch(GAS_URL, {
         method: "POST",
@@ -184,16 +203,18 @@ document.addEventListener('DOMContentLoaded', () => {
           window.tutupModalJadwal();
           window.loadJadwal(); 
         } else {
-          alert("❌ Gagal menyimpan: " + result.message);
+          alert("❌ Gagal menyimpan: " + (result.message || "Error Server"));
         }
       })
       .catch(error => {
-        console.error("Error:", error);
+        console.error("Error submit:", error);
         alert("❌ Terjadi kesalahan koneksi saat menyimpan.");
       })
       .finally(() => {
-        submitBtn.innerText = "Simpan Jadwal";
-        submitBtn.disabled = false;
+        if (submitBtn) {
+          submitBtn.innerText = "Simpan Jadwal";
+          submitBtn.disabled = false;
+        }
       });
     });
   }
