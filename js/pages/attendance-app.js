@@ -237,20 +237,25 @@ if (nfcInput) {
 }
 
 // ==========================================
-// 4. VERIFIKASI WAJAH AI (DENGAN NAMA MASTER)
+// 4. VERIFIKASI WAJAH AI (DENGAN NAMA MASTER & SMART ALIAS MATCHING)
 // ==========================================
 function startVerificationState(userID, userName) {
   if (isProcessing) return;
   isProcessing = true;
 
-  // 1. PENCARIAN NAMA & STATUS BERCADAR DARI MASTER DATA 
-  let displayName = userID;
+  const cleanInputID = String(userID || '').replace(/'/g, "").trim();
+  let displayName = cleanInputID;
+
+  // 1. PENCARIAN NAMA & STATUS BERCADAR DARI MASTER DATA
   const masterGuru = typeof dataGuru !== 'undefined' ? dataGuru : (typeof listGuru !== 'undefined' ? listGuru : []);
   const masterSiswa = typeof dataSiswa !== 'undefined' ? dataSiswa : (typeof listSiswa !== 'undefined' ? listSiswa : []);
   const allUsers = [...masterGuru, ...masterSiswa];
 
   const foundMaster = allUsers.find(
-    u => String(u.UserID || u.NIP || u.NIS || u.ID).trim().toUpperCase() === String(userID).trim().toUpperCase()
+    u => {
+      const uID = String(u.UserID || u.NIP || u.NIS || u.ID || u.id || '').replace(/'/g, "").trim().toUpperCase();
+      return uID === cleanInputID.toUpperCase() || (cleanInputID.length > 5 && uID.includes(cleanInputID.toUpperCase()));
+    }
   );
 
   if (foundMaster) {
@@ -259,66 +264,85 @@ function startVerificationState(userID, userName) {
     // 🌟 BYPASS WAJAH KHUSUS GURU BERCADAR
     let statusBercadar = foundMaster.Bercadar || foundMaster.bercadar || "";
     if (statusBercadar === true || String(statusBercadar).toUpperCase().trim() === "YA") {
-      if (standbyUI) standbyUI.style.display = 'none';
+      if (typeof standbyUI !== 'undefined' && standbyUI) standbyUI.style.display = 'none';
       statusText.innerText = `Bypass Terverifikasi (${displayName})`;
       statusText.style.color = "#2ecc71";
       
       // Langsung eksekusi absensi tanpa kamera
-      executeAttendance(userID, displayName);
+      executeAttendance(cleanInputID, displayName);
       return; // Hentikan fungsi di sini
     }
-  } else if (userName && userName !== userID) {
+  } else if (userName && userName !== cleanInputID) {
     displayName = userName;
   }
 
-  // 2. CEK DATA WAJAH (Hanya untuk yang tidak bercadar)
-  const targetUser = (typeof databaseWajah !== 'undefined' ? databaseWajah : []).find(
-    u => String(u.id || u.UserID).trim().toUpperCase() === String(userID).trim().toUpperCase()
-  );
+  // 2. CEK DATA WAJAH (SMART ALIAS RESOLVER: Pencocokan NIP, ID, atau Nama)
+  const dbWajah = typeof databaseWajah !== 'undefined' ? databaseWajah : [];
+  const searchUpper = cleanInputID.toUpperCase();
+  const nameUpper = String(displayName).toUpperCase().trim();
+
+  const targetUser = dbWajah.find(u => {
+    const faceID = String(u.id || u.UserID || '').replace(/'/g, "").trim().toUpperCase();
+    const faceNIP = String(u.nip || u.NIP || '').replace(/'/g, "").trim().toUpperCase();
+    const faceNama = String(u.nama || u.Nama || '').replace(/'/g, "").trim().toUpperCase();
+
+    // 🌟 Lolos jika ID persis sama (misal: TU-04 == TU-04), NIP cocok, atau Nama cocok
+    return faceID === searchUpper || 
+           (faceNIP && faceNIP === searchUpper) ||
+           (searchUpper.length > 5 && faceNIP.includes(searchUpper)) ||
+           (nameUpper && faceNama && faceNama === nameUpper);
+  });
   
   if (!targetUser) {
+    isProcessing = false;
     putarSuaraKonfirmasi(`Data wajah belum didaftarkan.`);
-    showAlert(`Data wajah untuk ${userID} belum didaftarkan.`, "#e74c3c");
+    showAlert(`Data wajah untuk ${displayName} (${cleanInputID}) belum didaftarkan.`, "#e74c3c");
     setTimeout(resetToStandby, 3000);
     return;
   }
 
   // 3. PROSES PEMINDAIAN WAJAH KAMERA
   currentMFAUser = targetUser;
-  if (standbyUI) standbyUI.style.display = 'none';
-  if (videoContainer) videoContainer.style.display = 'flex';
+  if (typeof standbyUI !== 'undefined' && standbyUI) standbyUI.style.display = 'none';
+  if (typeof videoContainer !== 'undefined' && videoContainer) videoContainer.style.display = 'flex';
   
   statusText.innerText = `Pindai Wajah: ${displayName}...`;
   statusText.style.color = "#3498db";
 
   let canvas = document.querySelector('canvas');
-  if (!canvas) {
+  if (!canvas && typeof video !== 'undefined') {
     canvas = faceapi.createCanvasFromMedia(video);
-    videoContainer.append(canvas);
+    if (videoContainer) videoContainer.append(canvas);
   }
-  const displaySize = { width: video.width || 640, height: video.height || 480 };
-  faceapi.matchDimensions(canvas, displaySize);
+  const displaySize = { width: (video && video.width) || 640, height: (video && video.height) || 480 };
+  if (canvas) faceapi.matchDimensions(canvas, displaySize);
 
   verificationInterval = setInterval(async () => {
+    if (typeof video === 'undefined' || !video) return;
+
     const detections = await faceapi.detectSingleFace(video, new faceapi.TinyFaceDetectorOptions({ inputSize: 320, scoreThreshold: 0.5 }))
                                     .withFaceLandmarks()
                                     .withFaceDescriptor();
     
-    const context = canvas.getContext('2d');
-    context.clearRect(0, 0, canvas.width, canvas.height);
+    if (canvas) {
+      const context = canvas.getContext('2d');
+      context.clearRect(0, 0, canvas.width, canvas.height);
+    }
 
     if (detections) {
       const resized = faceapi.resizeResults(detections, displaySize);
       const distance = faceapi.euclideanDistance(detections.descriptor, currentMFAUser.descriptor);
       const isMatch = distance < 0.6; 
 
-      const drawOptions = {
-        label: isMatch ? `✅ ${displayName}` : `Memindai... (${distance.toFixed(2)})`,
-        lineWidth: 3,
-        boxColor: isMatch ? '#2ecc71' : '#e67e22'
-      };
-      const drawBox = new faceapi.draw.DrawBox(resized.detection.box, drawOptions);
-      drawBox.draw(canvas);
+      if (canvas) {
+        const drawOptions = {
+          label: isMatch ? `✅ ${displayName}` : `Memindai... (${distance.toFixed(2)})`,
+          lineWidth: 3,
+          boxColor: isMatch ? '#2ecc71' : '#e67e22'
+        };
+        const drawBox = new faceapi.draw.DrawBox(resized.detection.box, drawOptions);
+        drawBox.draw(canvas);
+      }
 
       if (isMatch) {
         clearInterval(verificationInterval);
@@ -327,7 +351,9 @@ function startVerificationState(userID, userName) {
         statusText.innerText = `Wajah Cocok! (${displayName})`;
         statusText.style.color = "#2ecc71";
         
-        executeAttendance(userID, displayName);
+        // Gunakan ID resmi (misal: TU-04 atau NIP) untuk mencatat absensi
+        const finalID = currentMFAUser.id || currentMFAUser.UserID || cleanInputID;
+        executeAttendance(finalID, displayName);
       } else {
         statusText.innerText = `Membandingkan Wajah... (${distance.toFixed(2)})`;
       }
@@ -338,6 +364,7 @@ function startVerificationState(userID, userName) {
     if (isProcessing && verificationInterval) {
       clearInterval(verificationInterval);
       verificationInterval = null;
+      isProcessing = false;
       putarSuaraKonfirmasi("Verifikasi wajah gagal.");
       showAlert(`Wajah tidak cocok untuk ${displayName}.`, "#e74c3c");
       setTimeout(resetToStandby, 3000);
