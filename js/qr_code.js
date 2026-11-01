@@ -1,5 +1,5 @@
 /**
- * FILE: js/qr_code.js
+ * FILE: js/qr_code.js (FULL FIX - TENAGA KEPENDIDIKAN SUPPORT)
  * Fitur: Single & Bulk QR Card Generator (Portrait/Landscape) + CRUD Table
  */
 
@@ -11,19 +11,35 @@ document.addEventListener("DOMContentLoaded", function () {
   loadUserForQR();
   loadSavedQRTable();
 });
+
 // Inisialisasi Select2 pada dropdown pengguna agar bisa dicari
 $(document).ready(function() {
-    $('#qrUserSelect').select2({
-        placeholder: "-- Cari Pengguna --",
-        allowClear: true,
-        width: '100%' // Sesuaikan lebar otomatis
-    });
-    
-    // Pastikan saat Select2 berubah, kartu preview juga terupdate
-    $('#qrUserSelect').on('change', function() {
-        renderQRPreview();
-    });
+    if (typeof $.fn.select2 !== 'undefined') {
+      $('#qrUserSelect').select2({
+          placeholder: "-- Cari Pengguna --",
+          allowClear: true,
+          width: '100%'
+      });
+      
+      $('#qrUserSelect').on('change', function() {
+          renderQRPreview();
+      });
+    }
 });
+
+// 🌟 FUNGSI PEMBANTU: DETERMINASI ROLE PRESISI (TENAGA KEPENDIDIKAN / GURU / SISWA)
+function detectUserRole(userObj, userIdRaw) {
+  const uid = String(userIdRaw || userObj.UserID || userObj.NIP || userObj.NIS || userObj.id || '').toUpperCase();
+  const rawRole = String(userObj?.Role || userObj?.role || userObj?.Role_Sistem || '').toUpperCase();
+  const nama = String(userObj?.Nama || userObj?.nama || '').toUpperCase();
+
+  if (uid.startsWith('TU-') || rawRole.includes('TENAGA') || rawRole.includes('TU') || rawRole.includes('ADMIN') || nama.includes('TENAGA KEPENDIDIKAN')) {
+    return 'Tenaga Kependidikan';
+  } else if (uid.startsWith('GURU-') || rawRole.includes('GURU') || rawRole.includes('KEPSEK') || uid.length > 10) {
+    return 'Guru';
+  }
+  return 'Siswa';
+}
 
 // 1. MEMUAT DATA UNTUK DROPDOWN
 async function loadUserForQR() {
@@ -38,23 +54,23 @@ async function loadUserForQR() {
 
     if (result && result.success) {
       selectElement.innerHTML = '<option value="">-- Pilih Pengguna --</option>';
-      if (classElement) classElement.innerHTML = '<option value="ALL">-- Cetak Semua (Siswa & Guru) --</option><option value="GURU">-- Semua Guru --</option>';
+      if (classElement) classElement.innerHTML = '<option value="ALL">-- Cetak Semua (Siswa & Staf) --</option><option value="GURU">-- Semua Guru --</option><option value="TU">-- Semua Tenaga Kependidikan --</option>';
 
       let usersArray = [];
       let classSet = new Set();
 
       if (typeof result.data === 'object' && result.data !== null) {
         if (result.data.listSiswa && Array.isArray(result.data.listSiswa)) {
-          let siswa = result.data.listSiswa.map(u => ({...u, Role: 'Siswa'}));
+          let siswa = result.data.listSiswa.map(u => ({...u, Role: detectUserRole(u, u.UserID || u.NIS)}));
           usersArray = usersArray.concat(siswa);
           siswa.forEach(s => { if (s.Kelas) classSet.add(s.Kelas); });
         }
         if (result.data.listGuru && Array.isArray(result.data.listGuru)) {
-          let guru = result.data.listGuru.map(u => ({...u, Role: 'Guru'}));
+          let guru = result.data.listGuru.map(u => ({...u, Role: detectUserRole(u, u.UserID || u.NIP)}));
           usersArray = usersArray.concat(guru);
         }
       } else if (Array.isArray(result.data)) {
-        usersArray = result.data;
+        usersArray = result.data.map(u => ({...u, Role: detectUserRole(u, u.UserID || u.NIP || u.NIS)}));
       }
 
       if (usersArray.length > 0) {
@@ -63,7 +79,7 @@ async function loadUserForQR() {
         usersArray.forEach(user => {
           let userId = user.UserID || user.NIP || user.NIS || user.id;
           let userName = user.Nama || user.nama || "Tanpa Nama";
-          let userRole = user.Role || (String(userId).length > 10 ? 'Guru' : 'Siswa');
+          let userRole = user.Role || detectUserRole(user, userId);
 
           if (userId) {
             let option = document.createElement('option');
@@ -137,12 +153,24 @@ function switchQRMode(mode) {
 function buildCardHtml(userId, nama, role, orientation) {
   const qrPayload = JSON.stringify({ id: userId, role: role, nama: nama });
   const qrImageUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(qrPayload)}`;
+  
+  // Badge Color khusus Tenaga Kependidikan vs Guru vs Siswa
+  let roleBg = '#e0e7ff';
+  let roleColor = '#3730a3';
+
+  if (role === 'Tenaga Kependidikan') {
+    roleBg = '#ffedd5';
+    roleColor = '#c2410c'; // Warna Emas/Orange Staf TU
+  } else if (role === 'Guru') {
+    roleBg = '#fef3c7';
+    roleColor = '#b45309';
+  }
 
   if (orientation === 'landscape') {
     return `
       <div class="qr-printable-card" style="background: #ffffff; color: #1f2937; padding: 16px; border-radius: 12px; width: 340px; height: 210px; border: 2px solid #6366f1; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); margin: 10px auto; font-family: sans-serif; box-sizing: border-box;">
         <div style="text-align: left; width: 55%; padding-right: 10px;">
-          <span style="font-size: 10px; background: #e0e7ff; color: #3730a3; padding: 3px 8px; border-radius: 20px; font-weight: bold; text-transform: uppercase;">${role}</span>
+          <span style="font-size: 10px; background: ${roleBg}; color: ${roleColor}; padding: 3px 8px; border-radius: 20px; font-weight: bold; text-transform: uppercase;">${role}</span>
           <h5 style="margin: 10px 0 4px 0; font-size: 13px; color: #4f46e5; font-weight: 800;">KARTU ABSENSI DIGITAL</h5>
           <h6 style="margin: 6px 0 2px 0; font-size: 14px; font-weight: bold; color: #111827; line-height: 1.2;">${nama}</h6>
           <p style="margin: 0; font-size: 11px; color: #6b7280; font-family: monospace;">ID: ${userId}</p>
@@ -157,7 +185,7 @@ function buildCardHtml(userId, nama, role, orientation) {
       <div class="qr-printable-card" style="background: #ffffff; color: #1f2937; padding: 20px; border-radius: 12px; width: 230px; height: 340px; border: 2px solid #6366f1; text-align: center; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); margin: 10px auto; font-family: sans-serif; display: flex; flex-direction: column; justify-content: space-between; box-sizing: border-box;">
         <div>
           <h5 style="margin: 0; font-size: 12px; color: #4f46e5; font-weight: 800; letter-spacing: 0.5px;">KARTU ABSENSI DIGITAL</h5>
-          <small style="font-size: 10px; background: #e0e7ff; color: #3730a3; padding: 2px 8px; border-radius: 12px; font-weight: bold; text-transform: uppercase; display: inline-block; margin-top: 4px;">${role}</small>
+          <small style="font-size: 10px; background: ${roleBg}; color: ${roleColor}; padding: 2px 8px; border-radius: 12px; font-weight: bold; text-transform: uppercase; display: inline-block; margin-top: 4px;">${role}</small>
         </div>
         <div style="margin: 10px 0;">
           <img src="${qrImageUrl}" alt="QR Code" style="width: 135px; height: 135px; border: 1px solid #e5e7eb; padding: 4px; border-radius: 8px; background: #fff;" />
@@ -190,7 +218,7 @@ function renderQRPreview() {
 
     const user = qrUserListCache.find(u => String(u.UserID || u.NIP || u.NIS || u.id) === String(selectedUserId));
     const nama = user ? (user.Nama || user.nama) : "Pengguna";
-    const role = user ? (user.Role || (String(selectedUserId).length > 10 ? 'Guru' : 'Siswa')) : 'Siswa';
+    const role = user ? detectUserRole(user, selectedUserId) : detectUserRole({}, selectedUserId);
 
     previewBox.innerHTML = buildCardHtml(selectedUserId, nama, role, orientation);
 
@@ -198,6 +226,7 @@ function renderQRPreview() {
       action: "saveQRCode",
       userId: selectedUserId,
       role: role,
+      roleSistem: role,
       qrPayload: JSON.stringify({ id: selectedUserId, role: role, nama: nama })
     };
 
@@ -210,6 +239,8 @@ function renderQRPreview() {
       filteredUsers = qrUserListCache;
     } else if (selectedClass === "GURU") {
       filteredUsers = qrUserListCache.filter(u => u.Role === "Guru");
+    } else if (selectedClass === "TU") {
+      filteredUsers = qrUserListCache.filter(u => u.Role === "Tenaga Kependidikan");
     } else if (selectedClass) {
       filteredUsers = qrUserListCache.filter(u => u.Kelas === selectedClass);
     }
@@ -225,7 +256,7 @@ function renderQRPreview() {
     filteredUsers.forEach(u => {
       let uId = u.UserID || u.NIP || u.NIS || u.id;
       let uNama = u.Nama || u.nama || "Pengguna";
-      let uRole = u.Role || (String(uId).length > 10 ? 'Guru' : 'Siswa');
+      let uRole = u.Role || detectUserRole(u, uId);
       bulkHtml += buildCardHtml(uId, uNama, uRole, orientation);
     });
 
@@ -256,7 +287,7 @@ async function simpanKeDatabaseQR() {
   try {
     const result = await fetchAPI("saveQRCode", currentQRDataToSave);
     if (result && result.success) {
-      alert(`✅ Berhasil! QR Code untuk ID: ${currentQRDataToSave.userId} telah tersimpan.`);
+      alert(`✅ Berhasil! QR Code untuk ID: ${currentQRDataToSave.userId} (${currentQRDataToSave.role}) telah tersimpan.`);
       loadSavedQRTable();
     } else {
       alert("❌ Gagal menyimpan data: " + (result.message || "Terjadi kesalahan."));
@@ -316,28 +347,33 @@ async function loadSavedQRTable() {
   const tbody = document.getElementById("tbodySavedQR");
   if (!tbody) return;
 
-  // 1. Kosongkan tabel dan beri status loading setiap dipanggil
   tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 20px; color: #9ca3af;">⏳ Memuat data tabel QR Code...</td></tr>';
 
   try {
-    // 2. KUNCI PERBAIKAN: Tambahkan parameter _t (timestamp) untuk mematikan Cache Browser
     const result = await fetchAPI("getAllQRData", { _t: new Date().getTime() });
 
-    // 3. Tangani jika database benar-benar kosong
     if (!result || !result.data || result.data.length === 0) {
       tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 20px; color: #9ca3af;">📭 Belum ada data QR Code yang tersimpan di database.</td></tr>';
-      return; // Berhenti di sini
+      return;
     }
 
     if (result.success && Array.isArray(result.data)) {
       let html = '';
       result.data.forEach((row, index) => {
-        let badgeBg = row.Role === 'Guru' ? '#f59e0b' : '#0284c7';
-        let badgeColor = row.Role === 'Guru' ? '#000000' : '#ffffff';
-
         let recordId = row.RecordID || row.QRID || row.qrId || '';
         let userId = row.UserID || row.userId || '';
-        let role = row.Role || 'Siswa';
+        let role = detectUserRole(row, userId);
+
+        let badgeBg = '#0284c7';
+        let badgeColor = '#ffffff';
+
+        if (role === 'Tenaga Kependidikan') {
+          badgeBg = '#e67e22'; // Orange Emas Staf TU
+          badgeColor = '#ffffff';
+        } else if (role === 'Guru') {
+          badgeBg = '#f59e0b';
+          badgeColor = '#000000';
+        }
 
         html += `
           <tr style="border-bottom: 1px solid #332d4a;">
@@ -384,16 +420,14 @@ async function hapusQRFromTable(recordId, userId, role) {
     if (result && result.success) {
       alert("✅ Data QR berhasil dihapus!");
 
-      // 1. KOSONGKAN TABEL SECARA MANUAL DI LAYAR DULU
       const tbody = document.getElementById("tbodySavedQR");
       if(tbody) tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 20px; color: #9ca3af;">⏳ Menunggu sinkronisasi database (2 detik)...</td></tr>';
 
-      // 2. BERI JEDA 2 DETIK SEBELUM MEMANGGIL DATA BARU AGAR GOOGLE SHEETS SELESAI MENGHAPUS
       setTimeout(async () => {
         if (typeof loadSavedQRTable === "function") {
           await loadSavedQRTable();
         }
-      }, 2000); // 2000 milidetik = 2 detik
+      }, 2000);
 
     } else {
       alert("❌ Gagal menghapus: " + (result.message || "Kesalahan server."));
@@ -402,6 +436,7 @@ async function hapusQRFromTable(recordId, userId, role) {
     alert("❌ Error: " + error.message);
   }
 }
+
 // ==========================================
 // FUNGSI PENCARIAN REAL-TIME TABEL QR CODE
 // ==========================================
@@ -410,12 +445,10 @@ function filterQrTable() {
   if (!input) return;
   const filter = input.value.toLowerCase().trim();
   
-  // Mencari semua baris di dalam tbody tabel QR Code
   const rows = document.querySelectorAll("table tbody tr");
   
   rows.forEach(row => {
     if (row.cells.length <= 1) return;
-    
     const textContent = row.textContent.toLowerCase();
     row.style.display = textContent.includes(filter) ? "" : "none";
   });
