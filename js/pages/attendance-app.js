@@ -350,19 +350,31 @@ async function executeAttendance(userID, userName) {
     statusText.innerText = "Mengirim Data...";
   }
 
-  const activeRole = (typeof TERMINAL_ROLE !== 'undefined') ? TERMINAL_ROLE : "GURU";
+  // 🌟 DETERMINASI ROLE PRESISI (Mencatat Tenaga Kependidikan jika ID TU-)
+  const userIdUpper = String(userID).trim().toUpperCase();
+  let finalRole = (typeof TERMINAL_ROLE !== 'undefined') ? TERMINAL_ROLE : "GURU";
+
+  if (userIdUpper.startsWith('TU-')) {
+    finalRole = "Tenaga Kependidikan";
+  } else if (userIdUpper.startsWith('GURU-')) {
+    finalRole = "Guru";
+  } else if (userIdUpper.startsWith('SISWA') || userIdUpper.startsWith('NIS')) {
+    finalRole = "Siswa";
+  }
+
   const JAM_MASUK_CONFIG = (typeof CONFIG !== 'undefined' && CONFIG.jamMasuk) ? CONFIG.jamMasuk : (localStorage.getItem('jam_masuk') || "07:15");
   const fotoTangkapan = captureKameraBase64();
+
   const payload = {
     userId: String(userID).trim(),
     nama: displayName,
-    role: activeRole,
+    role: finalRole,                               // 🌟 Mengirim 'Tenaga Kependidikan' untuk TU-
     checkType: "AUTO",
     primaryMethod: "RFID",
     secondaryMethod: "FACE",
     authLevel: "2FA",
     jamMasukConfig: JAM_MASUK_CONFIG,
-    deviceId: "TERMINAL-" + activeRole,
+    deviceId: "TERMINAL-" + (finalRole === "Tenaga Kependidikan" ? "TU" : finalRole.toUpperCase()),
     keterangan: "Absen Wajah & Kartu Sukses",
     fotoBase64: fotoTangkapan
   };
