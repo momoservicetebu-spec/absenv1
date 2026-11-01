@@ -126,32 +126,55 @@ async function loadFaceDatabase() {
   }
 }
 // ==========================================
-// 3. LISTENER INPUT KARTU NFC / SCAN BARCODE
+// 3. LISTENER INPUT KARTU NFC / SCAN BARCODE (FIX JSON PAYLOAD & TU ROLE)
 // ==========================================
 if (nfcInput) {
   nfcInput.addEventListener('keypress', async function (e) {
     if (e.key === 'Enter') {
-      const rfidNumber = this.value.trim();
+      const rawInput = this.value.trim();
       this.value = ''; 
     
-      if (rfidNumber !== '') {
+      if (rawInput !== '') {
         if (isProcessing) return;
         isProcessing = true;
         
-        const activeRole = (typeof TERMINAL_ROLE !== 'undefined') ? TERMINAL_ROLE : "SISWA";
-        statusText.innerText = "Memverifikasi ID...";
+        let targetUserId = rawInput;
+        let activeRole = (typeof TERMINAL_ROLE !== 'undefined') ? TERMINAL_ROLE : "SISWA";
+
+        // 🌟 1. EKSTRAK AUTOMATIS NATIVE JSON PAYLOAD BARCODE / QR CODE
+        if (rawInput.startsWith("{") && rawInput.endsWith("}")) {
+          try {
+            const parsedQR = JSON.parse(rawInput);
+            if (parsedQR.id) targetUserId = parsedQR.id;
+            if (parsedQR.role) {
+              const rUpper = String(parsedQR.role).toUpperCase();
+              if (rUpper.includes("TENAGA") || rUpper.includes("TU") || rUpper.includes("GURU")) {
+                activeRole = "GURU";
+              }
+            }
+          } catch(err) {
+            console.warn("Gagal parse JSON scanner, menggunakan teks mentah:", err);
+          }
+        }
+
+        // 🌟 2. AUTOMATISASI ROLE UNTUK STAF TU (ID diawali TU-)
+        const uUpper = String(targetUserId).toUpperCase();
+        if (uUpper.startsWith("TU-")) {
+          activeRole = "GURU"; // Mengarahkan verifikasi backend ke sheet pegawai/Guru
+        }
+
+        statusText.innerText = `Memverifikasi ID (${targetUserId})...`;
         statusText.style.color = "orange";
 
-        const result = await fetchAPI("verifikasiRFID", { rfid: rfidNumber, role: activeRole });
+        const result = await fetchAPI("verifikasiRFID", { rfid: targetUserId, role: activeRole });
         
         if (result && result.success) {
-           const userID = result.data.userId || result.data.id; 
+           const userID = result.data.userId || result.data.id || targetUserId; 
            const userName = result.data.nama || result.data.Nama || userID; 
            
            // ==========================================
-           // CEK STATUS GURU BERCADAR 
+           // CEK STATUS GURU / STAF BERCADAR 
            // ==========================================
-           // 1. Cek dari data respons API (Tipe Boolean dari Backend yang baru)
            let isBercadar = false;
            if (result.data.bercadar === true || result.data.Bercadar === true) {
                isBercadar = true;
@@ -159,7 +182,6 @@ if (nfcInput) {
                isBercadar = true;
            }
            
-           // 2. Jika tidak terbaca di API, cocokkan dari databaseWajah lokal
            if (!isBercadar && typeof databaseWajah !== 'undefined') {
                const targetUser = databaseWajah.find(u => String(u.id).trim() === String(userID).trim());
                if (targetUser) {
@@ -179,7 +201,6 @@ if (nfcInput) {
                statusText.innerText = `Mode Khusus Aktif: Memproses absen untuk ${userName}...`;
                isProcessing = false;
                
-               // Panggil fungsi absen langsung
                executeAttendance(userID, userName); 
                
            } else if (requiresFace) {
@@ -189,13 +210,13 @@ if (nfcInput) {
                startVerificationState(userID, userName); 
                
            } else {
-               // JIKA MODE ABSENSI SAAT INI HANYA RFID (Tanpa Wajah)
+               // JIKA MODE ABSENSI SAAT INI HANYA KARTU/BARCODE (Tanpa Wajah)
                executeAttendance(userID, userName);
            }
            
         } else {
            putarSuaraKonfirmasi("Kartu atau ID tidak terdaftar.");
-           showAlert(`❌ ID (${rfidNumber}) tidak terdaftar untuk ${activeRole}.`, "#e74c3c");
+           showAlert(`❌ ID (${targetUserId}) tidak terdaftar.`, "#e74c3c");
            setTimeout(resetToStandby, 3000);
         }
       }
