@@ -1,15 +1,14 @@
 // ==========================================
-// FILE: js/face-ai.js
-// SINKRONISASI DENGAN HTML ENROLLMENT WAJAH
+// FILE: js/face-ai.js (FULL FIX - TENAGA KEPENDIDIKAN & ROLE PRESISI)
 // ==========================================
 
 let localStream = null;
-let lastDescriptor = null; // Ini variabel penyimpan embedding wajah
+let lastDescriptor = null; // Variabel penyimpan embedding wajah
 let capturedFaceBase64 = "";
 let currentFacingMode = "user"; // "user" (depan) atau "environment" (belakang)
 
 // ==========================================
-// 1. Fungsi Membuka Kamera (FIXED FOR MOBILE & SWITCHING)
+// 1. Fungsi Membuka Kamera
 // ==========================================
 async function startCamera() {
   const video = document.getElementById('video');
@@ -23,13 +22,11 @@ async function startCamera() {
   }
 
   try {
-    // Matikan stream lama jika sedang berjalan
     if (localStream) {
       localStream.getTracks().forEach(track => track.stop());
       localStream = null;
     }
 
-    // Panggil kamera dengan facingMode dinamis
     localStream = await navigator.mediaDevices.getUserMedia({
       video: { facingMode: currentFacingMode },
       audio: false
@@ -37,14 +34,12 @@ async function startCamera() {
 
     video.srcObject = localStream;
     
-    // Efek mirror hanya untuk kamera depan
     if (currentFacingMode === "user") {
       video.style.transform = "scaleX(-1)";
     } else {
       video.style.transform = "scaleX(1)";
     }
 
-    // Tunggu metadata video termuat agar tahu resolusi aslinya
     video.onloadedmetadata = () => {
       video.play();
       video.width = video.videoWidth;
@@ -99,86 +94,7 @@ function switchCamera() {
 }
 
 // ==========================================
-// 3. Fungsi Ambil Foto & Pindai Biometrik Wajah (FIXED FOR MOBILE)
-// ==========================================
-async function captureFace() {
-  const video = document.getElementById('video');
-  const canvas = document.getElementById('faceCanvas');
-  const statusText = document.getElementById('statusText');
-  const btnEnroll = document.getElementById('btnEnroll');
-
-  if (!localStream || video.paused || video.ended) {
-    alert("Nyalakan kamera terlebih dahulu!");
-    return;
-  }
-
-  // PERBAIKAN: Ambil resolusi murni langsung dari sumber video saat itu juga
-  const vw = video.videoWidth;
-  const vh = video.videoHeight;
-
-  // Samakan ukuran canvas secara presisi dengan resolusi video asli
-  canvas.width = vw;
-  canvas.height = vh;
-  
-  // Pastikan elemen video juga memiliki atribut ukuran yang sama agar garis AI tidak meleset
-  video.width = vw;
-  video.height = vh;
-
-  const ctx = canvas.getContext('2d', { willReadFrequently: true });
-  
-  // Jepret foto dari video dengan ukuran proporsional
-  ctx.drawImage(video, 0, 0, vw, vh);
-  capturedFaceBase64 = canvas.toDataURL('image/jpeg', 0.8);
-
-  statusText.innerText = "⏳ Memproses pemindaian biometrik AI...";
-  statusText.style.color = "#feca57";
-
-  lastDescriptor = null; 
-
-  if (typeof faceapi !== 'undefined') {
-    try {
-      // Deteksi AI pada canvas
-      const detection = await faceapi.detectSingleFace(canvas, new faceapi.TinyFaceDetectorOptions())
-        .withFaceLandmarks()
-        .withFaceDescriptor();
-
-      if (detection) {
-        lastDescriptor = Array.from(detection.descriptor);
-        
-        const displaySize = { width: vw, height: vh };
-        
-        // Sesuaikan koordinat deteksi AI dengan ukuran layar yang dinamis
-        faceapi.matchDimensions(canvas, displaySize);
-        const resizedDetections = faceapi.resizeResults(detection, displaySize);
-
-        // Lukis ulang latar belakang dan biometrik
-        ctx.drawImage(video, 0, 0, vw, vh);
-        faceapi.draw.drawDetections(canvas, resizedDetections);
-        faceapi.draw.drawFaceLandmarks(canvas, resizedDetections);
-
-        statusText.innerText = "✅ Wajah & Biometrik Terdeteksi! Siap disimpan.";
-        statusText.style.color = "#1dd1a1";
-      } else {
-        statusText.innerText = "⚠️ Foto diambil, namun AI gagal mendeteksi wajah. Coba posisi lain.";
-        statusText.style.color = "#ff6b6b";
-        alert("Wajah tidak terdeteksi oleh AI. Mohon posisikan wajah lurus ke kamera dan cahaya cukup.");
-      }
-    } catch (e) {
-      console.error("Error Deteksi AI:", e);
-      statusText.innerText = "❌ Terjadi kesalahan pada proses AI.";
-      statusText.style.color = "#ff6b6b";
-    }
-  }
-
-  if (lastDescriptor && lastDescriptor.length > 0) {
-    btnEnroll.disabled = false;
-  } else {
-    btnEnroll.disabled = true; 
-  }
-}
-
-// ==========================================
-// 2. Fungsi Muat Model AI 
+// 4. Fungsi Muat Model AI 
 // ==========================================
 async function loadFaceAIModels() {
   const statusText = document.getElementById('statusText');
@@ -188,15 +104,17 @@ async function loadFaceAIModels() {
       faceapi.nets.faceLandmark68Net.loadFromUri(CONFIG.MODEL_URL),
       faceapi.nets.faceRecognitionNet.loadFromUri(CONFIG.MODEL_URL)
     ]);
-    statusText.innerText = "🎯 Kamera & AI Biometrik Siap!";
-    statusText.style.color = "#1dd1a1";
+    if (statusText) {
+      statusText.innerText = "🎯 Kamera & AI Biometrik Siap!";
+      statusText.style.color = "#1dd1a1";
+    }
   } catch (err) {
     console.warn("Model AI tidak dapat dimuat, periksa path/koneksi.", err);
   }
 }
 
 // ==========================================
-// 3. Fungsi Ambil Foto & Pindai Biometrik Wajah (FIXED CANVAS PHOTO)
+// 5. Fungsi Ambil Foto & Pindai Biometrik Wajah
 // ==========================================
 async function captureFace() {
   const video = document.getElementById('video');
@@ -209,24 +127,27 @@ async function captureFace() {
     return;
   }
 
-  // 1. Samakan ukuran canvas dengan video kamera
-  canvas.width = video.videoWidth || 320;
-  canvas.height = video.videoHeight || 240;
+  const vw = video.videoWidth || 320;
+  const vh = video.videoHeight || 240;
+
+  canvas.width = vw;
+  canvas.height = vh;
+  video.width = vw;
+  video.height = vh;
 
   const ctx = canvas.getContext('2d', { willReadFrequently: true });
-  
-  // 2. Jepret foto dari video
-  ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+  ctx.drawImage(video, 0, 0, vw, vh);
   capturedFaceBase64 = canvas.toDataURL('image/jpeg', 0.8);
 
-  statusText.innerText = "⏳ Memproses pemindaian biometrik AI...";
-  statusText.style.color = "#feca57";
+  if (statusText) {
+    statusText.innerText = "⏳ Memproses pemindaian biometrik AI...";
+    statusText.style.color = "#feca57";
+  }
 
   lastDescriptor = null; 
 
   if (typeof faceapi !== 'undefined') {
     try {
-      // Deteksi AI pada foto canvas
       const detection = await faceapi.detectSingleFace(canvas, new faceapi.TinyFaceDetectorOptions())
         .withFaceLandmarks()
         .withFaceDescriptor();
@@ -234,42 +155,41 @@ async function captureFace() {
       if (detection) {
         lastDescriptor = Array.from(detection.descriptor);
         
-        const displaySize = { width: canvas.width, height: canvas.height };
-        
-        // PENTING: matchDimensions akan mereset canvas
+        const displaySize = { width: vw, height: vh };
         faceapi.matchDimensions(canvas, displaySize);
         const resizedDetections = faceapi.resizeResults(detection, displaySize);
 
-        // --- SOLUSI: Draw ulang foto latar belakang kamera sebelum melukis biometrik ---
-        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-        // Lukis garis biometrik AI di atas foto yang sudah digambar ulang
+        ctx.drawImage(video, 0, 0, vw, vh);
         faceapi.draw.drawDetections(canvas, resizedDetections);
         faceapi.draw.drawFaceLandmarks(canvas, resizedDetections);
 
-        statusText.innerText = "✅ Wajah & Biometrik Terdeteksi! Siap disimpan.";
-        statusText.style.color = "#1dd1a1";
+        if (statusText) {
+          statusText.innerText = "✅ Wajah & Biometrik Terdeteksi! Siap disimpan.";
+          statusText.style.color = "#1dd1a1";
+        }
       } else {
-        statusText.innerText = "⚠️ Foto diambil, namun AI gagal mendeteksi wajah. Coba posisi lain.";
-        statusText.style.color = "#ff6b6b";
+        if (statusText) {
+          statusText.innerText = "⚠️ Foto diambil, namun AI gagal mendeteksi wajah. Coba posisi lain.";
+          statusText.style.color = "#ff6b6b";
+        }
         alert("Wajah tidak terdeteksi oleh AI. Mohon posisikan wajah lurus ke kamera dan cahaya cukup.");
       }
     } catch (e) {
       console.error("Error Deteksi AI:", e);
-      statusText.innerText = "❌ Terjadi kesalahan pada proses AI.";
-      statusText.style.color = "#ff6b6b";
+      if (statusText) {
+        statusText.innerText = "❌ Terjadi kesalahan pada proses AI.";
+        statusText.style.color = "#ff6b6b";
+      }
     }
   }
 
-  if (lastDescriptor && lastDescriptor.length > 0) {
-    btnEnroll.disabled = false;
-  } else {
-    btnEnroll.disabled = true; 
+  if (btnEnroll) {
+    btnEnroll.disabled = !(lastDescriptor && lastDescriptor.length > 0);
   }
 }
 
 // ==========================================
-// 4. Simpan Data Wajah ke Database (Spreadsheet)
+// 6. Simpan Data Wajah ke Database (Spreadsheet)
 // ==========================================
 async function registerCurrentFace() {
   const userSelect = document.getElementById('faceUserSelect');
@@ -280,7 +200,6 @@ async function registerCurrentFace() {
     return;
   }
 
-  // PERBAIKAN: Validasi menggunakan variabel 'lastDescriptor' yang diset di captureFace()
   if (!lastDescriptor || lastDescriptor.length === 0) {
     alert("⚠️ Belum ada data wajah yang terdeteksi/ditangkap! Silakan klik 'Ambil Foto' lagi.");
     return;
@@ -292,24 +211,34 @@ async function registerCurrentFace() {
     btnEnroll.innerText = "⏳ Menyimpan ke Database...";
   }
 
-  // --- PERBAIKAN: Ambil Nama dari Dropdown ---
-  // Jika teks dropdown adalah "GURU-014 - Budi Santoso", kita akan mengambil "Budi Santoso"-nya
+  // --- DETERMINASI NAMA DAN ROLE PRESISI ---
   let userName = "";
+  let fullText = "";
   if (userSelect && userSelect.options[userSelect.selectedIndex]) {
-      const selectedText = userSelect.options[userSelect.selectedIndex].text;
-      // Memisahkan teks berdasarkan tanda " - "
-      const parts = selectedText.split(" - "); 
-      if (parts.length > 1) {
-          userName = parts.slice(1).join(" - ").trim(); // Mengambil sisa teks sebagai nama
-      } else {
-          userName = userId; // Fallback jika tidak ada tanda hubung
-      }
+    fullText = userSelect.options[userSelect.selectedIndex].text;
+    const parts = fullText.split(" - "); 
+    if (parts.length > 1) {
+      userName = parts.slice(1).join(" - ").trim();
+    } else {
+      userName = userId;
+    }
   }
 
-  // PERBAIKAN: Format payload untuk Backend (Tambahkan Nama)
+  const userIdClean = userId.toUpperCase();
+  const textClean = fullText.toUpperCase();
+  
+  let userRole = "SISWA";
+  if (userIdClean.startsWith('TU-') || textClean.includes('TENAGA KEPENDIDIKAN') || textClean.includes('TU')) {
+    userRole = "TENAGA KEPENDIDIKAN";
+  } else if (userIdClean.startsWith('GURU-') || textClean.includes('GURU') || textClean.includes('KEPSEK')) {
+    userRole = "GURU";
+  }
+
   const payload = {
     userId: userId,
-    nama: userName, // <--- INI TAMBAHANNYA
+    nama: userName,
+    role: userRole,
+    roleSistem: userRole,
     provider: "Face-API-JS",
     embedding: JSON.stringify(lastDescriptor), 
     qualityScore: 98.5
@@ -319,11 +248,7 @@ async function registerCurrentFace() {
     const response = await fetchAPI("registerFace", payload);
     if (response && response.success) {
       alert("✅ Data Wajah Berhasil Disimpan!");
-      
-      // Bersihkan memori wajah setelah sukses
       lastDescriptor = null;
-      
-      // Reload dropdown/tabel
       if (typeof loadFaceTable === 'function') loadFaceTable();
     } else {
       alert("❌ Gagal: " + (response ? response.message : "Terjadi kesalahan koneksi database."));
@@ -332,14 +257,14 @@ async function registerCurrentFace() {
     alert("❌ Request Error: " + err.message);
   } finally {
     if (btnEnroll) {
-      btnEnroll.disabled = true; // Matikan lagi sampai user ambil foto baru
+      btnEnroll.disabled = true;
       btnEnroll.innerText = "💾 Simpan Wajah";
     }
   }
 }
 
 // ==========================================
-// 5. Muat Data Pengguna ke Dropdown
+// 7. Muat Data Pengguna ke Dropdown
 // ==========================================
 async function loadUserForFaceAI() {
   const selectElement = document.getElementById('faceUserSelect');
@@ -376,7 +301,6 @@ async function loadUserForFaceAI() {
           }
         });
 
-        // Aktifkan Select2 jika jQuery tersedia
         if (typeof jQuery !== 'undefined' && typeof jQuery.fn.select2 !== 'undefined') {
           jQuery('#faceUserSelect').select2({
             placeholder: "-- Ketik atau Pilih Pengguna --",
@@ -397,13 +321,12 @@ async function loadUserForFaceAI() {
 }
 
 // ==========================================
-// 6. Muat Tabel Wajah (READ)
+// 8. Muat Tabel Wajah (READ DENGAN ROLE NORMALISASI)
 // ==========================================
 async function loadFaceTable() {
   const tbody = document.getElementById('faceTableBody');
   if (!tbody) return;
 
-  // PERBAIKAN: Ubah colspan="5" menjadi "6"
   tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 15px;">⏳ Memuat data...</td></tr>';
 
   try {
@@ -417,23 +340,34 @@ async function loadFaceTable() {
     if (result.success) {
       tbody.innerHTML = ''; 
       result.data.forEach((row, index) => {
-        const uid = row.UserID || row.userId || row.userid || row['UserID'] || row['UserID (SiswaID/GuruID)'] || "Tidak Ditemukan";
-        
-        // PERBAIKAN: Ambil variabel nama dari database
+        const uid = String(row.UserID || row.userId || row.userid || row['UserID'] || row['UserID (SiswaID/GuruID)'] || "Tidak Ditemukan").toUpperCase();
         const nama = row.Nama || row.nama || "-"; 
-        
-        const role = row.Role || row.role || "-";
-        
+        const rawRole = String(row.Role || row.role || row.Role_Sistem || "").toUpperCase();
+
+        // Determinasi Tampilan Badge Role
+        let displayRole = 'Siswa';
+        let badgeBg = '#0284c7';
+        let badgeColor = '#ffffff';
+
+        if (uid.startsWith('TU-') || rawRole.includes('TENAGA') || rawRole.includes('TU')) {
+          displayRole = 'Tenaga Kependidikan';
+          badgeBg = '#e67e22'; // Warna orange/emas khusus TU
+          badgeColor = '#ffffff';
+        } else if (uid.startsWith('GURU-') || rawRole.includes('GURU')) {
+          displayRole = 'Guru';
+          badgeBg = '#f59e0b';
+          badgeColor = '#000000';
+        }
+
         const tr = document.createElement('tr');
         tr.innerHTML = `
           <td style="padding: 12px 16px; border-bottom: 1px solid #332d4a; text-align: center;">${index + 1}</td>
           <td style="padding: 12px 16px; border-bottom: 1px solid #332d4a; font-weight: bold; color: #ffffff;">${uid}</td>
-          
-          <!-- PERBAIKAN: Tambahkan kolom NAMA di sini agar sejajar dengan HTML -->
           <td style="padding: 12px 16px; border-bottom: 1px solid #332d4a; color: #e2e8f0;">${nama}</td>
-          
           <td style="padding: 12px 16px; border-bottom: 1px solid #332d4a;">
-            <span style="background: ${role === 'Guru' ? '#f59e0b' : '#0284c7'}; color: ${role === 'Guru' ? '#000' : '#fff'}; padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold;">${role}</span>
+            <span style="background: ${badgeBg}; color: ${badgeColor}; padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold;">
+              ${displayRole}
+            </span>
           </td>
           <td style="padding: 12px 16px; border-bottom: 1px solid #332d4a; color: #10b981; font-weight: bold;">✅ Terekam</td>
           <td style="padding: 12px 16px; border-bottom: 1px solid #332d4a; text-align: center;">
@@ -451,22 +385,20 @@ async function loadFaceTable() {
 }
 
 // ==========================================
-// 7. Hapus Data Wajah (DELETE)
+// 9. Hapus Data Wajah (DELETE)
 // ==========================================
 async function deleteFaceData(userId) {
-  if(!confirm(`Yakin ingin MENGHAPUS data wajah untuk ID: ${userId}?`)) return;
+  if (!confirm(`Yakin ingin MENGHAPUS data wajah untuk ID: ${userId}?`)) return;
   
   try {
     const result = await fetchAPI("deleteFace", { userId: userId });
     
-    if(result && result.success) {
+    if (result && result.success) {
       alert("✅ " + result.message);
       
-      // KOSONGKAN MANUAL LAYAR SAAT INI
       const tbody = document.getElementById('faceTableBody');
-      if(tbody) tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding: 15px; color: #9ca3af;">⏳ Menunggu sinkronisasi database (2 detik)...</td></tr>';
+      if (tbody) tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 15px; color: #9ca3af;">⏳ Menunggu sinkronisasi database (2 detik)...</td></tr>';
       
-      // KUNCI PERBAIKAN 2: Beri jeda 2 detik agar Google Sheets selesai menghapus baris
       setTimeout(async () => {
         if (typeof loadFaceTable === 'function') {
           await loadFaceTable(); 
@@ -482,25 +414,31 @@ async function deleteFaceData(userId) {
 }
 
 // ==========================================
-// 8. Search / Filter Tabel Wajah
+// 10. Search / Filter Tabel Wajah
 // ==========================================
 function filterFaceTable() {
   const input = document.getElementById("searchFaceInput");
+  if (!input) return;
   const filter = input.value.toLowerCase().trim();
   const tbody = document.getElementById("faceTableBody");
+  if (!tbody) return;
   const rows = tbody.getElementsByTagName("tr");
 
   for (let i = 0; i < rows.length; i++) {
     if (rows[i].getElementsByTagName("td").length <= 1) continue;
 
     const userIdTd = rows[i].getElementsByTagName("td")[1];
-    const roleTd = rows[i].getElementsByTagName("td")[2];
+    const namaTd = rows[i].getElementsByTagName("td")[2];
+    const roleTd = rows[i].getElementsByTagName("td")[3];
 
-    if (userIdTd || roleTd) {
-      const userIdText = userIdTd.textContent || userIdTd.innerText;
-      const roleText = roleTd.textContent || roleTd.innerText;
+    if (userIdTd || namaTd || roleTd) {
+      const userIdText = userIdTd ? userIdTd.textContent || userIdTd.innerText : '';
+      const namaText = namaTd ? namaTd.textContent || namaTd.innerText : '';
+      const roleText = roleTd ? roleTd.textContent || roleTd.innerText : '';
 
-      if (userIdText.toLowerCase().indexOf(filter) > -1 || roleText.toLowerCase().indexOf(filter) > -1) {
+      if (userIdText.toLowerCase().indexOf(filter) > -1 || 
+          namaText.toLowerCase().indexOf(filter) > -1 || 
+          roleText.toLowerCase().indexOf(filter) > -1) {
         rows[i].style.display = "";
       } else {
         rows[i].style.display = "none";
