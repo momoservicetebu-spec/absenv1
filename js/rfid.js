@@ -1,5 +1,5 @@
 // ==========================================
-// FILE: js/rfid.js
+// FILE: js/rfid.js (FULL FIX - TENAGA KEPENDIDIKAN)
 // SINKRONISASI DENGAN HTML ENROLLMENT RFID / NFC
 // ==========================================
 
@@ -24,7 +24,7 @@ async function registerCurrentRFID() {
     return;
   }
 
-// --- EKSTRAK NAMA & DETERMINASI ROLE (DUAL SUPPORT: DATA-NAMA & SPLIT TEXT) ---
+  // --- EKSTRAK NAMA & DETERMINASI ROLE PRESISI ---
   let userName = "";
   let fullText = "";
 
@@ -38,32 +38,37 @@ async function registerCurrentRFID() {
     fullText = opt.text;
   }
 
-  // Bersihkan karakter baris baru / newline yang tidak sengaja terbaca
   fullText = fullText.replace(/[\r\n]+/g, " ").trim();
 
-  // Jika data-nama belum terbaca, ekstrak dari fullText (Mendukung format "ID - NAMA" atau "ID NAMA")
   if (!userName && fullText) {
     if (fullText.includes(" - ")) {
       userName = fullText.split(" - ").slice(1).join(" - ").trim();
     } else if (fullText.includes(" ")) {
-      // Pembacaan cadangan jika opsi berupa "GURU-001 Alamah"
       userName = fullText.split(" ").slice(1).join(" ").trim();
     } else {
       userName = fullText.trim();
     }
   }
 
-  // Penetapan Role Otomatis (Mendukung GURU, NIP, dan STAF TU)
+  // DETERMINASI ROLE PRESISI (MEMBEDAKAN TU DA GURU)
   const selectedText = fullText.toLowerCase();
   const userIdClean = userId.toLowerCase();
   let userRole = "Siswa";
   
   if (
-    selectedText.includes('guru') || 
-    selectedText.includes('tenaga kependidikan') ||
-    userIdClean.includes('guru') || 
-    userIdClean.includes('nip') || 
+    selectedText.includes('tenaga kependidikan') || 
+    selectedText.includes('tu') || 
+    selectedText.includes('staf') || 
+    userIdClean.startsWith('tu-') || 
     userIdClean.includes('tu')
+  ) {
+    userRole = "Tenaga Kependidikan";
+  } else if (
+    selectedText.includes('guru') || 
+    selectedText.includes('kepsek') || 
+    userIdClean.startsWith('guru-') || 
+    userIdClean.includes('guru') || 
+    userIdClean.includes('nip')
   ) {
     userRole = "Guru";
   }
@@ -73,12 +78,12 @@ async function registerCurrentRFID() {
     btnEnroll.disabled = true;
   }
 
-  // PAYLOAD DIPASTIKAN MEMBAWA NAMA
   const payload = {
     userId: userId,
     nama: userName || userId,
     Nama: userName || userId,
     role: userRole,
+    roleSistem: userRole,
     rfidUid: rfidUid
   };
 
@@ -140,9 +145,7 @@ async function loadUserForRFID() {
             option.value = userId; 
             option.text = `${userId} - ${userName}`; 
             
-            // SIMPAN NAMA DI ATRIBUT DATA-NAMA
             option.setAttribute('data-nama', userName);
-            
             selectElement.appendChild(option);
           }
         });
@@ -166,7 +169,7 @@ async function loadUserForRFID() {
 }
 
 // ==========================================
-// 3. MUAT TABEL RFID (READ - REAL TIME)
+// 3. MUAT TABEL RFID (READ - DENGAN BADGE TENAGA KEPENDIDIKAN)
 // ==========================================
 async function loadRFIDTable() {
   const tbody = document.getElementById('rfidTableBody');
@@ -185,17 +188,39 @@ async function loadRFIDTable() {
     if (result.success) {
       tbody.innerHTML = '';
       result.data.forEach((row, index) => {
+        const uId = String(row.UserID || row.userId || '').toUpperCase();
+        const rawRole = String(row.Role || row.role || '').toUpperCase();
+
+        // Normalisasi tampilan badge Role
+        let displayRole = 'Siswa';
+        let badgeBg = '#0284c7';
+        let badgeColor = '#ffffff';
+
+        if (uId.startsWith('TU-') || rawRole.includes('TENAGA') || rawRole.includes('TU') || rawRole.includes('ADMIN')) {
+          displayRole = 'Tenaga Kependidikan';
+          badgeBg = '#e67e22'; // Orange/Emas untuk TU
+          badgeColor = '#ffffff';
+        } else if (uId.startsWith('GURU-') || rawRole.includes('GURU')) {
+          displayRole = 'Guru';
+          badgeBg = '#f59e0b';
+          badgeColor = '#000000';
+        }
+
         const tr = document.createElement('tr');
         tr.innerHTML = `
           <td style="padding: 8px; border: 1px solid #444; text-align:center;">${index + 1}</td>
-          <td style="padding: 8px; border: 1px solid #444;">${row.UserID}</td>
+          <td style="padding: 8px; border: 1px solid #444; font-weight: bold;">${uId}</td>
           <td style="padding: 8px; border: 1px solid #444; font-weight: bold;">${row.Nama || '-'}</td>
-          <td style="padding: 8px; border: 1px solid #444;">${row.Role}</td>
-          <td style="padding: 8px; border: 1px solid #444;">${row.UID_Kartu || row.UID}</td>
-          <td style="padding: 8px; border: 1px solid #444; color: #1dd1a1;">${row.Status || 'Active'}</td>
+          <td style="padding: 8px; border: 1px solid #444;">
+            <span style="background: ${badgeBg}; color: ${badgeColor}; padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold;">
+              ${displayRole}
+            </span>
+          </td>
+          <td style="padding: 8px; border: 1px solid #444;">${row.UID_Kartu || row.UID || '-'}</td>
+          <td style="padding: 8px; border: 1px solid #444; color: #1dd1a1; font-weight: bold;">${row.Status || 'Active'}</td>
           <td style="padding: 8px; border: 1px solid #444; text-align:center;">
-            <button class="btn-action btn-warning" style="padding: 5px 10px; font-size: 12px; margin-right: 5px;" onclick="editRFIDUI('${row.UserID}')">Edit</button>
-            <button class="btn-action btn-danger" style="padding: 5px 10px; font-size: 12px;" onclick="deleteRFIDData('${row.UserID}', '${row.Role}', '${row.UID_Kartu || row.RecordID}', this)">Hapus</button>
+            <button class="btn-action btn-warning" style="padding: 5px 10px; font-size: 12px; margin-right: 5px;" onclick="editRFIDUI('${uId}')">Edit</button>
+            <button class="btn-action btn-danger" style="padding: 5px 10px; font-size: 12px;" onclick="deleteRFIDData('${uId}', '${displayRole}', '${row.UID_Kartu || row.RecordID}', this)">Hapus</button>
           </td>
         `;
         tbody.appendChild(tr);
