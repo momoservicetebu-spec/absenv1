@@ -342,7 +342,9 @@ function cetakKartuQR() {
   setTimeout(() => { printWindow.print(); printWindow.close(); }, 600);
 }
 
-// 7. MEMUAT TABEL CRUD DATA QR
+// ==========================================
+// 7. MEMUAT TABEL CRUD DATA QR (DENGAN TOMBOL PREVIEW & FIX NOTASI ILMIAH)
+// ==========================================
 async function loadSavedQRTable() {
   const tbody = document.getElementById("tbodySavedQR");
   if (!tbody) return;
@@ -361,7 +363,7 @@ async function loadSavedQRTable() {
       let html = '';
       result.data.forEach((row, index) => {
         let recordId = row.RecordID || row.QRID || row.qrId || '';
-        let userId = row.UserID || row.userId || '';
+        let userId = String(row.UserID || row.userId || '').replace(/'/g, "").trim();
         let role = detectUserRole(row, userId);
 
         let badgeBg = '#0284c7';
@@ -383,7 +385,8 @@ async function loadSavedQRTable() {
             <td style="padding: 12px 16px;"><span style="background: ${badgeBg}; color: ${badgeColor}; padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold;">${role}</span></td>
             <td style="padding: 12px 16px;"><span style="background: #10b981; color: #ffffff; padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold;">${row.Status || 'Active'}</span></td>
             <td style="padding: 12px 16px; color: #9ca3af; font-size: 0.85rem;">${row.CreatedAt || row.UpdatedAt || '-'}</td>
-            <td style="padding: 12px 16px; text-align: right;">
+            <td style="padding: 12px 16px; text-align: right; white-space: nowrap;">
+              <button type="button" onclick="previewQRFromTable('${userId}', '${role}')" style="background: #4f46e5; color: #ffffff; border: none; padding: 4px 10px; border-radius: 6px; font-size: 0.8rem; cursor: pointer; margin-right: 5px;">👁️ Preview</button>
               <button type="button" onclick="hapusQRFromTable('${recordId}', '${userId}', '${role}')" style="background: transparent; color: #ef4444; border: 1px solid #dc2626; padding: 4px 10px; border-radius: 6px; font-size: 0.8rem; cursor: pointer;">🗑️ Hapus</button>
             </td>
           </tr>
@@ -395,6 +398,24 @@ async function loadSavedQRTable() {
     console.error("Error Load Saved QR Table:", error);
     tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 20px; color: #f87171;">❌ Error: ${error.message}</td></tr>`;
   }
+}
+
+// 🌟 FUNGSI BARU: MUAT TAMPILAN PREVIEW LANGSUNG DARI TOMBOL TABEL
+function previewQRFromTable(userId, role) {
+  const selectElem = document.getElementById("qrUserSelect");
+  if (!selectElem) return;
+
+  // Set nilai dropdown
+  selectElem.value = userId;
+
+  if (typeof jQuery !== 'undefined' && typeof jQuery.fn.select2 !== 'undefined') {
+    jQuery('#qrUserSelect').val(userId).trigger('change');
+  } else {
+    renderQRPreview();
+  }
+
+  // Scroll otomatis ke kotak preview di bagian atas
+  window.scrollTo({ top: 150, behavior: 'smooth' });
 }
 
 // 8. HAPUS DATA QR
