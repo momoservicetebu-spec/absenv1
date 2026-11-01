@@ -126,7 +126,7 @@ async function loadFaceDatabase() {
   }
 }
 // ==========================================
-// 3. LISTENER INPUT KARTU NFC / SCAN BARCODE (UNIFIED CAMERA TRIGGER FOR RFID & QR)
+// 3. LISTENER INPUT KARTU NFC / SCAN BARCODE (FIX CAMERA DISPLAY SWITCH)
 // ==========================================
 if (nfcInput) {
   nfcInput.addEventListener('keypress', async function (e) {
@@ -141,7 +141,7 @@ if (nfcInput) {
         let targetUserId = rawInput;
         let activeRole = (typeof TERMINAL_ROLE !== 'undefined') ? TERMINAL_ROLE : "SISWA";
 
-        // 1. EKSTRAK AUTOMATIS NATIVE JSON PAYLOAD BARCODE / QR CODE
+        // 1. Ekstrak otomatis Native JSON Payload Barcode / QR Code
         if (rawInput.startsWith("{") && rawInput.endsWith("}")) {
           try {
             const parsedQR = JSON.parse(rawInput);
@@ -157,12 +157,11 @@ if (nfcInput) {
           }
         }
 
-        // 2. SANITASI ID (Bersihkan tanda petik tunggal / spasi)
+        // 2. Sanitasi ID
         targetUserId = String(targetUserId).replace(/'/g, "").trim();
 
-        // AUTOMATISASI ROLE UNTUK STAF TU
-        const uUpper = targetUserId.toUpperCase();
-        if (uUpper.startsWith("TU-")) {
+        // 3. Otomatisasi Role untuk Staf TU (ID diawali TU-)
+        if (targetUserId.toUpperCase().startsWith("TU-")) {
           activeRole = "GURU"; 
         }
 
@@ -175,7 +174,7 @@ if (nfcInput) {
            let userID = String(result.data.userId || result.data.id || targetUserId).replace(/'/g, "").trim(); 
            let userName = result.data.nama || result.data.Nama || userID; 
 
-           // 🌟 SMART MATCHING: COCOKKAN USER ID KE DATABASE WAJAH LOKAL
+           // Smart Matching ke Database Wajah Lokal (Pencocokan NIP/ID/Nama)
            if (typeof databaseWajah !== 'undefined' && Array.isArray(databaseWajah)) {
              const cleanTarget = userID.toLowerCase();
              const matchFace = databaseWajah.find(w => {
@@ -189,39 +188,26 @@ if (nfcInput) {
                       (cleanTarget.length > 5 && wNip.includes(cleanTarget));
              });
 
-             // Jika ditemukan di database wajah, gunakan ID asli dari database wajah (misal: TU-04)
              if (matchFace) {
                userID = matchFace.id || matchFace.UserID;
                if (matchFace.nama || matchFace.Nama) userName = matchFace.nama || matchFace.Nama;
              }
            }
 
-           // CEK STATUS BERCADAR
+           // Cek Status Bercadar
            let isBercadar = false;
            if (result.data.bercadar === true || result.data.Bercadar === true || String(result.data.bercadar || result.data.Bercadar).toUpperCase().trim() === "YA") {
                isBercadar = true;
            }
-           
-           if (!isBercadar && typeof databaseWajah !== 'undefined') {
-               const targetUser = databaseWajah.find(u => String(u.id).replace(/'/g, "").trim() === String(userID).trim());
-               if (targetUser) {
-                   const lokalBercadar = targetUser.Bercadar || targetUser.bercadar || "";
-                   if (lokalBercadar === true || String(lokalBercadar).toUpperCase().trim() === "YA") {
-                       isBercadar = true;
-                   }
-               }
-           }
 
-           // 🌟 DETEKSI KETERSEDIAAN MODUL KAMERA (RFID & QR CODE SAMA-SAMA HARUS MEMBUKA KAMERA)
+           // Buka Tampilan Kamera Secara Paksa Jika Ada Modul Kamera
            const modeLower = (typeof modeAbsensiSaatIni !== 'undefined') ? String(modeAbsensiSaatIni).toLowerCase() : "";
-           
-           // Mode membutuhkan kamera jika ada modul kamera di halaman ATAU mode absensi aktif
            const requiresFace = modeLower.includes("wajah") || 
                                 modeLower.includes("face") || 
                                 modeLower === "rfid_face" || 
                                 modeLower === "qr_face" ||
                                 modeLower === "mfa" ||
-                                (typeof videoContainer !== 'undefined' && videoContainer !== null);
+                                (document.getElementById('video') !== null);
 
            if (isBercadar) {
                statusText.innerText = `Mode Khusus Aktif: Memproses absen untuk ${userName}...`;
@@ -230,7 +216,12 @@ if (nfcInput) {
                
            } else if (requiresFace) {
                statusText.innerText = `ID Dikenali (${userName})! Memulai verifikasi wajah...`;
-               // 🌟 Lepas kunci isProcessing sebelum memanggil kamera
+               
+               // 🌟 SWITCH UI KE KAMERA SEBELUM MEMANGGIL VERIFIKASI
+               if (standbyUI) standbyUI.style.display = 'none';
+               if (videoContainer) videoContainer.style.display = 'flex';
+               
+               // 🌟 BUKA KUNCI ISPROCESSING
                isProcessing = false; 
                startVerificationState(userID, userName); 
                
@@ -253,8 +244,14 @@ if (nfcInput) {
 // 4. VERIFIKASI WAJAH AI (DENGAN NAMA MASTER & SMART ALIAS MATCHING)
 // ==========================================
 function startVerificationState(userID, userName) {
+  // 🌟 JAMIN KAMERA DAN CONTAINER TAMPIL
+  if (typeof standbyUI !== 'undefined' && standbyUI) standbyUI.style.display = 'none';
+  if (typeof videoContainer !== 'undefined' && videoContainer) videoContainer.style.display = 'flex';
+
   if (isProcessing) return;
   isProcessing = true;
+  
+  // ... (Sisa kode di bawahnya tetap sama persis seperti milik Anda)
 
   const cleanInputID = String(userID || '').replace(/'/g, "").trim();
   let displayName = cleanInputID;
