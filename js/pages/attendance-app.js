@@ -126,7 +126,7 @@ async function loadFaceDatabase() {
   }
 }
 // ==========================================
-// 3. LISTENER INPUT KARTU NFC / SCAN BARCODE (FIX SMART MATCHING WAJAH)
+// 3. LISTENER INPUT KARTU NFC / SCAN BARCODE (UNIFIED CAMERA TRIGGER FOR RFID & QR)
 // ==========================================
 if (nfcInput) {
   nfcInput.addEventListener('keypress', async function (e) {
@@ -180,12 +180,16 @@ if (nfcInput) {
              const cleanTarget = userID.toLowerCase();
              const matchFace = databaseWajah.find(w => {
                const wId = String(w.id || w.UserID || '').replace(/'/g, "").trim().toLowerCase();
+               const wNip = String(w.nip || w.NIP || '').replace(/'/g, "").trim().toLowerCase();
+               const wNama = String(w.nama || w.Nama || '').replace(/'/g, "").trim().toLowerCase();
+               
                return wId === cleanTarget || 
-                      (cleanTarget.length > 5 && wId.includes(cleanTarget)) || 
-                      (wId.length > 5 && cleanTarget.includes(wId));
+                      (wNip && wNip === cleanTarget) ||
+                      (wNama && userName && wNama === userName.toLowerCase()) ||
+                      (cleanTarget.length > 5 && wNip.includes(cleanTarget));
              });
 
-             // Jika ditemukan di database wajah, gunakan ID asli dari database wajah
+             // Jika ditemukan di database wajah, gunakan ID asli dari database wajah (misal: TU-04)
              if (matchFace) {
                userID = matchFace.id || matchFace.UserID;
                if (matchFace.nama || matchFace.Nama) userName = matchFace.nama || matchFace.Nama;
@@ -208,8 +212,16 @@ if (nfcInput) {
                }
            }
 
-           const modeLower = String(modeAbsensiSaatIni).toLowerCase();
-           const requiresFace = modeLower.includes("wajah") || modeLower.includes("face") || modeLower === "rfid_face" || modeLower === "mfa";
+           // 🌟 DETEKSI KETERSEDIAAN MODUL KAMERA (RFID & QR CODE SAMA-SAMA HARUS MEMBUKA KAMERA)
+           const modeLower = (typeof modeAbsensiSaatIni !== 'undefined') ? String(modeAbsensiSaatIni).toLowerCase() : "";
+           
+           // Mode membutuhkan kamera jika ada modul kamera di halaman ATAU mode absensi aktif
+           const requiresFace = modeLower.includes("wajah") || 
+                                modeLower.includes("face") || 
+                                modeLower === "rfid_face" || 
+                                modeLower === "qr_face" ||
+                                modeLower === "mfa" ||
+                                (typeof videoContainer !== 'undefined' && videoContainer !== null);
 
            if (isBercadar) {
                statusText.innerText = `Mode Khusus Aktif: Memproses absen untuk ${userName}...`;
@@ -218,8 +230,8 @@ if (nfcInput) {
                
            } else if (requiresFace) {
                statusText.innerText = `ID Dikenali (${userName})! Memulai verifikasi wajah...`;
+               // 🌟 Lepas kunci isProcessing sebelum memanggil kamera
                isProcessing = false; 
-               // PANGGIL VERIFIKASI WAJAH DENGAN USER ID YANG SUDAH DISINKRONKAN
                startVerificationState(userID, userName); 
                
            } else {
@@ -227,6 +239,7 @@ if (nfcInput) {
            }
            
         } else {
+           isProcessing = false;
            putarSuaraKonfirmasi("Kartu atau ID tidak terdaftar.");
            showAlert(`❌ ID (${targetUserId}) tidak terdaftar.`, "#e74c3c");
            setTimeout(resetToStandby, 3000);
