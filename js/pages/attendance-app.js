@@ -126,7 +126,7 @@ async function loadFaceDatabase() {
   }
 }
 // ==========================================
-// 3. LISTENER INPUT KARTU NFC / SCAN BARCODE (FIX JSON PAYLOAD & TU ROLE)
+// 3. LISTENER INPUT KARTU NFC / SCAN BARCODE (FIX SMART MATCHING WAJAH)
 // ==========================================
 if (nfcInput) {
   nfcInput.addEventListener('keypress', async function (e) {
@@ -141,11 +141,11 @@ if (nfcInput) {
         let targetUserId = rawInput;
         let activeRole = (typeof TERMINAL_ROLE !== 'undefined') ? TERMINAL_ROLE : "SISWA";
 
-        // 🌟 1. EKSTRAK AUTOMATIS NATIVE JSON PAYLOAD BARCODE / QR CODE
+        // 1. EKSTRAK AUTOMATIS NATIVE JSON PAYLOAD BARCODE / QR CODE
         if (rawInput.startsWith("{") && rawInput.endsWith("}")) {
           try {
             const parsedQR = JSON.parse(rawInput);
-            if (parsedQR.id) targetUserId = parsedQR.id;
+            if (parsedQR.id) targetUserId = String(parsedQR.id).replace(/'/g, "").trim();
             if (parsedQR.role) {
               const rUpper = String(parsedQR.role).toUpperCase();
               if (rUpper.includes("TENAGA") || rUpper.includes("TU") || rUpper.includes("GURU")) {
@@ -153,14 +153,17 @@ if (nfcInput) {
               }
             }
           } catch(err) {
-            console.warn("Gagal parse JSON scanner, menggunakan teks mentah:", err);
+            console.warn("Gagal parse JSON scanner:", err);
           }
         }
 
-        // 🌟 2. AUTOMATISASI ROLE UNTUK STAF TU (ID diawali TU-)
-        const uUpper = String(targetUserId).toUpperCase();
+        // 2. SANITASI ID (Bersihkan tanda petik tunggal / spasi)
+        targetUserId = String(targetUserId).replace(/'/g, "").trim();
+
+        // AUTOMATISASI ROLE UNTUK STAF TU
+        const uUpper = targetUserId.toUpperCase();
         if (uUpper.startsWith("TU-")) {
-          activeRole = "GURU"; // Mengarahkan verifikasi backend ke sheet pegawai/Guru
+          activeRole = "GURU"; 
         }
 
         statusText.innerText = `Memverifikasi ID (${targetUserId})...`;
@@ -169,21 +172,34 @@ if (nfcInput) {
         const result = await fetchAPI("verifikasiRFID", { rfid: targetUserId, role: activeRole });
         
         if (result && result.success) {
-           const userID = result.data.userId || result.data.id || targetUserId; 
-           const userName = result.data.nama || result.data.Nama || userID; 
-           
-           // ==========================================
-           // CEK STATUS GURU / STAF BERCADAR 
-           // ==========================================
+           let userID = String(result.data.userId || result.data.id || targetUserId).replace(/'/g, "").trim(); 
+           let userName = result.data.nama || result.data.Nama || userID; 
+
+           // 🌟 SMART MATCHING: COCOKKAN USER ID KE DATABASE WAJAH LOKAL
+           if (typeof databaseWajah !== 'undefined' && Array.isArray(databaseWajah)) {
+             const cleanTarget = userID.toLowerCase();
+             const matchFace = databaseWajah.find(w => {
+               const wId = String(w.id || w.UserID || '').replace(/'/g, "").trim().toLowerCase();
+               return wId === cleanTarget || 
+                      (cleanTarget.length > 5 && wId.includes(cleanTarget)) || 
+                      (wId.length > 5 && cleanTarget.includes(wId));
+             });
+
+             // Jika ditemukan di database wajah, gunakan ID asli dari database wajah
+             if (matchFace) {
+               userID = matchFace.id || matchFace.UserID;
+               if (matchFace.nama || matchFace.Nama) userName = matchFace.nama || matchFace.Nama;
+             }
+           }
+
+           // CEK STATUS BERCADAR
            let isBercadar = false;
-           if (result.data.bercadar === true || result.data.Bercadar === true) {
-               isBercadar = true;
-           } else if (String(result.data.bercadar || result.data.Bercadar).toUpperCase().trim() === "YA") {
+           if (result.data.bercadar === true || result.data.Bercadar === true || String(result.data.bercadar || result.data.Bercadar).toUpperCase().trim() === "YA") {
                isBercadar = true;
            }
            
            if (!isBercadar && typeof databaseWajah !== 'undefined') {
-               const targetUser = databaseWajah.find(u => String(u.id).trim() === String(userID).trim());
+               const targetUser = databaseWajah.find(u => String(u.id).replace(/'/g, "").trim() === String(userID).trim());
                if (targetUser) {
                    const lokalBercadar = targetUser.Bercadar || targetUser.bercadar || "";
                    if (lokalBercadar === true || String(lokalBercadar).toUpperCase().trim() === "YA") {
@@ -191,26 +207,22 @@ if (nfcInput) {
                    }
                }
            }
-           // ==========================================
 
            const modeLower = String(modeAbsensiSaatIni).toLowerCase();
            const requiresFace = modeLower.includes("wajah") || modeLower.includes("face") || modeLower === "rfid_face" || modeLower === "mfa";
 
            if (isBercadar) {
-               // JIKA BERCADAR: Langsung absen, abaikan kamera
                statusText.innerText = `Mode Khusus Aktif: Memproses absen untuk ${userName}...`;
                isProcessing = false;
-               
                executeAttendance(userID, userName); 
                
            } else if (requiresFace) {
-               // JIKA TIDAK BERCADAR: Lanjut verifikasi wajah
                statusText.innerText = `ID Dikenali (${userName})! Memulai verifikasi wajah...`;
                isProcessing = false; 
+               // PANGGIL VERIFIKASI WAJAH DENGAN USER ID YANG SUDAH DISINKRONKAN
                startVerificationState(userID, userName); 
                
            } else {
-               // JIKA MODE ABSENSI SAAT INI HANYA KARTU/BARCODE (Tanpa Wajah)
                executeAttendance(userID, userName);
            }
            
