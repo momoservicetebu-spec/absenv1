@@ -336,7 +336,7 @@ function captureKameraBase64() {
 }
 
 // ==========================================
-// 5. EKSEKUSI PENGIRIMAN ABSENSI KE SERVER & VOICE (FIXED STATUS & VOICE)
+// 5. EKSEKUSI PENGIRIMAN ABSENSI KE SERVER & VOICE (FIXED ROLE & VOICE UNIVERSAL)
 // ==========================================
 let isSubmittingAttendance = false;
 
@@ -391,7 +391,6 @@ async function executeAttendance(userID, userName) {
     // -----------------------------------------------------------
     if (result && result.success) {
       
-      // PERBAIKAN DUKUNGAN KUNCI HEADER SPREADSHEET & APPS SCRIPT
       const statusAbsen = String(
         record["Status(Hadir/Telat/Izin/dll)"] || 
         record.Status || 
@@ -404,8 +403,12 @@ async function executeAttendance(userID, userName) {
       let teksJudul = "ABSEN MASUK SUKSES";
       let teksStatus = "Masuk Tepat Waktu";
       
-      // Ambil pesan suara khusus dari backend jika ada
-      let teksSuara = record.pesanSuara || `Terima kasih ${displayName}. Absen masuk berhasil. Selamat mengajar.`;
+      // 🌟 PERBAIKAN PESAN SUARA UNIVERSAL (Disesuaikan Peran)
+      let ucapanSelamat = "Selamat bertugas.";
+      if (finalRole === "Guru") ucapanSelamat = "Selamat mengajar.";
+      else if (finalRole === "Siswa") ucapanSelamat = "Selamat belajar.";
+
+      let teksSuara = record.pesanSuara || `Terima kasih ${displayName}. Absen masuk berhasil. ${ucapanSelamat}`;
 
       // A. STATUS TERLAMBAT (07:16 - 12:00)
       if (statusAbsen.includes("TELAT") || statusAbsen.includes("TERLAMBAT")) {
@@ -445,12 +448,10 @@ async function executeAttendance(userID, userName) {
       }
 
     // -----------------------------------------------------------
-    // 2. RESPON PERINGATAN / DITOLAK (RE-TAP SEBELUM JAM 12:00)
+    // 2. RESPON PERINGATAN / DITOLAK (RE-TAP ATAU BELUM ABSEN MASUK)
     // -----------------------------------------------------------
     } else {
       const cleanMsg = (backendMessage || "Absensi Ditolak").replace("[Sistem]", "").trim();
-      
-      // Utamakan pesan suara rinci dari backend (misal: "Maaf Guntoro, Anda sudah absen masuk jam 08:43")
       const pesanSuaraAlert = (record && record.pesanSuara) ? record.pesanSuara : cleanMsg;
 
       putarSuaraKonfirmasi(pesanSuaraAlert); 
