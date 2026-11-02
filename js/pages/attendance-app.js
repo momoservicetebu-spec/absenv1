@@ -241,22 +241,21 @@ if (nfcInput) {
 }
 
 // ==========================================
-// 4. VERIFIKASI WAJAH AI (DENGAN NAMA MASTER & SMART ALIAS MATCHING)
+// 4. VERIFIKASI WAJAH AI (DENGAN MASTER NIP <-> ID RESOLVER)
 // ==========================================
 function startVerificationState(userID, userName) {
-  // 🌟 JAMIN KAMERA DAN CONTAINER TAMPIL
+  // 1. TAMPILKAN KAMERA & CONTAINER SECARA VISIBEL
   if (typeof standbyUI !== 'undefined' && standbyUI) standbyUI.style.display = 'none';
   if (typeof videoContainer !== 'undefined' && videoContainer) videoContainer.style.display = 'flex';
 
   if (isProcessing) return;
   isProcessing = true;
-  
-  // ... (Sisa kode di bawahnya tetap sama persis seperti milik Anda)
 
   const cleanInputID = String(userID || '').replace(/'/g, "").trim();
-  let displayName = cleanInputID;
+  let displayName = userName || cleanInputID;
+  let resolvedFaceID = cleanInputID;
 
-  // 1. PENCARIAN NAMA & STATUS BERCADAR DARI MASTER DATA
+  // 2. PENCARIAN DATA DI MASTER GURU / SISWA
   const masterGuru = typeof dataGuru !== 'undefined' ? dataGuru : (typeof listGuru !== 'undefined' ? listGuru : []);
   const masterSiswa = typeof dataSiswa !== 'undefined' ? dataSiswa : (typeof listSiswa !== 'undefined' ? listSiswa : []);
   const allUsers = [...masterGuru, ...masterSiswa];
@@ -264,57 +263,55 @@ function startVerificationState(userID, userName) {
   const foundMaster = allUsers.find(
     u => {
       const uID = String(u.UserID || u.NIP || u.NIS || u.ID || u.id || '').replace(/'/g, "").trim().toUpperCase();
-      return uID === cleanInputID.toUpperCase() || (cleanInputID.length > 5 && uID.includes(cleanInputID.toUpperCase()));
+      const uNIP = String(u.NIP || u.nip || '').replace(/'/g, "").trim().toUpperCase();
+      const uNama = String(u.Nama || u.Nama_Lengkap || u.NamaLengkap || '').replace(/'/g, "").trim().toUpperCase();
+      const searchUp = cleanInputID.toUpperCase();
+
+      return uID === searchUp || (uNIP && uNIP === searchUp) || (uNama && uNama === searchUp);
     }
   );
 
   if (foundMaster) {
     displayName = foundMaster.Nama || foundMaster.Nama_Lengkap || foundMaster.NamaLengkap || displayName;
     
-    // 🌟 BYPASS WAJAH KHUSUS GURU BERCADAR
+    // Ambil ID utama dari Master untuk dicocokkan ke Database Wajah (misal: TU-04)
+    if (foundMaster.UserID || foundMaster.ID || foundMaster.id) {
+      resolvedFaceID = String(foundMaster.UserID || foundMaster.ID || foundMaster.id).replace(/'/g, "").trim();
+    }
+    
+    // BYPASS WAJAH KHUSUS BERCADAR
     let statusBercadar = foundMaster.Bercadar || foundMaster.bercadar || "";
     if (statusBercadar === true || String(statusBercadar).toUpperCase().trim() === "YA") {
-      if (typeof standbyUI !== 'undefined' && standbyUI) standbyUI.style.display = 'none';
       statusText.innerText = `Bypass Terverifikasi (${displayName})`;
       statusText.style.color = "#2ecc71";
-      
-      // Langsung eksekusi absensi tanpa kamera
       executeAttendance(cleanInputID, displayName);
-      return; // Hentikan fungsi di sini
+      return;
     }
-  } else if (userName && userName !== cleanInputID) {
-    displayName = userName;
   }
 
-  // 2. CEK DATA WAJAH (SMART ALIAS RESOLVER: Pencocokan NIP, ID, atau Nama)
+  // 3. CEK DATA WAJAH DENGAN MULTI-CROSS MATCHING (ID, NIP, ATAU NAMA)
   const dbWajah = typeof databaseWajah !== 'undefined' ? databaseWajah : [];
   const searchUpper = cleanInputID.toUpperCase();
+  const resolvedUpper = resolvedFaceID.toUpperCase();
   const nameUpper = String(displayName).toUpperCase().trim();
 
   const targetUser = dbWajah.find(u => {
     const faceID = String(u.id || u.UserID || '').replace(/'/g, "").trim().toUpperCase();
-    const faceNIP = String(u.nip || u.NIP || '').replace(/'/g, "").trim().toUpperCase();
-    const faceNama = String(u.nama || u.Nama || '').replace(/'/g, "").trim().toUpperCase();
-
-    // 🌟 Lolos jika ID persis sama (misal: TU-04 == TU-04), NIP cocok, atau Nama cocok
     return faceID === searchUpper || 
-           (faceNIP && faceNIP === searchUpper) ||
-           (searchUpper.length > 5 && faceNIP.includes(searchUpper)) ||
-           (nameUpper && faceNama && faceNama === nameUpper);
+           faceID === resolvedUpper || 
+           (foundMaster && String(foundMaster.UserID || '').toUpperCase() === faceID);
   });
   
   if (!targetUser) {
     isProcessing = false;
     putarSuaraKonfirmasi(`Data wajah belum didaftarkan.`);
-    showAlert(`Data wajah untuk ${displayName} (${cleanInputID}) belum didaftarkan.`, "#e74c3c");
+    showAlert(`❌ Data wajah untuk ${displayName} (${cleanInputID}) belum didaftarkan.`, "#e74c3c");
     setTimeout(resetToStandby, 3000);
     return;
   }
 
-  // 3. PROSES PEMINDAIAN WAJAH KAMERA
+  // 4. PROSES PEMINDAIAN WAJAH KAMERA
   currentMFAUser = targetUser;
-  if (typeof standbyUI !== 'undefined' && standbyUI) standbyUI.style.display = 'none';
-  if (typeof videoContainer !== 'undefined' && videoContainer) videoContainer.style.display = 'flex';
   
   statusText.innerText = `Pindai Wajah: ${displayName}...`;
   statusText.style.color = "#3498db";
@@ -361,8 +358,7 @@ function startVerificationState(userID, userName) {
         statusText.innerText = `Wajah Cocok! (${displayName})`;
         statusText.style.color = "#2ecc71";
         
-        // Gunakan ID resmi (misal: TU-04 atau NIP) untuk mencatat absensi
-        const finalID = currentMFAUser.id || currentMFAUser.UserID || cleanInputID;
+        const finalID = currentMFAUser.id || resolvedFaceID || cleanInputID;
         executeAttendance(finalID, displayName);
       } else {
         statusText.innerText = `Membandingkan Wajah... (${distance.toFixed(2)})`;
