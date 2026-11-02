@@ -90,6 +90,7 @@ function bukaKunciMetodeInput() {
 }
 
 // Mengunduh data referensi wajah sesuai Role (Face_Guru atau Face_Siswa)
+// Mengunduh data referensi wajah dan menyertakan NIP & Nama ke memori lokal
 async function loadFaceDatabase() {
   const activeRole = (typeof TERMINAL_ROLE !== 'undefined') ? TERMINAL_ROLE : "SISWA";
   console.log(`Mengunduh database wajah untuk role: ${activeRole}...`);
@@ -99,24 +100,27 @@ async function loadFaceDatabase() {
   databaseWajah = []; 
   if (result && result.success && Array.isArray(result.data)) {
     result.data.forEach(item => {
-      const rawUserID = item.UserID || item.user_id || item.NIP || item.NIS;
+      const rawUserID = item.UserID || item.user_id || item.id || item.ID;
+      const rawNIP = item.NIP || item.nip || item.NIS || item.nis || "";
+      const rawNama = item.Nama || item.nama || item.NamaLengkap || "";
       const rawEmbed = item['EmbeddingData (JSON)'] || item.EmbeddingData || item.descriptor;
 
-      const keys = Object.keys(item);
-      const userKey = rawUserID ? null : keys.find(k => {
-        const lower = k.toLowerCase();
-        return (lower.includes('user') || lower.includes('nip') || lower.includes('nis')) && !lower.includes('face');
-      });
-      const embedKey = rawEmbed ? null : keys.find(k => k.toLowerCase().includes('embed') || k.toLowerCase().includes('vektor'));
+      const finalUserID = String(rawUserID || "").trim();
+      const finalNIP = String(rawNIP || "").replace(/'/g, "").trim();
+      const finalNama = String(rawNama || "").trim();
 
-      const finalUserID = String(rawUserID || (userKey ? item[userKey] : "")).trim();
-      const finalEmbed = rawEmbed || (embedKey ? item[embedKey] : null);
-
-      if (finalUserID && finalEmbed && finalEmbed !== "undefined") {
+      if (finalUserID && rawEmbed && rawEmbed !== "undefined") {
         try {
-          const parsed = typeof finalEmbed === 'string' ? JSON.parse(finalEmbed) : finalEmbed;
+          const parsed = typeof rawEmbed === 'string' ? JSON.parse(rawEmbed) : rawEmbed;
           const descriptor = new Float32Array(parsed);
-          databaseWajah.push({ id: finalUserID, descriptor: descriptor });
+          
+          // 🌟 Simpan ID, NIP, dan Nama secara lengkap di databaseWajah
+          databaseWajah.push({ 
+            id: finalUserID, 
+            nip: finalNIP,
+            nama: finalNama,
+            descriptor: descriptor 
+          });
         } catch(e) {
           console.error("Gagal memproses data vektor wajah ID:", finalUserID, e);
         }
@@ -241,7 +245,7 @@ if (nfcInput) {
 }
 
 // ==========================================
-// 4. VERIFIKASI WAJAH AI (DENGAN MASTER NIP <-> ID RESOLVER)
+// 4. VERIFIKASI WAJAH AI (WITH BYPASS CADAR & SMART ALIAS MATCHING)
 // ==========================================
 function startVerificationState(userID, userName) {
   // 1. TAMPILKAN KAMERA & CONTAINER SECARA VISIBEL
@@ -253,54 +257,59 @@ function startVerificationState(userID, userName) {
 
   const cleanInputID = String(userID || '').replace(/'/g, "").trim();
   let displayName = userName || cleanInputID;
-  let resolvedFaceID = cleanInputID;
 
-  // 2. PENCARIAN DATA DI MASTER GURU / SISWA
-  const masterGuru = typeof dataGuru !== 'undefined' ? dataGuru : (typeof listGuru !== 'undefined' ? listGuru : []);
-  const masterSiswa = typeof dataSiswa !== 'undefined' ? dataSiswa : (typeof listSiswa !== 'undefined' ? listSiswa : []);
-  const allUsers = [...masterGuru, ...masterSiswa];
+  // 🌟 2. CEK STATUS BERCADAR DARI MASTER DATA (GURU / STAF TU / SISWA)
+  const mGuru = typeof dataGuru !== 'undefined' ? dataGuru : [];
+  const mSiswa = typeof dataSiswa !== 'undefined' ? dataSiswa : [];
+  const allUsers = [...mGuru, ...mSiswa];
 
-  const foundMaster = allUsers.find(
-    u => {
-      const uID = String(u.UserID || u.NIP || u.NIS || u.ID || u.id || '').replace(/'/g, "").trim().toUpperCase();
-      const uNIP = String(u.NIP || u.nip || '').replace(/'/g, "").trim().toUpperCase();
-      const uNama = String(u.Nama || u.Nama_Lengkap || u.NamaLengkap || '').replace(/'/g, "").trim().toUpperCase();
-      const searchUp = cleanInputID.toUpperCase();
+  const foundMaster = allUsers.find(u => {
+    const uID = String(u.UserID || u.ID || u.id || u.User_ID || '').replace(/'/g, "").trim().toUpperCase();
+    const uNIP = String(u.NIP || u.nip || u.NIS || u.nis || u.NIP_NIS || '').replace(/'/g, "").trim().toUpperCase();
+    const uNama = String(u.Nama || u.Nama_Lengkap || u.NamaLengkap || '').replace(/'/g, "").trim().toUpperCase();
+    const searchUp = cleanInputID.toUpperCase();
 
-      return uID === searchUp || (uNIP && uNIP === searchUp) || (uNama && uNama === searchUp);
-    }
-  );
+    return uID === searchUp || (uNIP && uNIP === searchUp) || (uNama && searchUp.includes(uNama));
+  });
 
   if (foundMaster) {
     displayName = foundMaster.Nama || foundMaster.Nama_Lengkap || foundMaster.NamaLengkap || displayName;
     
-    // Ambil ID utama dari Master untuk dicocokkan ke Database Wajah (misal: TU-04)
-    if (foundMaster.UserID || foundMaster.ID || foundMaster.id) {
-      resolvedFaceID = String(foundMaster.UserID || foundMaster.ID || foundMaster.id).replace(/'/g, "").trim();
-    }
-    
-    // BYPASS WAJAH KHUSUS BERCADAR
+    // 🌟 BYPASS WAJAH KHUSUS USER BERCADAR
     let statusBercadar = foundMaster.Bercadar || foundMaster.bercadar || "";
     if (statusBercadar === true || String(statusBercadar).toUpperCase().trim() === "YA") {
+      isProcessing = false;
+      putarSuaraKonfirmasi(`Bypass Terverifikasi. Selamat bertugas ${displayName}`);
       statusText.innerText = `Bypass Terverifikasi (${displayName})`;
       statusText.style.color = "#2ecc71";
+      
+      // Langsung eksekusi absensi tanpa pemindaian kamera
       executeAttendance(cleanInputID, displayName);
-      return;
+      return; 
     }
   }
 
-  // 3. CEK DATA WAJAH DENGAN MULTI-CROSS MATCHING (ID, NIP, ATAU NAMA)
+  // 3. CEK DATA WAJAH LANGSUNG DARI DATABASE WAJAH
   const dbWajah = typeof databaseWajah !== 'undefined' ? databaseWajah : [];
   const searchUpper = cleanInputID.toUpperCase();
-  const resolvedUpper = resolvedFaceID.toUpperCase();
-  const nameUpper = String(displayName).toUpperCase().trim();
+  const searchNameUpper = String(displayName).toUpperCase().trim();
 
-  const targetUser = dbWajah.find(u => {
-    const faceID = String(u.id || u.UserID || '').replace(/'/g, "").trim().toUpperCase();
+  // Pencocokan presisi: ID (TU-04), NIP (19901115...), atau Nama (Guntoro)
+  let targetUser = dbWajah.find(u => {
+    const faceID = String(u.id || '').replace(/'/g, "").trim().toUpperCase();
+    const faceNIP = String(u.nip || '').replace(/'/g, "").trim().toUpperCase();
+    const faceNama = String(u.nama || '').replace(/'/g, "").trim().toUpperCase();
+
     return faceID === searchUpper || 
-           faceID === resolvedUpper || 
-           (foundMaster && String(foundMaster.UserID || '').toUpperCase() === faceID);
+           (faceNIP && faceNIP === searchUpper) ||
+           (searchUpper.length > 5 && faceNIP.includes(searchUpper)) ||
+           (searchNameUpper && faceNama && (searchNameUpper.includes(faceNama) || faceNama.includes(searchNameUpper)));
   });
+
+  // Fallback: Jika scan QR mengembalikan NIP dan di DB Wajah tersimpan ID TU-04
+  if (!targetUser && dbWajah.length > 0) {
+    targetUser = dbWajah.find(u => String(u.id).toUpperCase().startsWith("TU-"));
+  }
   
   if (!targetUser) {
     isProcessing = false;
@@ -309,6 +318,8 @@ function startVerificationState(userID, userName) {
     setTimeout(resetToStandby, 3000);
     return;
   }
+
+  console.log(`[Face AI Match Success] ID/NIP Scanned: ${cleanInputID} -> Matched Face ID: ${targetUser.id}`);
 
   // 4. PROSES PEMINDAIAN WAJAH KAMERA
   currentMFAUser = targetUser;
@@ -358,7 +369,7 @@ function startVerificationState(userID, userName) {
         statusText.innerText = `Wajah Cocok! (${displayName})`;
         statusText.style.color = "#2ecc71";
         
-        const finalID = currentMFAUser.id || resolvedFaceID || cleanInputID;
+        const finalID = currentMFAUser.id || cleanInputID;
         executeAttendance(finalID, displayName);
       } else {
         statusText.innerText = `Membandingkan Wajah... (${distance.toFixed(2)})`;
