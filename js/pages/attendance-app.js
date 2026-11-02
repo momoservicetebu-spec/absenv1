@@ -1,5 +1,5 @@
 // ==========================================
-// FILE: js/pages/attendance-app.js
+// FILE: js/pages/attendance-app.js (STRICT FACE VERIFICATION & CADAR BYPASS)
 // ==========================================
 const video = document.getElementById('video');
 const videoContainer = document.getElementById('video-container');
@@ -9,17 +9,23 @@ const statusText = document.getElementById('statusText');
 const alertBox = document.getElementById('alertBox');
 
 let databaseWajah = []; 
+let dataGuru = [];
+let dataSiswa = [];
 let currentMFAUser = null; 
 let verificationInterval = null;
 let isProcessing = false;
 let modeAbsensiSaatIni = "rfid"; // Default fallback
 
-// 1. Inisialisasi AI & Pengaturan Terminal
+// 🌟 THRESHOLD KETAT: 0.45 (Mencegah Wajah Orang Lain Lolos)
+const STRICT_FACE_THRESHOLD = 0.45;
+
+// 1. Inisialisasi AI, Master Users (Guru/TU/Siswa) & Database Wajah
 Promise.all([
   faceapi.nets.tinyFaceDetector.loadFromUri(CONFIG.MODEL_URL),
   faceapi.nets.faceLandmark68Net.loadFromUri(CONFIG.MODEL_URL),
   faceapi.nets.faceRecognitionNet.loadFromUri(CONFIG.MODEL_URL),
-  loadFaceDatabase(),
+  loadMasterUsers(), // Muat Master Data Guru & Siswa (Termasuk Kolom S Bercadar)
+  loadFaceDatabase(), // Muat Vektor Wajah dari Face_Guru & Face_Siswa
   terapkanPengaturanTerminal()
 ]).then(() => {
   startVideo();
@@ -34,6 +40,25 @@ function startVideo() {
     .catch(err => console.error(err));
 }
 
+// Mengunduh Data Master Guru (Sheet 'Guru') & Siswa (Sheet 'Siswa')
+async function loadMasterUsers() {
+  try {
+    const resGuru = await fetchAPI("getGuru");
+    if (resGuru && resGuru.success && Array.isArray(resGuru.data)) {
+      dataGuru = resGuru.data;
+      console.log(`[Master Guru/TU Loaded] Total: ${dataGuru.length} akun`);
+    }
+
+    const resSiswa = await fetchAPI("getSiswa");
+    if (resSiswa && resSiswa.success && Array.isArray(resSiswa.data)) {
+      dataSiswa = resSiswa.data;
+      console.log(`[Master Siswa Loaded] Total: ${dataSiswa.length} akun`);
+    }
+  } catch(e) {
+    console.warn("Gagal memuat master data pengguna:", e);
+  }
+}
+
 // 2. Ambil Pengaturan Langsung dari Database Sheet (Key-Value)
 async function terapkanPengaturanTerminal() {
     statusText.innerText = "Mengambil konfigurasi terminal...";
@@ -43,14 +68,12 @@ async function terapkanPengaturanTerminal() {
         const config = result.data || {};
         const activeRole = (typeof TERMINAL_ROLE !== 'undefined') ? TERMINAL_ROLE : "SISWA";
         
-        // Baca nilai MFA_STUDENT / MFA_TEACHER dari Sheet
         if (activeRole === "SISWA") {
             modeAbsensiSaatIni = config.MFA_STUDENT || config.keamanan?.mfaSiswa || "rfid";
         } else if (activeRole === "GURU") {
             modeAbsensiSaatIni = config.MFA_TEACHER || config.keamanan?.mfaGuru || "rfid";
         }
 
-        // Baca ANTI_FAKE_GPS dari Sheet
         const antiFakeVal = config.ANTI_FAKE_GPS !== undefined ? config.ANTI_FAKE_GPS : config.keamanan?.antiFakeGps;
         const isAntiFakeGpsActive = String(antiFakeVal).toUpperCase() === "TRUE" || antiFakeVal === true;
         
@@ -77,7 +100,6 @@ async function terapkanPengaturanTerminal() {
 function bukaKunciMetodeInput() {
     const modeLower = String(modeAbsensiSaatIni).toLowerCase();
     
-    // Jika pengaturannya murni hanya wajah tanpa NFC
     if (modeLower === "face" || modeLower.includes("hanya scan wajah")) {
         if(standbyUI) standbyUI.style.display = 'none';
         if(videoContainer) videoContainer.style.display = 'flex';
@@ -89,8 +111,7 @@ function bukaKunciMetodeInput() {
     }
 }
 
-// Mengunduh data referensi wajah sesuai Role (Face_Guru atau Face_Siswa)
-// Mengunduh data referensi wajah dan menyertakan NIP & Nama ke memori lokal
+// Mengunduh Data Referensi Wajah dari Sheet Face_Guru / Face_Siswa
 async function loadFaceDatabase() {
   const activeRole = (typeof TERMINAL_ROLE !== 'undefined') ? TERMINAL_ROLE : "SISWA";
   console.log(`Mengunduh database wajah untuk role: ${activeRole}...`);
@@ -114,7 +135,6 @@ async function loadFaceDatabase() {
           const parsed = typeof rawEmbed === 'string' ? JSON.parse(rawEmbed) : rawEmbed;
           const descriptor = new Float32Array(parsed);
           
-          // 🌟 Simpan ID, NIP, dan Nama secara lengkap di databaseWajah
           databaseWajah.push({ 
             id: finalUserID, 
             nip: finalNIP,
@@ -129,8 +149,9 @@ async function loadFaceDatabase() {
     console.log(`Database Wajah Loaded (${activeRole}):`, databaseWajah);
   }
 }
+
 // ==========================================
-// 3. LISTENER INPUT KARTU NFC / SCAN BARCODE (FIX CAMERA DISPLAY SWITCH)
+// 3. LISTENER SCANNER RFID / QR CODE
 // ==========================================
 if (nfcInput) {
   nfcInput.addEventListener('keypress', async function (e) {
@@ -145,7 +166,7 @@ if (nfcInput) {
         let targetUserId = rawInput;
         let activeRole = (typeof TERMINAL_ROLE !== 'undefined') ? TERMINAL_ROLE : "SISWA";
 
-        // 1. Ekstrak otomatis Native JSON Payload Barcode / QR Code
+        // 1. Parse Payload QR Code jika format JSON
         if (rawInput.startsWith("{") && rawInput.endsWith("}")) {
           try {
             const parsedQR = JSON.parse(rawInput);
@@ -161,10 +182,8 @@ if (nfcInput) {
           }
         }
 
-        // 2. Sanitasi ID
         targetUserId = String(targetUserId).replace(/'/g, "").trim();
 
-        // 3. Otomatisasi Role untuk Staf TU (ID diawali TU-)
         if (targetUserId.toUpperCase().startsWith("TU-")) {
           activeRole = "GURU"; 
         }
@@ -178,33 +197,7 @@ if (nfcInput) {
            let userID = String(result.data.userId || result.data.id || targetUserId).replace(/'/g, "").trim(); 
            let userName = result.data.nama || result.data.Nama || userID; 
 
-           // Smart Matching ke Database Wajah Lokal (Pencocokan NIP/ID/Nama)
-           if (typeof databaseWajah !== 'undefined' && Array.isArray(databaseWajah)) {
-             const cleanTarget = userID.toLowerCase();
-             const matchFace = databaseWajah.find(w => {
-               const wId = String(w.id || w.UserID || '').replace(/'/g, "").trim().toLowerCase();
-               const wNip = String(w.nip || w.NIP || '').replace(/'/g, "").trim().toLowerCase();
-               const wNama = String(w.nama || w.Nama || '').replace(/'/g, "").trim().toLowerCase();
-               
-               return wId === cleanTarget || 
-                      (wNip && wNip === cleanTarget) ||
-                      (wNama && userName && wNama === userName.toLowerCase()) ||
-                      (cleanTarget.length > 5 && wNip.includes(cleanTarget));
-             });
-
-             if (matchFace) {
-               userID = matchFace.id || matchFace.UserID;
-               if (matchFace.nama || matchFace.Nama) userName = matchFace.nama || matchFace.Nama;
-             }
-           }
-
-           // Cek Status Bercadar
-           let isBercadar = false;
-           if (result.data.bercadar === true || result.data.Bercadar === true || String(result.data.bercadar || result.data.Bercadar).toUpperCase().trim() === "YA") {
-               isBercadar = true;
-           }
-
-           // Buka Tampilan Kamera Secara Paksa Jika Ada Modul Kamera
+           // Buka Tampilan Kamera
            const modeLower = (typeof modeAbsensiSaatIni !== 'undefined') ? String(modeAbsensiSaatIni).toLowerCase() : "";
            const requiresFace = modeLower.includes("wajah") || 
                                 modeLower.includes("face") || 
@@ -213,22 +206,13 @@ if (nfcInput) {
                                 modeLower === "mfa" ||
                                 (document.getElementById('video') !== null);
 
-           if (isBercadar) {
-               statusText.innerText = `Mode Khusus Aktif: Memproses absen untuk ${userName}...`;
-               isProcessing = false;
-               executeAttendance(userID, userName); 
-               
-           } else if (requiresFace) {
+           if (requiresFace) {
                statusText.innerText = `ID Dikenali (${userName})! Memulai verifikasi wajah...`;
-               
-               // 🌟 SWITCH UI KE KAMERA SEBELUM MEMANGGIL VERIFIKASI
                if (standbyUI) standbyUI.style.display = 'none';
                if (videoContainer) videoContainer.style.display = 'flex';
                
-               // 🌟 BUKA KUNCI ISPROCESSING
                isProcessing = false; 
                startVerificationState(userID, userName); 
-               
            } else {
                executeAttendance(userID, userName);
            }
@@ -245,10 +229,9 @@ if (nfcInput) {
 }
 
 // ==========================================
-// 4. VERIFIKASI WAJAH AI (WITH BYPASS CADAR & SMART ALIAS MATCHING)
+// 4. VERIFIKASI WAJAH KETAT & BYPASS BERCADAR EKSKLUSIF
 // ==========================================
 function startVerificationState(userID, userName) {
-  // 1. TAMPILKAN KAMERA & CONTAINER SECARA VISIBEL
   if (typeof standbyUI !== 'undefined' && standbyUI) standbyUI.style.display = 'none';
   if (typeof videoContainer !== 'undefined' && videoContainer) videoContainer.style.display = 'flex';
 
@@ -258,70 +241,64 @@ function startVerificationState(userID, userName) {
   const cleanInputID = String(userID || '').replace(/'/g, "").trim();
   let displayName = userName || cleanInputID;
 
-  // 🌟 2. CEK STATUS BERCADAR DARI MASTER DATA (GURU / STAF TU / SISWA)
-  const mGuru = typeof dataGuru !== 'undefined' ? dataGuru : [];
-  const mSiswa = typeof dataSiswa !== 'undefined' ? dataSiswa : [];
-  const allUsers = [...mGuru, ...mSiswa];
+  // 1. CEK MASTER DATA (GURU / STAF TU / SISWA)
+  const allUsers = [...dataGuru, ...dataSiswa];
+  const searchUp = cleanInputID.toUpperCase();
 
   const foundMaster = allUsers.find(u => {
-    const uID = String(u.UserID || u.ID || u.id || u.User_ID || '').replace(/'/g, "").trim().toUpperCase();
-    const uNIP = String(u.NIP || u.nip || u.NIS || u.nis || u.NIP_NIS || '').replace(/'/g, "").trim().toUpperCase();
+    const uID = String(u.UserID || u.ID || u.id || u.GuruID || '').replace(/'/g, "").trim().toUpperCase();
+    const uNIP = String(u.NIP || u.nip || u.NIS || u.nis || '').replace(/'/g, "").trim().toUpperCase();
     const uNama = String(u.Nama || u.Nama_Lengkap || u.NamaLengkap || '').replace(/'/g, "").trim().toUpperCase();
-    const searchUp = cleanInputID.toUpperCase();
 
-    return uID === searchUp || (uNIP && uNIP === searchUp) || (uNama && searchUp.includes(uNama));
+    return uID === searchUp || (uNIP && uNIP === searchUp) || (uNama && uNama === searchUp);
   });
 
+  let masterUserID = cleanInputID;
   if (foundMaster) {
-    displayName = foundMaster.Nama || foundMaster.Nama_Lengkap || foundMaster.NamaLengkap || displayName;
+    displayName = foundMaster.Nama || foundMaster.Nama_Lengkap || displayName;
+    masterUserID = String(foundMaster.UserID || foundMaster.GuruID || foundMaster.ID || cleanInputID).replace(/'/g, "").trim();
     
-    // 🌟 BYPASS WAJAH KHUSUS USER BERCADAR
-    let statusBercadar = foundMaster.Bercadar || foundMaster.bercadar || "";
-    if (statusBercadar === true || String(statusBercadar).toUpperCase().trim() === "YA") {
+    // 🌟 PENCEKIKAN KOLOM S BERCADAR (HANYA 'YA' YANG BISA BYPASS)
+    let rawBercadar = String(foundMaster.Bercadar || foundMaster.bercadar || "").toUpperCase().trim();
+    if (rawBercadar === "YA" || foundMaster.Bercadar === true) {
       isProcessing = false;
       putarSuaraKonfirmasi(`Bypass Terverifikasi. Selamat bertugas ${displayName}`);
-      statusText.innerText = `Bypass Terverifikasi (${displayName})`;
+      statusText.innerText = `Bypass Terverifikasi - Bercadar (${displayName})`;
       statusText.style.color = "#2ecc71";
       
-      // Langsung eksekusi absensi tanpa pemindaian kamera
-      executeAttendance(cleanInputID, displayName);
-      return; 
+      executeAttendance(masterUserID, displayName);
+      return; // Selesai tanpa verifikasi kamera
     }
   }
 
-  // 3. CEK DATA WAJAH LANGSUNG DARI DATABASE WAJAH
+  // 🌟 2. PENCOCOKAN KETAT KE DATABASE WAJAH (TIDAK ADA FALLBACK RANDOM)
   const dbWajah = typeof databaseWajah !== 'undefined' ? databaseWajah : [];
-  const searchUpper = cleanInputID.toUpperCase();
+  const searchMasterUp = masterUserID.toUpperCase();
   const searchNameUpper = String(displayName).toUpperCase().trim();
 
-  // Pencocokan presisi: ID (TU-04), NIP (19901115...), atau Nama (Guntoro)
   let targetUser = dbWajah.find(u => {
     const faceID = String(u.id || '').replace(/'/g, "").trim().toUpperCase();
     const faceNIP = String(u.nip || '').replace(/'/g, "").trim().toUpperCase();
     const faceNama = String(u.nama || '').replace(/'/g, "").trim().toUpperCase();
 
-    return faceID === searchUpper || 
-           (faceNIP && faceNIP === searchUpper) ||
-           (searchUpper.length > 5 && faceNIP.includes(searchUpper)) ||
-           (searchNameUpper && faceNama && (searchNameUpper.includes(faceNama) || faceNama.includes(searchNameUpper)));
+    return faceID === searchUp || 
+           faceID === searchMasterUp ||
+           (faceNIP && (faceNIP === searchUp || faceNIP === searchMasterUp)) ||
+           (searchNameUpper && faceNama && faceNama === searchNameUpper);
   });
 
-  // Fallback: Jika scan QR mengembalikan NIP dan di DB Wajah tersimpan ID TU-04
-  if (!targetUser && dbWajah.length > 0) {
-    targetUser = dbWajah.find(u => String(u.id).toUpperCase().startsWith("TU-"));
-  }
-  
+  // Jika data wajah tidak ada di Face_Guru / Face_Siswa, TOLAK ABSENSI!
   if (!targetUser) {
     isProcessing = false;
     putarSuaraKonfirmasi(`Data wajah belum didaftarkan.`);
-    showAlert(`❌ Data wajah untuk ${displayName} (${cleanInputID}) belum didaftarkan.`, "#e74c3c");
-    setTimeout(resetToStandby, 3000);
+    showAlert(`❌ Data wajah untuk ${displayName} (${cleanInputID}) belum didaftarkan di sistem.`, "#e74c3c");
+    setTimeout(resetToStandby, 3500);
     return;
   }
 
-  console.log(`[Face AI Match Success] ID/NIP Scanned: ${cleanInputID} -> Matched Face ID: ${targetUser.id}`);
+  console.log(`[Strict Face Verification] User Target: ${targetUser.id} (${displayName})`);
 
-  // 4. PROSES PEMINDAIAN WAJAH KAMERA
+  // 3. PROSES PEMINDAIAN WAJAH DENGAN KAMERA LIVE
   currentMFAUser = targetUser;
   
   statusText.innerText = `Pindai Wajah: ${displayName}...`;
@@ -349,14 +326,18 @@ function startVerificationState(userID, userName) {
 
     if (detections) {
       const resized = faceapi.resizeResults(detections, displaySize);
+      
+      // Hitung jarak Euclidean vektor wajah
       const distance = faceapi.euclideanDistance(detections.descriptor, currentMFAUser.descriptor);
-      const isMatch = distance < 0.6; 
+      
+      // 🌟 KETENTUAN KETAT: Jarak harus < 0.45 agar terverifikasi COCOK
+      const isMatch = distance < STRICT_FACE_THRESHOLD; 
 
       if (canvas) {
         const drawOptions = {
           label: isMatch ? `✅ ${displayName}` : `Memindai... (${distance.toFixed(2)})`,
           lineWidth: 3,
-          boxColor: isMatch ? '#2ecc71' : '#e67e22'
+          boxColor: isMatch ? '#2ecc71' : '#e74c3c'
         };
         const drawBox = new faceapi.draw.DrawBox(resized.detection.box, drawOptions);
         drawBox.draw(canvas);
@@ -369,28 +350,30 @@ function startVerificationState(userID, userName) {
         statusText.innerText = `Wajah Cocok! (${displayName})`;
         statusText.style.color = "#2ecc71";
         
-        const finalID = currentMFAUser.id || cleanInputID;
+        const finalID = currentMFAUser.id || masterUserID;
         executeAttendance(finalID, displayName);
       } else {
-        statusText.innerText = `Membandingkan Wajah... (${distance.toFixed(2)})`;
+        statusText.innerText = `Membandingkan Wajah (${displayName})... Jarak: ${distance.toFixed(2)}`;
+        statusText.style.color = "#e67e22";
       }
     }
   }, 200);
 
+  // Timeout 12 detik jika wajah tidak cocok
   setTimeout(() => {
     if (isProcessing && verificationInterval) {
       clearInterval(verificationInterval);
       verificationInterval = null;
       isProcessing = false;
-      putarSuaraKonfirmasi("Verifikasi wajah gagal.");
-      showAlert(`Wajah tidak cocok untuk ${displayName}.`, "#e74c3c");
-      setTimeout(resetToStandby, 3000);
+      putarSuaraKonfirmasi("Verifikasi wajah gagal. Wajah tidak cocok.");
+      showAlert(`❌ Verifikasi Gagal: Wajah tidak cocok dengan data ${displayName}.`, "#e74c3c");
+      setTimeout(resetToStandby, 3500);
     }
   }, 12000);
 }
 
 // ==========================================
-// FUNGSI UTILITY: CAPTURE FOTO DARI KAMERA
+// FUNGSI UTILITY: CAPTURE FOTO KAMERA
 // ==========================================
 function captureKameraBase64() {
   try {
@@ -403,8 +386,6 @@ function captureKameraBase64() {
     
     const ctx = canvas.getContext("2d");
     ctx.drawImage(videoElem, 0, 0, canvas.width, canvas.height);
-    
-    // Kompres gambar ke JPEG (kualitas 0.6 agar ukuran data ringan)
     return canvas.toDataURL("image/jpeg", 0.6); 
   } catch (err) {
     console.error("Gagal capture foto:", err);
@@ -413,7 +394,7 @@ function captureKameraBase64() {
 }
 
 // ==========================================
-// 5. EKSEKUSI PENGIRIMAN ABSENSI KE SERVER & VOICE (FIXED ROLE & VOICE UNIVERSAL)
+// 5. EKSEKUSI ABSENSI KE SERVER
 // ==========================================
 let isSubmittingAttendance = false;
 
@@ -427,7 +408,6 @@ async function executeAttendance(userID, userName) {
     statusText.innerText = "Mengirim Data...";
   }
 
-  // 🌟 DETERMINASI ROLE PRESISI (Mencatat Tenaga Kependidikan jika ID TU-)
   const userIdUpper = String(userID).trim().toUpperCase();
   let finalRole = (typeof TERMINAL_ROLE !== 'undefined') ? TERMINAL_ROLE : "GURU";
 
@@ -445,7 +425,7 @@ async function executeAttendance(userID, userName) {
   const payload = {
     userId: String(userID).trim(),
     nama: displayName,
-    role: finalRole,                               // 🌟 Mengirim 'Tenaga Kependidikan' untuk TU-
+    role: finalRole,
     checkType: "AUTO",
     primaryMethod: "RFID",
     secondaryMethod: "FACE",
@@ -463,54 +443,37 @@ async function executeAttendance(userID, userName) {
 
     if (record.Nama) displayName = record.Nama;
 
-    // -----------------------------------------------------------
-    // 1. RESPON BERHASIL (TAP PERTAMA SAH)
-    // -----------------------------------------------------------
     if (result && result.success) {
-      
-      const statusAbsen = String(
-        record["Status(Hadir/Telat/Izin/dll)"] || 
-        record.Status || 
-        record.status || 
-        ""
-      ).toUpperCase().trim();
+      const statusAbsen = String(record["Status(Hadir/Telat/Izin/dll)"] || record.Status || "").toUpperCase().trim();
 
-      let warnaBg = "#2ecc71"; // Hijau Default (Tepat Waktu)
+      let warnaBg = "#2ecc71";
       let ikon = "✅";
       let teksJudul = "ABSEN MASUK SUKSES";
       let teksStatus = "Masuk Tepat Waktu";
       
-      // 🌟 PERBAIKAN PESAN SUARA UNIVERSAL (Disesuaikan Peran)
       let ucapanSelamat = "Selamat bertugas.";
       if (finalRole === "Guru") ucapanSelamat = "Selamat mengajar.";
       else if (finalRole === "Siswa") ucapanSelamat = "Selamat belajar.";
 
       let teksSuara = record.pesanSuara || `Terima kasih ${displayName}. Absen masuk berhasil. ${ucapanSelamat}`;
 
-      // A. STATUS TERLAMBAT (07:16 - 12:00)
       if (statusAbsen.includes("TELAT") || statusAbsen.includes("TERLAMBAT")) {
-        warnaBg = "#e67e22"; // Oranye
+        warnaBg = "#e67e22";
         ikon = "⚠️";
         teksJudul = "ABSEN MASUK (TERLAMBAT)";
         teksStatus = "Masuk Terlambat";
-
-      // B. STATUS PULANG AWAL (12:01 - 14:40)
       } else if (statusAbsen.includes("PULANG AWAL")) {
-        warnaBg = "#f39c12"; // Kuning
+        warnaBg = "#f39c12";
         ikon = "🟡";
         teksJudul = "ABSEN PULANG AWAL";
         teksStatus = "Pulang Awal";
-
-      // C. STATUS PULANG NORMAL (14:41 - 15:00)
       } else if (statusAbsen.includes("PULANG NORMAL") || statusAbsen === "PULANG") {
-        warnaBg = "#3498db"; // Biru
+        warnaBg = "#3498db";
         ikon = "🔵";
         teksJudul = "ABSEN PULANG SUKSES";
         teksStatus = "Pulang Normal";
-
-      // D. STATUS PULANG LEMBUR (15:01 - 24:00)
       } else if (statusAbsen.includes("LEMBUR")) {
-        warnaBg = "#9b59b6"; // Ungu
+        warnaBg = "#9b59b6";
         ikon = "🟣";
         teksJudul = "ABSEN PULANG LEMBUR";
         teksStatus = "Pulang Lembur";
@@ -523,10 +486,6 @@ async function executeAttendance(userID, userName) {
         statusText.innerText = `${ikon} ${teksStatus} (${displayName})`;
         statusText.style.color = warnaBg;
       }
-
-    // -----------------------------------------------------------
-    // 2. RESPON PERINGATAN / DITOLAK (RE-TAP ATAU BELUM ABSEN MASUK)
-    // -----------------------------------------------------------
     } else {
       const cleanMsg = (backendMessage || "Absensi Ditolak").replace("[Sistem]", "").trim();
       const pesanSuaraAlert = (record && record.pesanSuara) ? record.pesanSuara : cleanMsg;
@@ -547,8 +506,9 @@ async function executeAttendance(userID, userName) {
 
   setTimeout(resetToStandby, 3500);
 }
+
 // ==========================================
-// 6. RESET UI KEMBALI KE STANDBY
+// 6. RESET UI KE STANDBY
 // ==========================================
 function resetToStandby() {
   if (verificationInterval) clearInterval(verificationInterval);
