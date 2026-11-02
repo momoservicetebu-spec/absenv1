@@ -1,10 +1,10 @@
 // ==========================================
-// MODUL LIVE ABSEN MONITOR REAL-TIME (GURU & SISWA)
+// MODUL LIVE ABSEN MONITOR REAL-TIME (GURU, TU & SISWA)
 // ==========================================
 
 let liveAbsenInterval = null;
 let rawLiveAbsenData = [];
-let currentLiveRole = "GURU"; // Default awal: GURU
+let currentLiveRole = "GURU"; // Default awal: GURU & STAF TU
 
 // 1. FUNGSI INISIALISASI SAAT TAB LIVE ABSEN DIKLIK
 function initLiveAbsen() {
@@ -17,12 +17,12 @@ function initLiveAbsen() {
   liveAbsenInterval = setInterval(() => {
     const liveTab = document.getElementById("live-absen");
     if (liveTab && liveTab.style.display !== "none") {
-      loadLiveAbsenData(true); // true = reload otomatis tanpa menampilkan spinner/loading
+      loadLiveAbsenData(true); // true = reload otomatis tanpa spinner
     }
   }, 15000);
 }
 
-// 2. FUNGSI BERPINDAH SUB-TAB ROLE (GURU / SISWA)
+// 2. FUNGSI BERPINDAH SUB-TAB ROLE (GURU & STAF / SISWA)
 function switchLiveRole(role) {
   currentLiveRole = role;
   
@@ -77,10 +77,8 @@ function fixDrivePhotoUrl(url) {
     let cleanUrl = url.trim();
     if (!cleanUrl) return '';
     
-    // Jika sudah format lh3, langsung gunakan
     if (cleanUrl.includes('lh3.googleusercontent.com')) return cleanUrl;
     
-    // Ekstrak ID File dari URL Drive
     let fileId = '';
     const matchD = cleanUrl.match(/\/d\/([^\/\?]+)/);
     const matchId = cleanUrl.match(/id=([^&]+)/);
@@ -103,10 +101,21 @@ function renderLiveCards() {
 
   if (!container) return;
 
-  // Filter 1: Pemisahan berdasarkan Role
+  // 🌟 Filter 1: Pemisahan Role (GURU + TENAGA KEPENDIDIKAN / TU DITAMPILKAN DI TAB GURU & STAF)
   let filteredByRole = (rawLiveAbsenData || []).filter(item => {
-    const roleItem = String(item.Role || "GURU").toUpperCase();
-    return (currentLiveRole === "GURU") ? (roleItem === "GURU") : (roleItem === "SISWA");
+    const roleItem = String(item.Role || item.role || "").toUpperCase();
+    const idItem = String(item.UserID || item.userId || "").toUpperCase();
+    
+    const isTUorGuru = roleItem.includes("GURU") || 
+                       roleItem.includes("TENAGA") || 
+                       roleItem.includes("TU") || 
+                       idItem.startsWith("TU-");
+
+    if (currentLiveRole === "GURU") {
+      return isTUorGuru;
+    } else {
+      return !isTUorGuru || roleItem.includes("SISWA");
+    }
   });
 
   // Hitung ulang statistik ringkasan khusus untuk role tersebut
@@ -118,17 +127,24 @@ function renderLiveCards() {
   });
 
   if (finalData.length === 0) {
-    container.innerHTML = `<div style="grid-column: 1/-1; text-align: center; padding: 40px; color: #888;">Tidak ada data absensi untuk kategori <b>${currentLiveRole}</b> saat ini.</div>`;
+    container.innerHTML = `<div style="grid-column: 1/-1; text-align: center; padding: 40px; color: #888;">Tidak ada data absensi untuk kategori <b>${currentLiveRole === 'GURU' ? 'Guru & Staf TU' : 'Siswa'}</b> saat ini.</div>`;
     return;
   }
 
   // Render Kartu Tampilan Foto & Detail
   container.innerHTML = finalData.map(item => {
     const nama = item.Nama || item.UserID || "Tanpa Nama";
-    const role = item.Role || currentLiveRole;
+    const rawRole = String(item.Role || item.role || "").toUpperCase();
+    const userID = String(item.UserID || "-");
+    
+    // 🌟 Normalisasi Label Peran (Menampilkan 'Tenaga Kependidikan' jika ID TU- atau Staf)
+    let displayRole = item.Role || "Guru";
+    if (userID.toUpperCase().startsWith("TU-") || rawRole.includes("TENAGA") || rawRole.includes("TU")) {
+      displayRole = "Tenaga Kependidikan";
+    }
+
     const waktu = item.Timestamp || item.Time || "-";
     
-    // Ambil foto dari berbagai kemungkinan nama kolom
     const rawFoto = item.Foto || item.ImageURL || item["Foto (URL)"] || item["Foto"] || "";
     const fotoProcessed = fixDrivePhotoUrl(rawFoto);
     const foto = fotoProcessed ? fotoProcessed : "https://via.placeholder.com/150?text=Foto+Tidak+Ada";
@@ -142,7 +158,6 @@ function renderLiveCards() {
     const stLow = String(statusText).toLowerCase();
     const typeUp = String(checkType).toUpperCase();
 
-    // Logika Warna Label Sesuai Tipe dan Status
     if (typeUp === "OUT") {
       if (stLow.includes("lembur") || stLow.includes("diperbarui")) {
         colorTheme = "#9b59b6"; // Ungu (Lembur)
@@ -154,7 +169,7 @@ function renderLiveCards() {
         colorTheme = "#3498db"; // Biru (Pulang Normal)
         statusLabel = "🔵 PULANG";
       }
-    } else { // Jika IN (Masuk)
+    } else {
       if (stLow.includes("terlambat") || stLow.includes("telat")) {
         colorTheme = "#e74c3c"; // Merah (Terlambat)
         statusLabel = "🔴 TERLAMBAT";
@@ -169,7 +184,7 @@ function renderLiveCards() {
             ${statusLabel}
           </span>
           <span style="position: absolute; bottom: 10px; left: 10px; background: rgba(0,0,0,0.7); color: white; padding: 3px 8px; border-radius: 4px; font-size: 0.75em;">
-            ${role}
+            ${displayRole}
           </span>
         </div>
         <div style="padding: 15px; flex: 1; display: flex; flex-direction: column; justify-content: space-between;">
@@ -178,7 +193,7 @@ function renderLiveCards() {
             <p style="margin: 0; color: #777; font-size: 0.85em;">⏰ ${waktu}</p>
           </div>
           <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid #eee; font-size: 0.8em; color: #555; display: flex; justify-content: space-between; align-items: center;">
-            <span>ID: <b>${item.UserID || "-"}</b></span>
+            <span>ID: <b>${userID}</b></span>
             <a href="${foto}" target="_blank" style="color: ${colorTheme}; text-decoration: none; font-weight: bold;">🔍 Lihat Foto</a>
           </div>
         </div>
@@ -192,17 +207,16 @@ function updateStatistikCounter(data) {
   let masuk = 0, awalTelat = 0, pulang = 0, lembur = 0;
 
   data.forEach(item => {
-    // 🌟 PERBAIKAN: Baca dari kolom Spreadsheet yang baru
     const status = String(item["Status(Hadir/Telat/Izin/dll)"] || item.Status || "").toLowerCase();
     const type = String(item["CheckType (IN/OUT)"] || "").toUpperCase();
 
     if (type === "OUT") {
       if (status.includes("lembur") || status.includes("diperbarui")) lembur++;
-      else if (status.includes("awal")) awalTelat++; // Digabung ke blok Pulang Awal / Telat
+      else if (status.includes("awal")) awalTelat++;
       else pulang++;
     } else {
-      if (status.includes("terlambat") || status.includes("telat")) awalTelat++; // Masuk telat
-      else masuk++; // Tepat waktu
+      if (status.includes("terlambat") || status.includes("telat")) awalTelat++;
+      else masuk++;
     }
   });
 
