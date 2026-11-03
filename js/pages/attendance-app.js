@@ -17,7 +17,7 @@ let isProcessing = false;
 let modeAbsensiSaatIni = "rfid"; // Default fallback
 
 // 🌟 THRESHOLD KETAT: 0.45 (Mencegah Wajah Orang Lain Lolos)
-const STRICT_FACE_THRESHOLD = 0.45;
+const STRICT_FACE_THRESHOLD = 0.50;
 
 // 1. Inisialisasi AI, Master Users (Guru/TU/Siswa) & Database Wajah
 Promise.all([
