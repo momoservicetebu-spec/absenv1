@@ -298,68 +298,100 @@ function startVerificationState(userID, userName) {
 
   console.log(`[Strict Face Verification] User Target: ${targetUser.id} (${displayName})`);
 
-  // 3. PROSES PEMINDAIAN WAJAH DENGAN KAMERA LIVE
-  currentMFAUser = targetUser;
-  
-  statusText.innerText = `Pindai Wajah: ${displayName}...`;
-  statusText.style.color = "#3498db";
-
-  let canvas = document.querySelector('canvas');
-  if (!canvas && typeof video !== 'undefined') {
-    canvas = faceapi.createCanvasFromMedia(video);
-    if (videoContainer) videoContainer.append(canvas);
-  }
-  const displaySize = { width: (video && video.width) || 640, height: (video && video.height) || 480 };
-  if (canvas) faceapi.matchDimensions(canvas, displaySize);
-
-  verificationInterval = setInterval(async () => {
-    if (typeof video === 'undefined' || !video) return;
-
-    const detections = await faceapi.detectSingleFace(video, new faceapi.TinyFaceDetectorOptions({ inputSize: 320, scoreThreshold: 0.5 }))
-                                    .withFaceLandmarks()
-                                    .withFaceDescriptor();
+// 3. PROSES PEMINDAIAN WAJAH DENGAN KAMERA LIVE
+    currentMFAUser = targetUser;
     
-    if (canvas) {
-      const context = canvas.getContext('2d');
-      context.clearRect(0, 0, canvas.width, canvas.height);
+    // Tentukan tantangan secara acak
+    const livenessChallenge = Math.random() > 0.5 ? 'BLINK' : 'MOUTH';
+    const challengeText = livenessChallenge === 'BLINK' ? '👁️ Kedipkan Mata' : '👄 Buka Mulut / Senyum Lebar';
+    
+    statusText.innerText = `${challengeText}: ${displayName}...`;
+    statusText.style.color = "#3498db";
+
+    let canvas = document.querySelector('canvas');
+    if (!canvas && typeof video !== 'undefined') {
+      canvas = faceapi.createCanvasFromMedia(video);
+      if (videoContainer) videoContainer.append(canvas);
     }
+    const displaySize = { width: (video && video.width) || 640, height: (video && video.height) || 480 };
+    if (canvas) faceapi.matchDimensions(canvas, displaySize);
 
-    if (detections) {
-      const resized = faceapi.resizeResults(detections, displaySize);
-      
-      // Hitung jarak Euclidean vektor wajah
-      const distance = faceapi.euclideanDistance(detections.descriptor, currentMFAUser.descriptor);
-      
-      // 🌟 KETENTUAN KETAT: Jarak harus < 0.45 agar terverifikasi COCOK
-      const isMatch = distance < STRICT_FACE_THRESHOLD; 
+    // Variabel state untuk tantangan
+    let hasPassedChallenge = false;
+    let isEyeClosed = false;
 
+    // Menggunakan inputSize 224 agar frame rate lebih cepat saat mendeteksi gerakan kecil
+    const detectorOptions = new faceapi.TinyFaceDetectorOptions({ inputSize: 224, scoreThreshold: 0.5 });
+
+    verificationInterval = setInterval(async () => {
+      if (typeof video === 'undefined' || !video) return;
+
+      const detections = await faceapi.detectSingleFace(video, detectorOptions)
+                                      .withFaceLandmarks()
+                                      .withFaceDescriptor();
+      
       if (canvas) {
-        const drawOptions = {
-          label: isMatch ? `✅ ${displayName}` : `Memindai... (${distance.toFixed(2)})`,
-          lineWidth: 3,
-          boxColor: isMatch ? '#2ecc71' : '#e74c3c'
-        };
-        const drawBox = new faceapi.draw.DrawBox(resized.detection.box, drawOptions);
-        drawBox.draw(canvas);
+        const context = canvas.getContext('2d');
+        context.clearRect(0, 0, canvas.width, canvas.height);
       }
 
-      if (isMatch) {
-        clearInterval(verificationInterval);
-        verificationInterval = null;
-        
-        statusText.innerText = `Wajah Cocok! (${displayName})`;
-        statusText.style.color = "#2ecc71";
-        
-        const finalID = currentMFAUser.id || masterUserID;
-        executeAttendance(finalID, displayName);
-      } else {
-        statusText.innerText = `Membandingkan Wajah (${displayName})... Jarak: ${distance.toFixed(2)}`;
-        statusText.style.color = "#e67e22";
-      }
-    }
-  }, 200);
+      if (detections) {
+        const resized = faceapi.resizeResults(detections, displaySize);
+        const distance = faceapi.euclideanDistance(detections.descriptor, currentMFAUser.descriptor);
+        const isMatch = distance < STRICT_FACE_THRESHOLD; 
 
-  // Timeout 12 detik jika wajah tidak cocok
+        // Evaluasi Tantangan Liveness
+        if (livenessChallenge === 'BLINK') {
+          const leftEye = detections.landmarks.getLeftEye();
+          const rightEye = detections.landmarks.getRightEye();
+          const avgEAR = (getEyeAspectRatio(leftEye) + getEyeAspectRatio(rightEye)) / 2.0;
+
+          if (avgEAR < 0.22) {
+            isEyeClosed = true;
+          } else if (isEyeClosed && avgEAR > 0.26) {
+            hasPassedChallenge = true;
+          }
+        } else {
+          const jaw = detections.landmarks.getJawOutline();
+          const mouth = detections.landmarks.getMouth();
+          const mouthRatio = getMouthAspectRatio(jaw, mouth);
+          
+          if (mouthRatio > 0.4) { // Angka > 0.4 menandakan mulut menganga
+            hasPassedChallenge = true;
+          }
+        }
+
+        if (canvas) {
+          const drawOptions = {
+            label: (isMatch && hasPassedChallenge) ? `✅ ${displayName}` : (isMatch ? challengeText : `Memindai... (${distance.toFixed(2)})`),
+            lineWidth: 3,
+            boxColor: (isMatch && hasPassedChallenge) ? '#2ecc71' : (isMatch ? '#f39c12' : '#e74c3c')
+          };
+          const drawBox = new faceapi.draw.DrawBox(resized.detection.box, drawOptions);
+          drawBox.draw(canvas);
+        }
+
+        // Syarat Absen: Wajah Cocok DAN Tantangan Berhasil
+        if (isMatch && hasPassedChallenge) {
+          clearInterval(verificationInterval);
+          verificationInterval = null;
+          
+          statusText.innerText = `Wajah Cocok & Liveness Valid! (${displayName})`;
+          statusText.style.color = "#2ecc71";
+          
+          const finalID = currentMFAUser.id || masterUserID;
+          executeAttendance(finalID, displayName);
+        } else if (isMatch && !hasPassedChallenge) {
+          statusText.innerText = `Wajah Valid. Lakukan: ${challengeText} (${displayName})...`;
+          statusText.style.color = "#e67e22";
+        } else {
+          statusText.innerText = `Membandingkan Wajah (${displayName})...`;
+          statusText.style.color = "#e67e22";
+        }
+      }
+    }, 100); // Interval dipercepat ke 100ms agar gerakan cepat tidak terlewat
+
+  // Timeout 6 detik jika wajah tidak cocok
   setTimeout(() => {
     if (isProcessing && verificationInterval) {
       clearInterval(verificationInterval);
@@ -369,7 +401,7 @@ function startVerificationState(userID, userName) {
       showAlert(`❌ Verifikasi Gagal: Wajah tidak cocok dengan data ${displayName}.`, "#e74c3c");
       setTimeout(resetToStandby, 3500);
     }
-  }, 12000);
+  }, 6000);
 }
 
 // ==========================================
