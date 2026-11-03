@@ -1,7 +1,7 @@
 // ==========================================
-// 0. FUNGSI HELPER LIVENESS (EAR & MAR)
+// FILE 1: js/pages/attendance-app_2.js (HELPER LIVENESS EAR & MAR)
 // ==========================================
-// Helper Deteksi Kedipan Mata (EAR)
+
 function getEyeAspectRatio(eyeLandmarks) {
   if (!eyeLandmarks || eyeLandmarks.length < 6) return 0.3;
   const dist = (p1, p2) => Math.hypot(p1.x - p2.x, p1.y - p2.y);
@@ -11,7 +11,6 @@ function getEyeAspectRatio(eyeLandmarks) {
   return (v1 + v2) / (2.0 * h);
 }
 
-// Helper Deteksi Bukaan Mulut / Senyum (MAR)
 function getMouthAspectRatio(jawLandmarks, mouthLandmarks) {
   if (!mouthLandmarks || mouthLandmarks.length < 20) return 0;
   const dist = (p1, p2) => Math.hypot(p1.x - p2.x, p1.y - p2.y);
