@@ -1,14 +1,20 @@
+// ==========================================
+// 0. FUNGSI HELPER LIVENESS (EAR & MAR)
+// ==========================================
+// Helper Deteksi Kedipan Mata (EAR)
 function getEyeAspectRatio(eyeLandmarks) {
-  const dist = (p1, p2) => Math.sqrt(Math.pow(p1.x - p2.x, 2) + Math.pow(p1.y - p2.y, 2));
+  if (!eyeLandmarks || eyeLandmarks.length < 6) return 0.3;
+  const dist = (p1, p2) => Math.hypot(p1.x - p2.x, p1.y - p2.y);
   const v1 = dist(eyeLandmarks[1], eyeLandmarks[5]);
   const v2 = dist(eyeLandmarks[2], eyeLandmarks[4]);
   const h = dist(eyeLandmarks[0], eyeLandmarks[3]);
   return (v1 + v2) / (2.0 * h);
 }
 
-// Fungsi Helper untuk mendeteksi mulut terbuka
+// Helper Deteksi Bukaan Mulut / Senyum (MAR)
 function getMouthAspectRatio(jawLandmarks, mouthLandmarks) {
-  const dist = (p1, p2) => Math.sqrt(Math.pow(p1.x - p2.x, 2) + Math.pow(p1.y - p2.y, 2));
+  if (!mouthLandmarks || mouthLandmarks.length < 20) return 0;
+  const dist = (p1, p2) => Math.hypot(p1.x - p2.x, p1.y - p2.y);
   const v = dist(mouthLandmarks[13], mouthLandmarks[19]);
   const h = dist(mouthLandmarks[0], mouthLandmarks[6]);
   return v / h;
