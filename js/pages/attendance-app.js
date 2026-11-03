@@ -419,9 +419,8 @@ function captureKameraBase64() {
     return "";
   }
 }
-
 // ==========================================
-// 5. EKSEKUSI ABSENSI KE SERVER
+// 5. EKSEKUSI ABSENSI KE SERVER (FIX STATUS TAMPILAN)
 // ==========================================
 let isSubmittingAttendance = false;
 
@@ -432,7 +431,8 @@ async function executeAttendance(userID, userName) {
   let displayName = userName || userID;
   showAlert(`Mencatat Absensi...`, "#f1c40f");
   if (typeof statusText !== 'undefined' && statusText) {
-    statusText.innerText = "Mengirim Data...";
+    statusText.innerText = "Mengirim Data Absensi...";
+    statusText.style.color = "#f1c40f";
   }
 
   const userIdUpper = String(userID).trim().toUpperCase();
@@ -466,12 +466,21 @@ async function executeAttendance(userID, userName) {
   try {
     const result = await fetchAPI("submitAutoAttendance", payload);
     const record = result && result.data ? result.data : {};
-    const backendMessage = result ? result.message : "";
+    const backendMessage = result ? result.message || "" : "";
 
-    if (record.Nama) displayName = record.Nama;
+    if (record.Nama || record.nama) displayName = record.Nama || record.nama;
 
     if (result && result.success) {
-      const statusAbsen = String(record["Status(Hadir/Telat/Izin/dll)"] || record.Status || "").toUpperCase().trim();
+      // Tangkap status dari semua kemungkinan nama properti dari Apps Script
+      const statusAbsen = String(
+        record["Status(Hadir/Telat/Izin/dll)"] || 
+        record.Status || 
+        record.status || 
+        record.tipeAbsen || 
+        record.tipe || 
+        backendMessage || 
+        ""
+      ).toUpperCase().trim();
 
       let warnaBg = "#2ecc71";
       let ikon = "✅";
@@ -484,31 +493,49 @@ async function executeAttendance(userID, userName) {
 
       let teksSuara = record.pesanSuara || `Terima kasih ${displayName}. Absen masuk berhasil. ${ucapanSelamat}`;
 
-      if (statusAbsen.includes("TELAT") || statusAbsen.includes("TERLAMBAT")) {
-        warnaBg = "#e67e22";
-        ikon = "⚠️";
-        teksJudul = "ABSEN MASUK (TERLAMBAT)";
-        teksStatus = "Masuk Terlambat";
+      // 🌟 LOGIKA STATUS LENGKAP (MASUK, PULANG, TERLAMBAT, SUDAH ABSEN)
+      if (statusAbsen.includes("PULANG NORMAL") || statusAbsen.includes("PULANG") || statusAbsen.includes("SUDAH PULANG")) {
+        warnaBg = "#3498db"; // Biru
+        ikon = "🔵";
+        teksJudul = "ABSEN PULANG SUKSES";
+        teksStatus = "Sudah Absen Pulang";
+        teksSuara = record.pesanSuara || `Terima kasih ${displayName}. Absen pulang berhasil. Hati-hati di jalan.`;
+
       } else if (statusAbsen.includes("PULANG AWAL")) {
-        warnaBg = "#f39c12";
+        warnaBg = "#f39c12"; // Oranye Kuning
         ikon = "🟡";
         teksJudul = "ABSEN PULANG AWAL";
         teksStatus = "Pulang Awal";
-      } else if (statusAbsen.includes("PULANG NORMAL") || statusAbsen === "PULANG") {
-        warnaBg = "#3498db";
-        ikon = "🔵";
-        teksJudul = "ABSEN PULANG SUKSES";
-        teksStatus = "Pulang Normal";
+        teksSuara = record.pesanSuara || `Terima kasih ${displayName}. Absen pulang awal berhasil dicatat.`;
+
       } else if (statusAbsen.includes("LEMBUR")) {
-        warnaBg = "#9b59b6";
+        warnaBg = "#9b59b6"; // Ungu
         ikon = "🟣";
         teksJudul = "ABSEN PULANG LEMBUR";
         teksStatus = "Pulang Lembur";
+        teksSuara = record.pesanSuara || `Terima kasih ${displayName}. Absen lembur berhasil.`;
+
+      } else if (statusAbsen.includes("TELAT") || statusAbsen.includes("TERLAMBAT")) {
+        warnaBg = "#e67e22"; // Oranye Merah
+        ikon = "⚠️";
+        teksJudul = "ABSEN MASUK (TERLAMBAT)";
+        teksStatus = "Masuk Terlambat";
+
+      } else if (statusAbsen.includes("SUDAH ABSEN") || statusAbsen.includes("LENGKAP") || statusAbsen.includes("DITOLAK")) {
+        warnaBg = "#95a5a6"; // Abu-abu
+        ikon = "ℹ️";
+        teksJudul = "SUDAH ABSEN HARI INI";
+        teksStatus = "Anda Sudah Absen Lengkap";
+        teksSuara = record.pesanSuara || `${displayName}, Anda sudah melakukan absen masuk dan pulang hari ini.`;
       }
 
+      // 1. Update Suara Konfirmasi
       putarSuaraKonfirmasi(teksSuara);
+
+      // 2. Update Banner Alert Bawah (Kotak Merah/Hijau/Biru)
       showAlert(`${ikon} ${teksJudul}: ${displayName}`, warnaBg);
 
+      // 3. Update Teks Atas Kamera (Yang sebelumnya nyangkut Masuk Tepat Waktu)
       if (typeof statusText !== 'undefined' && statusText) {
         statusText.innerText = `${ikon} ${teksStatus} (${displayName})`;
         statusText.style.color = warnaBg;
@@ -533,7 +560,6 @@ async function executeAttendance(userID, userName) {
 
   setTimeout(resetToStandby, 3500);
 }
-
 // ==========================================
 // 6. RESET UI KE STANDBY
 // ==========================================
