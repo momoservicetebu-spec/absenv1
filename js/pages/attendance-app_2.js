@@ -1,7 +1,6 @@
 // ==========================================
 // FILE 1: js/pages/attendance-app_2.js (HELPER LIVENESS EAR & MAR)
 // ==========================================
-
 function getEyeAspectRatio(eyeLandmarks) {
   if (!eyeLandmarks || eyeLandmarks.length < 6) return 0.3;
   const dist = (p1, p2) => Math.hypot(p1.x - p2.x, p1.y - p2.y);

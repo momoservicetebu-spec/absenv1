@@ -342,8 +342,8 @@ function startVerificationState(userID, userName) {
       if (livenessChallenge === 'BLINK') {
         // Deteksi Kedip Mata (EAR)
         const avgEAR = (getEyeAspectRatio(detections.landmarks.getLeftEye()) + getEyeAspectRatio(detections.landmarks.getRightEye())) / 2.0;
-        if (avgEAR < 0.22) isEyeClosed = true;
-        else if (isEyeClosed && avgEAR > 0.25) hasPassedChallenge = true;
+        if (avgEAR < 0.26) isEyeClosed = true;
+        else if (isEyeClosed && avgEAR > 0.26) hasPassedChallenge = true;
       } else {
         // Deteksi Senyum Manis (Tarik Garis Bibir Kesamping / MAR > 0.18)
         const mouthRatio = getMouthAspectRatio(detections.landmarks.getJawOutline(), detections.landmarks.getMouth());
