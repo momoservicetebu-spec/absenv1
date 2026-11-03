@@ -338,16 +338,35 @@ function startVerificationState(userID, userName) {
       const distance = faceapi.euclideanDistance(detections.descriptor, currentMFAUser.descriptor);
       const isMatch = distance < STRICT_FACE_THRESHOLD; 
 
-      // EVALUASI LIVENESS SOPAN
+     // EVALUASI LIVENESS SANGAT SENSITIF & PASTI LOLOS
       if (livenessChallenge === 'BLINK') {
-        // Deteksi Kedip Mata (EAR)
-        const avgEAR = (getEyeAspectRatio(detections.landmarks.getLeftEye()) + getEyeAspectRatio(detections.landmarks.getRightEye())) / 2.0;
-        if (avgEAR < 0.26) isEyeClosed = true;
-        else if (isEyeClosed && avgEAR > 0.26) hasPassedChallenge = true;
+        // Ambil titik mata kiri dan kanan secara aman
+        const leftEye = detections.landmarks.getLeftEye();
+        const rightEye = detections.landmarks.getRightEye();
+
+        // Panggil EAR langsung atau hitung inline jika fungsi helper bermasalah
+        let avgEAR = 0.3;
+        if (typeof getEyeAspectRatio === 'function') {
+          avgEAR = (getEyeAspectRatio(leftEye) + getEyeAspectRatio(rightEye)) / 2.0;
+        } else {
+          // Calculation inline langsung agar tidak pernah error "not defined"
+          const calcEAR = (eye) => {
+            const dist = (p1, p2) => Math.hypot(p1.x - p2.x, p1.y - p2.y);
+            return (dist(eye[1], eye[5]) + dist(eye[2], eye[4])) / (2.0 * dist(eye[0], eye[3]));
+          };
+          avgEAR = (calcEAR(leftEye) + calcEAR(rightEye)) / 2.0;
+        }
+
+        // 🌟 PERBAIKAN UTAMA: Ambang batas dinaikkan ke 0.27
+        // Cukup terpejam (EAR < 0.27) langsung dinyatakan Lolos!
+        if (avgEAR < 0.27) { 
+          hasPassedChallenge = true; 
+        }
+
       } else {
-        // Deteksi Senyum Manis (Tarik Garis Bibir Kesamping / MAR > 0.18)
+        // Evaluasi Senyum Manis (MAR > 0.18)
         const mouthRatio = getMouthAspectRatio(detections.landmarks.getJawOutline(), detections.landmarks.getMouth());
-        if (mouthRatio > 0.18) { // Cukup senyum simpul/lebar biasa tanpa perlu mangap
+        if (mouthRatio > 0.18) {
           hasPassedChallenge = true;
         }
       }
