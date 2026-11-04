@@ -1089,12 +1089,14 @@
         </div>
       </div>
 
-   <!-- KONTEN: LAPORAN ABSENSI (KAPASITAS LEBIH TINGGI & MEMENUHI HALAMAN) -->
-    <div id="laporan-absensi" class="section card" style="padding: 24px; display: flex; flex-direction: column; min-height: 80vh;">
+   <!-- KONTEN: LAPORAN ABSENSI (KARD BELAKANG DIPERPANJANG OTOMATIS) -->
+    <div id="laporan-absensi" class="section card" style="padding: 24px !important; min-height: calc(100vh - 120px) !important; display: flex !important; flex-direction: column !important; justify-content: flex-start !important;">
+      
       <h2 class="section-title">📊 Pusat Laporan Absensi</h2>
       <p class="section-desc" style="color: #a29bfe; margin-bottom: 20px;">Tarik data absensi secara detail berdasarkan rentang waktu, peran, dan status.</p>
       
-      <div style="background: #2a2640; padding: 20px; border-radius: 12px; border: 1px solid #4a4563; margin-bottom: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
+      <!-- FORM FILTER -->
+      <div style="background: #2a2640; padding: 20px; border-radius: 12px; border: 1px solid #4a4563; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
         
         <!-- GRID FILTER UTAMA -->
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px;">
@@ -1144,37 +1146,37 @@
 
         <!-- TOMBOL AKSI METRIC -->
         <div style="display: flex; gap: 12px; flex-wrap: wrap; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 15px;">
-          <button onclick="lihatPreviewLaporan()" style="background: #0984e3; color: white; border: none; padding: 11px 22px; border-radius: 8px; cursor: pointer; font-weight: bold; transition: opacity 0.2s;">
+          <button onclick="lihatPreviewLaporan()" style="background: #0984e3; color: white; border: none; padding: 11px 22px; border-radius: 8px; cursor: pointer; font-weight: bold;">
             🔍 Tampilkan Preview
           </button>
-          <button onclick="unduhLaporanCSV()" style="background: #00b894; color: white; border: none; padding: 11px 22px; border-radius: 8px; cursor: pointer; font-weight: bold; transition: opacity 0.2s;">
+          <button onclick="unduhLaporanCSV()" style="background: #00b894; color: white; border: none; padding: 11px 22px; border-radius: 8px; cursor: pointer; font-weight: bold;">
             📥 Unduh Excel (CSV)
           </button>
-          <button onclick="unduhLaporanPDF()" style="background: #d63031; color: white; border: none; padding: 11px 22px; border-radius: 8px; cursor: pointer; font-weight: bold; transition: opacity 0.2s;">
+          <button onclick="unduhLaporanPDF()" style="background: #d63031; color: white; border: none; padding: 11px 22px; border-radius: 8px; cursor: pointer; font-weight: bold;">
             📄 Unduh PDF
           </button>
         </div>
 
       </div>
 
-     <!-- AREA TABEL PREVIEW (PERBAIKAN TINGGI MEMENUHI LAYAR) -->
-  <div class="analytics-table-wrap" style="background: #161224 !important; border-radius: 12px !important; border: 1px solid #4a4563 !important; padding: 15px !important; max-height: none !important; height: auto !important; overflow: visible !important;">
-    <div style="overflow-x: auto; min-height: 500px; max-height: 70vh; overflow-y: auto; border-radius: 8px;">
-      <table id="tabel-preview-laporan" style="width: 100%; border-collapse: collapse; font-size: 14px; text-align: left;">
-        <thead id="head-preview-laporan">
-          <tr style="background: rgba(108, 92, 231, 0.2); border-bottom: 2px solid #4a4075;">
-            <th style="padding: 15px; color: #a29bfe; text-align: center; font-weight: 600;">
-              Silakan pilih filter di atas lalu klik <strong>"Tampilkan Preview"</strong> untuk memuat data absensi.
-            </th>
-          </tr>
-        </thead>
-        <tbody id="body-preview-laporan">
-        </tbody>
-      </table>
-    </div>
-  </div>
+      <!-- AREA TABEL PREVIEW (IKUT MEMANJANG PENUH KE BAWAH) -->
+      <div class="analytics-table-wrap" style="background: #161224 !important; border-radius: 12px !important; border: 1px solid #4a4563 !important; padding: 15px !important; flex-grow: 1 !important; display: flex !important; flex-direction: column !important; margin-bottom: 10px !important;">
+        <div style="overflow-x: auto; flex-grow: 1; min-height: 450px; max-height: calc(100vh - 380px); overflow-y: auto; border-radius: 8px;">
+          <table id="tabel-preview-laporan" style="width: 100%; border-collapse: collapse; font-size: 14px; text-align: left;">
+            <thead id="head-preview-laporan">
+              <tr style="background: rgba(108, 92, 231, 0.2); border-bottom: 2px solid #4a4075;">
+                <th style="padding: 15px; color: #a29bfe; text-align: center; font-weight: 600;">
+                  Silakan pilih filter di atas lalu klik <strong>"Tampilkan Preview"</strong> untuk memuat data absensi.
+                </th>
+              </tr>
+            </thead>
+            <tbody id="body-preview-laporan">
+            </tbody>
+          </table>
+        </div>
+      </div>
 
-</div>
+    </div>
 
     <!-- 10. SETTING -->
     <div id="setting" class="section card">
