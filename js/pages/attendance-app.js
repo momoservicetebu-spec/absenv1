@@ -405,7 +405,7 @@ function startVerificationState(userID, userName) {
     }
   }, 100);
 
-  // Timeout 6 detik jika wajah tidak cocok
+  // Timeout 4 detik jika wajah tidak cocok
   setTimeout(() => {
     if (isProcessing && verificationInterval) {
       clearInterval(verificationInterval);
@@ -413,9 +413,9 @@ function startVerificationState(userID, userName) {
       isProcessing = false;
       putarSuaraKonfirmasi("Verifikasi wajah gagal. Wajah tidak cocok.");
       showAlert(`❌ Verifikasi Gagal: Wajah tidak cocok dengan data ${displayName}.`, "#e74c3c");
-      setTimeout(resetToStandby, 2500);
+      setTimeout(resetToStandby, 3000);
     }
-  }, 5000);
+  }, 4000);
 }
 
 // ==========================================
@@ -622,29 +622,52 @@ function hideAlert() {
 }
 
 // ==========================================
-// FUNGSI SUARA KONFIRMASI (TEXT-TO-SPEECH)
+// FUNGSI SUARA KONFIRMASI (TEXT-TO-SPEECH NATURAL)
 // ==========================================
 function putarSuaraKonfirmasi(teks) {
-  if ('speechSynthesis' in window) {
-    window.speechSynthesis.cancel(); // Hentikan suara yang sedang berjalan
-
-    const utterance = new SpeechSynthesisUtterance(teks);
-    utterance.lang = 'id-ID'; // Pengaturan Bahasa Indonesia
-    utterance.rate = 1.0;     // Kecepatan standar
-    utterance.pitch = 1.0;    // Nada standar
-
-    const voices = window.speechSynthesis.getVoices();
-    const idVoice = voices.find(v => v.lang.includes('id') || v.lang.includes('IND'));
-    if (idVoice) utterance.voice = idVoice;
-
-    window.speechSynthesis.speak(utterance);
-  } else {
+  if (!('speechSynthesis' in window)) {
     console.warn("Browser tidak mendukung Web Speech API");
+    return;
   }
+
+  // Hentikan suara yang sedang berjalan
+  window.speechSynthesis.cancel();
+
+  // 1. Normalisasi Teks agar tidak dieja oleh mesin TTS
+  let teksHasil = String(teks || '')
+    // Ubah kapital semua menjadi format Title Case (misal: "GUNTORO" -> "Guntoro")
+    .toLowerCase()
+    .replace(/(?:^|\s|-)\S/g, match => match.toUpperCase())
+    // Bersihkan gelar atau karakter khusus yang memicu ejaan
+    .replace(/\bS\.?Pd\b/gi, 'Sarjana Pendidikan')
+    .replace(/\bM\.?Pd\b/gi, 'Magister Pendidikan')
+    .replace(/\bS\.?ST\b/gi, 'Sarjana Terapan')
+    .replace(/[^\w\s,.]/gi, ''); // Hapus karakter aneh
+
+  const utterance = new SpeechSynthesisUtterance(teksHasil);
+  utterance.lang = 'id-ID';
+  utterance.rate = 0.95; // Sedikit dipelankan (0.95) agar ucapan lebih artikulatif & natural
+  utterance.pitch = 1.0; // Nada natural
+
+  // 2. Cari vokal Bahasa Indonesia terbaik
+  const voices = window.speechSynthesis.getVoices();
+  
+  // Prioritaskan vokal Bahasa Indonesia buatan Google atau Microsoft (Natural)
+  const idVoice = voices.find(v => (v.lang.includes('id') || v.lang.includes('IND')) && (v.name.includes('Google') || v.name.includes('Natural') || v.name.includes('Online')))
+               || voices.find(v => v.lang.includes('id') || v.lang.includes('IND'))
+               || voices.find(v => v.lang.startsWith('id'));
+
+  if (idVoice) {
+    utterance.voice = idVoice;
+  }
+
+  window.speechSynthesis.speak(utterance);
 }
 
-// Inisialisasi daftar vokal browser saat halaman dimuat
+// Inisialisasi daftar vokal browser saat dimuat
 if ('speechSynthesis' in window) {
+  // Panggil sekali untuk memastikan vokal termuat di Chrome/Edge
+  window.speechSynthesis.getVoices();
   window.speechSynthesis.onvoiceschanged = () => {
     window.speechSynthesis.getVoices();
   };
