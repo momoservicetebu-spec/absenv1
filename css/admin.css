@@ -105,10 +105,17 @@ body {
 .hidden-widget {
   display: none !important;
 }
-/* TABEL & BADGES */
-.analytics-table-wrap { height: 220px; overflow-y: auto; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+/* TABEL & BADGES (SUDAH DIPERBAIKI: FLEKSIBEL & MEMENUHI HALAMAN) */
+.analytics-table-wrap { 
+  min-height: 480px; 
+  max-height: calc(100vh - 360px); 
+  flex-grow: 1;
+  overflow-y: auto; 
+  overflow-x: auto; 
+  -webkit-overflow-scrolling: touch; 
+}
 table { width: 100%; border-collapse: collapse; font-size: 13px; color: #dcdde1; white-space: nowrap; }
-th, td { padding: 10px; text-align: left; border-bottom: 1px solid #261f3d; }
+th, td { padding: 12px 10px; text-align: left; border-bottom: 1px solid #261f3d; }
 th { background: #161224; color: #a29bfe; font-weight: bold; font-size: 11px; text-transform: uppercase; position: sticky; top: 0; z-index: 2; }
 tr:hover { background-color: #261f3d; }
 .badge { padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; }
