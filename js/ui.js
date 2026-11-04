@@ -1724,84 +1724,140 @@ async function lihatPreviewLaporan() {
   }
 }
 
-// 3. Render Header dan Isi Tabel Laporan secara Dinamis
+// ==========================================
+// 3. RENDER TABEL LAPORAN (PENAMPILAN RAPI & BADGE MODERN)
+// ==========================================
 function renderTabelLaporan(jenis, data) {
   const thead = document.getElementById('head-preview-laporan');
   const tbody = document.getElementById('body-preview-laporan');
 
+  if (!thead || !tbody) return;
+
+  if (!data || data.length === 0) {
+    thead.innerHTML = '';
+    tbody.innerHTML = `<tr><td colspan="10" style="text-align:center; padding:30px; color:#feca57; font-size:14px;">Belum ada data absensi untuk pencarian ini.</td></tr>`;
+    return;
+  }
+
   let headHtml = '';
   let bodyHtml = '';
 
-  // PERBAIKAN 3: Cegah error jika data kosong dari backend
-  if (!data || data.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="10" style="text-align:center; padding:20px; color:#feca57;">Belum ada data absensi untuk pencarian ini.</td></tr>`;
-      return;
-  }
-
   if (jenis === 'Kategori') {
     headHtml = `
-      <tr>
-        <th>NO</th>
-        <th>NAMA</th>
-        <th style="color:#2ecc71;">HADIR</th>
-        <th style="color:#f1c40f;">SAKIT</th>
-        <th style="color:#e67e22;">IZIN</th>
-        <th style="color:#e74c3c;">ALFA</th>
-        <th style="color:#9b59b6;">DISPEN</th>
-        <th style="color:#ff7675;">BOLOS</th>
-        <th style="color:#00cec9;">CUTI</th>
+      <tr style="background: rgba(108, 92, 231, 0.2); border-bottom: 2px solid #4a4075;">
+        <th style="padding: 12px 10px; text-align: center; width: 50px;">NO</th>
+        <th style="padding: 12px 15px; text-align: left;">NAMA LENGKAP</th>
+        <th style="padding: 12px 10px; text-align: center; color: #2ecc71;">HADIR</th>
+        <th style="padding: 12px 10px; text-align: center; color: #f1c40f;">SAKIT</th>
+        <th style="padding: 12px 10px; text-align: center; color: #e67e22;">IZIN</th>
+        <th style="padding: 12px 10px; text-align: center; color: #e74c3c;">ALFA</th>
+        <th style="padding: 12px 10px; text-align: center; color: #9b59b6;">DISPEN</th>
+        <th style="padding: 12px 10px; text-align: center; color: #ff7675;">BOLOS</th>
+        <th style="padding: 12px 10px; text-align: center; color: #00cec9;">CUTI</th>
       </tr>`;
 
     data.forEach((item, i) => {
       bodyHtml += `
-        <tr style="border-bottom: 1px solid #3a3553;">
-          <td>${i + 1}</td>
-          <td><strong>${item.Nama || '-'}</strong></td>
-          <td style="color:#2ecc71; font-weight:bold;">${item.Hadir || 0}</td>
-          <td>${item.Sakit || 0}</td>
-          <td>${item.Izin || 0}</td>
-          <td style="color:#e74c3c; font-weight:bold;">${item.Alfa || 0}</td>
-          <td>${item.Dispensasi || 0}</td>
-          <td>${item.Bolos || 0}</td>
-          <td>${item.Cuti || 0}</td>
+        <tr style="border-bottom: 1px solid #2e2845;" onmouseover="this.style.background='rgba(255,255,255,0.03)'" onmouseout="this.style.background='transparent'">
+          <td style="padding: 12px 10px; text-align: center; color: #a29bfe;">${i + 1}</td>
+          <td style="padding: 12px 15px;"><strong style="color: #ffffff;">${item.Nama || '-'}</strong></td>
+          <td style="padding: 12px 10px; text-align: center; color: #2ecc71; font-weight: bold;">${item.Hadir || 0}</td>
+          <td style="padding: 12px 10px; text-align: center; color: #f1c40f;">${item.Sakit || 0}</td>
+          <td style="padding: 12px 10px; text-align: center; color: #e67e22;">${item.Izin || 0}</td>
+          <td style="padding: 12px 10px; text-align: center; color: #e74c3c; font-weight: bold;">${item.Alfa || 0}</td>
+          <td style="padding: 12px 10px; text-align: center; color: #9b59b6;">${item.Dispensasi || 0}</td>
+          <td style="padding: 12px 10px; text-align: center; color: #ff7675;">${item.Bolos || 0}</td>
+          <td style="padding: 12px 10px; text-align: center; color: #00cec9;">${item.Cuti || 0}</td>
         </tr>`;
     });
 
   } else {
     // Tampilan Tabel Harian / Mingguan / Bulanan
     headHtml = `
-      <tr>
-        <th>NO</th>
-        <th>TANGGAL</th>
-        <th>NAMA</th>
-        <th>ROLE / KELAS</th>
-        <th>TIPE (IN/OUT)</th>
-        <th>STATUS</th>
-        <th>WAKTU (JAM)</th>
+      <tr style="background: rgba(108, 92, 231, 0.2); border-bottom: 2px solid #4a4075;">
+        <th style="padding: 12px 10px; text-align: center; width: 50px;">NO</th>
+        <th style="padding: 12px 15px; text-align: center; width: 110px;">TANGGAL</th>
+        <th style="padding: 12px 15px; text-align: left;">NAMA LENGKAP</th>
+        <th style="padding: 12px 15px; text-align: center;">ROLE / KELAS</th>
+        <th style="padding: 12px 10px; text-align: center; width: 90px;">TIPE</th>
+        <th style="padding: 12px 15px; text-align: center;">STATUS</th>
+        <th style="padding: 12px 15px; text-align: center; width: 110px;">WAKTU (JAM)</th>
       </tr>`;
 
     data.forEach((item, i) => {
-      // PERBAIKAN 4: Pemanggilan item dicocokkan dengan JSON output dari srv_laporan.gs
-      // Yaitu: item.Kelas, item.CheckType, item.Timestamp
+      const statusRaw = String(item.Status || 'Hadir');
+      const badgeStyle = getStyleBadgeStatus(statusRaw);
+      const tipeType = String(item.CheckType || 'IN').toUpperCase();
+      const tipeColor = tipeType === 'IN' ? '#1dd1a1' : '#ff6b6b';
+
       bodyHtml += `
-        <tr style="border-bottom: 1px solid #3a3553;">
-          <td>${i + 1}</td>
-          <td>${item.Tanggal || '-'}</td>
-          <td><strong>${item.Nama || '-'}</strong></td>
-          <td>${item.Kelas !== '-' ? item.Kelas : item.Role || '-'}</td>
-          <td>${item.CheckType || 'IN'}</td>
-          <td>
-            <span style="background:${getWarnaBadgeStatus(item.Status)}; color:white; padding:3px 8px; border-radius:4px; font-size:11px;">
-              ${item.Status || 'Hadir'}
+        <tr style="border-bottom: 1px solid #2e2845;" onmouseover="this.style.background='rgba(255,255,255,0.03)'" onmouseout="this.style.background='transparent'">
+          <td style="padding: 12px 10px; text-align: center; color: #a29bfe;">${i + 1}</td>
+          <td style="padding: 12px 15px; text-align: center; color: #dcdde1; font-size: 13px;">${item.Tanggal || '-'}</td>
+          <td style="padding: 12px 15px;"><strong style="color: #ffffff;">${item.Nama || '-'}</strong></td>
+          <td style="padding: 12px 15px; text-align: center; color: #a29bfe;">${item.Kelas !== '-' ? item.Kelas : (item.Role || '-')}</td>
+          <td style="padding: 12px 10px; text-align: center;">
+            <span style="color: ${tipeColor}; font-weight: bold; font-size: 12px; background: rgba(255,255,255,0.05); padding: 2px 8px; border-radius: 4px;">
+              ${tipeType}
             </span>
           </td>
-          <td style="color:#feca57; font-weight:bold;">${item.Timestamp || '-'}</td>
+          <td style="padding: 12px 15px; text-align: center;">
+            <span style="${badgeStyle}">
+              ${statusRaw}
+            </span>
+          </td>
+          <td style="padding: 12px 15px; text-align: center; color: #feca57; font-weight: bold; font-family: monospace; font-size: 13px;">
+            ${item.Timestamp || item.Waktu || '-'}
+          </td>
         </tr>`;
     });
   }
 
   thead.innerHTML = headHtml;
   tbody.innerHTML = bodyHtml;
+}
+
+// ==========================================
+// HELPER PEWARNAAN BADGE STATUS LAPORAN ABSENSI (MODERN)
+// ==========================================
+function getStyleBadgeStatus(status) {
+  const st = String(status || "").toLowerCase().trim();
+  
+  let bg = "rgba(149, 165, 166, 0.2)";
+  let color = "#b2bec3";
+  let border = "rgba(149, 165, 166, 0.4)";
+
+  if (st.includes("hadir") || st.includes("masuk tepat") || st.includes("normal")) {
+    bg = "rgba(46, 204, 113, 0.15)";
+    color = "#2ecc71";
+    border = "rgba(46, 204, 113, 0.4)";
+  } else if (st.includes("telat") || st.includes("terlambat")) {
+    bg = "rgba(230, 126, 34, 0.15)";
+    color = "#e67e22";
+    border = "rgba(230, 126, 34, 0.4)";
+  } else if (st.includes("pulang normal") || st.includes("pulang sukses") || st.includes("pulang")) {
+    bg = "rgba(52, 152, 219, 0.15)";
+    color = "#3498db";
+    border = "rgba(52, 152, 219, 0.4)";
+  } else if (st.includes("lembur")) {
+    bg = "rgba(155, 89, 182, 0.15)";
+    color = "#9b59b6";
+    border = "rgba(155, 89, 182, 0.4)";
+  } else if (st.includes("pulang awal")) {
+    bg = "rgba(241, 196, 15, 0.15)";
+    color = "#f1c40f";
+    border = "rgba(241, 196, 15, 0.4)";
+  } else if (st.includes("alpa") || st.includes("bolos")) {
+    bg = "rgba(231, 76, 60, 0.15)";
+    color = "#e74c3c";
+    border = "rgba(231, 76, 60, 0.4)";
+  } else if (st.includes("izin") || st.includes("sakit") || st.includes("cuti") || st.includes("dispen")) {
+    bg = "rgba(0, 206, 201, 0.15)";
+    color = "#00cec9";
+    border = "rgba(0, 206, 201, 0.4)";
+  }
+
+  return `background: ${bg}; color: ${color}; border: 1px solid ${border}; padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; display: inline-block; text-transform: uppercase; letter-spacing: 0.5px;`;
 }
 
 // ==========================================
