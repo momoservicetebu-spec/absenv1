@@ -1157,23 +1157,22 @@
 
       </div>
 
-      <!-- AREA TABEL PREVIEW (KAPASITAS LEBIH BESAR MEMENUHI AREA BAWAH) -->
-      <div class="analytics-table-wrap" style="background: #161224; border-radius: 12px; border: 1px solid #4a4563; padding: 15px; flex-grow: 1; display: flex; flex-direction: column;">
-        <div style="overflow-x: auto; flex-grow: 1; min-height: 480px; max-height: calc(100vh - 360px);">
-          <table id="tabel-preview-laporan" style="width: 100%; border-collapse: collapse; font-size: 14px; text-align: left;">
-            <thead id="head-preview-laporan">
-              <tr style="background: rgba(108, 92, 231, 0.2); border-bottom: 2px solid #4a4075;">
-                <th style="padding: 15px; color: #a29bfe; text-align: center; font-weight: 600;">
-                  Silakan pilih filter di atas lalu klik <strong>"Tampilkan Preview"</strong> untuk memuat data absensi.
-                </th>
-              </tr>
-            </thead>
-            <tbody id="body-preview-laporan">
-            </tbody>
-          </table>
-        </div>
-      </div>
+     <!-- AREA TABEL PREVIEW (PERBAIKAN TINGGI MEMENUHI LAYAR) -->
+  <div class="analytics-table-wrap" style="background: #161224 !important; border-radius: 12px !important; border: 1px solid #4a4563 !important; padding: 15px !important; max-height: none !important; height: auto !important; overflow: visible !important;">
+    <div style="overflow-x: auto; min-height: 500px; max-height: 70vh; overflow-y: auto; border-radius: 8px;">
+      <table id="tabel-preview-laporan" style="width: 100%; border-collapse: collapse; font-size: 14px; text-align: left;">
+        <thead id="head-preview-laporan">
+          <tr style="background: rgba(108, 92, 231, 0.2); border-bottom: 2px solid #4a4075;">
+            <th style="padding: 15px; color: #a29bfe; text-align: center; font-weight: 600;">
+              Silakan pilih filter di atas lalu klik <strong>"Tampilkan Preview"</strong> untuk memuat data absensi.
+            </th>
+          </tr>
+        </thead>
+        <tbody id="body-preview-laporan">
+        </tbody>
+      </table>
     </div>
+  </div>
 
     <!-- 10. SETTING -->
     <div id="setting" class="section card">
