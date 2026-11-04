@@ -310,28 +310,41 @@ function handleFileSelect(event) {
   reader.readAsText(file);
 }
 
+// ==========================================
+// DEKLARASI VARIABEL GLOBAL DATA MASTER
+// ==========================================
+let listDataGuru = [];
+let listDataSiswa = [];
+
+// ==========================================
+// FITUR OPEN MODAL GURU (TAMBAH / EDIT)
+// ==========================================
 function openGuruModal(data = null) {
-  const form = document.getElementById('formGuru');
+  const modal = document.getElementById('modalGuru') || document.getElementById('modal-guru');
+  const form = document.getElementById('formGuru') || document.getElementById('form-guru');
+  
   if (form) form.reset();
 
   if (data) {
-    document.getElementById('modalGuruTitle').innerText = '✏️ Edit Data Guru / Staf';
-    document.getElementById('guru_GuruID').value = data.GuruID || '';
-    document.getElementById('guru_NIP').value = data.NIP || '';
-    document.getElementById('guru_Nama').value = data.Nama || '';
-    document.getElementById('guru_JK').value = data.JK || 'L';
-    document.getElementById('guru_TmpLahir').value = data.TmpLahir || '';
-    document.getElementById('guru_TglLahir').value = data.TglLahir ? String(data.TglLahir).split('T')[0] : '';
-    document.getElementById('guru_HPWA').value = data.HPWA || '';
-    document.getElementById('guru_Email').value = data.Email || '';
-    document.getElementById('guru_Alamat').value = data.Alamat || '';
-    document.getElementById('guru_Jabatan').value = data.Jabatan || '';
-    document.getElementById('guru_Mapel').value = data.Mapel || '';
-    document.getElementById('guru_Status').value = data.Status || 'Aktif';
-    document.getElementById('guru_TglMasuk').value = data.TglMasuk ? String(data.TglMasuk).split('T')[0] : '';
-    document.getElementById('Kode_Guru').value = data.Kode_Guru || '';
+    const elTitle = document.getElementById('modalGuruTitle') || document.getElementById('modal-guru-title');
+    if (elTitle) elTitle.innerText = '✏️ Edit Data Guru / Staf';
+
+    // Set Nilai Input jika Ada
+    if (document.getElementById('guru_GuruID')) document.getElementById('guru_GuruID').value = data.GuruID || data.id || '';
+    if (document.getElementById('guru_NIP')) document.getElementById('guru_NIP').value = data.NIP || data.nip || '';
+    if (document.getElementById('guru_Nama')) document.getElementById('guru_Nama').value = data.Nama || data.nama || '';
+    if (document.getElementById('guru_JK')) document.getElementById('guru_JK').value = data.JK || 'L';
+    if (document.getElementById('guru_TmpLahir')) document.getElementById('guru_TmpLahir').value = data.TmpLahir || '';
+    if (document.getElementById('guru_TglLahir')) document.getElementById('guru_TglLahir').value = data.TglLahir ? String(data.TglLahir).split('T')[0] : '';
+    if (document.getElementById('guru_HPWA')) document.getElementById('guru_HPWA').value = data.HPWA || data.HP || data.WA || '';
+    if (document.getElementById('guru_Email')) document.getElementById('guru_Email').value = data.Email || '';
+    if (document.getElementById('guru_Alamat')) document.getElementById('guru_Alamat').value = data.Alamat || '';
+    if (document.getElementById('guru_Jabatan')) document.getElementById('guru_Jabatan').value = data.Jabatan || '';
+    if (document.getElementById('guru_Mapel')) document.getElementById('guru_Mapel').value = data.Mapel || '';
+    if (document.getElementById('guru_Status')) document.getElementById('guru_Status').value = data.Status || 'Aktif';
+    if (document.getElementById('guru_TglMasuk')) document.getElementById('guru_TglMasuk').value = data.TglMasuk ? String(data.TglMasuk).split('T')[0] : '';
+    if (document.getElementById('Kode_Guru')) document.getElementById('Kode_Guru').value = data.Kode_Guru || '';
     
-    // Normalisasi Pemilihan Role Sistem
     let rawRole = String(data.Role_Sistem || data.Role || data.Jabatan || 'Guru').trim();
     if (rawRole.includes('Admin') || rawRole.includes('TU') || rawRole.includes('Tenaga')) {
       rawRole = 'Tenaga Kependidikan';
@@ -340,50 +353,62 @@ function openGuruModal(data = null) {
     } else {
       rawRole = 'Guru';
     }
-    document.getElementById('guru_Role_Sistem').value = rawRole;
-
+    if (document.getElementById('guru_Role_Sistem')) document.getElementById('guru_Role_Sistem').value = rawRole;
     if (document.getElementById('guru_Username')) document.getElementById('guru_Username').value = data.Username || data.NIP || '';
-    if (document.getElementById('guru_Password')) document.getElementById('guru_Password').value = ''; 
   } else {
-    document.getElementById('modalGuruTitle').innerText = '👔 Tambah Data Guru / Staf';
-    document.getElementById('guru_GuruID').value = 'AUTO';
-    if (document.getElementById('guru_Username')) document.getElementById('guru_Username').value = '';
-    if (document.getElementById('guru_Password')) document.getElementById('guru_Password').value = '';
+    const elTitle = document.getElementById('modalGuruTitle') || document.getElementById('modal-guru-title');
+    if (elTitle) elTitle.innerText = '👔 Tambah Data Guru / Staf';
+    if (document.getElementById('guru_GuruID')) document.getElementById('guru_GuruID').value = 'AUTO';
   }
 
-  openModal('modalGuru');
+  // Buka Modal
+  if (modal) {
+    modal.style.display = 'flex';
+  } else {
+    alert("Elemen 'modalGuru' tidak ditemukan di HTML!");
+  }
 }
+
+// ==========================================
+// FITUR OPEN MODAL SISWA (TAMBAH / EDIT)
+// ==========================================
 function openSiswaModal(data = null) {
-  const form = document.getElementById('formSiswa');
+  const modal = document.getElementById('modalSiswa') || document.getElementById('modal-siswa');
+  const form = document.getElementById('formSiswa') || document.getElementById('form-siswa');
+  
   if (form) form.reset();
 
   if (data) {
-    document.getElementById('modalSiswaTitle').innerText = '✏️ Edit Data Siswa';
-    document.getElementById('siswa_SiswaID').value = data.SiswaID || '';
-    document.getElementById('siswa_NIS').value = data.NIS || '';
-    document.getElementById('siswa_NISN').value = data.NISN || '';
-    document.getElementById('siswa_Nama').value = data.Nama || '';
-    document.getElementById('siswa_JK').value = data.JK || 'L';
-    document.getElementById('siswa_TmpLahir').value = data.TmpLahir || '';
-    document.getElementById('siswa_TglLahir').value = data.TglLahir ? String(data.TglLahir).split('T')[0] : '';
-    document.getElementById('siswa_HPWA').value = data.HPWA || '';
-    document.getElementById('siswa_NamaOrtu').value = data.NamaOrtu || '';
-    document.getElementById('siswa_WA_Ortu').value = data.WA_Ortu || '';
-    document.getElementById('siswa_KelasID').value = data.KelasID || '';
-    document.getElementById('siswa_JurusanID').value = data.JurusanID || '';
-    document.getElementById('siswa_Angkatan').value = data.Angkatan || '';
-    document.getElementById('siswa_Status').value = data.Status || 'Aktif';
+    const elTitle = document.getElementById('modalSiswaTitle') || document.getElementById('modal-siswa-title');
+    if (elTitle) elTitle.innerText = '✏️ Edit Data Siswa';
 
-    document.getElementById('siswa_Username').value = data.Username || data.NIS || '';
-    document.getElementById('siswa_Password').value = ''; 
+    if (document.getElementById('siswa_SiswaID')) document.getElementById('siswa_SiswaID').value = data.SiswaID || data.id || '';
+    if (document.getElementById('siswa_NIS')) document.getElementById('siswa_NIS').value = data.NIS || data.nis || '';
+    if (document.getElementById('siswa_NISN')) document.getElementById('siswa_NISN').value = data.NISN || data.nisn || '';
+    if (document.getElementById('siswa_Nama')) document.getElementById('siswa_Nama').value = data.Nama || data.nama || '';
+    if (document.getElementById('siswa_JK')) document.getElementById('siswa_JK').value = data.JK || 'L';
+    if (document.getElementById('siswa_TmpLahir')) document.getElementById('siswa_TmpLahir').value = data.TmpLahir || '';
+    if (document.getElementById('siswa_TglLahir')) document.getElementById('siswa_TglLahir').value = data.TglLahir ? String(data.TglLahir).split('T')[0] : '';
+    if (document.getElementById('siswa_HPWA')) document.getElementById('siswa_HPWA').value = data.HPWA || data.HP || data.WA || '';
+    if (document.getElementById('siswa_NamaOrtu')) document.getElementById('siswa_NamaOrtu').value = data.NamaOrtu || '';
+    if (document.getElementById('siswa_WA_Ortu')) document.getElementById('siswa_WA_Ortu').value = data.WA_Ortu || '';
+    if (document.getElementById('siswa_KelasID')) document.getElementById('siswa_KelasID').value = data.KelasID || data.Kelas || '';
+    if (document.getElementById('siswa_JurusanID')) document.getElementById('siswa_JurusanID').value = data.JurusanID || '';
+    if (document.getElementById('siswa_Angkatan')) document.getElementById('siswa_Angkatan').value = data.Angkatan || '';
+    if (document.getElementById('siswa_Status')) document.getElementById('siswa_Status').value = data.Status || 'Aktif';
+    if (document.getElementById('siswa_Username')) document.getElementById('siswa_Username').value = data.Username || data.NIS || '';
   } else {
-    document.getElementById('modalSiswaTitle').innerText = '🎓 Tambah Data Siswa Manual';
-    document.getElementById('siswa_SiswaID').value = 'AUTO';
-    document.getElementById('siswa_Username').value = '';
-    document.getElementById('siswa_Password').value = '';
+    const elTitle = document.getElementById('modalSiswaTitle') || document.getElementById('modal-siswa-title');
+    if (elTitle) elTitle.innerText = '🎓 Tambah Data Siswa Manual';
+    if (document.getElementById('siswa_SiswaID')) document.getElementById('siswa_SiswaID').value = 'AUTO';
   }
 
-  openModal('modalSiswa');
+  // Buka Modal
+  if (modal) {
+    modal.style.display = 'flex';
+  } else {
+    alert("Elemen 'modalSiswa' tidak ditemukan di HTML!");
+  }
 }
 
 async function handleGuruSubmit(event) {
@@ -591,18 +616,62 @@ function renderSiswaTable(dataArray) {
 }
 
 // ==========================================
-// PERBAIKAN FUNGSI EDIT
+// FUNGSI CARI & OPER DATA KE MODAL EDIT
 // ==========================================
 function editGuruByID(guruID) {
-  // Gunakan == agar kebal terhadap perbedaan Integer vs String
-  const guru = listDataGuru.find(g => g.GuruID == guruID); 
-  if (guru) openGuruModal(guru);
+  // Pencarian yang fleksibel (penyesuaian string/number & berbagai nama properti ID)
+  const guru = listDataGuru.find(g => 
+    String(g.GuruID || g.id || g.ID).trim() === String(guruID).trim() ||
+    String(g.NIP || '').trim() === String(guruID).trim()
+  ); 
+
+  if (guru) {
+    openGuruModal(guru);
+  } else {
+    console.warn("Data Guru tidak ditemukan untuk ID:", guruID, "Data Tersedia:", listDataGuru);
+    alert("⚠️ Gagal memuat data guru untuk diedit.");
+  }
 }
 
 function editSiswaByID(siswaID) {
-  // Gunakan == 
-  const siswa = listDataSiswa.find(s => s.SiswaID == siswaID);
-  if (siswa) openSiswaModal(siswa);
+  const siswa = listDataSiswa.find(s => 
+    String(s.SiswaID || s.id || s.ID).trim() === String(siswaID).trim() ||
+    String(s.NIS || '').trim() === String(siswaID).trim()
+  );
+
+  if (siswa) {
+    openSiswaModal(siswa);
+  } else {
+    console.warn("Data Siswa tidak ditemukan untuk ID:", siswaID, "Data Tersedia:", listDataSiswa);
+    alert("⚠️ Gagal memuat data siswa untuk diedit.");
+  }
+}
+
+// ==========================================
+// MEMASTIKAN DATA TERPASANG SAAT FETCH SERVER
+// ==========================================
+async function loadDataGuru() {
+  try {
+    const res = await fetchAPI('getGuru');
+    if (res && res.success && Array.isArray(res.data)) {
+      listDataGuru = res.data; // SIMPAN KE GLOBAL
+      renderGuruTable(listDataGuru);
+    }
+  } catch (err) {
+    console.error("Gagal memuat data guru:", err);
+  }
+}
+
+async function loadDataSiswa() {
+  try {
+    const res = await fetchAPI('getSiswa');
+    if (res && res.success && Array.isArray(res.data)) {
+      listDataSiswa = res.data; // SIMPAN KE GLOBAL
+      renderSiswaTable(listDataSiswa);
+    }
+  } catch (err) {
+    console.error("Gagal memuat data siswa:", err);
+  }
 }
 
 // ==========================================
