@@ -14,36 +14,34 @@ body {
   width: 260px; 
   background-color: #1e1b2e; 
   color: white; 
-  padding: 20px 15px; 
-  display: flex; 
-  flex-direction: column; 
-  height: 100vh; /* Membatasi tinggi maksimum sesuai tinggi layar */
-  max-height: 100vh;
-  overflow-y: auto; 
+  padding: 15px 10px; 
+  display: flex !important; 
+  flex-direction: column !important; 
+  height: 100vh !important; /* Paksa pas setinggi layar */
+  max-height: 100vh !important;
+  overflow: hidden !important; /* Mencegah seluruh sidebar meluap */
   flex-shrink: 0; 
   border-right: 1px solid #2d2643; 
   box-sizing: border-box;
 }
 
-/* Kustomisasi Scrollbar Sidebar agar terlihat jelas saat di-scroll di Smart Board */
-.sidebar::-webkit-scrollbar { 
-  width: 6px; 
+/* WADAH KHUSUS DAFTAR MENU (BISA DI-SCROLL) */
+.sidebar-menu-wrapper {
+  flex: 1;
+  overflow-y: auto;
+  padding-right: 5px;
 }
-.sidebar::-webkit-scrollbar-track {
-  background: #161224;
-}
-.sidebar::-webkit-scrollbar-thumb { 
-  background: #6c5ce7; 
-  border-radius: 4px; 
-}
+.sidebar-menu-wrapper::-webkit-scrollbar { width: 5px; }
+.sidebar-menu-wrapper::-webkit-scrollbar-thumb { background: #6c5ce7; border-radius: 4px; }
 
 .sidebar h2 { 
   margin-top: 0; 
-  font-size: 18px; 
+  font-size: 16px; 
   border-bottom: 1px solid #2d2643; 
-  padding-bottom: 15px; 
+  padding-bottom: 12px; 
   text-align: center; 
   color: #a29bfe; 
+  flex-shrink: 0;
 }
 
 .sidebar button { 
@@ -51,67 +49,70 @@ body {
   border: none; 
   color: #b2bec3; 
   text-align: left; 
-  padding: 10px 12px; 
-  font-size: 14px; 
+  padding: 8px 10px; /* Diperkecil sedikit agar muat banyak */
+  font-size: 13px; 
   font-weight: 500; 
   cursor: pointer; 
   width: 100%; 
   transition: 0.2s; 
   border-radius: 6px; 
-  margin-bottom: 4px; 
+  margin-bottom: 3px; 
 }
 
 .sidebar button:hover, .sidebar button.active { 
   color: white; 
   background-color: #6c5ce7; 
-  padding-left: 15px; 
+  padding-left: 12px; 
 }
 
 .menu-group { 
-  margin-top: 15px; 
-  font-size: 11px; 
+  margin-top: 12px; 
+  font-size: 10px; 
   color: #6c5ce7; 
   text-transform: uppercase; 
   letter-spacing: 1px; 
-  padding-left: 10px; 
-  margin-bottom: 5px; 
+  padding-left: 8px; 
+  margin-bottom: 4px; 
   font-weight: bold; 
 }
 
-/* 🌟 PERBAIKAN UTAMA: TOMBOL KELUAR SISTEM FIXED & TIDAK TERPOTONG */
+/* 🌟 KUNCI PERBAIKAN: TOMBOL LOGOUT TERKUNCI PERMANEN DI PALING BAWAH */
 .logout-btn { 
   color: #ff6b6b !important; 
-  margin-top: 15px !important; /* Diubah dari margin-top: auto ke margin eksplisit */
+  margin-top: auto !important; /* Mengunci ke posisi paling bawah */
   border-top: 1px solid #2d2643 !important; 
-  padding-top: 12px !important; 
-  padding-bottom: 12px !important;
+  padding: 10px 12px !important; 
   border-radius: 6px !important; 
   font-weight: bold !important;
-  flex-shrink: 0 !important; /* Mencegah tombol mengempis/tergeser saat scroll */
-  background-color: rgba(255, 107, 107, 0.08) !important; /* Latar tipis agar mencolok */
+  flex-shrink: 0 !important; /* TIDAK BOLEH TERGESER/TERPOTONG */
+  background-color: rgba(255, 107, 107, 0.12) !important; 
+  font-size: 14px !important;
 }
 
 .logout-btn:hover { 
-  background-color: rgba(255, 107, 107, 0.2) !important; 
-  color: #ff5252 !important; 
+  background-color: rgba(255, 107, 107, 0.25) !important; 
+  color: #ffffff !important; 
 }
+
 /* ========================================================= */
 /* --- PERBAIKAN KHUSUS TV SMART BOARD & DISPLAY BESAR ---  */
 /* ========================================================= */
 @media (min-width: 1400px) {
   .sidebar {
-    width: 280px; /* Sedikit diluaskan agar teks menu tidak sempit */
+    width: 270px;
   }
   
   .sidebar button {
-    font-size: 15px; /* Memperbesar ukuran teks tombol menu agar mudah disentuh tangan di Smart Board */
-    padding: 12px 15px;
+    font-size: 14px;
+    padding: 9px 12px;
   }
   
   .logout-btn {
-    font-size: 15px !important;
+    font-size: 14px !important;
+    padding: 12px !important;
   }
 }
+
 
 
 /* --- MAIN CONTENT CONTAINER --- */
