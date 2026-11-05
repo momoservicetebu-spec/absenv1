@@ -9,21 +9,43 @@ body {
   color: #fff; 
 }
 
-/* --- SIDEBAR (DESKTOP DEFAULT) --- */
+/* --- SIDEBAR (DESKTOP & SMART BOARD LARGE DISPLAY) --- */
 .sidebar { 
   width: 260px; 
   background-color: #1e1b2e; 
   color: white; 
-  padding: 20px; 
+  padding: 20px 15px; 
   display: flex; 
   flex-direction: column; 
+  height: 100vh; /* Membatasi tinggi maksimum sesuai tinggi layar */
+  max-height: 100vh;
   overflow-y: auto; 
   flex-shrink: 0; 
   border-right: 1px solid #2d2643; 
+  box-sizing: border-box;
 }
-.sidebar::-webkit-scrollbar { width: 6px; }
-.sidebar::-webkit-scrollbar-thumb { background: #34495e; border-radius: 4px; }
-.sidebar h2 { margin-top: 0; font-size: 18px; border-bottom: 1px solid #2d2643; padding-bottom: 15px; text-align: center; color: #a29bfe; }
+
+/* Kustomisasi Scrollbar Sidebar agar terlihat jelas saat di-scroll di Smart Board */
+.sidebar::-webkit-scrollbar { 
+  width: 6px; 
+}
+.sidebar::-webkit-scrollbar-track {
+  background: #161224;
+}
+.sidebar::-webkit-scrollbar-thumb { 
+  background: #6c5ce7; 
+  border-radius: 4px; 
+}
+
+.sidebar h2 { 
+  margin-top: 0; 
+  font-size: 18px; 
+  border-bottom: 1px solid #2d2643; 
+  padding-bottom: 15px; 
+  text-align: center; 
+  color: #a29bfe; 
+}
+
 .sidebar button { 
   background: none; 
   border: none; 
@@ -38,10 +60,59 @@ body {
   border-radius: 6px; 
   margin-bottom: 4px; 
 }
-.sidebar button:hover, .sidebar button.active { color: white; background-color: #6c5ce7; padding-left: 15px; }
-.menu-group { margin-top: 15px; font-size: 11px; color: #6c5ce7; text-transform: uppercase; letter-spacing: 1px; padding-left: 10px; margin-bottom: 5px; font-weight: bold; }
-.logout-btn { color: #ff6b6b !important; margin-top: auto; border-top: 1px solid #2d2643; padding-top: 15px !important; border-radius: 0; }
-.logout-btn:hover { background-color: rgba(255,107,107,0.1) !important; color: #ff5252 !important; }
+
+.sidebar button:hover, .sidebar button.active { 
+  color: white; 
+  background-color: #6c5ce7; 
+  padding-left: 15px; 
+}
+
+.menu-group { 
+  margin-top: 15px; 
+  font-size: 11px; 
+  color: #6c5ce7; 
+  text-transform: uppercase; 
+  letter-spacing: 1px; 
+  padding-left: 10px; 
+  margin-bottom: 5px; 
+  font-weight: bold; 
+}
+
+/* 🌟 PERBAIKAN UTAMA: TOMBOL KELUAR SISTEM FIXED & TIDAK TERPOTONG */
+.logout-btn { 
+  color: #ff6b6b !important; 
+  margin-top: 15px !important; /* Diubah dari margin-top: auto ke margin eksplisit */
+  border-top: 1px solid #2d2643 !important; 
+  padding-top: 12px !important; 
+  padding-bottom: 12px !important;
+  border-radius: 6px !important; 
+  font-weight: bold !important;
+  flex-shrink: 0 !important; /* Mencegah tombol mengempis/tergeser saat scroll */
+  background-color: rgba(255, 107, 107, 0.08) !important; /* Latar tipis agar mencolok */
+}
+
+.logout-btn:hover { 
+  background-color: rgba(255, 107, 107, 0.2) !important; 
+  color: #ff5252 !important; 
+}
+/* ========================================================= */
+/* --- PERBAIKAN KHUSUS TV SMART BOARD & DISPLAY BESAR ---  */
+/* ========================================================= */
+@media (min-width: 1400px) {
+  .sidebar {
+    width: 280px; /* Sedikit diluaskan agar teks menu tidak sempit */
+  }
+  
+  .sidebar button {
+    font-size: 15px; /* Memperbesar ukuran teks tombol menu agar mudah disentuh tangan di Smart Board */
+    padding: 12px 15px;
+  }
+  
+  .logout-btn {
+    font-size: 15px !important;
+  }
+}
+
 
 /* --- MAIN CONTENT CONTAINER --- */
 .main-content { flex: 1; padding: 25px; overflow-y: auto; display: flex; flex-direction: column; background-color: #161224; }
@@ -911,3 +982,4 @@ canvas { position: absolute; top: 0; left: 0; }
     order: 3;
   }
 }
+
