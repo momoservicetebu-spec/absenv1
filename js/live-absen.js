@@ -185,8 +185,12 @@ function renderLiveCards() {
       }
     }
 
-   // Ambil data NIP / NISN (Fallback ke '-' jika belum terisi)
-    const nip = item.NIP || item.nip || item.NISN || item.nisn || "-";
+// 🌟 Penentuan NIP / NISN & Label Dinamis
+    const isSiswa = currentLiveRole === "SISWA" || rawRole.includes("SISWA");
+    const labelIdentitas = isSiswa ? "NISN" : "NIP";
+    
+    // Ambil nilai nomor identitas dari berbagai variasi properti objek
+    const nomorIdentitas = item.NIP || item.nip || item.NISN || item.nisn || item["NIP/NISN"] || "-";
 
     return `
       <div class="live-card" style="background: #1e1b2e; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 14px rgba(0,0,0,0.3); border: 1px solid #2d2643; border-top: 5px solid ${colorTheme}; display: flex; flex-direction: column;">
@@ -195,12 +199,10 @@ function renderLiveCards() {
         <div style="position: relative; height: 180px; background: #0f0c1b; overflow: hidden;">
           <img src="${foto}" alt="${nama}" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.src='https://via.placeholder.com/150?text=Foto+Tidak+Ada'">
           
-          <!-- BADGE STATUS -->
           <span class="status" style="position: absolute; top: 10px; right: 10px; background: ${colorTheme}; color: #ffffff; padding: 6px 12px; border-radius: 6px; font-size: 0.85em; font-weight: 800; letter-spacing: 0.5px; box-shadow: 0 2px 8px rgba(0,0,0,0.4); text-transform: uppercase;">
             ${statusLabel}
           </span>
           
-          <!-- PERAN / ROLE -->
           <span class="role" style="position: absolute; bottom: 10px; left: 10px; background: rgba(0, 0, 0, 0.75); color: #a29bfe; border: 1px solid rgba(255, 255, 255, 0.2); padding: 4px 10px; border-radius: 6px; font-size: 0.75em; font-weight: 600;">
             ${displayRole}
           </span>
@@ -209,18 +211,16 @@ function renderLiveCards() {
         <!-- DETAIL INFORMASI -->
         <div style="padding: 15px; flex: 1; display: flex; flex-direction: column; justify-content: space-between; background: #1e1b2e;">
           <div>
-            <!-- NAMA LENGKAP -->
             <h4 class="nama" style="margin: 0 0 6px 0; color: #ffffff !important; font-size: 1.15em; font-weight: 700; line-height: 1.3;">
               ${nama}
             </h4>
             
-            <!-- WAKTU ABSEN -->
             <p class="waktu" style="margin: 0; color: #a29bfe !important; font-size: 0.9em; font-weight: 600;">
               ⏰ ${waktu}
             </p>
           </div>
 
-          <!-- FOOTER KARTU (MENAMPILKAN ID & NIP) -->
+          <!-- FOOTER KARTU (LABEL DINAMIS NIP / NISN) -->
           <div style="margin-top: 12px; padding-top: 10px; border-top: 1px solid #2d2643; font-size: 0.82em; color: #b2bec3; display: flex; flex-direction: column; gap: 4px;">
             <div style="display: flex; justify-content: space-between; align-items: center;">
               <span class="id">ID: <b style="color: #ffffff;">${userID}</b></span>
@@ -228,9 +228,10 @@ function renderLiveCards() {
                 🔍 Foto
               </a>
             </div>
-            <!-- 🌟 BARIS BARU KHUSUS MENAMPILKAN NIP / NISN -->
+            
+            <!-- 🌟 MENAMPILKAN LABEL SESUAI ROLE (NIP UNTUK GURU, NISN UNTUK SISWA) -->
             <div style="color: #81ecec; font-size: 0.95em;">
-              NIP/NISN: <b>${nip}</b>
+              ${labelIdentitas}: <b>${nomorIdentitas}</b>
             </div>
           </div>
         </div>
