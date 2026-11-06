@@ -226,7 +226,7 @@ async function muatPengaturanLengkap() {
 }
 
 /**
- * 3. FUNGSI: UPLOAD CSV KALENDER PENDIDIKAN
+ * 3. FUNGSI: PEMBACAAN UPLOAD FILE CSV KALENDER PENDIDIKAN (HANDAL & AUTO-DELIMITER)
  */
 function handleUploadKaldik(event) {
   const file = event.target.files[0];
@@ -234,19 +234,40 @@ function handleUploadKaldik(event) {
 
   const reader = new FileReader();
   reader.onload = function(e) {
-    const text = e.target.result;
-    const lines = text.split('\n');
+    let text = e.target.result;
+    
+    // Hapus karakter tersembunyi UTF-8 BOM jika ada
+    if (text.charCodeAt(0) === 0xFEFF) {
+      text = text.substr(1);
+    }
+
+    // Normalisasi pemisah baris (\r\n menjadi \n)
+    const lines = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n').split('\n');
     const kaldikList = [];
 
-    for (let i = 1; i < lines.length; i++) {
+    // Deteksi pemisah kolom otomatis (koma, titik koma, atau tab) dari baris pertama
+    let delimiter = ';';
+    if (lines[0]) {
+      if (lines[0].indexOf(';') !== -1) delimiter = ';';
+      else if (lines[0].indexOf(',') !== -1) delimiter = ',';
+      else if (lines[0].indexOf('\t') !== -1) delimiter = '\t';
+    }
+
+    for (let i = 0; i < lines.length; i++) {
       const line = lines[i].trim();
       if (!line) continue;
       
-      const cols = line.split(';').map(c => c.replace(/"/g, '').trim());
-      if (cols.length >= 2) {
+      // Abaikan baris header jika berisi kata "TANGGAL" atau "DATE"
+      if (i === 0 && (line.toUpperCase().includes("TANGGAL") || line.toUpperCase().includes("DATE"))) {
+        continue;
+      }
+      
+      const cols = line.split(delimiter).map(c => c.replace(/^"|"$/g, '').trim());
+      
+      if (cols.length >= 2 && cols[0] !== '') {
         kaldikList.push({
           tanggal: cols[0],
-          keterangan: cols[1],
+          keterangan: cols[1] || 'Libur Sekolah',
           tipe: cols[2] || 'Libur Sekolah'
         });
       }
@@ -254,9 +275,11 @@ function handleUploadKaldik(event) {
 
     if (kaldikList.length > 0) {
       renderTabelKaldik(kaldikList);
-      alert(`✅ Berhasil membaca ${kaldikList.length} tanggal agenda/libur dari file CSV.`);
+      alert(`✅ Berhasil memuat ${kaldikList.length} tanggal agenda/libur dari file CSV.`);
+      // Reset value input file agar bisa upload file yang sama jika diperlukan
+      event.target.value = '';
     } else {
-      alert('⚠️ Format file CSV tidak valid atau kosong.');
+      alert('⚠️ Format file CSV tidak valid atau kosong.\nPastikan file memiliki kolom Tanggal dan Keterangan.');
     }
   };
 
@@ -316,7 +339,9 @@ function downloadTemplateKaldik() {
   const link = document.createElement("a");
   link.href = URL.createObjectURL(blob);
   link.download = "Template_Kalender_Pendidikan.csv";
+  document.body.appendChild(link);
   link.click();
+  document.body.removeChild(link);
 }
 
 /**
