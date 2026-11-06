@@ -301,3 +301,150 @@ function downloadTemplateKaldik() {
 document.addEventListener("DOMContentLoaded", function() {
   muatPengaturanLengkap();
 });
+
+// ============================================================================
+// FUNGSI: TERAPKAN TEMA LIVE (MODE & AKSEN DYNAMIC CSS)
+// Dipanggil saat Pengaturan Dimuat atau Diubah oleh Admin
+// ============================================================================
+function terapkanTemaLive(mode, aksen) {
+  let bgBody = "#0f0c1b";
+  let bgCard = "#1e1b2e";
+  let bgInput = "#161224";
+  let textMain = "#ffffff";
+  let textMuted = "#a29bfe";
+  let borderCol = "#2d2643";
+  let shadow = "0 4px 14px rgba(0,0,0,0.3)";
+
+  // 1. Tentukan Skema Warna Dasar (Mode)
+  if (mode === "light") {
+    bgBody = "#f4f6f9";
+    bgCard = "#ffffff";
+    bgInput = "#f1f3f6";
+    textMain = "#2d3436";
+    textMuted = "#636e72";
+    borderCol = "#dfe6e9";
+    shadow = "0 2px 10px rgba(0,0,0,0.05)";
+  } else if (mode === "navy") {
+    bgBody = "#0a192f";
+    bgCard = "#112240";
+    bgInput = "#0d1b2a";
+    textMain = "#e6f1ff";
+    textMuted = "#8892b0";
+    borderCol = "#233554";
+    shadow = "0 4px 14px rgba(0,0,0,0.4)";
+  }
+
+  // 2. Tentukan Warna Aksen Tombol & Focus
+  let accentColor = "#6c5ce7";
+  let accentHover = "#5b4bc4";
+  let titleAccent = "#feca57";
+
+  if (aksen === "blue") {
+    accentColor = "#0984e3";
+    accentHover = "#0768b5";
+    titleAccent = "#74b9ff";
+  } else if (aksen === "green") {
+    accentColor = "#00b894";
+    accentHover = "#009477";
+    titleAccent = "#55efc4";
+  } else if (aksen === "red") {
+    accentColor = "#d63031";
+    accentHover = "#b22627";
+    titleAccent = "#ff7675";
+  }
+
+  // 3. Injeksi Rule CSS ke Elemen <style id="theme-style-dynamic">
+  let styleEl = document.getElementById("theme-style-dynamic");
+  if (!styleEl) {
+    styleEl = document.createElement("style");
+    styleEl.id = "theme-style-dynamic";
+    document.head.appendChild(styleEl);
+  }
+
+  const cssRules = `
+    body, .main-content {
+      background-color: ${bgBody} !important;
+      color: ${textMain} !important;
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
+
+    /* Kartu & Container Utama */
+    .card, .section, .analytics-table-wrap,
+    div[style*="#2a2640"], 
+    div[style*="#231f36"], 
+    div[style*="#161224"] {
+      background-color: ${bgCard} !important;
+      border: 1px solid ${borderCol} !important;
+      box-shadow: ${shadow} !important;
+      color: ${textMain} !important;
+    }
+
+    /* Form Input & Select */
+    input:not([type="checkbox"]):not([type="radio"]), select, textarea {
+      background-color: ${bgInput} !important;
+      color: ${textMain} !important;
+      border: 1px solid ${borderCol} !important;
+      border-radius: 6px !important;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+    
+    input:focus, select:focus {
+      border-color: ${accentColor} !important;
+      outline: none !important;
+      box-shadow: 0 0 0 3px ${accentColor}33 !important;
+    }
+
+    /* Tombol Utama & Aksi */
+    button[onclick="simpanPengaturanLengkap()"], .btn-primary, .btn-action {
+      background-color: ${accentColor} !important;
+      color: #ffffff !important;
+      border: none !important;
+      border-radius: 6px !important;
+      font-weight: 600 !important;
+      cursor: pointer !important;
+      transition: all 0.2s ease;
+    }
+    
+    button[onclick="simpanPengaturanLengkap()"]:hover, .btn-primary:hover, .btn-action:hover {
+      background-color: ${accentHover} !important;
+    }
+
+    /* Judul Section & Label */
+    h2, h3, .section-title {
+      color: ${titleAccent} !important;
+      border-bottom: 1px solid ${borderCol} !important;
+    }
+    
+    label, .form-label {
+      color: ${textMuted} !important;
+    }
+
+    /* Sidebar Navigation */
+    .sidebar, #sidebar {
+      background-color: ${bgCard} !important;
+      border-right: 1px solid ${borderCol} !important;
+    }
+
+    .sidebar button:hover, .sidebar a:hover, .sidebar .menu-item:hover, .sidebar .active {
+      background-color: ${accentColor} !important;
+      color: #ffffff !important;
+    }
+  `;
+
+  styleEl.innerHTML = cssRules;
+}
+
+document.addEventListener("DOMContentLoaded", function() {
+  // Event listener ubah tema live dari select box
+  const selectMode = document.getElementById('set-tema-mode');
+  const selectAksen = document.getElementById('set-tema-aksen');
+
+  const updateTemaRealtime = () => {
+    const mode = selectMode ? selectMode.value : 'dark';
+    const aksen = selectAksen ? selectAksen.value : 'default';
+    terapkanTemaLive(mode, aksen);
+  };
+
+  if (selectMode) selectMode.addEventListener('change', updateTemaRealtime);
+  if (selectAksen) selectAksen.addEventListener('change', updateTemaRealtime);
+});
