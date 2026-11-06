@@ -1,9 +1,8 @@
 // ============================================================================
 // FILE: js/setting.js
-// MODUL PENGATURAN SISTEM, KOP SURAT, KALENDER PENDIDIKAN & KEAMANAN
+// MODUL PENGATURAN SISTEM, JADWAL HARIAN (SENIN-SABTU), KALENDER PENDIDIKAN & TEMA
 // ============================================================================
 
-// Global Variable untuk menyimpan data Kalender Pendidikan
 window.dataKaldikAktif = [];
 
 /**
@@ -34,7 +33,7 @@ async function simpanPengaturanLengkap() {
     }
   }
 
-  // Helper aman membaca nilai elemen HTML
+  // Helper membaca nilai elemen HTML
   const getVal = (id, fallback = '') => {
     const el = document.getElementById(id);
     return el && el.value !== undefined ? el.value.trim() : fallback;
@@ -42,10 +41,21 @@ async function simpanPengaturanLengkap() {
 
   const getCheck = (id) => {
     const el = document.getElementById(id);
-    return el ? el.checked : true;
+    return el ? el.checked : false;
   };
 
-  // 2. Susun Payload Pengaturan Sesuai Struktur Formulir HTML
+  // 🌟 BACAKAN JADWAL HARIAN SENIN SAMPAI SABTU DARI TABEL FORMULIR
+  const daftarHari = ['senin', 'selasa', 'rabu', 'kamis', 'jumat', 'sabtu'];
+  let jadwalHarian = {};
+  daftarHari.forEach(hari => {
+    jadwalHarian[hari] = {
+      aktif: getCheck(`set-aktif-${hari}`),
+      masuk: getVal(`set-masuk-${hari}`, '07:15'),
+      pulang: getVal(`set-pulang-${hari}`, '14:50')
+    };
+  });
+
+  // 2. Susun Payload Pengaturan Sesuai Struktur Database
   const payloadPengaturan = {
     action: "saveSettings", 
     roleAktif: userRole,
@@ -62,7 +72,7 @@ async function simpanPengaturanLengkap() {
       website: getVal('set-website', ''),
       nomorSurat: getVal('set-nomor-surat', ''),
       logoKiri: getVal('set-logo-kiri', ''),
-      logoSekolah: getVal('set-logo-kanan', ''), // Logo Kanan / Logo Sekolah
+      logoSekolah: getVal('set-logo-kanan', ''), 
       namaKepsek: getVal('set-nama-kepsek', ''),
       nipKepsek: getVal('set-nip-kepsek', ''),
       ttdKepsek: getVal('set-ttd-kepsek', '')
@@ -74,11 +84,9 @@ async function simpanPengaturanLengkap() {
       aksen: getVal('set-tema-aksen', 'default')
     },
 
-    // Parameter Absensi
-    parameter: {
-      batasTelat: getVal('set-batas-telat', '07:15'),
-      batasPulang: getVal('set-batas-pulang', '14:50')
-    },
+    // 🌟 JADWAL HARIAN HARIAN & KALENDER PENDIDIKAN
+    jadwalHarian: jadwalHarian,
+    kalenderPendidikan: window.dataKaldikAktif || [],
 
     // Keamanan MFA & Anti-Manipulasi
     keamanan: {
@@ -104,8 +112,7 @@ async function simpanPengaturanLengkap() {
     const result = await response.json();
 
     if (result.success || result.status === 'success') {
-      alert('✅ Seluruh Pengaturan Sistem & Kop Laporan Berhasil Disimpan!');
-      // Reload pengaturan di memori agar langsung aktif tanpa refresh
+      alert('✅ Seluruh Pengaturan Sistem & Jadwal Absensi Harian Berhasil Disimpan!');
       await muatPengaturanLengkap();
     } else {
       alert('❌ Gagal menyimpan pengaturan: ' + (result.message || 'Error tidak diketahui'));
@@ -141,7 +148,7 @@ async function muatPengaturanLengkap() {
     if ((result.success || result.status === 'success') && result.data) {
       const d = result.data;
 
-      // 🌟 SIMPAN KE WINDOW OBJECT UNTUK MODUL CETAK PDF (unduhlaporan.js)
+      // SIMPAN KE WINDOW OBJECT UNTUK MODUL CETAK PDF (unduhlaporan.js)
       window.appSettings = d;
 
       // Helper set input
@@ -156,7 +163,7 @@ async function muatPengaturanLengkap() {
         if (el) el.checked = (val === true || String(val).toUpperCase() === 'TRUE');
       };
 
-      // 🌟 POPULASI FORMULIR DENGAN VARIABEL DATABASE (MENDUKUNG KEY CAPITAL & CAMELCASE)
+      // POPULASI FORMULIR IDENTITAS SEKOLAH
       setVal('set-instansi-atas', d.INSTANSI_ATAS || d.instansiAtas);
       setVal('set-dinas', d.DINAS || d.dinas);
       setVal('set-nama-sekolah', d.SCHOOL_NAME || d.namaSekolah);
@@ -173,27 +180,42 @@ async function muatPengaturanLengkap() {
       setVal('set-tema-mode', d.THEME_MODE || d.temaMode || 'dark');
       setVal('set-tema-aksen', d.THEME_ACCENT || d.temaAksen || 'default');
 
-      setVal('set-batas-telat', d.ENTRY_TIME_LIMIT || d.batasTelat || '07:15');
-      setVal('set-batas-pulang', d.EXIT_TIME_LIMIT || d.batasPulang || '14:50');
+      // 🌟 POPULASI JADWAL HARIAN SENIN SAMPAI SABTU
+      const daftarHari = ['senin', 'selasa', 'rabu', 'kamis', 'jumat', 'sabtu'];
+      daftarHari.forEach(hari => {
+        let keyAktif = `JADWAL_${hari.toUpperCase()}_AKTIF`;
+        let keyMasuk = `JADWAL_${hari.toUpperCase()}_MASUK`;
+        let keyPulang = `JADWAL_${hari.toUpperCase()}_PULANG`;
 
+        if (d.jadwalHarian && d.jadwalHarian[hari]) {
+          setCheck(`set-aktif-${hari}`, d.jadwalHarian[hari].aktif);
+          setVal(`set-masuk-${hari}`, d.jadwalHarian[hari].masuk);
+          setVal(`set-pulang-${hari}`, d.jadwalHarian[hari].pulang);
+        } else {
+          if (d[keyAktif] !== undefined) setCheck(`set-aktif-${hari}`, d[keyAktif]);
+          if (d[keyMasuk]) setVal(`set-masuk-${hari}`, d[keyMasuk]);
+          if (d[keyPulang]) setVal(`set-pulang-${hari}`, d[keyPulang]);
+        }
+      });
+
+      // KEAMANAN MFA & ANTI-MANIPULASI
       setVal('set-mfa-siswa', d.MFA_STUDENT || d.mfaSiswa || 'rfid_face');
       setVal('set-mfa-guru', d.MFA_TEACHER || d.mfaGuru || 'finger_face');
 
-      // Checkbox Anti-Manipulasi
       setCheck('anti-liveness', d.ANTI_LIVENESS !== undefined ? d.ANTI_LIVENESS : d.antiLiveness);
       setCheck('anti-fakegps', d.ANTI_FAKE_GPS !== undefined ? d.ANTI_FAKE_GPS : d.antiFakeGps);
       setCheck('anti-devicebind', d.ANTI_DEVICE_BIND !== undefined ? d.ANTI_DEVICE_BIND : d.antiDeviceBind);
       setCheck('anti-timesync', d.ANTI_TIME_SYNC !== undefined ? d.ANTI_TIME_SYNC : d.antiTimeSync);
       setCheck('anti-qr', d.ANTI_DYNAMIC_QR !== undefined ? d.ANTI_DYNAMIC_QR : d.antiQr);
 
-      // Terapkan Tema Secara Realtime Jika Fungsi Tersedia
+      // Terapkan Tema Secara Realtime
       const temaMode = d.THEME_MODE || d.temaMode;
       const temaAksen = d.THEME_ACCENT || d.temaAksen;
       if (temaMode && temaAksen && typeof terapkanTemaLive === 'function') {
         terapkanTemaLive(temaMode, temaAksen);
       }
 
-      // Muat data Kalender Pendidikan / Hari Libur jika ada di return data
+      // Render Kalender Pendidikan
       if (d.kalenderPendidikan && Array.isArray(d.kalenderPendidikan)) {
         renderTabelKaldik(d.kalenderPendidikan);
       }
@@ -204,7 +226,7 @@ async function muatPengaturanLengkap() {
 }
 
 /**
- * 3. FUNGSI: PEMBACAAN UPLOAD FILE CSV KALENDER PENDIDIKAN
+ * 3. FUNGSI: UPLOAD CSV KALENDER PENDIDIKAN
  */
 function handleUploadKaldik(event) {
   const file = event.target.files[0];
@@ -225,7 +247,7 @@ function handleUploadKaldik(event) {
         kaldikList.push({
           tanggal: cols[0],
           keterangan: cols[1],
-          tipe: cols[2] || 'Libur Nasional'
+          tipe: cols[2] || 'Libur Sekolah'
         });
       }
     }
@@ -242,7 +264,7 @@ function handleUploadKaldik(event) {
 }
 
 /**
- * 4. FUNGSI: RENDER TABEL KALENDER PENDIDIKAN (HARI LIBUR)
+ * 4. FUNGSI: RENDER TABEL KALENDER PENDIDIKAN
  */
 function renderTabelKaldik(data) {
   window.dataKaldikAktif = data;
@@ -297,15 +319,9 @@ function downloadTemplateKaldik() {
   link.click();
 }
 
-// Otomatis jalankan pemuatan data saat halaman dimuat
-document.addEventListener("DOMContentLoaded", function() {
-  muatPengaturanLengkap();
-});
-
-// ============================================================================
-// FUNGSI: TERAPKAN TEMA LIVE (MODE & AKSEN DYNAMIC CSS)
-// Dipanggil saat Pengaturan Dimuat atau Diubah oleh Admin
-// ============================================================================
+/**
+ * 7. FUNGSI: TERAPKAN TEMA LIVE (MODE & AKSEN DYNAMIC CSS)
+ */
 function terapkanTemaLive(mode, aksen) {
   let bgBody = "#0f0c1b";
   let bgCard = "#1e1b2e";
@@ -315,7 +331,6 @@ function terapkanTemaLive(mode, aksen) {
   let borderCol = "#2d2643";
   let shadow = "0 4px 14px rgba(0,0,0,0.3)";
 
-  // 1. Tentukan Skema Warna Dasar (Mode)
   if (mode === "light") {
     bgBody = "#f4f6f9";
     bgCard = "#ffffff";
@@ -334,7 +349,6 @@ function terapkanTemaLive(mode, aksen) {
     shadow = "0 4px 14px rgba(0,0,0,0.4)";
   }
 
-  // 2. Tentukan Warna Aksen Tombol & Focus
   let accentColor = "#6c5ce7";
   let accentHover = "#5b4bc4";
   let titleAccent = "#feca57";
@@ -353,7 +367,6 @@ function terapkanTemaLive(mode, aksen) {
     titleAccent = "#ff7675";
   }
 
-  // 3. Injeksi Rule CSS ke Elemen <style id="theme-style-dynamic">
   let styleEl = document.getElementById("theme-style-dynamic");
   if (!styleEl) {
     styleEl = document.createElement("style");
@@ -368,7 +381,6 @@ function terapkanTemaLive(mode, aksen) {
       transition: background-color 0.3s ease, color 0.3s ease;
     }
 
-    /* Kartu & Container Utama */
     .card, .section, .analytics-table-wrap,
     div[style*="#2a2640"], 
     div[style*="#231f36"], 
@@ -379,7 +391,6 @@ function terapkanTemaLive(mode, aksen) {
       color: ${textMain} !important;
     }
 
-    /* Form Input & Select */
     input:not([type="checkbox"]):not([type="radio"]), select, textarea {
       background-color: ${bgInput} !important;
       color: ${textMain} !important;
@@ -394,7 +405,6 @@ function terapkanTemaLive(mode, aksen) {
       box-shadow: 0 0 0 3px ${accentColor}33 !important;
     }
 
-    /* Tombol Utama & Aksi */
     button[onclick="simpanPengaturanLengkap()"], .btn-primary, .btn-action {
       background-color: ${accentColor} !important;
       color: #ffffff !important;
@@ -409,7 +419,6 @@ function terapkanTemaLive(mode, aksen) {
       background-color: ${accentHover} !important;
     }
 
-    /* Judul Section & Label */
     h2, h3, .section-title {
       color: ${titleAccent} !important;
       border-bottom: 1px solid ${borderCol} !important;
@@ -419,7 +428,6 @@ function terapkanTemaLive(mode, aksen) {
       color: ${textMuted} !important;
     }
 
-    /* Sidebar Navigation */
     .sidebar, #sidebar {
       background-color: ${bgCard} !important;
       border-right: 1px solid ${borderCol} !important;
@@ -434,8 +442,10 @@ function terapkanTemaLive(mode, aksen) {
   styleEl.innerHTML = cssRules;
 }
 
+// Event Listener Otomatis Saat DOM dimuat
 document.addEventListener("DOMContentLoaded", function() {
-  // Event listener ubah tema live dari select box
+  muatPengaturanLengkap();
+
   const selectMode = document.getElementById('set-tema-mode');
   const selectAksen = document.getElementById('set-tema-aksen');
 
