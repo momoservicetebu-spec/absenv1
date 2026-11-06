@@ -266,3 +266,4 @@ function updateStatistikCounter(data) {
   if (elPulang) elPulang.innerText = pulang;
   if (elLembur) elLembur.innerText = lembur;
 }
+}
