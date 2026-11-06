@@ -4,7 +4,7 @@
 // ==========================================
 
 /**
- * 1. FUNGSI UNDUH LAPORAN EXCEL / CSV
+ * 1. FUNGSI UNDUH LAPORAN EXCEL / CSV (PUSAT LAPORAN)
  */
 function unduhLaporanCSV() {
   // Ambil tabel preview yang sedang tampil
@@ -66,7 +66,7 @@ function unduhLaporanCSV() {
 }
 
 /**
- * 2. FUNGSI UNDUH LAPORAN PDF RESMI (CETAK DOKUMEN CLEAN & KOP SURAT)
+ * 2. FUNGSI UNDUH LAPORAN PDF RESMI (PUSAT LAPORAN)
  */
 function unduhLaporanPDF() {
   const table = document.querySelector("#tabel-preview-laporan") || document.querySelector("#laporan-absensi table");
@@ -168,6 +168,165 @@ function unduhLaporanPDF() {
       </div>
 
       ${tableClone.outerHTML}
+
+      <div class="ttd-container">
+        <p>Mengetahui,</p>
+        <p>Kepala Sekolah</p>
+        <div class="ttd-space"></div>
+        <p><strong><u>${namaKepsek}</u></strong></p>
+        <p>NIP. ${nipKepsek}</p>
+      </div>
+
+      <script>
+        window.onload = function() {
+          window.print();
+          setTimeout(function() { window.close(); }, 600);
+        };
+      <\/script>
+    </body>
+    </html>
+  `;
+
+  printWin.document.open();
+  printWin.document.write(htmlContent);
+  printWin.document.close();
+}
+
+/**
+ * 3. FUNGSI UNDUH PDF LIVE MONITOR HARIAN (REAL-TIME) 🌟 (BARU DITAMBAHKAN)
+ */
+function unduhLiveMonitorPDF() {
+  const dataLive = window.dataLiveAbsenAktif || [];
+  const daftarKartu = document.querySelectorAll("#live-absen-grid > div");
+  
+  if (dataLive.length === 0 && daftarKartu.length === 0) {
+    alert("Belum ada data absensi yang tercatat untuk hari ini.");
+    return;
+  }
+
+  const instansiAtas = document.getElementById("setting-instansi-atas")?.value || document.getElementById("set-instansi-atas")?.value || "PEMERINTAH PROVINSI LAMPUNG";
+  const dinas = document.getElementById("setting-dinas")?.value || document.getElementById("set-dinas")?.value || "DINAS PENDIDIKAN DAN KEBUDAYAAN";
+  const namaSekolah = document.getElementById("setting-nama-sekolah")?.value || document.getElementById("set-nama-sekolah")?.value || "SMA NEGERI 1 BUMI AGUNG";
+  const alamatSekolah = document.getElementById("setting-alamat")?.value || document.getElementById("set-alamat-kop")?.value || "Jl. Protokol No 1 Pisang Baru, Kec. Bumi Agung, Kab. Way Kanan";
+  const logoKiri = document.getElementById("setting-logo-kiri")?.value || document.getElementById("set-logo-sekolah")?.value || "";
+  const logoKanan = document.getElementById("setting-logo-kanan")?.value || "";
+  const namaKepsek = document.getElementById("setting-nama-kepsek")?.value || document.getElementById("set-nama-kepsek")?.value || "Nama Kepala Sekolah";
+  const nipKepsek = document.getElementById("setting-nip")?.value || document.getElementById("set-nip-kepsek")?.value || "-";
+
+  const tglHariIni = new Date().toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+  const roleAktif = window.currentLiveRole === "GURU" ? "GURU & STAF TU" : "SISWA";
+
+  let bodyTabelHtml = '';
+
+  if (dataLive.length > 0) {
+    dataLive.forEach((item, i) => {
+      const nama = item.Nama || item.UserID || "Tanpa Nama";
+      const userID = item.UserID || "-";
+      let role = item.Role || "Guru";
+      if (String(userID).toUpperCase().startsWith("TU-") || String(role).toUpperCase().includes("TENAGA")) {
+        role = "Tenaga Kependidikan";
+      }
+      const waktu = item.Timestamp || item.Time || "-";
+      const statusText = item["Status(Hadir/Telat/Izin/dll)"] || item.Status || "Hadir";
+
+      bodyTabelHtml += `
+        <tr>
+          <td style="text-align: center;">${i + 1}</td>
+          <td><strong>${nama}</strong></td>
+          <td style="text-align: center;">${userID}</td>
+          <td style="text-align: center;">${role}</td>
+          <td style="text-align: center; font-weight: bold;">${waktu}</td>
+          <td style="text-align: center; font-weight: bold;">${statusText}</td>
+        </tr>`;
+    });
+  } else {
+    daftarKartu.forEach((card, i) => {
+      const nama = card.querySelector("h4")?.innerText || "-";
+      const waktu = card.querySelector("p")?.innerText.replace("⏰", "").trim() || "-";
+      const userID = card.querySelector("span b")?.innerText || "-";
+      const role = card.querySelectorAll("span")[1]?.innerText || "Guru / Staf";
+      const status = card.querySelectorAll("span")[0]?.innerText || "MASUK";
+
+      bodyTabelHtml += `
+        <tr>
+          <td style="text-align: center;">${i + 1}</td>
+          <td><strong>${nama}</strong></td>
+          <td style="text-align: center;">${userID}</td>
+          <td style="text-align: center;">${role}</td>
+          <td style="text-align: center; font-weight: bold;">${waktu}</td>
+          <td style="text-align: center; font-weight: bold;">${status}</td>
+        </tr>`;
+    });
+  }
+
+  const imgKiriTag = (logoKiri && logoKiri.startsWith("http")) ? `<img src="${logoKiri}" style="width: 75px; height: auto;">` : '<div style="width: 75px;"></div>';
+  const imgKananTag = (logoKanan && logoKanan.startsWith("http")) ? `<img src="${logoKanan}" style="width: 75px; height: auto;">` : '<div style="width: 75px;"></div>';
+
+  const printWin = window.open("", "_blank");
+  
+  const htmlContent = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <title>Live_Monitor_Absensi_${new Date().toISOString().split('T')[0]}</title>
+      <style>
+        body { font-family: 'Times New Roman', Times, serif; color: #000; padding: 20px; margin: 0; }
+        .kop-container { display: flex; justify-content: space-between; align-items: center; border-bottom: 4px double #000; padding-bottom: 8px; margin-bottom: 15px; }
+        .kop-center { text-align: center; flex-grow: 1; padding: 0 10px; }
+        .kop-center h2 { margin: 0; font-size: 13pt; font-weight: normal; text-transform: uppercase; }
+        .kop-center h1 { margin: 2px 0; font-size: 15pt; font-weight: bold; text-transform: uppercase; }
+        .kop-center p { margin: 0; font-size: 8.5pt; font-style: italic; }
+        
+        .judul-doc { text-align: center; margin: 15px 0 20px 0; }
+        .judul-doc h3 { margin: 0; font-size: 12pt; text-decoration: underline; text-transform: uppercase; font-family: Arial, sans-serif; }
+        .judul-doc p { margin: 4px 0 0 0; font-size: 9.5pt; font-family: Arial, sans-serif; }
+
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-family: Arial, sans-serif; font-size: 10pt; }
+        th, td { border: 1px solid #000; padding: 7px 9px; }
+        th { background-color: #e0e0e0; font-weight: bold; text-align: center; }
+
+        .ttd-container { margin-top: 30px; float: right; text-align: right; font-size: 11pt; padding-right: 15px; page-break-inside: avoid; }
+        .ttd-container p { margin: 2px 0; }
+        .ttd-space { height: 65px; }
+
+        @media print {
+          @page { size: A4 portrait; margin: 12mm; }
+          body { padding: 0; }
+        }
+      </style>
+    </head>
+    <body>
+      <div class="kop-container">
+        ${imgKiriTag}
+        <div class="kop-center">
+          <h2>${instansiAtas}</h2>
+          <h2>${dinas}</h2>
+          <h1>${namaSekolah}</h1>
+          <p>${alamatSekolah}</p>
+        </div>
+        ${imgKananTag}
+      </div>
+
+      <div class="judul-doc">
+        <h3>LAPORAN LIVE MONITOR ABSENSI (${roleAktif})</h3>
+        <p>Hari / Tanggal: ${tglHariIni} | Jam Cetak: ${new Date().toLocaleTimeString('id-ID')} WIB</p>
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th style="width: 35px;">NO</th>
+            <th>NAMA LENGKAP</th>
+            <th style="width: 100px;">ID / NIP</th>
+            <th style="width: 130px;">PERAN / KELAS</th>
+            <th style="width: 90px;">WAKTU ABSEN</th>
+            <th style="width: 110px;">STATUS</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${bodyTabelHtml}
+        </tbody>
+      </table>
 
       <div class="ttd-container">
         <p>Mengetahui,</p>
