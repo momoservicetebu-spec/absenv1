@@ -193,7 +193,7 @@ function unduhLaporanPDF() {
 }
 
 /**
- * 3. FUNGSI UNDUH PDF LIVE MONITOR HARIAN (REAL-TIME) 🌟 (BARU DITAMBAHKAN)
+ * 3. FUNGSI UNDUH PDF LIVE MONITOR HARIAN (REAL-TIME) - DENGAN DUKUNGAN NIP/NISN
  */
 function unduhLiveMonitorPDF() {
   const dataLive = window.dataLiveAbsenAktif || [];
@@ -215,6 +215,7 @@ function unduhLiveMonitorPDF() {
 
   const tglHariIni = new Date().toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
   const roleAktif = window.currentLiveRole === "GURU" ? "GURU & STAF TU" : "SISWA";
+  const labelIdentitas = window.currentLiveRole === "GURU" ? "NIP" : "NISN";
 
   let bodyTabelHtml = '';
 
@@ -222,6 +223,11 @@ function unduhLiveMonitorPDF() {
     dataLive.forEach((item, i) => {
       const nama = item.Nama || item.UserID || "Tanpa Nama";
       const userID = item.UserID || "-";
+      
+      // 🌟 Ambil NIP / NISN dari objek data
+      const nipVal = item.NIP || item.nip || item.NISN || item.nisn || "-";
+      const displayIdNip = (nipVal && nipVal !== "-") ? `${userID}<br><span style="font-size: 8.5pt; color: #555;">${labelIdentitas}. ${nipVal}</span>` : userID;
+
       let role = item.Role || "Guru";
       if (String(userID).toUpperCase().startsWith("TU-") || String(role).toUpperCase().includes("TENAGA")) {
         role = "Tenaga Kependidikan";
@@ -233,7 +239,7 @@ function unduhLiveMonitorPDF() {
         <tr>
           <td style="text-align: center;">${i + 1}</td>
           <td><strong>${nama}</strong></td>
-          <td style="text-align: center;">${userID}</td>
+          <td style="text-align: center;">${displayIdNip}</td>
           <td style="text-align: center;">${role}</td>
           <td style="text-align: center; font-weight: bold;">${waktu}</td>
           <td style="text-align: center; font-weight: bold;">${statusText}</td>
@@ -243,15 +249,20 @@ function unduhLiveMonitorPDF() {
     daftarKartu.forEach((card, i) => {
       const nama = card.querySelector("h4")?.innerText || "-";
       const waktu = card.querySelector("p")?.innerText.replace("⏰", "").trim() || "-";
-      const userID = card.querySelector("span b")?.innerText || "-";
-      const role = card.querySelectorAll("span")[1]?.innerText || "Guru / Staf";
-      const status = card.querySelectorAll("span")[0]?.innerText || "MASUK";
+      const userID = card.querySelector(".id b")?.innerText || "-";
+      
+      // Fallback pembacaan elemen dari DOM jika array data kosong
+      const nipText = card.querySelector("div[style*='color: #81ecec'] b")?.innerText || "-";
+      const displayIdNip = (nipText && nipText !== "-") ? `${userID}<br><span style="font-size: 8.5pt; color: #555;">${labelIdentitas}. ${nipText}</span>` : userID;
+
+      const role = card.querySelector(".role")?.innerText || "Guru / Staf";
+      const status = card.querySelector(".status")?.innerText || "MASUK";
 
       bodyTabelHtml += `
         <tr>
           <td style="text-align: center;">${i + 1}</td>
           <td><strong>${nama}</strong></td>
-          <td style="text-align: center;">${userID}</td>
+          <td style="text-align: center;">${displayIdNip}</td>
           <td style="text-align: center;">${role}</td>
           <td style="text-align: center; font-weight: bold;">${waktu}</td>
           <td style="text-align: center; font-weight: bold;">${status}</td>
@@ -317,7 +328,7 @@ function unduhLiveMonitorPDF() {
           <tr>
             <th style="width: 35px;">NO</th>
             <th>NAMA LENGKAP</th>
-            <th style="width: 100px;">ID / NIP</th>
+            <th style="width: 140px;">ID / ${labelIdentitas}</th>
             <th style="width: 130px;">PERAN / KELAS</th>
             <th style="width: 90px;">WAKTU ABSEN</th>
             <th style="width: 110px;">STATUS</th>
