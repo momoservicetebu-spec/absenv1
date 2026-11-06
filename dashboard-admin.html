@@ -766,25 +766,29 @@
         </tbody>
       </table>
     </div>
-
     <!-- TAB CONTENT: LIVE ABSEN MONITOR -->
-    <div id="live-absen" class="section card">
-      
-      <!-- HEADER SECTION -->
-      <div class="header-section" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 15px;">
-        <div>
-          <h2 style="margin: 0; color: #fff;">📺 Live Monitor Absensi Real-Time</h2>
-          <p style="color: #a29bfe; font-size: 0.9em; margin-top: 4px;">Pemantauan absensi masuk, pulang, dan lembur secara langsung.</p>
-        </div>
-        <div style="display: flex; gap: 10px; align-items: center;">
-          <span id="live-status-badge" style="background: rgba(46, 204, 113, 0.15); color: #1dd1a1; border: 1px solid #1dd1a1; padding: 6px 14px; border-radius: 20px; font-size: 0.85em; font-weight: bold;">
-            🟢 Live Refresh (5s)
-          </span>
-          <button class="btn-action btn-small" onclick="loadLiveAbsenData()" style="cursor: pointer; background-color: #30274e; border: 1px solid #6c5ce7; color: #fff;">
-            🔄 Refresh Manual
-          </button>
-        </div>
-      </div>
+        <div id="live-absen" class="section card">
+          
+          <!-- HEADER SECTION -->
+          <div class="header-section" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 15px;">
+            <div>
+              <h2 style="margin: 0; color: #fff;">📺 Live Monitor Absensi Real-Time</h2>
+              <p style="color: #a29bfe; font-size: 0.9em; margin-top: 4px;">Pemantauan absensi masuk, pulang, dan lembur secara langsung.</p>
+            </div>
+            <div style="display: flex; gap: 10px; align-items: center;">
+              <span id="live-status-badge" style="background: rgba(46, 204, 113, 0.15); color: #1dd1a1; border: 1px solid #1dd1a1; padding: 6px 14px; border-radius: 20px; font-size: 0.85em; font-weight: bold;">
+                🟢 Live Refresh (5s)
+              </span>
+              <button class="btn-action btn-small" onclick="loadLiveAbsenData()" style="cursor: pointer; background-color: #30274e; border: 1px solid #6c5ce7; color: #fff; padding: 7px 14px; border-radius: 6px; font-weight: 500;">
+                🔄 Refresh Manual
+              </button>
+
+              <!-- 🌟 TOMBOL UNDUH PDF LIVE MONITOR -->
+              <button class="btn-action btn-small" onclick="unduhLiveMonitorPDF()" style="cursor: pointer; background-color: #d63031; border: 1px solid #ff7675; color: #fff; padding: 7px 14px; border-radius: 6px; font-weight: bold;">
+                📄 Unduh PDF
+              </button>
+            </div>
+          </div>
 
       <!-- TOGGLE SUB-TAB: GURU vs SISWA -->
       <div style="display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 1px solid #30274e; padding-bottom: 12px;">

@@ -6,6 +6,10 @@ let liveAbsenInterval = null;
 let rawLiveAbsenData = [];
 let currentLiveRole = "GURU"; // Default awal: GURU & STAF TU
 
+// 🌟 VARIABEL GLOBAL UNTUK MODUL CETAK UNDUHLAPORAN.JS
+window.dataLiveAbsenAktif = [];
+window.currentLiveRole = "GURU";
+
 // 1. FUNGSI INISIALISASI SAAT TAB LIVE ABSEN DIKLIK
 function initLiveAbsen() {
   loadLiveAbsenData();
@@ -25,6 +29,7 @@ function initLiveAbsen() {
 // 2. FUNGSI BERPINDAH SUB-TAB ROLE (GURU & STAF / SISWA)
 function switchLiveRole(role) {
   currentLiveRole = role;
+  window.currentLiveRole = role; // 🌟 Simpan variabel ke window
   
   const btnGuru = document.getElementById("btn-live-guru");
   const btnSiswa = document.getElementById("btn-live-siswa");
@@ -61,6 +66,7 @@ async function loadLiveAbsenData(isSilent = false) {
       rawLiveAbsenData = result.data;
       renderLiveCards();
     } else {
+      window.dataLiveAbsenAktif = []; // 🌟 Kosongkan jika tidak ada data
       if (!isSilent && container) {
         container.innerHTML = `<div style="grid-column: 1/-1; text-align: center; padding: 40px; color: #e74c3c;">Belum ada log absensi hari ini.</div>`;
       }
@@ -126,6 +132,9 @@ function renderLiveCards() {
     return String(item.Nama || item.UserID || "").toLowerCase().includes(searchFilter);
   });
 
+  // 🌟 SIMPAN DATA TERATUR KELUARAN KE WINDOW AGAR BISA DICETAK PDF SECARA PRESISI
+  window.dataLiveAbsenAktif = finalData;
+
   if (finalData.length === 0) {
     container.innerHTML = `<div style="grid-column: 1/-1; text-align: center; padding: 40px; color: #888;">Tidak ada data absensi untuk kategori <b>${currentLiveRole === 'GURU' ? 'Guru & Staf TU' : 'Siswa'}</b> saat ini.</div>`;
     return;
@@ -177,23 +186,23 @@ function renderLiveCards() {
     }
 
     return `
-      <div style="background: #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.08); border-top: 5px solid ${colorTheme}; display: flex; flex-direction: column;">
+      <div class="live-card" style="background: #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.08); border-top: 5px solid ${colorTheme}; display: flex; flex-direction: column;">
         <div style="position: relative; height: 180px; background: #222; overflow: hidden;">
           <img src="${foto}" alt="${nama}" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.src='https://via.placeholder.com/150?text=Foto+Tidak+Ada'">
-          <span style="position: absolute; top: 10px; right: 10px; background: ${colorTheme}; color: white; padding: 4px 8px; border-radius: 4px; font-size: 0.75em; font-weight: bold;">
+          <span class="status" style="position: absolute; top: 10px; right: 10px; background: ${colorTheme}; color: white; padding: 4px 8px; border-radius: 4px; font-size: 0.75em; font-weight: bold;">
             ${statusLabel}
           </span>
-          <span style="position: absolute; bottom: 10px; left: 10px; background: rgba(0,0,0,0.7); color: white; padding: 3px 8px; border-radius: 4px; font-size: 0.75em;">
+          <span class="role" style="position: absolute; bottom: 10px; left: 10px; background: rgba(0,0,0,0.7); color: white; padding: 3px 8px; border-radius: 4px; font-size: 0.75em;">
             ${displayRole}
           </span>
         </div>
         <div style="padding: 15px; flex: 1; display: flex; flex-direction: column; justify-content: space-between;">
           <div>
-            <h4 style="margin: 0 0 5px 0; color: #333; font-size: 1.1em;">${nama}</h4>
-            <p style="margin: 0; color: #777; font-size: 0.85em;">⏰ ${waktu}</p>
+            <h4 class="nama" style="margin: 0 0 5px 0; color: #333; font-size: 1.1em;">${nama}</h4>
+            <p class="waktu" style="margin: 0; color: #777; font-size: 0.85em;">⏰ ${waktu}</p>
           </div>
           <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid #eee; font-size: 0.8em; color: #555; display: flex; justify-content: space-between; align-items: center;">
-            <span>ID: <b>${userID}</b></span>
+            <span class="id">ID: <b>${userID}</b></span>
             <a href="${foto}" target="_blank" style="color: ${colorTheme}; text-decoration: none; font-weight: bold;">🔍 Lihat Foto</a>
           </div>
         </div>
