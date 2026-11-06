@@ -4,10 +4,30 @@
 // ==========================================
 
 /**
+ * HELPER: Mengambil Data Pengaturan dari Database Settings (Window Obj / Input Form)
+ */
+function getSettingVal(key, inputIds, defaultValue) {
+  // 1. Cek dari Window Global Object (Data dari tab Settings Google Sheets)
+  if (window.appSettings && window.appSettings[key]) {
+    return window.appSettings[key];
+  }
+  
+  // 2. Cek dari elemen Input HTML
+  for (let id of inputIds) {
+    const el = document.getElementById(id);
+    if (el && el.value && el.value.trim() !== "") {
+      return el.value.trim();
+    }
+  }
+
+  // 3. Kembalikan default jika tidak ada
+  return defaultValue;
+}
+
+/**
  * 1. FUNGSI UNDUH LAPORAN EXCEL / CSV (PUSAT LAPORAN)
  */
 function unduhLaporanCSV() {
-  // Ambil tabel preview yang sedang tampil
   const table = document.querySelector("#tabel-preview-laporan") || document.querySelector("#laporan-absensi table"); 
   
   if (!table || table.querySelector("tbody")?.children.length === 0) {
@@ -15,15 +35,12 @@ function unduhLaporanCSV() {
     return;
   }
 
-  // Tarik data identitas sekolah dari input pengaturan (Fallback ke default)
-  const instansiAtas = document.getElementById("setting-instansi-atas")?.value || document.getElementById("set-instansi-atas")?.value || "PEMERINTAH PROVINSI LAMPUNG";
-  const dinas = document.getElementById("setting-dinas")?.value || document.getElementById("set-dinas")?.value || "DINAS PENDIDIKAN DAN KEBUDAYAAN";
-  const namaSekolah = document.getElementById("setting-nama-sekolah")?.value || document.getElementById("set-nama-sekolah")?.value || "SMA NEGERI 1 BUMI AGUNG";
-  const alamatSekolah = document.getElementById("setting-alamat")?.value || document.getElementById("set-alamat-kop")?.value || "Jl. Protokol No 1 Pisang Baru, Kec. Bumi Agung, Kab. Way Kanan";
+  const instansiAtas = getSettingVal("INSTANSI_ATAS", ["setting-instansi-atas", "set-instansi-atas"], "PEMERINTAH PROVINSI LAMPUNG");
+  const dinas = getSettingVal("DINAS", ["setting-dinas", "set-dinas"], "DINAS PENDIDIKAN DAN KEBUDAYAAN");
+  const namaSekolah = getSettingVal("SCHOOL_NAME", ["setting-nama-sekolah", "set-nama-sekolah"], "SMA NEGERI 1 BUMI AGUNG");
+  const alamatSekolah = getSettingVal("SCHOOL_ADDRESS", ["setting-alamat", "set-alamat-kop"], "Jl. Protokol No 1 Pisang Baru, Kec. Bumi Agung, Kab. Way Kanan");
 
   let csv = [];
-  
-  // Kop Informasi Spreadsheet
   csv.push(`"${instansiAtas}"`);
   csv.push(`"${dinas}"`);
   csv.push(`"${namaSekolah}"`);
@@ -32,13 +49,10 @@ function unduhLaporanCSV() {
   csv.push('"LAPORAN REKAPITULASI ABSENSI RESMI"');
   csv.push(""); 
 
-  // Ambil isi tabel
   const rows = table.querySelectorAll("tr");
   for (let i = 0; i < rows.length; i++) {
     let row = [];
     let cols = rows[i].querySelectorAll("td, th");
-    
-    // Abaikan baris placeholder "Pilih filter..."
     if (cols.length === 1 && cols[0].getAttribute("colspan")) continue;
 
     for (let j = 0; j < cols.length; j++) {
@@ -48,7 +62,6 @@ function unduhLaporanCSV() {
     if (row.length > 0) csv.push(row.join(";"));
   }
 
-  // Tambahkan UTF-8 BOM (\uFEFF) agar huruf & karakter terbaca rapi saat dibuka di Microsoft Excel
   const csvContent = "\uFEFF" + csv.join("\n");
   const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
   const downloadLink = document.createElement("a");
@@ -76,29 +89,27 @@ function unduhLaporanPDF() {
     return;
   }
 
-  // Tarik data identitas Kop & Tanda Tangan dari Pengaturan
-  const instansiAtas = document.getElementById("setting-instansi-atas")?.value || document.getElementById("set-instansi-atas")?.value || "PEMERINTAH PROVINSI LAMPUNG";
-  const dinas = document.getElementById("setting-dinas")?.value || document.getElementById("set-dinas")?.value || "DINAS PENDIDIKAN DAN KEBUDAYAAN";
-  const namaSekolah = document.getElementById("setting-nama-sekolah")?.value || document.getElementById("set-nama-sekolah")?.value || "SMA NEGERI 1 BUMI AGUNG";
-  const alamatSekolah = document.getElementById("setting-alamat")?.value || document.getElementById("set-alamat-kop")?.value || "Jl. Protokol No 1 Pisang Baru, Kec. Bumi Agung, Kab. Way Kanan";
-  const website = document.getElementById("setting-website")?.value || "Website: sman1ba.sch.id";
+  // Tarik data dari Database Settings / Form Input
+  const instansiAtas = getSettingVal("INSTANSI_ATAS", ["setting-instansi-atas", "set-instansi-atas"], "PEMERINTAH PROVINSI LAMPUNG");
+  const dinas = getSettingVal("DINAS", ["setting-dinas", "set-dinas"], "DINAS PENDIDIKAN DAN KEBUDAYAAN");
+  const namaSekolah = getSettingVal("SCHOOL_NAME", ["setting-nama-sekolah", "set-nama-sekolah"], "SMA NEGERI 1 BUMI AGUNG");
+  const alamatSekolah = getSettingVal("SCHOOL_ADDRESS", ["setting-alamat", "set-alamat-kop"], "Jl. Protokol No 1 Pisang Baru, Kec. Bumi Agung, Kab. Way Kanan");
+  const website = getSettingVal("WEBSITE", ["setting-website"], "Website: sman1ba.sch.id");
   
-  const logoKiri = document.getElementById("setting-logo-kiri")?.value || document.getElementById("set-logo-sekolah")?.value || "";
-  const logoKanan = document.getElementById("setting-logo-kanan")?.value || "";
-  const namaKepsek = document.getElementById("setting-nama-kepsek")?.value || document.getElementById("set-nama-kepsek")?.value || "Nama Kepala Sekolah";
-  const nipKepsek = document.getElementById("setting-nip")?.value || document.getElementById("set-nip-kepsek")?.value || "-";
+  const logoKiri = getSettingVal("LOGO_KIRI", ["setting-logo-kiri", "set-logo-sekolah"], "");
+  const logoKanan = getSettingVal("SCHOOL_LOGO_URL", ["setting-logo-kanan"], "");
+  const namaKepsek = getSettingVal("HEADMASTER_NAME", ["setting-nama-kepsek", "set-nama-kepsek"], "Nama Kepala Sekolah");
+  const nipKepsek = getSettingVal("HEADMASTER_NIP", ["setting-nip", "set-nip-kepsek"], "-");
 
   const role = document.getElementById("lap-role")?.value || "Siswa";
   const jenis = document.getElementById("lap-jenis")?.value || "Harian";
   const tglMulai = document.getElementById("lap-tgl-mulai")?.value || "-";
 
-  // Salin tabel agar style di halaman admin tidak merusak layout cetak PDF
   const tableClone = table.cloneNode(true);
   tableClone.style.width = "100%";
   tableClone.style.borderCollapse = "collapse";
   tableClone.style.marginTop = "15px";
 
-  // Format sel tabel agar bergaris hitam tegas khas dokumen resmi
   const cells = tableClone.querySelectorAll("th, td");
   cells.forEach(cell => {
     cell.style.border = "1px solid #000";
@@ -115,11 +126,9 @@ function unduhLaporanPDF() {
     th.style.textAlign = "center";
   });
 
-  // Susun elemen Kop dan Tanda Tangan
   const imgKiriTag = (logoKiri && logoKiri.startsWith("http")) ? `<img src="${logoKiri}" style="width: 75px; height: auto;">` : '<div style="width: 75px;"></div>';
   const imgKananTag = (logoKanan && logoKanan.startsWith("http")) ? `<img src="${logoKanan}" style="width: 75px; height: auto;">` : '<div style="width: 75px;"></div>';
 
-  // Buka jendela khusus untuk proses simpan PDF
   const printWin = window.open("", "_blank");
   
   const htmlContent = `
@@ -193,7 +202,7 @@ function unduhLaporanPDF() {
 }
 
 /**
- * 3. FUNGSI UNDUH PDF LIVE MONITOR HARIAN (REAL-TIME) - DENGAN DUKUNGAN NIP/NISN
+ * 3. FUNGSI UNDUH PDF LIVE MONITOR HARIAN (REAL-TIME)
  */
 function unduhLiveMonitorPDF() {
   const dataLive = window.dataLiveAbsenAktif || [];
@@ -204,14 +213,15 @@ function unduhLiveMonitorPDF() {
     return;
   }
 
-  const instansiAtas = document.getElementById("setting-instansi-atas")?.value || document.getElementById("set-instansi-atas")?.value || "PEMERINTAH PROVINSI LAMPUNG";
-  const dinas = document.getElementById("setting-dinas")?.value || document.getElementById("set-dinas")?.value || "DINAS PENDIDIKAN DAN KEBUDAYAAN";
-  const namaSekolah = document.getElementById("setting-nama-sekolah")?.value || document.getElementById("set-nama-sekolah")?.value || "SMA NEGERI 1 BUMI AGUNG";
-  const alamatSekolah = document.getElementById("setting-alamat")?.value || document.getElementById("set-alamat-kop")?.value || "Jl. Protokol No 1 Pisang Baru, Kec. Bumi Agung, Kab. Way Kanan";
-  const logoKiri = document.getElementById("setting-logo-kiri")?.value || document.getElementById("set-logo-sekolah")?.value || "";
-  const logoKanan = document.getElementById("setting-logo-kanan")?.value || "";
-  const namaKepsek = document.getElementById("setting-nama-kepsek")?.value || document.getElementById("set-nama-kepsek")?.value || "Nama Kepala Sekolah";
-  const nipKepsek = document.getElementById("setting-nip")?.value || document.getElementById("set-nip-kepsek")?.value || "-";
+  // Tarik data dari Database Settings / Form Input
+  const instansiAtas = getSettingVal("INSTANSI_ATAS", ["setting-instansi-atas", "set-instansi-atas"], "PEMERINTAH PROVINSI LAMPUNG");
+  const dinas = getSettingVal("DINAS", ["setting-dinas", "set-dinas"], "DINAS PENDIDIKAN DAN KEBUDAYAAN");
+  const namaSekolah = getSettingVal("SCHOOL_NAME", ["setting-nama-sekolah", "set-nama-sekolah"], "SMA NEGERI 1 BUMI AGUNG");
+  const alamatSekolah = getSettingVal("SCHOOL_ADDRESS", ["setting-alamat", "set-alamat-kop"], "Jl. Protokol No 1 Pisang Baru, Kec. Bumi Agung, Kab. Way Kanan");
+  const logoKiri = getSettingVal("LOGO_KIRI", ["setting-logo-kiri", "set-logo-sekolah"], "");
+  const logoKanan = getSettingVal("SCHOOL_LOGO_URL", ["setting-logo-kanan"], "");
+  const namaKepsek = getSettingVal("HEADMASTER_NAME", ["setting-nama-kepsek", "set-nama-kepsek"], "AMRODI NURUL HUDA, S.Ag");
+  const nipKepsek = getSettingVal("HEADMASTER_NIP", ["setting-nip", "set-nip-kepsek"], "197103041998021001");
 
   const tglHariIni = new Date().toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
   const roleAktif = window.currentLiveRole === "GURU" ? "GURU & STAF TU" : "SISWA";
@@ -223,8 +233,6 @@ function unduhLiveMonitorPDF() {
     dataLive.forEach((item, i) => {
       const nama = item.Nama || item.UserID || "Tanpa Nama";
       const userID = item.UserID || "-";
-      
-      // 🌟 Ambil NIP / NISN dari objek data
       const nipVal = item.NIP || item.nip || item.NISN || item.nisn || "-";
       const displayIdNip = (nipVal && nipVal !== "-") ? `${userID}<br><span style="font-size: 8.5pt; color: #555;">${labelIdentitas}. ${nipVal}</span>` : userID;
 
@@ -250,8 +258,6 @@ function unduhLiveMonitorPDF() {
       const nama = card.querySelector("h4")?.innerText || "-";
       const waktu = card.querySelector("p")?.innerText.replace("⏰", "").trim() || "-";
       const userID = card.querySelector(".id b")?.innerText || "-";
-      
-      // Fallback pembacaan elemen dari DOM jika array data kosong
       const nipText = card.querySelector("div[style*='color: #81ecec'] b")?.innerText || "-";
       const displayIdNip = (nipText && nipText !== "-") ? `${userID}<br><span style="font-size: 8.5pt; color: #555;">${labelIdentitas}. ${nipText}</span>` : userID;
 
