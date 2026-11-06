@@ -185,25 +185,44 @@ function renderLiveCards() {
       }
     }
 
-    return `
-      <div class="live-card" style="background: #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.08); border-top: 5px solid ${colorTheme}; display: flex; flex-direction: column;">
-        <div style="position: relative; height: 180px; background: #222; overflow: hidden;">
+   return `
+      <div class="live-card" style="background: #1e1b2e; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 14px rgba(0,0,0,0.3); border: 1px solid #2d2643; border-top: 5px solid ${colorTheme}; display: flex; flex-direction: column;">
+        
+        <!-- FOTO DAN BADGE STATUS -->
+        <div style="position: relative; height: 180px; background: #0f0c1b; overflow: hidden;">
           <img src="${foto}" alt="${nama}" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.src='https://via.placeholder.com/150?text=Foto+Tidak+Ada'">
-          <span class="status" style="position: absolute; top: 10px; right: 10px; background: ${colorTheme}; color: white; padding: 4px 8px; border-radius: 4px; font-size: 0.75em; font-weight: bold;">
+          
+          <!-- BADGE STATUS: LEBIH BESAR & JELAS -->
+          <span class="status" style="position: absolute; top: 10px; right: 10px; background: ${colorTheme}; color: #ffffff; padding: 6px 12px; border-radius: 6px; font-size: 0.85em; font-weight: 800; letter-spacing: 0.5px; box-shadow: 0 2px 8px rgba(0,0,0,0.4); text-transform: uppercase;">
             ${statusLabel}
           </span>
-          <span class="role" style="position: absolute; bottom: 10px; left: 10px; background: rgba(0,0,0,0.7); color: white; padding: 3px 8px; border-radius: 4px; font-size: 0.75em;">
+          
+          <!-- PERAN / ROLE -->
+          <span class="role" style="position: absolute; bottom: 10px; left: 10px; background: rgba(0, 0, 0, 0.75); color: #a29bfe; border: 1px solid rgba(255, 255, 255, 0.2); padding: 4px 10px; border-radius: 6px; font-size: 0.75em; font-weight: 600;">
             ${displayRole}
           </span>
         </div>
-        <div style="padding: 15px; flex: 1; display: flex; flex-direction: column; justify-content: space-between;">
+
+        <!-- DETAIL INFORMASI (WARNA TEKS KONTRAS HIGH-VISIBILITY) -->
+        <div style="padding: 15px; flex: 1; display: flex; flex-direction: column; justify-content: space-between; background: #1e1b2e;">
           <div>
-            <h4 class="nama" style="margin: 0 0 5px 0; color: #333; font-size: 1.1em;">${nama}</h4>
-            <p class="waktu" style="margin: 0; color: #777; font-size: 0.85em;">⏰ ${waktu}</p>
+            <!-- NAMA: TERANG & TEBAL (TIDAK GELAP LAGI) -->
+            <h4 class="nama" style="margin: 0 0 6px 0; color: #ffffff !important; font-size: 1.15em; font-weight: 700; line-height: 1.3;">
+              ${nama}
+            </h4>
+            
+            <!-- WAKTU: UNGU MUDA TERANG -->
+            <p class="waktu" style="margin: 0; color: #a29bfe !important; font-size: 0.9em; font-weight: 600;">
+              ⏰ ${waktu}
+            </p>
           </div>
-          <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid #eee; font-size: 0.8em; color: #555; display: flex; justify-content: space-between; align-items: center;">
-            <span class="id">ID: <b>${userID}</b></span>
-            <a href="${foto}" target="_blank" style="color: ${colorTheme}; text-decoration: none; font-weight: bold;">🔍 Lihat Foto</a>
+
+          <!-- FOOTER KARTU -->
+          <div style="margin-top: 12px; padding-top: 10px; border-top: 1px solid #2d2643; font-size: 0.85em; color: #b2bec3; display: flex; justify-content: space-between; align-items: center;">
+            <span class="id">ID: <b style="color: #ffffff;">${userID}</b></span>
+            <a href="${foto}" target="_blank" style="color: #00cec9; text-decoration: none; font-weight: bold; background: rgba(0, 206, 201, 0.1); padding: 4px 8px; border-radius: 4px;">
+              🔍 Lihat Foto
+            </a>
           </div>
         </div>
       </div>
