@@ -138,26 +138,28 @@ async function muatPengaturanLengkap() {
   try {
     const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxx3BLAOh7RZwF2vvukhDPhytbAPXfMP3H_RAJNeWgxLe2LNcCzojm-6HQ1kktPQMTQ/exec';
     
+    // 🌟 KIRIM ACTION KEDUA-DUANYA (VIA URL QUERY & VIA BODY JSON)
     const response = await fetch(`${WEB_APP_URL}?action=ambilPengaturan`, {
       method: 'POST',
       headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify({}) 
+      body: JSON.stringify({ action: "ambilPengaturan", actionType: "getSettings" }) 
     });
     
     const result = await response.json();
+    console.log("📥 Data dari Database Settings:", result);
 
     if ((result.success || result.status === 'success') && result.data) {
-      // Ambil objek data (dukung jika dibungkus result.data atau result.data.data)
+      // Ambil objek data utama
       const d = result.data.data || result.data;
 
-      // 🌟 SIMPAN KE WINDOW OBJECT UNTUK MODUL CETAK PDF (unduhlaporan.js)
+      // Simpan ke window object agar bisa dipakai modul lain (misal unduhlaporan.js)
       window.appSettings = d;
 
       // Helper set input aman
       const setVal = (id, val) => {
         const el = document.getElementById(id);
-        if (el && val !== undefined && val !== null && val !== "") {
-          el.value = val;
+        if (el && val !== undefined && val !== null) {
+          el.value = String(val);
         }
       };
 
@@ -165,24 +167,25 @@ async function muatPengaturanLengkap() {
       const setCheck = (id, val) => {
         const el = document.getElementById(id);
         if (el) {
-          el.checked = (val === true || String(val).toUpperCase() === 'TRUE');
+          const strVal = String(val).toUpperCase();
+          el.checked = (val === true || strVal === 'TRUE' || strVal === '1');
         }
       };
 
-      // 🌟 1. POPULASI FORMULIR IDENTITAS SEKOLAH (MENDUKUNG OBJECT NESTED & FLAT CAPITAL KEY)
+      // 🌟 1. POPULASI IDENTITAS SEKOLAH & KOP SURAT
       const idt = d.identitas || {};
-      setVal('set-instansi-atas', idt.instansiAtas || d.INSTANSI_ATAS);
-      setVal('set-dinas', idt.dinas || d.DINAS);
-      setVal('set-nama-sekolah', idt.namaSekolah || d.SCHOOL_NAME);
-      setVal('set-alamat-kop', idt.alamatKop || d.SCHOOL_ADDRESS);
-      setVal('set-website', idt.website || d.WEBSITE);
-      setVal('set-nomor-surat', idt.nomorSurat || d.NOMOR_SURAT);
+      setVal('set-instansi-atas', idt.instansiAtas || d.INSTANSI_ATAS || '');
+      setVal('set-dinas', idt.dinas || d.DINAS || '');
+      setVal('set-nama-sekolah', idt.namaSekolah || d.SCHOOL_NAME || '');
+      setVal('set-alamat-kop', idt.alamatKop || d.SCHOOL_ADDRESS || '');
+      setVal('set-website', idt.website || d.WEBSITE || '');
+      setVal('set-nomor-surat', idt.nomorSurat || d.NOMOR_SURAT || '');
 
-      setVal('set-logo-kiri', idt.logoKiri || d.LOGO_KIRI);
-      setVal('set-logo-kanan', idt.logoSekolah || d.SCHOOL_LOGO_URL || d.LOGO_KANAN);
-      setVal('set-nama-kepsek', idt.namaKepsek || d.HEADMASTER_NAME);
-      setVal('set-nip-kepsek', idt.nipKepsek || d.HEADMASTER_NIP);
-      setVal('set-ttd-kepsek', idt.ttdKepsek || d.TTD_KEPSEK);
+      setVal('set-logo-kiri', idt.logoKiri || d.LOGO_KIRI || '');
+      setVal('set-logo-kanan', idt.logoSekolah || d.SCHOOL_LOGO_URL || d.LOGO_KANAN || '');
+      setVal('set-nama-kepsek', idt.namaKepsek || d.HEADMASTER_NAME || '');
+      setVal('set-nip-kepsek', idt.nipKepsek || d.HEADMASTER_NIP || '');
+      setVal('set-ttd-kepsek', idt.ttdKepsek || d.TTD_KEPSEK || idt.HEADMASTER_TTD || '');
 
       // 🌟 2. POPULASI TEMA
       const tm = d.tema || {};
@@ -191,16 +194,18 @@ async function muatPengaturanLengkap() {
 
       // 🌟 3. POPULASI JADWAL HARIAN SENIN SAMPAI SABTU
       const daftarHari = ['senin', 'selasa', 'rabu', 'kamis', 'jumat', 'sabtu'];
+      const jdw = d.jadwalHarian || {};
+
       daftarHari.forEach(hari => {
         let hUpper = hari.toUpperCase();
         let keyAktif = `JADWAL_${hUpper}_AKTIF`;
         let keyMasuk = `JADWAL_${hUpper}_MASUK`;
         let keyPulang = `JADWAL_${hUpper}_PULANG`;
 
-        if (d.jadwalHarian && d.jadwalHarian[hari]) {
-          setCheck(`set-aktif-${hari}`, d.jadwalHarian[hari].aktif);
-          setVal(`set-masuk-${hari}`, d.jadwalHarian[hari].masuk);
-          setVal(`set-pulang-${hari}`, d.jadwalHarian[hari].pulang);
+        if (jdw[hari]) {
+          setCheck(`set-aktif-${hari}`, jdw[hari].aktif);
+          setVal(`set-masuk-${hari}`, jdw[hari].masuk);
+          setVal(`set-pulang-${hari}`, jdw[hari].pulang);
         } else {
           if (d[keyAktif] !== undefined) setCheck(`set-aktif-${hari}`, d[keyAktif]);
           if (d[keyMasuk]) setVal(`set-masuk-${hari}`, d[keyMasuk]);
@@ -219,17 +224,20 @@ async function muatPengaturanLengkap() {
       setCheck('anti-timesync', kmn.antiTimeSync !== undefined ? kmn.antiTimeSync : d.ANTI_TIME_SYNC);
       setCheck('anti-qr', kmn.antiQr !== undefined ? kmn.antiQr : d.ANTI_DYNAMIC_QR);
 
-      // Terapkan Tema Secara Realtime
+      // Terapkan Tema Realtime
       const temaMode = tm.mode || d.THEME_MODE;
       const temaAksen = tm.aksen || d.THEME_ACCENT;
       if (temaMode && temaAksen && typeof terapkanTemaLive === 'function') {
         terapkanTemaLive(temaMode, temaAksen);
       }
 
-      // Render Kalender Pendidikan
-      if (d.kalenderPendidikan && Array.isArray(d.kalenderPendidikan)) {
-        renderTabelKaldik(d.kalenderPendidikan);
+      // 🌟 5. POPULASI KALENDER PENDIDIKAN
+      const kaldikData = d.kalenderPendidikan || d.hariLibur || [];
+      if (Array.isArray(kaldikData)) {
+        renderTabelKaldik(kaldikData);
       }
+    } else {
+      console.warn("⚠️ Response database tidak mengembalikan data yang valid:", result);
     }
   } catch (err) {
     console.error("Gagal memuat data pengaturan:", err);
