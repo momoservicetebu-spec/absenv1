@@ -192,7 +192,7 @@ async function muatPengaturanLengkap() {
       setVal('set-tema-mode', tm.mode || d.THEME_MODE || 'dark');
       setVal('set-tema-aksen', tm.aksen || d.THEME_ACCENT || 'default');
 
-      // 🌟 3. POPULASI JADWAL HARIAN SENIN SAMPAI SABTU
+      // 🌟 POPULASI JADWAL HARIAN SENIN SAMPAI SABTU (DENGAN NORMALISASI JAM)
       const daftarHari = ['senin', 'selasa', 'rabu', 'kamis', 'jumat', 'sabtu'];
       const jdw = d.jadwalHarian || {};
 
@@ -202,16 +202,50 @@ async function muatPengaturanLengkap() {
         let keyMasuk = `JADWAL_${hUpper}_MASUK`;
         let keyPulang = `JADWAL_${hUpper}_PULANG`;
 
+        // Tentukan jam default sesuai hari (Jumat pulang 11:14, Sabtu 12:30, lainnya 14:50)
+        let defaultMasuk = "07:15";
+        let defaultPulang = hari === 'jumat' ? '11:14' : (hari === 'sabtu' ? '12:30' : '14:50');
+
         if (jdw[hari]) {
           setCheck(`set-aktif-${hari}`, jdw[hari].aktif);
-          setVal(`set-masuk-${hari}`, jdw[hari].masuk);
-          setVal(`set-pulang-${hari}`, jdw[hari].pulang);
+          setVal(`set-masuk-${hari}`, formatJamWaktu(jdw[hari].masuk, defaultMasuk));
+          setVal(`set-pulang-${hari}`, formatJamWaktu(jdw[hari].pulang, defaultPulang));
         } else {
           if (d[keyAktif] !== undefined) setCheck(`set-aktif-${hari}`, d[keyAktif]);
-          if (d[keyMasuk]) setVal(`set-masuk-${hari}`, d[keyMasuk]);
-          if (d[keyPulang]) setVal(`set-pulang-${hari}`, d[keyPulang]);
+          setVal(`set-masuk-${hari}`, formatJamWaktu(d[keyMasuk], defaultMasuk));
+          setVal(`set-pulang-${hari}`, formatJamWaktu(d[keyPulang], defaultPulang));
         }
       });
+
+      // HELPER: Normalisasi format jam ke HH:mm (contoh: "07:15")
+      function formatJamWaktu(val, fallback = '07:15') {
+        if (!val) return fallback;
+        
+        let str = String(val).trim();
+        
+        // Jika formatnya ISO Date/Timestamp (cth: 1899-12-30T07:15:00.000Z)
+        if (str.includes('T')) {
+          let partTime = str.split('T')[1];
+          if (partTime) {
+            let times = partTime.split(':');
+            if (times.length >= 2) {
+              let h = times[0].padStart(2, '0');
+              let m = times[1].padStart(2, '0');
+              return `${h}:${m}`;
+            }
+          }
+        }
+        
+        // Jika format HH:mm:ss atau H:m (cth: "7:15" -> "07:15", "14:50:00" -> "14:50")
+        if (str.includes(':')) {
+          let parts = str.split(':');
+          let h = parts[0].padStart(2, '0');
+          let m = parts[1].padStart(2, '0');
+          return `${h}:${m}`;
+        }
+        
+        return fallback;
+      }
 
       // 🌟 4. POPULASI KEAMANAN MFA & ANTI-MANIPULASI
       const kmn = d.keamanan || {};
