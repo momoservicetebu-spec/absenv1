@@ -39,21 +39,23 @@ async function simpanPengaturanLengkap() {
     return el && el.value !== undefined ? el.value.trim() : fallback;
   };
 
-  const getCheck = (id) => {
-    const el = document.getElementById(id);
-    return el ? el.checked : false;
-  };
+  const getCheck = (id, fallback = true) => {
+  const el = document.getElementById(id);
+  return el ? el.checked : fallback;
+};
 
   // 🌟 BACAKAN JADWAL HARIAN SENIN SAMPAI SABTU DARI TABEL FORMULIR
   const daftarHari = ['senin', 'selasa', 'rabu', 'kamis', 'jumat', 'sabtu'];
   let jadwalHarian = {};
-  daftarHari.forEach(hari => {
-    jadwalHarian[hari] = {
-      aktif: getCheck(`set-aktif-${hari}`),
-      masuk: getVal(`set-masuk-${hari}`, '07:15'),
-      pulang: getVal(`set-pulang-${hari}`, '14:50')
-    };
-  });
+ daftarHari.forEach(hari => {
+  // Sabtu default false, Senin-Jumat default true
+  const defaultAktif = (hari !== 'sabtu');
+  jadwalHarian[hari] = {
+    aktif: getCheck(`set-aktif-${hari}`, defaultAktif),
+    masuk: getVal(`set-masuk-${hari}`, '07:15'),
+    pulang: getVal(`set-pulang-${hari}`, hari === 'jumat' ? '11:14' : '14:50')
+  };
+});
 
   // 2. Susun Payload Pengaturan Sesuai Struktur Database
   const payloadPengaturan = {
