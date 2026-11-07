@@ -131,7 +131,6 @@ async function simpanPengaturanLengkap() {
     }
   }
 }
-
 /**
  * 2. FUNGSI: MUAT PENGATURAN (SINKRONKAN DATABASE "SETTINGS" DENGAN ELEMENT HTML)
  */
@@ -148,46 +147,55 @@ async function muatPengaturanLengkap() {
     const result = await response.json();
 
     if ((result.success || result.status === 'success') && result.data) {
-      const d = result.data;
+      // Ambil objek data (dukung jika dibungkus result.data atau result.data.data)
+      const d = result.data.data || result.data;
 
-      // SIMPAN KE WINDOW OBJECT UNTUK MODUL CETAK PDF (unduhlaporan.js)
+      // 🌟 SIMPAN KE WINDOW OBJECT UNTUK MODUL CETAK PDF (unduhlaporan.js)
       window.appSettings = d;
 
-      // Helper set input
+      // Helper set input aman
       const setVal = (id, val) => {
         const el = document.getElementById(id);
-        if (el && val !== undefined && val !== null) el.value = val;
+        if (el && val !== undefined && val !== null && val !== "") {
+          el.value = val;
+        }
       };
 
-      // Helper set checkbox
+      // Helper set checkbox aman
       const setCheck = (id, val) => {
         const el = document.getElementById(id);
-        if (el) el.checked = (val === true || String(val).toUpperCase() === 'TRUE');
+        if (el) {
+          el.checked = (val === true || String(val).toUpperCase() === 'TRUE');
+        }
       };
 
-      // POPULASI FORMULIR IDENTITAS SEKOLAH
-      setVal('set-instansi-atas', d.INSTANSI_ATAS || d.instansiAtas);
-      setVal('set-dinas', d.DINAS || d.dinas);
-      setVal('set-nama-sekolah', d.SCHOOL_NAME || d.namaSekolah);
-      setVal('set-alamat-kop', d.SCHOOL_ADDRESS || d.alamatKop);
-      setVal('set-website', d.WEBSITE || d.website);
-      setVal('set-nomor-surat', d.NOMOR_SURAT || d.nomorSurat);
+      // 🌟 1. POPULASI FORMULIR IDENTITAS SEKOLAH (MENDUKUNG OBJECT NESTED & FLAT CAPITAL KEY)
+      const idt = d.identitas || {};
+      setVal('set-instansi-atas', idt.instansiAtas || d.INSTANSI_ATAS);
+      setVal('set-dinas', idt.dinas || d.DINAS);
+      setVal('set-nama-sekolah', idt.namaSekolah || d.SCHOOL_NAME);
+      setVal('set-alamat-kop', idt.alamatKop || d.SCHOOL_ADDRESS);
+      setVal('set-website', idt.website || d.WEBSITE);
+      setVal('set-nomor-surat', idt.nomorSurat || d.NOMOR_SURAT);
 
-      setVal('set-logo-kiri', d.LOGO_KIRI || d.logoKiri);
-      setVal('set-logo-kanan', d.SCHOOL_LOGO_URL || d.logoSekolah);
-      setVal('set-nama-kepsek', d.HEADMASTER_NAME || d.namaKepsek);
-      setVal('set-nip-kepsek', d.HEADMASTER_NIP || d.nipKepsek);
-      setVal('set-ttd-kepsek', d.HEADMASTER_TTD || d.ttdKepsek);
+      setVal('set-logo-kiri', idt.logoKiri || d.LOGO_KIRI);
+      setVal('set-logo-kanan', idt.logoSekolah || d.SCHOOL_LOGO_URL || d.LOGO_KANAN);
+      setVal('set-nama-kepsek', idt.namaKepsek || d.HEADMASTER_NAME);
+      setVal('set-nip-kepsek', idt.nipKepsek || d.HEADMASTER_NIP);
+      setVal('set-ttd-kepsek', idt.ttdKepsek || d.TTD_KEPSEK);
 
-      setVal('set-tema-mode', d.THEME_MODE || d.temaMode || 'dark');
-      setVal('set-tema-aksen', d.THEME_ACCENT || d.temaAksen || 'default');
+      // 🌟 2. POPULASI TEMA
+      const tm = d.tema || {};
+      setVal('set-tema-mode', tm.mode || d.THEME_MODE || 'dark');
+      setVal('set-tema-aksen', tm.aksen || d.THEME_ACCENT || 'default');
 
-      // 🌟 POPULASI JADWAL HARIAN SENIN SAMPAI SABTU
+      // 🌟 3. POPULASI JADWAL HARIAN SENIN SAMPAI SABTU
       const daftarHari = ['senin', 'selasa', 'rabu', 'kamis', 'jumat', 'sabtu'];
       daftarHari.forEach(hari => {
-        let keyAktif = `JADWAL_${hari.toUpperCase()}_AKTIF`;
-        let keyMasuk = `JADWAL_${hari.toUpperCase()}_MASUK`;
-        let keyPulang = `JADWAL_${hari.toUpperCase()}_PULANG`;
+        let hUpper = hari.toUpperCase();
+        let keyAktif = `JADWAL_${hUpper}_AKTIF`;
+        let keyMasuk = `JADWAL_${hUpper}_MASUK`;
+        let keyPulang = `JADWAL_${hUpper}_PULANG`;
 
         if (d.jadwalHarian && d.jadwalHarian[hari]) {
           setCheck(`set-aktif-${hari}`, d.jadwalHarian[hari].aktif);
@@ -200,19 +208,20 @@ async function muatPengaturanLengkap() {
         }
       });
 
-      // KEAMANAN MFA & ANTI-MANIPULASI
-      setVal('set-mfa-siswa', d.MFA_STUDENT || d.mfaSiswa || 'rfid_face');
-      setVal('set-mfa-guru', d.MFA_TEACHER || d.mfaGuru || 'finger_face');
+      // 🌟 4. POPULASI KEAMANAN MFA & ANTI-MANIPULASI
+      const kmn = d.keamanan || {};
+      setVal('set-mfa-siswa', kmn.mfaSiswa || d.MFA_STUDENT || 'rfid_face');
+      setVal('set-mfa-guru', kmn.mfaGuru || d.MFA_TEACHER || 'finger_face');
 
-      setCheck('anti-liveness', d.ANTI_LIVENESS !== undefined ? d.ANTI_LIVENESS : d.antiLiveness);
-      setCheck('anti-fakegps', d.ANTI_FAKE_GPS !== undefined ? d.ANTI_FAKE_GPS : d.antiFakeGps);
-      setCheck('anti-devicebind', d.ANTI_DEVICE_BIND !== undefined ? d.ANTI_DEVICE_BIND : d.antiDeviceBind);
-      setCheck('anti-timesync', d.ANTI_TIME_SYNC !== undefined ? d.ANTI_TIME_SYNC : d.antiTimeSync);
-      setCheck('anti-qr', d.ANTI_DYNAMIC_QR !== undefined ? d.ANTI_DYNAMIC_QR : d.antiQr);
+      setCheck('anti-liveness', kmn.antiLiveness !== undefined ? kmn.antiLiveness : d.ANTI_LIVENESS);
+      setCheck('anti-fakegps', kmn.antiFakeGps !== undefined ? kmn.antiFakeGps : d.ANTI_FAKE_GPS);
+      setCheck('anti-devicebind', kmn.antiDeviceBind !== undefined ? kmn.antiDeviceBind : d.ANTI_DEVICE_BIND);
+      setCheck('anti-timesync', kmn.antiTimeSync !== undefined ? kmn.antiTimeSync : d.ANTI_TIME_SYNC);
+      setCheck('anti-qr', kmn.antiQr !== undefined ? kmn.antiQr : d.ANTI_DYNAMIC_QR);
 
       // Terapkan Tema Secara Realtime
-      const temaMode = d.THEME_MODE || d.temaMode;
-      const temaAksen = d.THEME_ACCENT || d.temaAksen;
+      const temaMode = tm.mode || d.THEME_MODE;
+      const temaAksen = tm.aksen || d.THEME_ACCENT;
       if (temaMode && temaAksen && typeof terapkanTemaLive === 'function') {
         terapkanTemaLive(temaMode, temaAksen);
       }
