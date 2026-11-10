@@ -6,6 +6,31 @@
 window.dataKaldikAktif = [];
 
 /**
+ * 0. FUNGSI PINTASAN SKEMA HARI KERJA (5 HARI VS 6 HARI KERJA)
+ * @param {number} jumlahHari - 5 (Sabtu Off) atau 6 (Sabtu Aktif)
+ */
+function setSkemaHariKerja(jumlahHari) {
+  const daftarHari = ['senin', 'selasa', 'rabu', 'kamis', 'jumat', 'sabtu'];
+  
+  daftarHari.forEach(hari => {
+    const elCheck = document.getElementById(`set-aktif-${hari}`);
+    if (elCheck) {
+      if (hari === 'sabtu') {
+        elCheck.checked = (jumlahHari === 6);
+      } else {
+        elCheck.checked = true;
+      }
+    }
+  });
+
+  if (jumlahHari === 5) {
+    alert('✅ Skema diubah ke 5 Hari Kerja (Hari Sabtu otomatis DINONAKTIFKAN). Klik "Simpan Seluruh Pengaturan" untuk menyimpan ke database!');
+  } else if (jumlahHari === 6) {
+    alert('✅ Skema diubah ke 6 Hari Kerja (Hari Sabtu otomatis DIAKTIFKAN). Klik "Simpan Seluruh Pengaturan" untuk menyimpan ke database!');
+  }
+}
+
+/**
  * 1. FUNGSI: SIMPAN SELURUH PENGATURAN KE DATABASE GOOGLE SHEETS
  */
 async function simpanPengaturanLengkap() {
@@ -40,22 +65,21 @@ async function simpanPengaturanLengkap() {
   };
 
   const getCheck = (id, fallback = true) => {
-  const el = document.getElementById(id);
-  return el ? el.checked : fallback;
-};
+    const el = document.getElementById(id);
+    return el ? el.checked : fallback;
+  };
 
   // 🌟 BACAKAN JADWAL HARIAN SENIN SAMPAI SABTU DARI TABEL FORMULIR
   const daftarHari = ['senin', 'selasa', 'rabu', 'kamis', 'jumat', 'sabtu'];
   let jadwalHarian = {};
- daftarHari.forEach(hari => {
-  // Sabtu default false, Senin-Jumat default true
-  const defaultAktif = (hari !== 'sabtu');
-  jadwalHarian[hari] = {
-    aktif: getCheck(`set-aktif-${hari}`, defaultAktif),
-    masuk: getVal(`set-masuk-${hari}`, '07:15'),
-    pulang: getVal(`set-pulang-${hari}`, hari === 'jumat' ? '11:14' : '14:50')
-  };
-});
+  daftarHari.forEach(hari => {
+    const defaultAktif = (hari !== 'sabtu');
+    jadwalHarian[hari] = {
+      aktif: getCheck(`set-aktif-${hari}`, defaultAktif),
+      masuk: getVal(`set-masuk-${hari}`, '07:15'),
+      pulang: getVal(`set-pulang-${hari}`, hari === 'jumat' ? '11:14' : (hari === 'sabtu' ? '12:30' : '14:50'))
+    };
+  });
 
   // 2. Susun Payload Pengaturan Sesuai Struktur Database
   const payloadPengaturan = {
@@ -86,11 +110,11 @@ async function simpanPengaturanLengkap() {
       aksen: getVal('set-tema-aksen', 'default')
     },
 
-    // 🌟 JADWAL HARIAN HARIAN & KALENDER PENDIDIKAN
+    // 🌟 JADWAL HARIAN & KALENDER PENDIDIKAN
     jadwalHarian: jadwalHarian,
     kalenderPendidikan: window.dataKaldikAktif || [],
 
-    // Keamanan MFA & Anti-Manipulasi
+    // Keamanan MFA & Anti-Manipulasi (Mendukung QR Code / RFID / Sidik Jari / Wajah)
     keamanan: {
       mfaSiswa: getVal('set-mfa-siswa', 'rfid_face'),
       mfaGuru: getVal('set-mfa-guru', 'finger_face'),
@@ -131,6 +155,7 @@ async function simpanPengaturanLengkap() {
     }
   }
 }
+
 /**
  * 2. FUNGSI: MUAT PENGATURAN (SINKRONKAN DATABASE "SETTINGS" DENGAN ELEMENT HTML)
  */
@@ -138,7 +163,6 @@ async function muatPengaturanLengkap() {
   try {
     const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxx3BLAOh7RZwF2vvukhDPhytbAPXfMP3H_RAJNeWgxLe2LNcCzojm-6HQ1kktPQMTQ/exec';
     
-    // 🌟 KIRIM ACTION KEDUA-DUANYA (VIA URL QUERY & VIA BODY JSON)
     const response = await fetch(`${WEB_APP_URL}?action=ambilPengaturan`, {
       method: 'POST',
       headers: { 'Content-Type': 'text/plain;charset=utf-8' },
@@ -149,7 +173,6 @@ async function muatPengaturanLengkap() {
     console.log("📥 Data dari Database Settings:", result);
 
     if ((result.success || result.status === 'success') && result.data) {
-      // Ambil objek data utama
       const d = result.data.data || result.data;
 
       // Simpan ke window object agar bisa dipakai modul lain (misal unduhlaporan.js)
@@ -172,6 +195,29 @@ async function muatPengaturanLengkap() {
         }
       };
 
+      // HELPER: Normalisasi format jam ke HH:mm (contoh: "07:15")
+      const formatJamWaktu = (val, fallback = '07:15') => {
+        if (!val) return fallback;
+        let str = String(val).trim();
+        
+        if (str.includes('T')) {
+          let partTime = str.split('T')[1];
+          if (partTime) {
+            let times = partTime.split(':');
+            if (times.length >= 2) {
+              return `${times[0].padStart(2, '0')}:${times[1].padStart(2, '0')}`;
+            }
+          }
+        }
+        
+        if (str.includes(':')) {
+          let parts = str.split(':');
+          return `${parts[0].padStart(2, '0')}:${parts[1].padStart(2, '0')}`;
+        }
+        
+        return fallback;
+      };
+
       // 🌟 1. POPULASI IDENTITAS SEKOLAH & KOP SURAT
       const idt = d.identitas || {};
       setVal('set-instansi-atas', idt.instansiAtas || d.INSTANSI_ATAS || '');
@@ -192,7 +238,7 @@ async function muatPengaturanLengkap() {
       setVal('set-tema-mode', tm.mode || d.THEME_MODE || 'dark');
       setVal('set-tema-aksen', tm.aksen || d.THEME_ACCENT || 'default');
 
-      // 🌟 POPULASI JADWAL HARIAN SENIN SAMPAI SABTU (DENGAN NORMALISASI JAM)
+      // 🌟 3. POPULASI JADWAL HARIAN SENIN SAMPAI SABTU
       const daftarHari = ['senin', 'selasa', 'rabu', 'kamis', 'jumat', 'sabtu'];
       const jdw = d.jadwalHarian || {};
 
@@ -202,7 +248,6 @@ async function muatPengaturanLengkap() {
         let keyMasuk = `JADWAL_${hUpper}_MASUK`;
         let keyPulang = `JADWAL_${hUpper}_PULANG`;
 
-        // Tentukan jam default sesuai hari (Jumat pulang 11:14, Sabtu 12:30, lainnya 14:50)
         let defaultMasuk = "07:15";
         let defaultPulang = hari === 'jumat' ? '11:14' : (hari === 'sabtu' ? '12:30' : '14:50');
 
@@ -216,36 +261,6 @@ async function muatPengaturanLengkap() {
           setVal(`set-pulang-${hari}`, formatJamWaktu(d[keyPulang], defaultPulang));
         }
       });
-
-      // HELPER: Normalisasi format jam ke HH:mm (contoh: "07:15")
-      function formatJamWaktu(val, fallback = '07:15') {
-        if (!val) return fallback;
-        
-        let str = String(val).trim();
-        
-        // Jika formatnya ISO Date/Timestamp (cth: 1899-12-30T07:15:00.000Z)
-        if (str.includes('T')) {
-          let partTime = str.split('T')[1];
-          if (partTime) {
-            let times = partTime.split(':');
-            if (times.length >= 2) {
-              let h = times[0].padStart(2, '0');
-              let m = times[1].padStart(2, '0');
-              return `${h}:${m}`;
-            }
-          }
-        }
-        
-        // Jika format HH:mm:ss atau H:m (cth: "7:15" -> "07:15", "14:50:00" -> "14:50")
-        if (str.includes(':')) {
-          let parts = str.split(':');
-          let h = parts[0].padStart(2, '0');
-          let m = parts[1].padStart(2, '0');
-          return `${h}:${m}`;
-        }
-        
-        return fallback;
-      }
 
       // 🌟 4. POPULASI KEAMANAN MFA & ANTI-MANIPULASI
       const kmn = d.keamanan || {};
@@ -279,7 +294,7 @@ async function muatPengaturanLengkap() {
 }
 
 /**
- * 3. FUNGSI: PEMBACAAN UPLOAD FILE CSV KALENDER PENDIDIKAN (HANDAL & AUTO-DELIMITER)
+ * 3. FUNGSI: PEMBACAAN UPLOAD FILE CSV KALENDER PENDIDIKAN
  */
 function handleUploadKaldik(event) {
   const file = event.target.files[0];
@@ -289,16 +304,13 @@ function handleUploadKaldik(event) {
   reader.onload = function(e) {
     let text = e.target.result;
     
-    // Hapus karakter tersembunyi UTF-8 BOM jika ada
     if (text.charCodeAt(0) === 0xFEFF) {
       text = text.substr(1);
     }
 
-    // Normalisasi pemisah baris (\r\n menjadi \n)
     const lines = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n').split('\n');
     const kaldikList = [];
 
-    // Deteksi pemisah kolom otomatis (koma, titik koma, atau tab) dari baris pertama
     let delimiter = ';';
     if (lines[0]) {
       if (lines[0].indexOf(';') !== -1) delimiter = ';';
@@ -310,7 +322,6 @@ function handleUploadKaldik(event) {
       const line = lines[i].trim();
       if (!line) continue;
       
-      // Abaikan baris header jika berisi kata "TANGGAL" atau "DATE"
       if (i === 0 && (line.toUpperCase().includes("TANGGAL") || line.toUpperCase().includes("DATE"))) {
         continue;
       }
@@ -329,7 +340,6 @@ function handleUploadKaldik(event) {
     if (kaldikList.length > 0) {
       renderTabelKaldik(kaldikList);
       alert(`✅ Berhasil memuat ${kaldikList.length} tanggal agenda/libur dari file CSV.`);
-      // Reset value input file agar bisa upload file yang sama jika diperlukan
       event.target.value = '';
     } else {
       alert('⚠️ Format file CSV tidak valid atau kosong.\nPastikan file memiliki kolom Tanggal dan Keterangan.');

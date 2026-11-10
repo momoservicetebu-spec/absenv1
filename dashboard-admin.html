@@ -1390,8 +1390,10 @@
                 <label style="color: #74b9ff; font-weight: bold;">Metode Absensi Siswa</label>
                 <select id="set-mfa-siswa" style="width: 100%; padding: 10px; background: #161224; color: white; border: 1px solid #4a4563; border-radius: 6px; outline: none; box-sizing: border-box;">
                     <option value="rfid">Hanya Tap Kartu (RFID / NFC)</option>
+                    <option value="qr">Hanya Scan QR Code / Barcode</option>
                     <option value="face">Hanya Scan Wajah (Face Recognition)</option>
                     <option value="rfid_face" selected>🛡️ Tap Kartu + Scan Wajah (MFA)</option>
+                    <option value="qr_face">🛡️ Scan QR Code + Scan Wajah (MFA)</option>
                 </select>
             </div>
             <div class="form-group" style="margin-bottom: 0;">
@@ -1399,9 +1401,11 @@
                 <select id="set-mfa-guru" style="width: 100%; padding: 10px; background: #161224; color: white; border: 1px solid #4a4563; border-radius: 6px; outline: none; box-sizing: border-box;">
                     <option value="finger">Hanya Sidik Jari (Fingerprint)</option>
                     <option value="face">Hanya Scan Wajah (Face Recognition)</option>
-                    <option value="finger_face" selected>🛡️ Sidik Jari + Scan Wajah (MFA)</option>
                     <option value="rfid">Hanya Tap Kartu (RFID / NFC)</option>
+                    <option value="qr">Hanya Scan QR Code / Barcode</option>
+                    <option value="finger_face" selected>🛡️ Sidik Jari + Scan Wajah (MFA)</option>
                     <option value="rfid_face">🛡️ Tap Kartu + Scan Wajah (MFA)</option>
+                    <option value="qr_face">🛡️ Scan QR Code + Scan Wajah (MFA)</option>
                 </select>
             </div>
         </div>
