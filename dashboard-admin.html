@@ -1278,108 +1278,128 @@
         </div>
       </div>
 
-      <!-- 3. PARAMETER & JADWAL ABSENSI HARIAN (SENIN - SABTU) -->
-      <div style="margin-top: 20px; padding: 18px; border: 1px solid #4a4563; border-radius: 8px; background: #231f36;">
-        <h3 style="color: #00b894; font-size: 15px; margin-bottom: 8px; border-bottom: 1px solid #4a4563; padding-bottom: 8px;">
-          ⚙️ Parameter & Jadwal Jam Masuk / Pulang Harian (Senin - Sabtu)
-        </h3>
-        <p style="color: #a29bfe; font-size: 12px; margin-bottom: 15px;">
-          Atur batas keterlambatan dan jam minimal pulang untuk masing-masing hari. Hilangkan centang pada kolom <b>"Aktif"</b> jika sekolah libur di hari tersebut (misal: Sabtu libur 5 hari kerja).
-        </p>
-        
-        <div class="analytics-table-wrap" style="overflow-x: auto;">
-          <table style="width: 100%; border-collapse: collapse; font-size: 13px; text-align: left;">
-            <thead>
-              <tr style="background: #161224; color: #74b9ff;">
-                <th style="padding: 10px; border: 1px solid #4a4563; text-align: center; width: 70px;">AKTIF</th>
-                <th style="padding: 10px; border: 1px solid #4a4563; width: 120px;">HARI</th>
-                <th style="padding: 10px; border: 1px solid #4a4563;">BATAS JAM MASUK (TELAT)</th>
-                <th style="padding: 10px; border: 1px solid #4a4563;">MINIMAL JAM PULANG</th>
-              </tr>
-            </thead>
-            <tbody>
-              <!-- SENIN -->
-              <tr style="border-bottom: 1px solid #4a4563;">
-                <td style="padding: 8px; border: 1px solid #4a4563; text-align: center;">
-                  <input type="checkbox" id="set-aktif-senin" checked style="accent-color: #00b894; width: 18px; height: 18px; cursor: pointer;">
-                </td>
-                <td style="padding: 8px; border: 1px solid #4a4563; font-weight: bold; color: #fff;">Senin</td>
-                <td style="padding: 8px; border: 1px solid #4a4563;">
-                  <input type="time" id="set-masuk-senin" value="07:15" style="color-scheme: dark; width: 100%;">
-                </td>
-                <td style="padding: 8px; border: 1px solid #4a4563;">
-                  <input type="time" id="set-pulang-senin" value="14:50" style="color-scheme: dark; width: 100%;">
-                </td>
-              </tr>
-              <!-- SELASA -->
-              <tr style="border-bottom: 1px solid #4a4563;">
-                <td style="padding: 8px; border: 1px solid #4a4563; text-align: center;">
-                  <input type="checkbox" id="set-aktif-selasa" checked style="accent-color: #00b894; width: 18px; height: 18px; cursor: pointer;">
-                </td>
-                <td style="padding: 8px; border: 1px solid #4a4563; font-weight: bold; color: #fff;">Selasa</td>
-                <td style="padding: 8px; border: 1px solid #4a4563;">
-                  <input type="time" id="set-masuk-selasa" value="07:15" style="color-scheme: dark; width: 100%;">
-                </td>
-                <td style="padding: 8px; border: 1px solid #4a4563;">
-                  <input type="time" id="set-pulang-selasa" value="14:50" style="color-scheme: dark; width: 100%;">
-                </td>
-              </tr>
-              <!-- RABU -->
-              <tr style="border-bottom: 1px solid #4a4563;">
-                <td style="padding: 8px; border: 1px solid #4a4563; text-align: center;">
-                  <input type="checkbox" id="set-aktif-rabu" checked style="accent-color: #00b894; width: 18px; height: 18px; cursor: pointer;">
-                </td>
-                <td style="padding: 8px; border: 1px solid #4a4563; font-weight: bold; color: #fff;">Rabu</td>
-                <td style="padding: 8px; border: 1px solid #4a4563;">
-                  <input type="time" id="set-masuk-rabu" value="07:15" style="color-scheme: dark; width: 100%;">
-                </td>
-                <td style="padding: 8px; border: 1px solid #4a4563;">
-                  <input type="time" id="set-pulang-rabu" value="14:50" style="color-scheme: dark; width: 100%;">
-                </td>
-              </tr>
-              <!-- KAMIS -->
-              <tr style="border-bottom: 1px solid #4a4563;">
-                <td style="padding: 8px; border: 1px solid #4a4563; text-align: center;">
-                  <input type="checkbox" id="set-aktif-kamis" checked style="accent-color: #00b894; width: 18px; height: 18px; cursor: pointer;">
-                </td>
-                <td style="padding: 8px; border: 1px solid #4a4563; font-weight: bold; color: #fff;">Kamis</td>
-                <td style="padding: 8px; border: 1px solid #4a4563;">
-                  <input type="time" id="set-masuk-kamis" value="07:15" style="color-scheme: dark; width: 100%;">
-                </td>
-                <td style="padding: 8px; border: 1px solid #4a4563;">
-                  <input type="time" id="set-pulang-kamis" value="14:50" style="color-scheme: dark; width: 100%;">
-                </td>
-              </tr>
-              <!-- JUMAT -->
-              <tr style="border-bottom: 1px solid #4a4563;">
-                <td style="padding: 8px; border: 1px solid #4a4563; text-align: center;">
-                  <input type="checkbox" id="set-aktif-jumat" checked style="accent-color: #00b894; width: 18px; height: 18px; cursor: pointer;">
-                </td>
-                <td style="padding: 8px; border: 1px solid #4a4563; font-weight: bold; color: #fff;">Jumat</td>
-                <td style="padding: 8px; border: 1px solid #4a4563;">
-                  <input type="time" id="set-masuk-jumat" value="07:15" style="color-scheme: dark; width: 100%;">
-                </td>
-                <td style="padding: 8px; border: 1px solid #4a4563;">
-                  <input type="time" id="set-pulang-jumat" value="11:30" style="color-scheme: dark; width: 100%;">
-                </td>
-              </tr>
-              <!-- SABTU -->
-              <tr style="border-bottom: 1px solid #4a4563;">
-                <td style="padding: 8px; border: 1px solid #4a4563; text-align: center;">
-                  <input type="checkbox" id="set-aktif-sabtu" style="accent-color: #00b894; width: 18px; height: 18px; cursor: pointer;">
-                </td>
-                <td style="padding: 8px; border: 1px solid #4a4563; font-weight: bold; color: #fff;">Sabtu</td>
-                <td style="padding: 8px; border: 1px solid #4a4563;">
-                  <input type="time" id="set-masuk-sabtu" value="07:15" style="color-scheme: dark; width: 100%;">
-                </td>
-                <td style="padding: 8px; border: 1px solid #4a4563;">
-                  <input type="time" id="set-pulang-sabtu" value="12:30" style="color-scheme: dark; width: 100%;">
-                </td>
-              </tr>
-            </tbody>
-          </table>
+      <!-- PARAMETER & JADWAL JAM MASUK / PULANG HARIAN -->
+        <div style="margin-top: 20px; margin-bottom: 25px; padding: 18px; border: 1px solid #4a4563; border-radius: 8px; background: #231f36;">
+          
+          <h3 style="color: #feca57; font-size: 15px; margin-top: 0; margin-bottom: 8px; border-bottom: 1px solid #4a4563; padding-bottom: 8px; display: flex; align-items: center; gap: 8px;">
+            ⚙️ Parameter & Jadwal Jam Masuk / Pulang Harian (Senin - Sabtu)
+          </h3>
+          
+          <p style="color: #a29bfe; font-size: 12px; margin-bottom: 15px; line-height: 1.4;">
+            Atur batas keterlambatan dan jam minimal pulang untuk masing-masing hari. Hilangkan centang pada kolom <strong style="color: #74b9ff;">"Aktif"</strong> jika sekolah libur di hari tersebut (misal: Sabtu libur 5 hari kerja).
+          </p>
+
+          <!-- TABEL JADWAL HARIAN -->
+          <div style="overflow-x: auto; margin-bottom: 15px;">
+            <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 13px;">
+              <thead>
+                <tr style="border-bottom: 1px solid #4a4563; background: #161224; color: #74b9ff;">
+                  <th style="padding: 10px; text-align: center; width: 70px;">AKTIF</th>
+                  <th style="padding: 10px; width: 110px;">HARI</th>
+                  <th style="padding: 10px;">BATAS JAM MASUK (TELAT)</th>
+                  <th style="padding: 10px;">MINIMAL JAM PULANG</th>
+                </tr>
+              </thead>
+              <tbody>
+                <!-- SENIN -->
+                <tr style="border-bottom: 1px solid #2d2643;">
+                  <td style="padding: 8px; text-align: center;">
+                    <input type="checkbox" id="set-aktif-senin" checked style="accent-color: #00b894; width: 18px; height: 18px; cursor: pointer;">
+                  </td>
+                  <td style="padding: 8px; font-weight: bold; color: #ffffff;">Senin</td>
+                  <td style="padding: 8px;">
+                    <input type="time" id="set-masuk-senin" value="07:15" style="width: 100%; padding: 8px; background: #161224; color: #fff; border: 1px solid #4a4563; border-radius: 6px; box-sizing: border-box;">
+                  </td>
+                  <td style="padding: 8px;">
+                    <input type="time" id="set-pulang-senin" value="14:50" style="width: 100%; padding: 8px; background: #161224; color: #fff; border: 1px solid #4a4563; border-radius: 6px; box-sizing: border-box;">
+                  </td>
+                </tr>
+
+                <!-- SELASA -->
+                <tr style="border-bottom: 1px solid #2d2643;">
+                  <td style="padding: 8px; text-align: center;">
+                    <input type="checkbox" id="set-aktif-selasa" checked style="accent-color: #00b894; width: 18px; height: 18px; cursor: pointer;">
+                  </td>
+                  <td style="padding: 8px; font-weight: bold; color: #ffffff;">Selasa</td>
+                  <td style="padding: 8px;">
+                    <input type="time" id="set-masuk-selasa" value="07:15" style="width: 100%; padding: 8px; background: #161224; color: #fff; border: 1px solid #4a4563; border-radius: 6px; box-sizing: border-box;">
+                  </td>
+                  <td style="padding: 8px;">
+                    <input type="time" id="set-pulang-selasa" value="14:50" style="width: 100%; padding: 8px; background: #161224; color: #fff; border: 1px solid #4a4563; border-radius: 6px; box-sizing: border-box;">
+                  </td>
+                </tr>
+
+                <!-- RABU -->
+                <tr style="border-bottom: 1px solid #2d2643;">
+                  <td style="padding: 8px; text-align: center;">
+                    <input type="checkbox" id="set-aktif-rabu" checked style="accent-color: #00b894; width: 18px; height: 18px; cursor: pointer;">
+                  </td>
+                  <td style="padding: 8px; font-weight: bold; color: #ffffff;">Rabu</td>
+                  <td style="padding: 8px;">
+                    <input type="time" id="set-masuk-rabu" value="07:15" style="width: 100%; padding: 8px; background: #161224; color: #fff; border: 1px solid #4a4563; border-radius: 6px; box-sizing: border-box;">
+                  </td>
+                  <td style="padding: 8px;">
+                    <input type="time" id="set-pulang-rabu" value="14:50" style="width: 100%; padding: 8px; background: #161224; color: #fff; border: 1px solid #4a4563; border-radius: 6px; box-sizing: border-box;">
+                  </td>
+                </tr>
+
+                <!-- KAMIS -->
+                <tr style="border-bottom: 1px solid #2d2643;">
+                  <td style="padding: 8px; text-align: center;">
+                    <input type="checkbox" id="set-aktif-kamis" checked style="accent-color: #00b894; width: 18px; height: 18px; cursor: pointer;">
+                  </td>
+                  <td style="padding: 8px; font-weight: bold; color: #ffffff;">Kamis</td>
+                  <td style="padding: 8px;">
+                    <input type="time" id="set-masuk-kamis" value="07:15" style="width: 100%; padding: 8px; background: #161224; color: #fff; border: 1px solid #4a4563; border-radius: 6px; box-sizing: border-box;">
+                  </td>
+                  <td style="padding: 8px;">
+                    <input type="time" id="set-pulang-kamis" value="14:50" style="width: 100%; padding: 8px; background: #161224; color: #fff; border: 1px solid #4a4563; border-radius: 6px; box-sizing: border-box;">
+                  </td>
+                </tr>
+
+                <!-- JUMAT -->
+                <tr style="border-bottom: 1px solid #2d2643;">
+                  <td style="padding: 8px; text-align: center;">
+                    <input type="checkbox" id="set-aktif-jumat" checked style="accent-color: #00b894; width: 18px; height: 18px; cursor: pointer;">
+                  </td>
+                  <td style="padding: 8px; font-weight: bold; color: #ffffff;">Jumat</td>
+                  <td style="padding: 8px;">
+                    <input type="time" id="set-masuk-jumat" value="07:15" style="width: 100%; padding: 8px; background: #161224; color: #fff; border: 1px solid #4a4563; border-radius: 6px; box-sizing: border-box;">
+                  </td>
+                  <td style="padding: 8px;">
+                    <input type="time" id="set-pulang-jumat" value="11:14" style="width: 100%; padding: 8px; background: #161224; color: #fff; border: 1px solid #4a4563; border-radius: 6px; box-sizing: border-box;">
+                  </td>
+                </tr>
+
+                <!-- SABTU -->
+                <tr>
+                  <td style="padding: 8px; text-align: center;">
+                    <input type="checkbox" id="set-aktif-sabtu" style="accent-color: #00b894; width: 18px; height: 18px; cursor: pointer;">
+                  </td>
+                  <td style="padding: 8px; font-weight: bold; color: #ffffff;">Sabtu</td>
+                  <td style="padding: 8px;">
+                    <input type="time" id="set-masuk-sabtu" value="07:15" style="width: 100%; padding: 8px; background: #161224; color: #fff; border: 1px solid #4a4563; border-radius: 6px; box-sizing: border-box;">
+                  </td>
+                  <td style="padding: 8px;">
+                    <input type="time" id="set-pulang-sabtu" value="12:30" style="width: 100%; padding: 8px; background: #161224; color: #fff; border: 1px solid #4a4563; border-radius: 6px; box-sizing: border-box;">
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- BARIS TOMBOL PINTAS SKEMA HARI KERJA (MENGISI AREA BAWAH TABEL) -->
+          <div style="display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: flex-start; padding-top: 12px; border-top: 1px dashed #4a4563;">
+            <span style="font-size: 12px; color: #a29bfe; font-weight: bold;">⚡ Pintasan Skema:</span>
+            <button type="button" onclick="setSkemaHariKerja(5)" style="background: #0984e3; color: white; border: none; padding: 7px 14px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 600; display: flex; align-items: center; gap: 6px; transition: background 0.2s;">
+              📅 Set 5 Hari Kerja (Sabtu Off)
+            </button>
+            <button type="button" onclick="setSkemaHariKerja(6)" style="background: #6c5ce7; color: white; border: none; padding: 7px 14px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 600; display: flex; align-items: center; gap: 6px; transition: background 0.2s;">
+              📅 Set 6 Hari Kerja (Sabtu Aktif)
+            </button>
+          </div>
+
         </div>
-      </div>
 
       <!-- 4. KEAMANAN MFA & ANTI MANIPULASI -->
       <div style="margin-top: 20px; margin-bottom: 25px; padding: 18px; border: 1px solid #4a4563; border-radius: 8px; background: #231f36;">
