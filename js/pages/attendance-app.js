@@ -1,5 +1,5 @@
 // ==========================================
-// FILE: js/pages/attendance-app.js (STRICT FACE VERIFICATION & CADAR BYPASS)
+// FILE: js/pages/attendance-app.js (DYNAMIC MFA & MULTI-INPUT TERMINAL)
 // ==========================================
 const video = document.getElementById('video');
 const videoContainer = document.getElementById('video-container');
@@ -16,16 +16,16 @@ let verificationInterval = null;
 let isProcessing = false;
 let modeAbsensiSaatIni = "rfid"; // Default fallback
 
-// 🌟 THRESHOLD KETAT: 0.45 (Mencegah Wajah Orang Lain Lolos)
+// 🌟 THRESHOLD KETAT: 0.50 (Mencegah Wajah Orang Lain Lolos)
 const STRICT_FACE_THRESHOLD = 0.50;
 
-// 1. Inisialisasi AI, Master Users (Guru/TU/Siswa) & Database Wajah
+// 1. Inisialisasi AI, Master Users (Guru/TU/Siswa), Database Wajah & Setting
 Promise.all([
   faceapi.nets.tinyFaceDetector.loadFromUri(CONFIG.MODEL_URL),
   faceapi.nets.faceLandmark68Net.loadFromUri(CONFIG.MODEL_URL),
   faceapi.nets.faceRecognitionNet.loadFromUri(CONFIG.MODEL_URL),
-  loadMasterUsers(), // Muat Master Data Guru & Siswa (Termasuk Kolom S Bercadar)
-  loadFaceDatabase(), // Muat Vektor Wajah dari Face_Guru & Face_Siswa
+  loadMasterUsers(), 
+  loadFaceDatabase(), 
   terapkanPengaturanTerminal()
 ]).then(() => {
   startVideo();
@@ -69,9 +69,9 @@ async function terapkanPengaturanTerminal() {
         const activeRole = (typeof TERMINAL_ROLE !== 'undefined') ? TERMINAL_ROLE : "SISWA";
         
         if (activeRole === "SISWA") {
-            modeAbsensiSaatIni = config.MFA_STUDENT || config.keamanan?.mfaSiswa || "rfid";
+            modeAbsensiSaatIni = config.MFA_STUDENT || config.keamanan?.mfaSiswa || "rfid_face";
         } else if (activeRole === "GURU") {
-            modeAbsensiSaatIni = config.MFA_TEACHER || config.keamanan?.mfaGuru || "rfid";
+            modeAbsensiSaatIni = config.MFA_TEACHER || config.keamanan?.mfaGuru || "finger_face";
         }
 
         const antiFakeVal = config.ANTI_FAKE_GPS !== undefined ? config.ANTI_FAKE_GPS : config.keamanan?.antiFakeGps;
@@ -86,28 +86,47 @@ async function terapkanPengaturanTerminal() {
         } else {
             if(boxGps) boxGps.style.display = "none";
             if(statusGps) statusGps.style.display = "none";
-            bukaKunciMetodeInput(); 
         }
 
-        statusText.innerText = `Sistem Siap (${activeRole})`;
-        statusText.style.color = "#2ecc71";
+        bukaKunciMetodeInput(); 
     } else {
         console.warn("Gagal memuat API settings, menggunakan mode fallback.");
         bukaKunciMetodeInput();
     }
 }
 
+// 🌟 FUNGSI: DINAMIS SESUAIKAN TAMPILAN TERMINAL BERDASARKAN MODE MFA
 function bukaKunciMetodeInput() {
     const modeLower = String(modeAbsensiSaatIni).toLowerCase();
-    
-    if (modeLower === "face" || modeLower.includes("hanya scan wajah")) {
-        if(standbyUI) standbyUI.style.display = 'none';
-        if(videoContainer) videoContainer.style.display = 'flex';
+    const activeRole = (typeof TERMINAL_ROLE !== 'undefined') ? TERMINAL_ROLE : "SISWA";
+
+    const isOnlyFace = (modeLower === "face");
+    const isOnlyQR = (modeLower === "qr");
+    const isOnlyRFID = (modeLower === "rfid");
+    const isOnlyFinger = (modeLower === "finger");
+
+    if (isOnlyFace) {
+        if (standbyUI) standbyUI.style.display = 'none';
+        if (videoContainer) videoContainer.style.display = 'flex';
+        statusText.innerText = `[${activeRole}] Mode: Hanya Scan Wajah`;
+        statusText.style.color = "#3498db";
     } else {
+        if (standbyUI) standbyUI.style.display = 'block';
+        if (videoContainer) videoContainer.style.display = 'none';
+
         if (nfcInput) {
             nfcInput.disabled = false;
             nfcInput.focus();
         }
+
+        let labelPesan = `Sistem Siap (${activeRole})`;
+        if (isOnlyQR) labelPesan = `[${activeRole}] Silakan Scan Barcode / QR Code`;
+        else if (isOnlyRFID) labelPesan = `[${activeRole}] Silakan Tap Kartu (RFID/NFC)`;
+        else if (isOnlyFinger) labelPesan = `[${activeRole}] Silakan Scan Sidik Jari`;
+        else if (modeLower.includes("face")) labelPesan = `[${activeRole}] Step 1: Scan ID | Step 2: Verifikasi Wajah`;
+
+        statusText.innerText = labelPesan;
+        statusText.style.color = "#2ecc71";
     }
 }
 
@@ -151,7 +170,7 @@ async function loadFaceDatabase() {
 }
 
 // ==========================================
-// 3. LISTENER SCANNER RFID / QR CODE
+// 3. LISTENER SCANNER RFID / QR CODE / FINGERPRINT
 // ==========================================
 if (nfcInput) {
   nfcInput.addEventListener('keypress', async function (e) {
@@ -166,7 +185,6 @@ if (nfcInput) {
         let targetUserId = rawInput;
         let activeRole = (typeof TERMINAL_ROLE !== 'undefined') ? TERMINAL_ROLE : "SISWA";
 
-        // 1. Parse Payload QR Code jika format JSON
         if (rawInput.startsWith("{") && rawInput.endsWith("}")) {
           try {
             const parsedQR = JSON.parse(rawInput);
@@ -197,14 +215,12 @@ if (nfcInput) {
            let userID = String(result.data.userId || result.data.id || targetUserId).replace(/'/g, "").trim(); 
            let userName = result.data.nama || result.data.Nama || userID; 
 
-           // Buka Tampilan Kamera
-           const modeLower = (typeof modeAbsensiSaatIni !== 'undefined') ? String(modeAbsensiSaatIni).toLowerCase() : "";
-           const requiresFace = modeLower.includes("wajah") || 
-                                modeLower.includes("face") || 
+           const modeLower = String(modeAbsensiSaatIni).toLowerCase();
+           const requiresFace = modeLower.includes("face") || 
+                                modeLower.includes("wajah") || 
                                 modeLower === "rfid_face" || 
                                 modeLower === "qr_face" ||
-                                modeLower === "mfa" ||
-                                (document.getElementById('video') !== null);
+                                modeLower === "finger_face";
 
            if (requiresFace) {
                statusText.innerText = `ID Dikenali (${userName})! Memulai verifikasi wajah...`;
@@ -258,7 +274,7 @@ function startVerificationState(userID, userName) {
     displayName = foundMaster.Nama || foundMaster.Nama_Lengkap || displayName;
     masterUserID = String(foundMaster.UserID || foundMaster.GuruID || foundMaster.ID || cleanInputID).replace(/'/g, "").trim();
     
-    // 🌟 PENCEKIKAN KOLOM S BERCADAR (HANYA 'YA' YANG BISA BYPASS)
+    // PENCEKIKAN BERCADAR (BYPASS OTOMATIS)
     let rawBercadar = String(foundMaster.Bercadar || foundMaster.bercadar || "").toUpperCase().trim();
     if (rawBercadar === "YA" || foundMaster.Bercadar === true) {
       isProcessing = false;
@@ -267,11 +283,11 @@ function startVerificationState(userID, userName) {
       statusText.style.color = "#2ecc71";
       
       executeAttendance(masterUserID, displayName);
-      return; // Selesai tanpa verifikasi kamera
+      return; 
     }
   }
 
-  // 🌟 2. PENCOCOKAN KETAT KE DATABASE WAJAH (TIDAK ADA FALLBACK RANDOM)
+  // 2. PENCOCOKAN WAJAH DENGAN DATABASE WAJAH
   const dbWajah = typeof databaseWajah !== 'undefined' ? databaseWajah : [];
   const searchMasterUp = masterUserID.toUpperCase();
   const searchNameUpper = String(displayName).toUpperCase().trim();
@@ -287,7 +303,6 @@ function startVerificationState(userID, userName) {
            (searchNameUpper && faceNama && faceNama === searchNameUpper);
   });
 
-  // Jika data wajah tidak ada di Face_Guru / Face_Siswa, TOLAK ABSENSI!
   if (!targetUser) {
     isProcessing = false;
     putarSuaraKonfirmasi(`Data wajah belum didaftarkan.`);
@@ -298,11 +313,7 @@ function startVerificationState(userID, userName) {
 
   console.log(`[Strict Face Verification] User Target: ${targetUser.id} (${displayName})`);
 
-// 3. PROSES PEMINDAIAN WAJAH DENGAN KAMERA LIVE
-    currentMFAUser = targetUser;
-    
-    // Tentukan tantangan secara acak
-   // 🌟 TANTANGAN ANGGUN & SOPAN: KEDIP MATA ATAU SENYUM
+  currentMFAUser = targetUser;
   const livenessChallenge = Math.random() > 0.5 ? 'BLINK' : 'SMILE';
   const challengeText = livenessChallenge === 'BLINK' ? '👁️ Kedipkan Mata' : '😊 Tersenyum Manis';
   
@@ -320,8 +331,6 @@ function startVerificationState(userID, userName) {
   if (canvas) faceapi.matchDimensions(canvas, displaySize);
 
   let hasPassedChallenge = false;
-  let isEyeClosed = false;
-
   const detectorOptions = new faceapi.TinyFaceDetectorOptions({ inputSize: 320, scoreThreshold: 0.5 });
 
   verificationInterval = setInterval(async () => {
@@ -338,18 +347,15 @@ function startVerificationState(userID, userName) {
       const distance = faceapi.euclideanDistance(detections.descriptor, currentMFAUser.descriptor);
       const isMatch = distance < STRICT_FACE_THRESHOLD; 
 
-     // EVALUASI LIVENESS SANGAT SENSITIF & PASTI LOLOS
+      // 🌟 MEMANGGIL FUNGSI DARI attendance-app_2.js
       if (livenessChallenge === 'BLINK') {
-        // Ambil titik mata kiri dan kanan secara aman
         const leftEye = detections.landmarks.getLeftEye();
         const rightEye = detections.landmarks.getRightEye();
 
-        // Panggil EAR langsung atau hitung inline jika fungsi helper bermasalah
         let avgEAR = 0.3;
         if (typeof getEyeAspectRatio === 'function') {
           avgEAR = (getEyeAspectRatio(leftEye) + getEyeAspectRatio(rightEye)) / 2.0;
         } else {
-          // Calculation inline langsung agar tidak pernah error "not defined"
           const calcEAR = (eye) => {
             const dist = (p1, p2) => Math.hypot(p1.x - p2.x, p1.y - p2.y);
             return (dist(eye[1], eye[5]) + dist(eye[2], eye[4])) / (2.0 * dist(eye[0], eye[3]));
@@ -357,15 +363,21 @@ function startVerificationState(userID, userName) {
           avgEAR = (calcEAR(leftEye) + calcEAR(rightEye)) / 2.0;
         }
 
-        // 🌟 PERBAIKAN UTAMA: Ambang batas dinaikkan ke 0.27
-        // Cukup terpejam (EAR < 0.27) langsung dinyatakan Lolos!
         if (avgEAR < 0.27) { 
           hasPassedChallenge = true; 
         }
-
       } else {
-        // Evaluasi Senyum Manis (MAR > 0.18)
-        const mouthRatio = getMouthAspectRatio(detections.landmarks.getJawOutline(), detections.landmarks.getMouth());
+        let mouthRatio = 0.2;
+        if (typeof getMouthAspectRatio === 'function') {
+          mouthRatio = getMouthAspectRatio(detections.landmarks.getJawOutline(), detections.landmarks.getMouth());
+        } else {
+          const calcMAR = (jaw, mouth) => {
+            const dist = (p1, p2) => Math.hypot(p1.x - p2.x, p1.y - p2.y);
+            return dist(mouth[14], mouth[18]) / dist(mouth[12], mouth[16]);
+          };
+          mouthRatio = calcMAR(detections.landmarks.getJawOutline(), detections.landmarks.getMouth());
+        }
+
         if (mouthRatio > 0.18) {
           hasPassedChallenge = true;
         }
@@ -405,7 +417,6 @@ function startVerificationState(userID, userName) {
     }
   }, 100);
 
-  // Timeout 4 detik jika wajah tidak cocok
   setTimeout(() => {
     if (isProcessing && verificationInterval) {
       clearInterval(verificationInterval);
@@ -415,12 +426,10 @@ function startVerificationState(userID, userName) {
       showAlert(`❌ Verifikasi Gagal: Wajah tidak cocok dengan data ${displayName}.`, "#e74c3c");
       setTimeout(resetToStandby, 2500);
     }
-  }, 3000);
+  }, 4000);
 }
 
-// ==========================================
-// FUNGSI UTILITY: CAPTURE FOTO KAMERA
-// ==========================================
+// Utility Capture Foto
 function captureKameraBase64() {
   try {
     const videoElem = document.getElementById("video");
@@ -438,8 +447,9 @@ function captureKameraBase64() {
     return "";
   }
 }
+
 // ==========================================
-// 5. EKSEKUSI ABSENSI KE SERVER (FIX STATUS TAMPILAN)
+// 5. EKSEKUSI ABSENSI KE SERVER
 // ==========================================
 let isSubmittingAttendance = false;
 
@@ -468,17 +478,27 @@ async function executeAttendance(userID, userName) {
   const JAM_MASUK_CONFIG = (typeof CONFIG !== 'undefined' && CONFIG.jamMasuk) ? CONFIG.jamMasuk : (localStorage.getItem('jam_masuk') || "07:15");
   const fotoTangkapan = captureKameraBase64();
 
+  const modeLower = String(modeAbsensiSaatIni).toLowerCase();
+  let priMethod = "RFID";
+  let secMethod = "FACE";
+
+  if (modeLower.includes("qr")) priMethod = "QR_CODE";
+  else if (modeLower.includes("finger")) priMethod = "FINGERPRINT";
+  else if (modeLower === "face") priMethod = "FACE";
+
+  if (!modeLower.includes("face") && priMethod !== "FACE") secMethod = "NONE";
+
   const payload = {
     userId: String(userID).trim(),
     nama: displayName,
     role: finalRole,
     checkType: "AUTO",
-    primaryMethod: "RFID",
-    secondaryMethod: "FACE",
-    authLevel: "2FA",
+    primaryMethod: priMethod,
+    secondaryMethod: secMethod,
+    authLevel: secMethod === "NONE" ? "1FA" : "2FA",
     jamMasukConfig: JAM_MASUK_CONFIG,
     deviceId: "TERMINAL-" + (finalRole === "Tenaga Kependidikan" ? "TU" : finalRole.toUpperCase()),
-    keterangan: "Absen Wajah & Kartu Sukses",
+    keterangan: `Absen Sukses (${modeAbsensiSaatIni.toUpperCase()})`,
     fotoBase64: fotoTangkapan
   };
 
@@ -490,13 +510,11 @@ async function executeAttendance(userID, userName) {
     if (record.Nama || record.nama) displayName = record.Nama || record.nama;
 
     if (result && result.success) {
-      // Tangkap status dari semua kemungkinan nama properti dari Apps Script
       const statusAbsen = String(
         record["Status(Hadir/Telat/Izin/dll)"] || 
         record.Status || 
         record.status || 
         record.tipeAbsen || 
-        record.tipe || 
         backendMessage || 
         ""
       ).toUpperCase().trim();
@@ -506,55 +524,47 @@ async function executeAttendance(userID, userName) {
       let teksJudul = "ABSEN MASUK SUKSES";
       let teksStatus = "Masuk Tepat Waktu";
       
-      let ucapanSelamat = "Selamat bertugas.";
-      if (finalRole === "Guru") ucapanSelamat = "Selamat mengajar.";
-      else if (finalRole === "Siswa") ucapanSelamat = "Selamat belajar.";
-
+      let ucapanSelamat = finalRole === "Guru" ? "Selamat mengajar." : (finalRole === "Siswa" ? "Selamat belajar." : "Selamat bertugas.");
       let teksSuara = record.pesanSuara || `Terima kasih ${displayName}. Absen masuk berhasil. ${ucapanSelamat}`;
 
-      // 🌟 LOGIKA STATUS LENGKAP (MASUK, PULANG, TERLAMBAT, SUDAH ABSEN)
-      if (statusAbsen.includes("PULANG NORMAL") || statusAbsen.includes("PULANG") || statusAbsen.includes("SUDAH PULANG")) {
-        warnaBg = "#3498db"; // Biru
+      if (statusAbsen.includes("PULANG NORMAL") || statusAbsen.includes("PULANG")) {
+        warnaBg = "#3498db";
         ikon = "🔵";
         teksJudul = "ABSEN PULANG SUKSES";
         teksStatus = "Sudah Absen Pulang";
         teksSuara = record.pesanSuara || `Terima kasih ${displayName}. Absen pulang berhasil. Hati-hati di jalan.`;
 
       } else if (statusAbsen.includes("PULANG AWAL")) {
-        warnaBg = "#f39c12"; // Oranye Kuning
+        warnaBg = "#f39c12";
         ikon = "🟡";
         teksJudul = "ABSEN PULANG AWAL";
         teksStatus = "Pulang Awal";
         teksSuara = record.pesanSuara || `Terima kasih ${displayName}. Absen pulang awal berhasil dicatat.`;
 
       } else if (statusAbsen.includes("LEMBUR")) {
-        warnaBg = "#9b59b6"; // Ungu
+        warnaBg = "#9b59b6";
         ikon = "🟣";
         teksJudul = "ABSEN PULANG LEMBUR";
         teksStatus = "Pulang Lembur";
         teksSuara = record.pesanSuara || `Terima kasih ${displayName}. Absen lembur berhasil.`;
 
       } else if (statusAbsen.includes("TELAT") || statusAbsen.includes("TERLAMBAT")) {
-        warnaBg = "#e67e22"; // Oranye Merah
+        warnaBg = "#e67e22";
         ikon = "⚠️";
         teksJudul = "ABSEN MASUK (TERLAMBAT)";
         teksStatus = "Masuk Terlambat";
 
-      } else if (statusAbsen.includes("SUDAH ABSEN") || statusAbsen.includes("LENGKAP") || statusAbsen.includes("DITOLAK")) {
-        warnaBg = "#95a5a6"; // Abu-abu
+      } else if (statusAbsen.includes("SUDAH ABSEN") || statusAbsen.includes("LENGKAP")) {
+        warnaBg = "#95a5a6";
         ikon = "ℹ️";
         teksJudul = "SUDAH ABSEN HARI INI";
         teksStatus = "Anda Sudah Absen Lengkap";
         teksSuara = record.pesanSuara || `${displayName}, Anda sudah melakukan absen masuk dan pulang hari ini.`;
       }
 
-      // 1. Update Suara Konfirmasi
       putarSuaraKonfirmasi(teksSuara);
-
-      // 2. Update Banner Alert Bawah (Kotak Merah/Hijau/Biru)
       showAlert(`${ikon} ${teksJudul}: ${displayName}`, warnaBg);
 
-      // 3. Update Teks Atas Kamera (Yang sebelumnya nyangkut Masuk Tepat Waktu)
       if (typeof statusText !== 'undefined' && statusText) {
         statusText.innerText = `${ikon} ${teksStatus} (${displayName})`;
         statusText.style.color = warnaBg;
@@ -579,6 +589,7 @@ async function executeAttendance(userID, userName) {
 
   setTimeout(resetToStandby, 3000);
 }
+
 // ==========================================
 // 6. RESET UI KE STANDBY
 // ==========================================
@@ -594,20 +605,7 @@ function resetToStandby() {
 
   hideAlert();
   
-  const modeLower = String(modeAbsensiSaatIni).toLowerCase();
-  const activeRole = (typeof TERMINAL_ROLE !== 'undefined') ? TERMINAL_ROLE : "SISWA";
-
-  if (modeLower !== "face" && !modeLower.includes("hanya scan wajah")) {
-      if (videoContainer) videoContainer.style.display = 'none';
-      if (standbyUI) standbyUI.style.display = 'block';
-  }
-  
-  statusText.innerText = `Sistem Siap (${activeRole})`;
-  statusText.style.color = "#2ecc71";
-  
-  if (nfcInput && !nfcInput.disabled) {
-      nfcInput.focus();
-  }
+  bukaKunciMetodeInput();
 }
 
 function showAlert(text, color) {
@@ -630,29 +628,22 @@ function putarSuaraKonfirmasi(teks) {
     return;
   }
 
-  // Hentikan suara yang sedang berjalan
   window.speechSynthesis.cancel();
 
-  // 1. Normalisasi Teks agar tidak dieja oleh mesin TTS
   let teksHasil = String(teks || '')
-    // Ubah kapital semua menjadi format Title Case (misal: "GUNTORO" -> "Guntoro")
     .toLowerCase()
     .replace(/(?:^|\s|-)\S/g, match => match.toUpperCase())
-    // Bersihkan gelar atau karakter khusus yang memicu ejaan
     .replace(/\bS\.?Pd\b/gi, 'Sarjana Pendidikan')
     .replace(/\bM\.?Pd\b/gi, 'Magister Pendidikan')
     .replace(/\bS\.?ST\b/gi, 'Sarjana Terapan')
-    .replace(/[^\w\s,.]/gi, ''); // Hapus karakter aneh
+    .replace(/[^\w\s,.]/gi, ''); 
 
   const utterance = new SpeechSynthesisUtterance(teksHasil);
   utterance.lang = 'id-ID';
-  utterance.rate = 0.95; // Sedikit dipelankan (0.95) agar ucapan lebih artikulatif & natural
-  utterance.pitch = 1.0; // Nada natural
+  utterance.rate = 0.95; 
+  utterance.pitch = 1.0; 
 
-  // 2. Cari vokal Bahasa Indonesia terbaik
   const voices = window.speechSynthesis.getVoices();
-  
-  // Prioritaskan vokal Bahasa Indonesia buatan Google atau Microsoft (Natural)
   const idVoice = voices.find(v => (v.lang.includes('id') || v.lang.includes('IND')) && (v.name.includes('Google') || v.name.includes('Natural') || v.name.includes('Online')))
                || voices.find(v => v.lang.includes('id') || v.lang.includes('IND'))
                || voices.find(v => v.lang.startsWith('id'));
@@ -664,36 +655,9 @@ function putarSuaraKonfirmasi(teks) {
   window.speechSynthesis.speak(utterance);
 }
 
-// Inisialisasi daftar vokal browser saat dimuat
 if ('speechSynthesis' in window) {
-  // Panggil sekali untuk memastikan vokal termuat di Chrome/Edge
   window.speechSynthesis.getVoices();
   window.speechSynthesis.onvoiceschanged = () => {
     window.speechSynthesis.getVoices();
   };
-}
-
-// FUNGSI UTILITAS SIMPAN FOTO (TARUH DI BAGIAN PALING BAWAH FILE)
-function simpanFotoAbsen(base64Image, namaUser) {
-  try {
-    if (!base64Image || !base64Image.includes("data:image")) return "";
-    
-    const FOLDER_ID = "1DB093nSU2NZNqIG3Hmlt6BKPvl3v9XlE"; // Folder ID Anda[cite: 8]
-    const folder = DriveApp.getFolderById(FOLDER_ID);
-    
-    const base64Data = base64Image.split(",")[1];
-    const blob = Utilities.newBlob(
-      Utilities.base64Decode(base64Data), 
-      "image/jpeg", 
-      "Absen_" + namaUser + "_" + new Date().getTime() + ".jpg"
-    );
-    
-    const file = folder.createFile(blob);
-    file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
-    
-    return file.getUrl();
-  } catch (e) {
-    Logger.log("Gagal simpan foto: " + e.toString());
-    return "";
-  }
 }
