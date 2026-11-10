@@ -118,9 +118,14 @@
   </script>
 
   <!-- PEMANGGILAN SCRIPT -->
-  <script src="./js/config.js?v=4.0"></script>
-  <script src="./js/api.js?v=4.0"></script>
-  <script src="./js/pages/geofencing.js?v=4.0"></script>
-  <script src="./js/pages/attendance-app.js?v=4.0"></script>
+  <script src="./js/config.js?v=5.0"></script>
+  <script src="./js/api.js?v=5.0"></script>
+  <script src="./js/pages/geofencing.js?v=5.0"></script>
+
+  <!-- 1. Panggil attendance-app_2.js terlebih dahulu (Berisi Helper Liveness EAR & MAR) -->
+  <script src="./js/pages/attendance-app_2.js?v=8.3"></script>
+
+  <!-- 2. Panggil attendance-app.js setelahnya (Berisi Logika Utama Terminal Absensi) -->
+  <script src="./js/pages/attendance-app.js?v=8.3"></script>
 </body>
 </html>
