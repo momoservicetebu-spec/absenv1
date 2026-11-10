@@ -3,13 +3,19 @@
 <head>
   <meta charset="UTF-8">
   <title>Portal Utama - Sistem Absensi Multi-Biometrik</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <link rel="icon" href="data:,">
   
   <style>
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
     body {
       margin: 0;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      padding: 20px 15px;
+      font-family: 'Segoe UI', system-ui, -apple-system, Roboto, Helvetica, Arial, sans-serif;
       background: linear-gradient(-45deg, #1e3c72, #2a5298, #0f2027, #203a43);
       background-size: 400% 400%;
       animation: gradientBG 15s ease infinite;
@@ -18,66 +24,130 @@
       justify-content: center;
       align-items: center;
       min-height: 100vh;
+      min-height: 100dvh; /* Mendukung dynamic height browser HP (mencegah terpotong address bar) */
       text-align: center;
     }
+
     @keyframes gradientBG {
       0% { background-position: 0% 50%; }
       50% { background-position: 100% 50%; }
       100% { background-position: 0% 50%; }
     }
+
     .card {
-      background: rgba(255, 255, 255, 0.1);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      border-radius: 20px;
+      background: rgba(255, 255, 255, 0.12);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      border-radius: 24px;
       padding: 40px 30px;
-      width: 90%;
-      max-width: 500px;
-      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+      width: 100%;
+      max-width: 480px;
+      box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.4);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
     }
+
     h1 {
       margin-top: 0;
-      font-size: 24px;
-      letter-spacing: 1px;
+      margin-bottom: 10px;
+      font-size: clamp(1.3rem, 5vw, 1.65rem); /* Ukuran teks fleksibel otomatis sesuai layar */
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      line-height: 1.3;
     }
+
     p {
-      opacity: 0.8;
-      margin-bottom: 30px;
+      opacity: 0.85;
+      font-size: clamp(0.85rem, 3.5vw, 1rem);
+      margin-top: 0;
+      margin-bottom: 28px;
+      line-height: 1.4;
     }
+
+    .menu-container {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
     .btn-menu {
-      display: block;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
       width: 100%;
+      min-height: 52px; /* Standar minimal ukuran sentuh jari HP (48px - 52px) */
       background: rgba(255, 255, 255, 0.2);
       border: 1px solid rgba(255, 255, 255, 0.4);
       color: white;
-      padding: 15px;
-      border-radius: 12px;
-      font-size: 18px;
-      font-weight: bold;
+      padding: 14px 20px;
+      border-radius: 14px;
+      font-size: clamp(0.95rem, 4vw, 1.05rem);
+      font-weight: 600;
       text-decoration: none;
-      margin-bottom: 15px;
-      transition: all 0.3s ease;
-      box-sizing: border-box;
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      user-select: none;
     }
-    .btn-menu:hover {
-      background: rgba(255, 255, 255, 0.4);
-      transform: translateY(-2px);
-      box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+
+    /* Efek hover untuk Laptop & Tablet dengan Mouse */
+    @media (hover: hover) {
+      .btn-menu:hover {
+        background: rgba(255, 255, 255, 0.35);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+      }
+      .btn-admin:hover {
+        background: rgba(0, 0, 0, 0.5);
+      }
     }
+
+    /* Efek sentuh responsif khusus Layar Sentuh HP/Tablet */
+    .btn-menu:active {
+      transform: scale(0.98);
+      background: rgba(255, 255, 255, 0.45);
+    }
+
     .btn-admin {
       background: rgba(0, 0, 0, 0.3);
-      border-color: transparent;
-      font-size: 14px;
-      margin-top: 20px;
+      border-color: rgba(255, 255, 255, 0.15);
+      font-size: clamp(0.85rem, 3.5vw, 0.95rem);
+      font-weight: 500;
+      min-height: 46px;
     }
-    .btn-admin:hover {
-      background: rgba(0, 0, 0, 0.5);
+
+    .btn-admin:active {
+      background: rgba(0, 0, 0, 0.6);
     }
+
     hr {
       border: 0;
-      border-top: 1px solid rgba(255,255,255,0.2);
-      margin: 30px 0;
+      border-top: 1px solid rgba(255, 255, 255, 0.2);
+      margin: 24px 0;
+    }
+
+    /* OTOMATISASI KHUSUS TABLET (481px - 768px) */
+    @media (min-width: 481px) and (max-width: 768px) {
+      .card {
+        padding: 45px 35px;
+        max-width: 520px;
+      }
+    }
+
+    /* OTOMATISASI KHUSUS SMARTPHONE KECIL (<= 375px) & MODE LANDSCAPE HP */
+    @media (max-width: 375px) {
+      body {
+        padding: 12px 10px;
+      }
+      .card {
+        padding: 26px 18px;
+        border-radius: 18px;
+      }
+      p {
+        margin-bottom: 20px;
+      }
+      hr {
+        margin: 18px 0;
+      }
     }
   </style>
 </head>
@@ -87,12 +157,20 @@
     <h1>Sistem Informasi Absensi</h1>
     <p>Silakan pilih mode terminal untuk perangkat ini</p>
 
-    <a href="terminal-siswa.html" class="btn-menu">🎓 Buka Terminal Siswa</a>
-    <a href="terminal-guru.html" class="btn-menu">💼 Buka Terminal Guru</a>
+    <div class="menu-container">
+      <a href="terminal-siswa.html" class="btn-menu">
+        <span>🎓</span> Buka Terminal Siswa
+      </a>
+      <a href="terminal-guru.html" class="btn-menu">
+        <span>💼</span> Buka Terminal Guru
+      </a>
+    </div>
 
     <hr>
     
-    <a href="login.html" class="btn-menu btn-admin">⚙️ Masuk ke Dashboard Admin</a>
+    <a href="login.html" class="btn-menu btn-admin">
+      <span>⚙️</span> Masuk ke Dashboard Admin
+    </a>
   </div>
 
 </body>
