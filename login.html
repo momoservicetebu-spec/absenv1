@@ -12,33 +12,36 @@
       box-sizing: border-box;
       margin: 0;
       padding: 0;
+      -webkit-tap-highlight-color: transparent;
     }
     body { 
       font-family: 'Inter', sans-serif; 
-      background-color: #80cbb7; 
+      background: linear-gradient(135deg, #60ab9a 0%, #80cbb7 50%, #4a8f7f 100%); 
       display: flex; 
       justify-content: center; 
       align-items: center; 
       min-height: 100vh;
+      min-height: 100dvh;
       padding: 20px;
     }
 
     /* Card Container Utama */
     .login-wrapper {
       display: flex;
-      background: white;
-      border-radius: 20px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+      background: #ffffff;
+      border-radius: 24px;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
       width: 100%;
-      max-width: 900px;
-      min-height: 540px;
+      max-width: 920px;
+      min-height: 550px;
       overflow: hidden;
+      transition: all 0.3s ease;
     }
 
     /* Panel Kiri (Form Login) */
     .left-panel {
       flex: 1;
-      padding: 45px 50px;
+      padding: 45px 48px;
       display: flex;
       flex-direction: column;
       justify-content: center;
@@ -49,14 +52,14 @@
       display: flex;
       align-items: center;
       font-weight: 700;
-      font-size: 18px;
+      font-size: 19px;
       color: #1a1a1a;
-      margin-bottom: 30px;
+      margin-bottom: 28px;
     }
     .brand-logo svg {
       margin-right: 10px;
-      width: 26px;
-      height: 26px;
+      width: 28px;
+      height: 28px;
       fill: #3b2667;
     }
 
@@ -82,7 +85,7 @@
       font-size: 12.5px; 
       color: #555555; 
       margin-bottom: 6px; 
-      font-weight: 500;
+      font-weight: 600;
     }
     
     .input-wrapper {
@@ -93,33 +96,35 @@
       left: 14px;
       top: 50%;
       transform: translateY(-50%);
-      width: 16px;
-      height: 16px;
+      width: 18px;
+      height: 18px;
       fill: #888888;
     }
     .input-wrapper input { 
       width: 100%; 
-      padding: 11px 40px 11px 38px; 
+      padding: 12px 40px 12px 40px; 
       border: 1px solid #dcdcdc; 
-      border-radius: 8px; 
-      font-size: 13.5px; 
+      border-radius: 10px; 
+      font-size: 14px; 
       color: #333;
       transition: border-color 0.2s, box-shadow 0.2s;
+      background-color: #fcfcfc;
     }
     .input-wrapper input:focus {
       border-color: #3b2667;
+      background-color: #ffffff;
       outline: none;
-      box-shadow: 0 0 0 3px rgba(59, 38, 103, 0.1);
+      box-shadow: 0 0 0 3px rgba(59, 38, 103, 0.12);
     }
     
     /* Tombol Toggle Eye Password */
     .toggle-password {
       position: absolute;
-      right: 12px;
+      right: 14px;
       top: 50%;
       transform: translateY(-50%);
-      width: 18px;
-      height: 18px;
+      width: 20px;
+      height: 20px;
       fill: #888888;
       cursor: pointer;
       transition: fill 0.2s;
@@ -135,15 +140,17 @@
       color: #666666;
       text-decoration: none;
       margin-top: 6px;
+      font-weight: 500;
     }
     .forgot-password:hover { 
+      color: #3b2667;
       text-decoration: underline; 
     }
 
     /* Tombol Utama */
     .btn-login { 
       width: 100%; 
-      padding: 13px; 
+      padding: 14px; 
       background-color: #3b2667; 
       color: white; 
       border: none; 
@@ -151,91 +158,112 @@
       font-size: 15px; 
       font-weight: 600; 
       cursor: pointer; 
-      margin-top: 20px; 
-      transition: background-color 0.2s, opacity 0.2s;
+      margin-top: 22px; 
+      transition: all 0.25s ease;
+      box-shadow: 0 4px 12px rgba(59, 38, 103, 0.25);
     }
     .btn-login:hover { 
-      opacity: 0.93; 
+      background-color: #2a1b4e;
+      transform: translateY(-1px);
+      box-shadow: 0 6px 16px rgba(59, 38, 103, 0.35);
+    }
+    .btn-login:active {
+      transform: translateY(0);
     }
     .btn-login:disabled { 
       background-color: #8b79a5; 
       cursor: not-allowed; 
+      box-shadow: none;
     }
 
     .error-text { 
       color: #dc3545; 
       font-size: 13px; 
       text-align: center; 
-      margin-top: 12px; 
+      margin-top: 14px; 
       display: none; 
       background: #ffe6e6;
-      padding: 8px 12px;
-      border-radius: 6px;
+      padding: 10px 14px;
+      border-radius: 8px;
+      border: 1px solid #ffcccc;
     }
 
     /* Link Bawah */
     .bottom-links {
-      margin-top: 30px;
+      margin-top: 28px;
       text-align: center;
-      font-size: 13px;
+      font-size: 13.5px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      align-items: center;
     }
     .bottom-links a.back-link {
-      color: #333333;
+      color: #444444;
       text-decoration: none;
-      display: inline-block;
-      margin-bottom: 8px;
-      font-weight: 500;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-weight: 600;
+      padding: 6px 12px;
+      border-radius: 6px;
+      transition: background 0.2s, color 0.2s;
     }
     .bottom-links a.back-link:hover { 
-      text-decoration: underline; 
+      background-color: #f0ecf7;
+      color: #3b2667;
     }
     .register-text { 
       color: #666666; 
+      font-size: 13px;
     }
     .register-text a { 
       color: #3b2667; 
       font-weight: 700; 
       text-decoration: none; 
+      margin-left: 3px;
     }
     .register-text a:hover { 
       text-decoration: underline; 
     }
 
-    /* Panel Kanan (Ilustrasi Vector) */
+    /* Panel Kanan (Ilustrasi Biometrik Vector) */
     .right-panel {
-      flex: 1;
-      background-color: #f3eefb;
+      flex: 1.1;
+      background: linear-gradient(135deg, #f3eefb 0%, #e5daf7 100%);
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
       padding: 40px 30px;
       text-align: center;
+      position: relative;
     }
     .right-panel h3 {
-      font-weight: 400;
-      color: #444444;
+      font-weight: 500;
+      color: #555555;
       font-size: 15px;
       margin-bottom: 4px;
     }
     .right-panel h1 {
-      font-size: 32px;
+      font-size: 28px;
       font-weight: 700;
-      color: #111111;
-      margin-bottom: 25px;
+      color: #1b0e36;
+      margin-bottom: 20px;
     }
     .illustration-box {
       width: 100%;
-      max-width: 320px;
+      max-width: 340px;
       display: flex;
       justify-content: center;
+      align-items: center;
     }
 
     /* Responsif Layar Smartphone */
-    @media (max-width: 768px) {
-      .login-wrapper { flex-direction: column; }
+    @media (max-width: 820px) {
+      .login-wrapper { flex-direction: column; max-width: 440px; }
       .right-panel { display: none; }
-      .left-panel { padding: 35px 25px; }
+      .left-panel { padding: 35px 28px; }
     }
   </style>
 </head>
@@ -255,183 +283,210 @@
       <h2>Portal Akses</h2>
       <p class="subtitle">Silakan masuk dengan kredensial terdaftar Anda.</p>
 
-      <form id="loginForm">
+      <form id="loginForm" onsubmit="event.preventDefault(); processLogin();">
         <div class="input-group">
-          <label>Username</label>
+          <label for="username">Username</label>
           <div class="input-wrapper">
             <svg class="icon-left" viewBox="0 0 24 24">
               <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
             </svg>
-            <input type="text" id="username" placeholder="Masukkan Username" required autocomplete="off">
+            <input type="text" id="username" placeholder="Masukkan Username" required autocomplete="username">
           </div>
         </div>
         
         <div class="input-group">
-          <label>Password</label>
+          <label for="password">Password</label>
           <div class="input-wrapper">
             <svg class="icon-left" viewBox="0 0 24 24">
               <path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zM9 6c0-1.66 1.34-3 3-3s3 1.34 3 3v2H9V6zm9 14H6V10h12v10zm-6-3c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2z"/>
             </svg>
-            <input type="password" id="password" placeholder="Masukkan Password" required autocomplete="off">
+            <input type="password" id="password" placeholder="Masukkan Password" required autocomplete="current-password">
             <svg class="toggle-password" id="togglePassword" viewBox="0 0 24 24">
               <path id="eyeIcon" d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/>
             </svg>
           </div>
-          <a href="#" class="forgot-password">Forgot Password?</a>
+          <a href="javascript:void(0)" onclick="alert('Silakan hubungi Administrator Sekolah untuk reset password Anda.')" class="forgot-password">Forgot Password?</a>
         </div>
 
-        <button type="button" class="btn-login" id="btnLogin" onclick="processLogin()">Masuk</button>
+        <button type="submit" class="btn-login" id="btnLogin">Masuk</button>
         <div class="error-text" id="errorMsg"></div>
       </form>
 
       <div class="bottom-links">
-        <a href="index.html" class="back-link">← Kembali ke Gerbang Utama Terminal absen </a>
-        <p class="register-text">Belum punya akun? <a href="#">Daftar</a></p>
+        <a href="index.html" class="back-link">
+          <span>←</span> Kembali ke Gerbang Utama Terminal Absen
+        </a>
+        <p class="register-text">
+          Belum punya akun? <a href="javascript:void(0)" onclick="alert('Pendaftaran akun Admin/Operator baru hanya dapat dilakukan oleh Super Administrator Sekolah.')">Daftar</a>
+        </p>
       </div>
     </div>
 
-    <!-- Panel Kanan: Ilustrasi Vector Absensi -->
+    <!-- Panel Kanan: Ilustrasi Vektor Biometrik Presensi -->
     <div class="right-panel">
       <h3>Senang melihat Anda kembali,</h3>
       <h1>Selamat Datang</h1>
       <div class="illustration-box">
-        <!-- KODE BARU (SUDAH DIPERBAIKI) -->
-          <svg viewBox="0 0 400 300" style="width: 100%; height: auto;">
-          <!-- Floor Base -->
-          <ellipse cx="200" cy="245" rx="145" ry="24" fill="#e2d8f3"/>
+        <svg viewBox="0 0 400 320" style="width: 100%; height: auto;" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="gradKiosk" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#3b2667" />
+              <stop offset="100%" stop-color="#1b0e36" />
+            </linearGradient>
+            <linearGradient id="screenGlow" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stop-color="#2a1b4e" />
+              <stop offset="100%" stop-color="#130a2a" />
+            </linearGradient>
+          </defs>
+
+          <!-- Shadow Base -->
+          <ellipse cx="200" cy="280" rx="100" ry="14" fill="#d0c2e8"/>
+
+          <!-- Decorative Tech Circles -->
+          <circle cx="200" cy="150" r="125" fill="none" stroke="#bda6e8" stroke-width="1.5" stroke-dasharray="6,6" opacity="0.5"/>
+          <circle cx="200" cy="150" r="142" fill="none" stroke="#3b2667" stroke-width="1" stroke-dasharray="2,8" opacity="0.3"/>
+
+          <!-- Main Biometric Kiosk Device -->
+          <rect x="135" y="40" width="130" height="225" rx="18" fill="url(#gradKiosk)"/>
+          <rect x="142" y="47" width="116" height="211" rx="14" fill="#241445"/>
+
+          <!-- Kiosk Display Screen -->
+          <rect x="148" y="56" width="104" height="140" rx="8" fill="url(#screenGlow)"/>
+          <rect x="148" y="56" width="104" height="140" rx="8" stroke="#00b894" stroke-width="1.5" fill="none" opacity="0.7"/>
+
+          <!-- Camera AI Lens (Top) -->
+          <circle cx="200" cy="68" r="5" fill="#00b894"/>
+          <circle cx="200" cy="68" r="2" fill="#ffffff"/>
+
+          <!-- Face Recognition HUD Target -->
+          <!-- Face Silhouette -->
+          <path d="M 186,98 A 14,16 0 0,0 214,98 C 214,112 207,122 200,125 C 193,122 186,112 186,98 Z" fill="none" stroke="#80cbb7" stroke-width="2" stroke-dasharray="3,2"/>
+          <circle cx="193" cy="98" r="2" fill="#00b894"/>
+          <circle cx="207" cy="98" r="2" fill="#00b894"/>
           
-          <!-- Kiosk Machine -->
-          <rect x="175" y="130" width="46" height="100" rx="7" fill="#3b2667"/>
-          <rect x="182" y="140" width="32" height="40" rx="4" fill="#a48fd4"/>
-          <circle cx="198" cy="155" r="7" fill="#ffffff"/>
-          <rect x="191" y="166" width="14" height="4" rx="2" fill="#ffffff"/>
-          <rect x="186" y="195" width="24" height="16" rx="3" fill="#241445"/>
-          <circle cx="198" cy="203" r="4" fill="#80cbb7"/>
-          <rect x="191" y="230" width="14" height="15" fill="#241445"/>
-          <ellipse cx="198" cy="245" rx="25" ry="6" fill="#3b2667"/>
+          <!-- HUD Corner Brackets -->
+          <path d="M 172,82 L 172,75 L 179,75" fill="none" stroke="#00b894" stroke-width="2.5" stroke-linecap="round"/>
+          <path d="M 228,82 L 228,75 L 221,75" fill="none" stroke="#00b894" stroke-width="2.5" stroke-linecap="round"/>
+          <path d="M 172,122 L 172,129 L 179,129" fill="none" stroke="#00b894" stroke-width="2.5" stroke-linecap="round"/>
+          <path d="M 228,122 L 228,129 L 221,129" fill="none" stroke="#00b894" stroke-width="2.5" stroke-linecap="round"/>
+          
+          <!-- Scan Beam Line -->
+          <line x1="168" y1="102" x2="232" y2="102" stroke="#00e676" stroke-width="2" opacity="0.9"/>
 
-          <!-- Female Student (Left) -->
-          <path d="M125 120 C120 110, 105 115, 105 130 C105 140, 110 155, 112 165 C115 160, 125 140, 125 120 Z" fill="#2b2d42"/>
-          <circle cx="128" cy="125" r="14" fill="#fec3a6"/>
-          <path d="M120 113 C125 110, 138 112, 138 122 C132 120, 124 122, 120 113 Z" fill="#2b2d42"/>
-          <path d="M120 138 L136 138 L142 175 L114 175 Z" fill="#8460be"/>
-          <path d="M114 175 L142 175 L148 198 L108 198 Z" fill="#3b2667"/>
-          <rect x="116" y="198" width="8" height="35" rx="4" fill="#fec3a6"/>
-          <rect x="132" y="198" width="8" height="35" rx="4" fill="#fec3a6"/>
-          <ellipse cx="120" cy="233" rx="7" ry="4" fill="#2b2d42"/>
-          <ellipse cx="136" cy="233" rx="7" ry="4" fill="#2b2d42"/>
-          <rect x="106" y="155" width="12" height="18" rx="2" transform="rotate(-15 106 155)" fill="#3b2667"/>
+          <!-- Verification Badge on Display -->
+          <rect x="160" y="148" width="80" height="18" rx="9" fill="#00b894"/>
+          <text x="200" y="160" font-family="'Segoe UI', sans-serif" font-size="9" font-weight="bold" fill="#ffffff" text-anchor="middle">FACE MATCHED</text>
 
-          <!-- Male Student (Right) -->
-          <circle cx="270" cy="120" r="14" fill="#d08c6c"/>
-          <path d="M260 110 C265 104, 280 106, 280 116 C272 114, 264 115, 260 110 Z" fill="#1b1b1e"/>
-          <path d="M258 133 L282 133 L288 175 L252 175 Z" fill="#4d3280"/>
-          <rect x="255" y="175" width="12" height="55" rx="5" fill="#251648"/>
-          <rect x="273" y="175" width="12" height="55" rx="5" fill="#251648"/>
-          <ellipse cx="261" cy="230" rx="8" ry="4" fill="#1b1b1e"/>
-          <ellipse cx="279" cy="230" rx="8" ry="4" fill="#1b1b1e"/>
-          <rect x="282" y="140" width="10" height="24" rx="4" fill="#251648"/>
-          <path d="M258 142 L224 158" stroke="#d08c6c" stroke-width="7" stroke-linecap="round"/>
-          <rect x="214" y="152" width="14" height="9" rx="1.5" fill="#ffffff" stroke="#3b2667" stroke-width="1" transform="rotate(-10 214 152)"/>
+          <!-- Fingerprint & Card Sensor Panel (Bottom Part) -->
+          <rect x="156" y="208" width="88" height="36" rx="8" fill="#170c2e" stroke="#4a327a" stroke-width="1.5"/>
+          
+          <!-- Fingerprint Icon Glow -->
+          <g transform="translate(164, 213)">
+            <path d="M 12,4 A 8,8 0 0,1 20,12 A 8,8 0 0,1 18,18 M 8,8 A 12,12 0 0,1 24,8 M 12,12 A 4,4 0 0,1 16,12 A 4,4 0 0,1 15,16" fill="none" stroke="#00b894" stroke-width="1.8" stroke-linecap="round"/>
+          </g>
 
-          <!-- Plant Decorative Accents -->
-          <path d="M75 240 C65 210, 85 190, 80 175 C95 185, 90 210, 95 240 Z" fill="#68489c"/>
-          <path d="M315 240 C325 210, 305 190, 310 175 C295 185, 300 210, 295 240 Z" fill="#8460be"/>
+          <!-- RFID Tap Signal Wave -->
+          <g transform="translate(206, 217)">
+            <path d="M 6,3 A 6,6 0 0,1 6,17 M 11,0 A 11,11 0 0,1 11,20" fill="none" stroke="#80cbb7" stroke-width="2" stroke-linecap="round"/>
+          </g>
+
+          <!-- Floating Smart Card (NFC/RFID Badge) -->
+          <g transform="translate(-15, -10)">
+            <rect x="85" y="150" width="50" height="34" rx="5" fill="#ffffff" stroke="#3b2667" stroke-width="2" transform="rotate(-12 85 150)"/>
+            <rect x="92" y="156" width="12" height="12" rx="6" fill="#00b894" transform="rotate(-12 85 150)"/>
+            <line x1="108" y1="158" x2="126" y2="154" stroke="#3b2667" stroke-width="3" stroke-linecap="round"/>
+            <line x1="109" y1="165" x2="122" y2="162" stroke="#a48fd4" stroke-width="2" stroke-linecap="round"/>
+          </g>
         </svg>
       </div>
     </div>
   </div>
 
   <!-- Script Login Terupdate -->
-<script>
-  const GAS_URL = "https://script.google.com/macros/s/AKfycbxx3BLAOh7RZwF2vvukhDPhytbAPXfMP3H_RAJNeWgxLe2LNcCzojm-6HQ1kktPQMTQ/exec";
+  <script>
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbxx3BLAOh7RZwF2vvukhDPhytbAPXfMP3H_RAJNeWgxLe2LNcCzojm-6HQ1kktPQMTQ/exec";
 
-  async function processLogin() {
-    const user = document.getElementById('username').value.trim();
-    const pass = document.getElementById('password').value.trim();
-    const btn = document.getElementById('btnLogin');
-    const errMsg = document.getElementById('errorMsg');
-    
-    if (user === "" || pass === "") {
-      showError("Username dan Password wajib diisi!");
-      return;
+    async function processLogin() {
+      const user = document.getElementById('username').value.trim();
+      const pass = document.getElementById('password').value.trim();
+      const btn = document.getElementById('btnLogin');
+      const errMsg = document.getElementById('errorMsg');
+      
+      if (user === "" || pass === "") {
+        showError("Username dan Password wajib diisi!");
+        return;
+      }
+
+      btn.disabled = true;
+      btn.innerText = "Memverifikasi...";
+      errMsg.style.display = "none";
+
+      try {
+        const formData = new URLSearchParams();
+        formData.append("action", "login");
+        formData.append("username", user);
+        formData.append("password", pass);
+
+        const response = await fetch(GAS_URL, { method: "POST", body: formData });
+        const result = await response.json();
+
+        if (result.success) {
+          btn.style.backgroundColor = "#00b894";
+          btn.innerText = "Halo, " + (result.name || result.nama || user) + "!";
+          
+          const rawRole = result.role || 'Operator';
+          const formattedRole = rawRole.charAt(0).toUpperCase() + rawRole.slice(1);
+          const displayName = result.name || result.nama || user;
+
+          localStorage.setItem('isLoggedIn', 'true');
+          localStorage.setItem('role', formattedRole);
+          localStorage.setItem('username', user);
+          localStorage.setItem('name', displayName);
+
+          const sessionData = {
+            isLoggedIn: true,
+            role: formattedRole,
+            name: displayName,
+            username: user
+          };
+          localStorage.setItem('user_session', JSON.stringify(sessionData));
+
+          setTimeout(function() {
+            window.location.replace("dashboard-admin.html");
+          }, 800);
+
+        } else {
+          showError(result.message || "Username atau password salah.");
+          btn.disabled = false;
+          btn.innerText = "Masuk";
+        }
+
+      } catch (err) {
+        showError("Terjadi kesalahan jaringan.");
+        btn.disabled = false;
+        btn.innerText = "Masuk";
+      }
     }
 
-    btn.disabled = true;
-    btn.innerText = "Memverifikasi...";
-    errMsg.style.display = "none";
-
-    try {
-      const formData = new URLSearchParams();
-      formData.append("action", "login");
-      formData.append("username", user);
-      formData.append("password", pass);
-
-      const response = await fetch(GAS_URL, { method: "POST", body: formData });
-      const result = await response.json();
-
-    if (result.success) {
-    btn.style.backgroundColor = "#3b2667";
-    btn.innerText = "Halo, " + (result.name || result.nama || user) + "!";
-    
-    // Format role (misal: "operator" -> "Operator")
-    const rawRole = result.role || 'Operator';
-    const formattedRole = rawRole.charAt(0).toUpperCase() + rawRole.slice(1);
-    const displayName = result.name || result.nama || user;
-
-    // 1. SIMPAN DENGAN FORMAT STRING YANG PASTI & JELAS
-    localStorage.setItem('isLoggedIn', 'true');
-    localStorage.setItem('role', formattedRole);
-    localStorage.setItem('username', user);
-    localStorage.setItem('name', displayName);
-
-    // 2. SIMPAN DALAM FORMAT OBJEK JSON
-    const sessionData = {
-      isLoggedIn: true,
-      role: formattedRole,
-      name: displayName,
-      username: user
-    };
-    localStorage.setItem('user_session', JSON.stringify(sessionData));
-
-    // 3. GUNAKAN location.replace AGAR BERSIH TANPA RIWAYAT REDIRECT
-    setTimeout(function() {
-      window.location.replace("dashboard-admin.html");
-    }, 800);
-
-  } else {
-    showError(result.message || "Username atau password salah.");
-    btn.disabled = false;
-    btn.innerText = "Masuk";
-  }
-
- } catch (err) {
-      showError("Terjadi kesalahan jaringan.");
-      btn.disabled = false;
-      btn.innerText = "Masuk";
+    function showError(text) {
+      const errMsg = document.getElementById('errorMsg');
+      errMsg.innerText = text;
+      errMsg.style.display = "block";
     }
-  }
 
-
-  function showError(text) {
-    const errMsg = document.getElementById('errorMsg');
-    errMsg.innerText = text;
-    errMsg.style.display = "block";
-  }
-
-  // Toggle Password Visibility Logic
-  document.getElementById('togglePassword').addEventListener('click', function () {
-    const passwordInput = document.getElementById('password');
-    const eyeIcon = document.getElementById('eyeIcon');
-    
-    if (passwordInput.type === 'password') {
-      passwordInput.type = 'text';
-      eyeIcon.setAttribute('d', 'M11.83 9L15 12.16V12a3 3 0 0 0-3-3h-.17zm-4.3.8l1.55 1.55c-.05.21-.08.43-.08.65a3 3 0 0 0 3 3c.22 0 .44-.03.65-.08l1.55 1.55c-.67.33-1.41.53-2.2.53-2.76 0-5-2.24-5-5 0-.79.2-1.53.53-2.2zm4.3-3.8c4.29 0 7.97 2.34 9.66 5.99-.44.95-1 1.83-1.66 2.6l-1.46-1.46C19.14 11.82 19.85 10.7 20.31 9.5c-1.48-3.32-4.85-5.69-8.59-5.69-1.22 0-2.4.24-3.48.67l1.55 1.55c.61-.17 1.25-.26 1.93-.26zM2.81 2.81L1.39 4.22l3.4 3.4C3.17 8.87 1.55 10.74 1 12c1.73 4.39 6 7.5 11 7.5 1.55 0 3.03-.3 4.38-.84l2.4 2.4 1.41-1.41L2.81 2.81z');
-    } else {
-      passwordInput.type = 'password';
-      eyeIcon.setAttribute('d', 'M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z');
-    }
-  });
-</script>
+    // Toggle Password Visibility Logic
+    document.getElementById('togglePassword').addEventListener('click', function () {
+      const passwordInput = document.getElementById('password');
+      const eyeIcon = document.getElementById('eyeIcon');
+      
+      if (passwordInput.type === 'password') {
+        passwordInput.type = 'text';
+        eyeIcon.setAttribute('d', 'M11.83 9L15 12.16V12a3 3 0 0 0-3-3h-.17zm-4.3.8l1.55 1.55c-.05.21-.08.43-.08.65a3 3 0 0 0 3 3c.22 0 .44-.03.65-.08l1.55 1.55c-.67.33-1.41.53-2.2.53-2.76 0-5-2.24-5-5 0-.79.2-1.53.53-2.2zm4.3-3.8c4.29 0 7.97 2.34 9.66 5.99-.44.95-1 1.83-1.66 2.6l-1.46-1.46C19.14 11.82 19.85 10.7 20.31 9.5c-1.48-3.32-4.85-5.69-8.59-5.69-1.22 0-2.4.24-3.48.67l1.55 1.55c.61-.17 1.25-.26 1.93-.26zM2.81 2.81L1.39 4.22l3.4 3.4C3.17 8.87 1.55 10.74 1 12c1.73 4.39 6 7.5 11 7.5 1.55 0 3.03-.3 4.38-.84l2.4 2.4 1.41-1.41L2.81 2.81z');
+      } else {
+        passwordInput.type = 'password';
+        eyeIcon.setAttribute('d', 'M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z');
+      }
+    });
+  </script>
 </body>
 </html>
