@@ -9,39 +9,113 @@ body {
   color: #fff; 
 }
 
-/* --- SIDEBAR (DESKTOP DEFAULT) --- */
+/* --- SIDEBAR (DESKTOP & SMART BOARD LARGE DISPLAY) --- */
 .sidebar { 
   width: 260px; 
   background-color: #1e1b2e; 
   color: white; 
-  padding: 20px; 
-  display: flex; 
-  flex-direction: column; 
-  overflow-y: auto; 
+  padding: 20px 15px; 
+  display: flex !important; 
+  flex-direction: column !important; 
+  height: 100vh !important; /* Pas setinggi layar */
+  max-height: 100vh !important;
+  overflow-y: auto !important; /* 🌟 KUNCI PERBAIKAN: Memungkinkan scroll ke bawah di PC & Smart Board */
+  overflow-x: hidden !important;
   flex-shrink: 0; 
   border-right: 1px solid #2d2643; 
+  box-sizing: border-box;
 }
-.sidebar::-webkit-scrollbar { width: 6px; }
-.sidebar::-webkit-scrollbar-thumb { background: #34495e; border-radius: 4px; }
-.sidebar h2 { margin-top: 0; font-size: 18px; border-bottom: 1px solid #2d2643; padding-bottom: 15px; text-align: center; color: #a29bfe; }
+
+/* Kustomisasi Scrollbar Sidebar PC & Smart Board agar jelas dan mudah digeser */
+.sidebar::-webkit-scrollbar { 
+  width: 6px; 
+}
+.sidebar::-webkit-scrollbar-track {
+  background: #161224;
+}
+.sidebar::-webkit-scrollbar-thumb { 
+  background: #6c5ce7; 
+  border-radius: 4px; 
+}
+
+.sidebar h2 { 
+  margin-top: 0; 
+  font-size: 18px; 
+  border-bottom: 1px solid #2d2643; 
+  padding-bottom: 15px; 
+  text-align: center; 
+  color: #a29bfe; 
+  flex-shrink: 0;
+}
+
 .sidebar button { 
   background: none; 
   border: none; 
   color: #b2bec3; 
   text-align: left; 
-  padding: 10px 12px; 
-  font-size: 14px; 
+  padding: 9px 12px; 
+  font-size: 13.5px; 
   font-weight: 500; 
   cursor: pointer; 
   width: 100%; 
   transition: 0.2s; 
   border-radius: 6px; 
-  margin-bottom: 4px; 
+  margin-bottom: 3px; 
+  flex-shrink: 0;
 }
-.sidebar button:hover, .sidebar button.active { color: white; background-color: #6c5ce7; padding-left: 15px; }
-.menu-group { margin-top: 15px; font-size: 11px; color: #6c5ce7; text-transform: uppercase; letter-spacing: 1px; padding-left: 10px; margin-bottom: 5px; font-weight: bold; }
-.logout-btn { color: #ff6b6b !important; margin-top: auto; border-top: 1px solid #2d2643; padding-top: 15px !important; border-radius: 0; }
-.logout-btn:hover { background-color: rgba(255,107,107,0.1) !important; color: #ff5252 !important; }
+
+.sidebar button:hover, .sidebar button.active { 
+  color: white; 
+  background-color: #6c5ce7; 
+  padding-left: 15px; 
+}
+
+.menu-group { 
+  margin-top: 12px; 
+  font-size: 10.5px; 
+  color: #6c5ce7; 
+  text-transform: uppercase; 
+  letter-spacing: 1px; 
+  padding-left: 8px; 
+  margin-bottom: 4px; 
+  font-weight: bold; 
+  flex-shrink: 0;
+}
+
+/* 🌟 TOMBOL LOGOUT SELALU DI BAWAH & BISA DIPUTER/DISCROLL SAMPAI KETEMU */
+.logout-btn { 
+  color: #ff6b6b !important; 
+  margin-top: auto !important; /* Mendorong tombol ke bagian paling bawah isi menu */
+  border-top: 1px solid #2d2643 !important; 
+  padding-top: 12px !important; 
+  padding-bottom: 12px !important;
+  border-radius: 6px !important; 
+  font-weight: bold !important;
+  flex-shrink: 0 !important; /* Mencegah tombol mengempis */
+  background-color: rgba(255, 107, 107, 0.1) !important; /* Latar merah transparan */
+  font-size: 14px !important;
+}
+
+.logout-btn:hover { 
+  background-color: rgba(255, 107, 107, 0.25) !important; 
+  color: #ffffff !important; 
+}
+
+/* --- PERBAIKAN KHUSUS TV SMART BOARD & DISPLAY BESAR --- */
+@media (min-width: 1400px) {
+  .sidebar {
+    width: 270px;
+  }
+  
+  .sidebar button {
+    font-size: 14px;
+    padding: 10px 12px;
+  }
+  
+  .logout-btn {
+    font-size: 14px !important;
+  }
+}
 
 /* --- MAIN CONTENT CONTAINER --- */
 .main-content { flex: 1; padding: 25px; overflow-y: auto; display: flex; flex-direction: column; background-color: #161224; }
@@ -911,3 +985,4 @@ canvas { position: absolute; top: 0; left: 0; }
     order: 3;
   }
 }
+

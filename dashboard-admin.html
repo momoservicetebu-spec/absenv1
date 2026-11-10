@@ -766,25 +766,29 @@
         </tbody>
       </table>
     </div>
-
     <!-- TAB CONTENT: LIVE ABSEN MONITOR -->
-    <div id="live-absen" class="section card">
-      
-      <!-- HEADER SECTION -->
-      <div class="header-section" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 15px;">
-        <div>
-          <h2 style="margin: 0; color: #fff;">📺 Live Monitor Absensi Real-Time</h2>
-          <p style="color: #a29bfe; font-size: 0.9em; margin-top: 4px;">Pemantauan absensi masuk, pulang, dan lembur secara langsung.</p>
-        </div>
-        <div style="display: flex; gap: 10px; align-items: center;">
-          <span id="live-status-badge" style="background: rgba(46, 204, 113, 0.15); color: #1dd1a1; border: 1px solid #1dd1a1; padding: 6px 14px; border-radius: 20px; font-size: 0.85em; font-weight: bold;">
-            🟢 Live Refresh (5s)
-          </span>
-          <button class="btn-action btn-small" onclick="loadLiveAbsenData()" style="cursor: pointer; background-color: #30274e; border: 1px solid #6c5ce7; color: #fff;">
-            🔄 Refresh Manual
-          </button>
-        </div>
-      </div>
+        <div id="live-absen" class="section card">
+          
+          <!-- HEADER SECTION -->
+          <div class="header-section" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 15px;">
+            <div>
+              <h2 style="margin: 0; color: #fff;">📺 Live Monitor Absensi Real-Time</h2>
+              <p style="color: #a29bfe; font-size: 0.9em; margin-top: 4px;">Pemantauan absensi masuk, pulang, dan lembur secara langsung.</p>
+            </div>
+            <div style="display: flex; gap: 10px; align-items: center;">
+              <span id="live-status-badge" style="background: rgba(46, 204, 113, 0.15); color: #1dd1a1; border: 1px solid #1dd1a1; padding: 6px 14px; border-radius: 20px; font-size: 0.85em; font-weight: bold;">
+                🟢 Live Refresh (5s)
+              </span>
+              <button class="btn-action btn-small" onclick="loadLiveAbsenData()" style="cursor: pointer; background-color: #30274e; border: 1px solid #6c5ce7; color: #fff; padding: 7px 14px; border-radius: 6px; font-weight: 500;">
+                🔄 Refresh Manual
+              </button>
+
+              <!-- 🌟 TOMBOL UNDUH PDF LIVE MONITOR -->
+              <button class="btn-action btn-small" onclick="unduhLiveMonitorPDF()" style="cursor: pointer; background-color: #d63031; border: 1px solid #ff7675; color: #fff; padding: 7px 14px; border-radius: 6px; font-weight: bold;">
+                📄 Unduh PDF
+              </button>
+            </div>
+          </div>
 
       <!-- TOGGLE SUB-TAB: GURU vs SISWA -->
       <div style="display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 1px solid #30274e; padding-bottom: 12px;">
@@ -1274,19 +1278,106 @@
         </div>
       </div>
 
-      <!-- 3. PENGATURAN SISTEM DASAR -->
+      <!-- 3. PARAMETER & JADWAL ABSENSI HARIAN (SENIN - SABTU) -->
       <div style="margin-top: 20px; padding: 18px; border: 1px solid #4a4563; border-radius: 8px; background: #231f36;">
-        <h3 style="color: #00b894; font-size: 15px; margin-bottom: 15px; border-bottom: 1px solid #4a4563; padding-bottom: 8px;">⚙️ Parameter Absensi Dasar</h3>
+        <h3 style="color: #00b894; font-size: 15px; margin-bottom: 8px; border-bottom: 1px solid #4a4563; padding-bottom: 8px;">
+          ⚙️ Parameter & Jadwal Jam Masuk / Pulang Harian (Senin - Sabtu)
+        </h3>
+        <p style="color: #a29bfe; font-size: 12px; margin-bottom: 15px;">
+          Atur batas keterlambatan dan jam minimal pulang untuk masing-masing hari. Hilangkan centang pada kolom <b>"Aktif"</b> jika sekolah libur di hari tersebut (misal: Sabtu libur 5 hari kerja).
+        </p>
         
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
-            <div class="form-group" style="margin-bottom: 0;">
-                <label>Waktu Batas Keterlambatan Masuk</label>
-                <input type="time" id="set-batas-telat" value="07:15" style="color-scheme: dark;">
-            </div>
-            <div class="form-group" style="margin-bottom: 0;">
-                <label>Waktu Minimal Absen Pulang</label>
-                <input type="time" id="set-batas-pulang" value="14:50" style="color-scheme: dark;">
-            </div>
+        <div class="analytics-table-wrap" style="overflow-x: auto;">
+          <table style="width: 100%; border-collapse: collapse; font-size: 13px; text-align: left;">
+            <thead>
+              <tr style="background: #161224; color: #74b9ff;">
+                <th style="padding: 10px; border: 1px solid #4a4563; text-align: center; width: 70px;">AKTIF</th>
+                <th style="padding: 10px; border: 1px solid #4a4563; width: 120px;">HARI</th>
+                <th style="padding: 10px; border: 1px solid #4a4563;">BATAS JAM MASUK (TELAT)</th>
+                <th style="padding: 10px; border: 1px solid #4a4563;">MINIMAL JAM PULANG</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- SENIN -->
+              <tr style="border-bottom: 1px solid #4a4563;">
+                <td style="padding: 8px; border: 1px solid #4a4563; text-align: center;">
+                  <input type="checkbox" id="set-aktif-senin" checked style="accent-color: #00b894; width: 18px; height: 18px; cursor: pointer;">
+                </td>
+                <td style="padding: 8px; border: 1px solid #4a4563; font-weight: bold; color: #fff;">Senin</td>
+                <td style="padding: 8px; border: 1px solid #4a4563;">
+                  <input type="time" id="set-masuk-senin" value="07:15" style="color-scheme: dark; width: 100%;">
+                </td>
+                <td style="padding: 8px; border: 1px solid #4a4563;">
+                  <input type="time" id="set-pulang-senin" value="14:50" style="color-scheme: dark; width: 100%;">
+                </td>
+              </tr>
+              <!-- SELASA -->
+              <tr style="border-bottom: 1px solid #4a4563;">
+                <td style="padding: 8px; border: 1px solid #4a4563; text-align: center;">
+                  <input type="checkbox" id="set-aktif-selasa" checked style="accent-color: #00b894; width: 18px; height: 18px; cursor: pointer;">
+                </td>
+                <td style="padding: 8px; border: 1px solid #4a4563; font-weight: bold; color: #fff;">Selasa</td>
+                <td style="padding: 8px; border: 1px solid #4a4563;">
+                  <input type="time" id="set-masuk-selasa" value="07:15" style="color-scheme: dark; width: 100%;">
+                </td>
+                <td style="padding: 8px; border: 1px solid #4a4563;">
+                  <input type="time" id="set-pulang-selasa" value="14:50" style="color-scheme: dark; width: 100%;">
+                </td>
+              </tr>
+              <!-- RABU -->
+              <tr style="border-bottom: 1px solid #4a4563;">
+                <td style="padding: 8px; border: 1px solid #4a4563; text-align: center;">
+                  <input type="checkbox" id="set-aktif-rabu" checked style="accent-color: #00b894; width: 18px; height: 18px; cursor: pointer;">
+                </td>
+                <td style="padding: 8px; border: 1px solid #4a4563; font-weight: bold; color: #fff;">Rabu</td>
+                <td style="padding: 8px; border: 1px solid #4a4563;">
+                  <input type="time" id="set-masuk-rabu" value="07:15" style="color-scheme: dark; width: 100%;">
+                </td>
+                <td style="padding: 8px; border: 1px solid #4a4563;">
+                  <input type="time" id="set-pulang-rabu" value="14:50" style="color-scheme: dark; width: 100%;">
+                </td>
+              </tr>
+              <!-- KAMIS -->
+              <tr style="border-bottom: 1px solid #4a4563;">
+                <td style="padding: 8px; border: 1px solid #4a4563; text-align: center;">
+                  <input type="checkbox" id="set-aktif-kamis" checked style="accent-color: #00b894; width: 18px; height: 18px; cursor: pointer;">
+                </td>
+                <td style="padding: 8px; border: 1px solid #4a4563; font-weight: bold; color: #fff;">Kamis</td>
+                <td style="padding: 8px; border: 1px solid #4a4563;">
+                  <input type="time" id="set-masuk-kamis" value="07:15" style="color-scheme: dark; width: 100%;">
+                </td>
+                <td style="padding: 8px; border: 1px solid #4a4563;">
+                  <input type="time" id="set-pulang-kamis" value="14:50" style="color-scheme: dark; width: 100%;">
+                </td>
+              </tr>
+              <!-- JUMAT -->
+              <tr style="border-bottom: 1px solid #4a4563;">
+                <td style="padding: 8px; border: 1px solid #4a4563; text-align: center;">
+                  <input type="checkbox" id="set-aktif-jumat" checked style="accent-color: #00b894; width: 18px; height: 18px; cursor: pointer;">
+                </td>
+                <td style="padding: 8px; border: 1px solid #4a4563; font-weight: bold; color: #fff;">Jumat</td>
+                <td style="padding: 8px; border: 1px solid #4a4563;">
+                  <input type="time" id="set-masuk-jumat" value="07:15" style="color-scheme: dark; width: 100%;">
+                </td>
+                <td style="padding: 8px; border: 1px solid #4a4563;">
+                  <input type="time" id="set-pulang-jumat" value="11:30" style="color-scheme: dark; width: 100%;">
+                </td>
+              </tr>
+              <!-- SABTU -->
+              <tr style="border-bottom: 1px solid #4a4563;">
+                <td style="padding: 8px; border: 1px solid #4a4563; text-align: center;">
+                  <input type="checkbox" id="set-aktif-sabtu" style="accent-color: #00b894; width: 18px; height: 18px; cursor: pointer;">
+                </td>
+                <td style="padding: 8px; border: 1px solid #4a4563; font-weight: bold; color: #fff;">Sabtu</td>
+                <td style="padding: 8px; border: 1px solid #4a4563;">
+                  <input type="time" id="set-masuk-sabtu" value="07:15" style="color-scheme: dark; width: 100%;">
+                </td>
+                <td style="padding: 8px; border: 1px solid #4a4563;">
+                  <input type="time" id="set-pulang-sabtu" value="12:30" style="color-scheme: dark; width: 100%;">
+                </td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       </div>
 
@@ -1842,29 +1933,34 @@
 <!-- KODE KEAMANAN / PENJAGA GERBANG (WAJIB PALING ATAS) -->
 <script src="./js/auth-guard.js?v=2.0"></script>
 
-<!-- Perbaiki jalur folder menjadi js/pages/ -->
+<!-- MODUL UTAMA & KONFIGURASI -->
 <script src="./js/pages/credentials.js?v=2.1"></script> 
 <script src="./js/config.js?v=2.0"></script>
 <script src="./js/api.js?v=999"></script>
 
-<!-- 🌟 POSISI TERBAIK: MODUL KALENDER PENDIDIKAN & HARI LIBUR -->
+<!-- MODUL KALENDER PENDIDIKAN & HARI LIBUR -->
 <script src="./js/kaldik.js?v=2.0"></script>
 
+<!-- TAMPILAN & PENGATURAN DASHBOARD -->
 <script src="./js/charts.js?v=2.0"></script>
 <script src="./js/ui.js?v=2.1"></script>
-<!-- 🌟 MODUL EKSPOR & UNDUH LAPORAN (PDF RESMI & CSV) -->
-<script src="./js/unduhlaporan.js?v=1.0"></script>
 
+<!-- 🌟 MODUL PENGATURAN SYSTEM & PENCETAKAN LAPORAN (PDF/CSV) --> 
+<script src="./js/setting.js?v=1.1"></script>
+<script src="./js/unduhlaporan.js?v=2.3"></script>
+
+<!-- MODUL MANAJEMEN USER & BIOMETRIK -->
 <script src="./js/users.js?v=2.0"></script>
 <script src="./js/face-ai.js?v=2.1"></script>
-<script src="./js/fingerprint.js?V=2.0"></script> 
+<script src="./js/fingerprint.js?v=2.0"></script> <!-- 🌟 Diseragamkan ke ?v=2.0 -->
 <script src="./js/rfid.js?v=2.0"></script>
 <script src="./js/qr_code.js?v=9999"></script>
 
 <!-- MODUL OPERASIONAL REAL-TIME & JADWAL -->
-<script src="./js/live-absen.js?v=1.0"></script>
-<script src="./js/jadwal.js?v=2.0"></script> <!-- 🌟 MODUL JADWAL PELAJARAN -->
+<script src="./js/live-absen.js?v=2.2"></script> <!-- 🌟 Dinaikkan ke v=2.2 -->
+<script src="./js/jadwal.js?v=2.0"></script>
 
+<!-- UTILITAS JAM & BAHASA -->
 <script src="./js/clock.js"></script>
 <script src="./js/lang.js"></script>
 <!-- INISIALISASI SELECT2 -->
