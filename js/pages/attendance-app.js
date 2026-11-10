@@ -413,9 +413,9 @@ function startVerificationState(userID, userName) {
       isProcessing = false;
       putarSuaraKonfirmasi("Verifikasi wajah gagal. Wajah tidak cocok.");
       showAlert(`❌ Verifikasi Gagal: Wajah tidak cocok dengan data ${displayName}.`, "#e74c3c");
-      setTimeout(resetToStandby, 3000);
+      setTimeout(resetToStandby, 2500);
     }
-  }, 4000);
+  }, 3000);
 }
 
 // ==========================================
@@ -577,7 +577,7 @@ async function executeAttendance(userID, userName) {
     showAlert(`❌ Error Sistem / Jaringan`, "#e74c3c");
   }
 
-  setTimeout(resetToStandby, 3500);
+  setTimeout(resetToStandby, 3000);
 }
 // ==========================================
 // 6. RESET UI KE STANDBY
