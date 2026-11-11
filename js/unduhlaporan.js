@@ -32,12 +32,10 @@ function fixDrivePhotoUrl(url) {
  * HELPER: Mengambil Data Pengaturan dari Database Settings (Window Obj / Input Form)
  */
 function getSettingVal(key, inputIds, defaultValue) {
-  // 1. Cek dari Window Global Object (Data dari tab Settings Google Sheets)
   if (window.appSettings && window.appSettings[key]) {
     return window.appSettings[key];
   }
   
-  // 2. Cek dari elemen Input HTML
   for (let id of inputIds) {
     const el = document.getElementById(id);
     if (el && el.value && el.value.trim() !== "") {
@@ -45,7 +43,6 @@ function getSettingVal(key, inputIds, defaultValue) {
     }
   }
 
-  // 3. Kembalikan default jika tidak ada
   return defaultValue;
 }
 
@@ -114,7 +111,6 @@ function unduhLaporanPDF() {
     return;
   }
 
-  // Tarik data dari Database Settings / Form Input
   const instansiAtas = getSettingVal("INSTANSI_ATAS", ["setting-instansi-atas", "set-instansi-atas"], "PEMERINTAH PROVINSI LAMPUNG");
   const dinas = getSettingVal("DINAS", ["setting-dinas", "set-dinas"], "DINAS PENDIDIKAN DAN KEBUDAYAAN");
   const namaSekolah = getSettingVal("SCHOOL_NAME", ["setting-nama-sekolah", "set-nama-sekolah"], "SMA NEGERI 1 BUMI AGUNG");
@@ -157,8 +153,9 @@ function unduhLaporanPDF() {
     th.style.textAlign = "center";
   });
 
-  const imgKiriTag = logoKiri ? `<img src="${logoKiri}" style="width: 75px; height: auto;" alt="Logo Kiri">` : '<div style="width: 75px;"></div>';
-  const imgKananTag = logoKanan ? `<img src="${logoKanan}" style="width: 75px; height: auto;" alt="Logo Kanan">` : '<div style="width: 75px;"></div>';
+  // STYLE PENYEIMBANG UKURAN LOGO
+  const imgKiriTag = logoKiri ? `<img src="${logoKiri}" style="height: 80px; width: auto; max-width: 85px; object-fit: contain;" alt="Logo Kiri">` : '<div style="width: 80px;"></div>';
+  const imgKananTag = logoKanan ? `<img src="${logoKanan}" style="height: 80px; width: auto; max-width: 85px; object-fit: contain;" alt="Logo Kanan">` : '<div style="width: 80px;"></div>';
   const imgTtdTag = ttdKepsek ? `<img src="${ttdKepsek}" style="max-height: 60px; max-width: 150px; object-fit: contain;" alt="TTD">` : '';
 
   const htmlContent = `
@@ -234,7 +231,6 @@ function unduhLiveMonitorPDF() {
     return;
   }
 
-  // Tarik data dari Database Settings / Form Input
   const instansiAtas = getSettingVal("INSTANSI_ATAS", ["setting-instansi-atas", "set-instansi-atas"], "PEMERINTAH PROVINSI LAMPUNG");
   const dinas = getSettingVal("DINAS", ["setting-dinas", "set-dinas"], "DINAS PENDIDIKAN DAN KEBUDAYAAN");
   const namaSekolah = getSettingVal("SCHOOL_NAME", ["setting-nama-sekolah", "set-nama-sekolah"], "SMA NEGERI 1 BUMI AGUNG");
@@ -304,8 +300,9 @@ function unduhLiveMonitorPDF() {
     });
   }
 
-  const imgKiriTag = logoKiri ? `<img src="${logoKiri}" style="width: 75px; height: auto;" alt="Logo Kiri">` : '<div style="width: 75px;"></div>';
-  const imgKananTag = logoKanan ? `<img src="${logoKanan}" style="width: 75px; height: auto;" alt="Logo Kanan">` : '<div style="width: 75px;"></div>';
+  // STYLE PENYEIMBANG UKURAN LOGO
+  const imgKiriTag = logoKiri ? `<img src="${logoKiri}" style="height: 80px; width: auto; max-width: 85px; object-fit: contain;" alt="Logo Kiri">` : '<div style="width: 80px;"></div>';
+  const imgKananTag = logoKanan ? `<img src="${logoKanan}" style="height: 80px; width: auto; max-width: 85px; object-fit: contain;" alt="Logo Kanan">` : '<div style="width: 80px;"></div>';
   const imgTtdTag = ttdKepsek ? `<img src="${ttdKepsek}" style="max-height: 60px; max-width: 150px; object-fit: contain;" alt="TTD">` : '';
 
   const htmlContent = `
