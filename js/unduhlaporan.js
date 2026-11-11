@@ -4,6 +4,31 @@
 // ==========================================
 
 /**
+ * HELPER: Konversi URL Google Drive ke Direct Image Streaming URL
+ */
+function fixDrivePhotoUrl(url) {
+  try {
+    if (!url || typeof url !== 'string') return '';
+    let cleanUrl = url.trim();
+    if (!cleanUrl) return '';
+    
+    if (cleanUrl.includes('lh3.googleusercontent.com')) return cleanUrl;
+    
+    let fileId = '';
+    const matchD = cleanUrl.match(/\/d\/([^\/\?]+)/);
+    const matchId = cleanUrl.match(/id=([^&]+)/);
+    
+    if (matchD && matchD[1]) fileId = matchD[1];
+    else if (matchId && matchId[1]) fileId = matchId[1];
+    
+    return fileId ? 'https://lh3.googleusercontent.com/d/' + fileId : cleanUrl;
+  } catch (e) {
+    console.error("Error fixDrivePhotoUrl:", e);
+    return url || '';
+  }
+}
+
+/**
  * HELPER: Mengambil Data Pengaturan dari Database Settings (Window Obj / Input Form)
  */
 function getSettingVal(key, inputIds, defaultValue) {
@@ -96,8 +121,14 @@ function unduhLaporanPDF() {
   const alamatSekolah = getSettingVal("SCHOOL_ADDRESS", ["setting-alamat", "set-alamat-kop"], "Jl. Protokol No 1 Pisang Baru, Kec. Bumi Agung, Kab. Way Kanan");
   const website = getSettingVal("WEBSITE", ["setting-website"], "Website: sman1ba.sch.id");
   
-  const logoKiri = getSettingVal("LOGO_KIRI", ["setting-logo-kiri", "set-logo-sekolah"], "");
-  const logoKanan = getSettingVal("SCHOOL_LOGO_URL", ["setting-logo-kanan"], "");
+  const rawLogoKiri = getSettingVal("LOGO_KIRI", ["setting-logo-kiri", "set-logo-sekolah"], "");
+  const rawLogoKanan = getSettingVal("SCHOOL_LOGO_URL", ["setting-logo-kanan", "set-logo-kanan"], "");
+  const rawTtd = getSettingVal("TTD_KEPSEK", ["setting-ttd-kepsek", "set-ttd-kepsek"], "");
+  
+  const logoKiri = fixDrivePhotoUrl(rawLogoKiri);
+  const logoKanan = fixDrivePhotoUrl(rawLogoKanan);
+  const ttdKepsek = fixDrivePhotoUrl(rawTtd);
+
   const namaKepsek = getSettingVal("HEADMASTER_NAME", ["setting-nama-kepsek", "set-nama-kepsek"], "Nama Kepala Sekolah");
   const nipKepsek = getSettingVal("HEADMASTER_NIP", ["setting-nip", "set-nip-kepsek"], "-");
 
@@ -126,11 +157,10 @@ function unduhLaporanPDF() {
     th.style.textAlign = "center";
   });
 
-  const imgKiriTag = (logoKiri && logoKiri.startsWith("http")) ? `<img src="${logoKiri}" style="width: 75px; height: auto;">` : '<div style="width: 75px;"></div>';
-  const imgKananTag = (logoKanan && logoKanan.startsWith("http")) ? `<img src="${logoKanan}" style="width: 75px; height: auto;">` : '<div style="width: 75px;"></div>';
+  const imgKiriTag = logoKiri ? `<img src="${logoKiri}" style="width: 75px; height: auto;" alt="Logo Kiri">` : '<div style="width: 75px;"></div>';
+  const imgKananTag = logoKanan ? `<img src="${logoKanan}" style="width: 75px; height: auto;" alt="Logo Kanan">` : '<div style="width: 75px;"></div>';
+  const imgTtdTag = ttdKepsek ? `<img src="${ttdKepsek}" style="max-height: 60px; max-width: 150px; object-fit: contain;" alt="TTD">` : '';
 
-  const printWin = window.open("", "_blank");
-  
   const htmlContent = `
     <!DOCTYPE html>
     <html>
@@ -148,9 +178,9 @@ function unduhLaporanPDF() {
         .judul-doc h3 { margin: 0; font-size: 12pt; text-decoration: underline; text-transform: uppercase; font-family: Arial, sans-serif; }
         .judul-doc p { margin: 4px 0 0 0; font-size: 9.5pt; font-family: Arial, sans-serif; }
 
-        .ttd-container { margin-top: 30px; float: right; text-align: right; font-size: 11pt; padding-right: 15px; page-break-inside: avoid; }
+        .ttd-container { margin-top: 30px; float: right; text-align: center; font-size: 11pt; padding-right: 15px; min-width: 220px; page-break-inside: avoid; }
         .ttd-container p { margin: 2px 0; }
-        .ttd-space { height: 65px; }
+        .ttd-space { height: 65px; display: flex; align-items: center; justify-content: center; }
 
         @media print {
           @page { size: A4 portrait; margin: 12mm; }
@@ -181,24 +211,15 @@ function unduhLaporanPDF() {
       <div class="ttd-container">
         <p>Mengetahui,</p>
         <p>Kepala Sekolah</p>
-        <div class="ttd-space"></div>
+        <div class="ttd-space">${imgTtdTag}</div>
         <p><strong><u>${namaKepsek}</u></strong></p>
         <p>NIP. ${nipKepsek}</p>
       </div>
-
-      <script>
-        window.onload = function() {
-          window.print();
-          setTimeout(function() { window.close(); }, 600);
-        };
-      <\/script>
     </body>
     </html>
   `;
 
-  printWin.document.open();
-  printWin.document.write(htmlContent);
-  printWin.document.close();
+  triggerPrintWithPreload(htmlContent);
 }
 
 /**
@@ -218,8 +239,15 @@ function unduhLiveMonitorPDF() {
   const dinas = getSettingVal("DINAS", ["setting-dinas", "set-dinas"], "DINAS PENDIDIKAN DAN KEBUDAYAAN");
   const namaSekolah = getSettingVal("SCHOOL_NAME", ["setting-nama-sekolah", "set-nama-sekolah"], "SMA NEGERI 1 BUMI AGUNG");
   const alamatSekolah = getSettingVal("SCHOOL_ADDRESS", ["setting-alamat", "set-alamat-kop"], "Jl. Protokol No 1 Pisang Baru, Kec. Bumi Agung, Kab. Way Kanan");
-  const logoKiri = getSettingVal("LOGO_KIRI", ["setting-logo-kiri", "set-logo-sekolah"], "");
-  const logoKanan = getSettingVal("SCHOOL_LOGO_URL", ["setting-logo-kanan"], "");
+  
+  const rawLogoKiri = getSettingVal("LOGO_KIRI", ["setting-logo-kiri", "set-logo-sekolah"], "");
+  const rawLogoKanan = getSettingVal("SCHOOL_LOGO_URL", ["setting-logo-kanan", "set-logo-kanan"], "");
+  const rawTtd = getSettingVal("TTD_KEPSEK", ["setting-ttd-kepsek", "set-ttd-kepsek"], "");
+
+  const logoKiri = fixDrivePhotoUrl(rawLogoKiri);
+  const logoKanan = fixDrivePhotoUrl(rawLogoKanan);
+  const ttdKepsek = fixDrivePhotoUrl(rawTtd);
+
   const namaKepsek = getSettingVal("HEADMASTER_NAME", ["setting-nama-kepsek", "set-nama-kepsek"], "AMRODI NURUL HUDA, S.Ag");
   const nipKepsek = getSettingVal("HEADMASTER_NIP", ["setting-nip", "set-nip-kepsek"], "197103041998021001");
 
@@ -276,11 +304,10 @@ function unduhLiveMonitorPDF() {
     });
   }
 
-  const imgKiriTag = (logoKiri && logoKiri.startsWith("http")) ? `<img src="${logoKiri}" style="width: 75px; height: auto;">` : '<div style="width: 75px;"></div>';
-  const imgKananTag = (logoKanan && logoKanan.startsWith("http")) ? `<img src="${logoKanan}" style="width: 75px; height: auto;">` : '<div style="width: 75px;"></div>';
+  const imgKiriTag = logoKiri ? `<img src="${logoKiri}" style="width: 75px; height: auto;" alt="Logo Kiri">` : '<div style="width: 75px;"></div>';
+  const imgKananTag = logoKanan ? `<img src="${logoKanan}" style="width: 75px; height: auto;" alt="Logo Kanan">` : '<div style="width: 75px;"></div>';
+  const imgTtdTag = ttdKepsek ? `<img src="${ttdKepsek}" style="max-height: 60px; max-width: 150px; object-fit: contain;" alt="TTD">` : '';
 
-  const printWin = window.open("", "_blank");
-  
   const htmlContent = `
     <!DOCTYPE html>
     <html>
@@ -302,9 +329,9 @@ function unduhLiveMonitorPDF() {
         th, td { border: 1px solid #000; padding: 7px 9px; }
         th { background-color: #e0e0e0; font-weight: bold; text-align: center; }
 
-        .ttd-container { margin-top: 30px; float: right; text-align: right; font-size: 11pt; padding-right: 15px; page-break-inside: avoid; }
+        .ttd-container { margin-top: 30px; float: right; text-align: center; font-size: 11pt; padding-right: 15px; min-width: 220px; page-break-inside: avoid; }
         .ttd-container p { margin: 2px 0; }
-        .ttd-space { height: 65px; }
+        .ttd-space { height: 65px; display: flex; align-items: center; justify-content: center; }
 
         @media print {
           @page { size: A4 portrait; margin: 12mm; }
@@ -348,22 +375,52 @@ function unduhLiveMonitorPDF() {
       <div class="ttd-container">
         <p>Mengetahui,</p>
         <p>Kepala Sekolah</p>
-        <div class="ttd-space"></div>
+        <div class="ttd-space">${imgTtdTag}</div>
         <p><strong><u>${namaKepsek}</u></strong></p>
         <p>NIP. ${nipKepsek}</p>
       </div>
-
-      <script>
-        window.onload = function() {
-          window.print();
-          setTimeout(function() { window.close(); }, 600);
-        };
-      <\/script>
     </body>
     </html>
   `;
 
+  triggerPrintWithPreload(htmlContent);
+}
+
+/**
+ * HELPER: Membuka Jendela Print & Memastikan Semua Gambar Terunduh Sempurna
+ */
+function triggerPrintWithPreload(htmlContent) {
+  const printWin = window.open("", "_blank");
   printWin.document.open();
   printWin.document.write(htmlContent);
   printWin.document.close();
+
+  printWin.onload = function() {
+    const images = printWin.document.getElementsByTagName('img');
+    let loaded = 0;
+    const total = images.length;
+
+    const executePrint = () => {
+      setTimeout(() => {
+        printWin.focus();
+        printWin.print();
+      }, 300);
+    };
+
+    if (total === 0) {
+      executePrint();
+    } else {
+      for (let i = 0; i < total; i++) {
+        if (images[i].complete) {
+          loaded++;
+          if (loaded === total) executePrint();
+        } else {
+          images[i].onload = images[i].onerror = function() {
+            loaded++;
+            if (loaded === total) executePrint();
+          };
+        }
+      }
+    }
+  };
 }

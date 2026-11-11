@@ -185,11 +185,9 @@ function renderLiveCards() {
       }
     }
 
-// 🌟 Penentuan NIP / NISN & Label Dinamis
+    // 🌟 Penentuan NIP / NISN & Label Dinamis
     const isSiswa = currentLiveRole === "SISWA" || rawRole.includes("SISWA");
     const labelIdentitas = isSiswa ? "NISN" : "NIP";
-    
-    // Ambil nilai nomor identitas dari berbagai variasi properti objek
     const nomorIdentitas = item.NIP || item.nip || item.NISN || item.nisn || item["NIP/NISN"] || "-";
 
     return `
@@ -238,12 +236,13 @@ function renderLiveCards() {
       </div>
     `;
   }).join("");
+}
 
 // 5. FUNGSI HITUNG COUNTER STATISTIK HARI INI
 function updateStatistikCounter(data) {
   let masuk = 0, awalTelat = 0, pulang = 0, lembur = 0;
 
-  data.forEach(item => {
+  (data || []).forEach(item => {
     const status = String(item["Status(Hadir/Telat/Izin/dll)"] || item.Status || "").toLowerCase();
     const type = String(item["CheckType (IN/OUT)"] || "").toUpperCase();
 
@@ -266,5 +265,4 @@ function updateStatistikCounter(data) {
   if (elAwal) elAwal.innerText = awalTelat;
   if (elPulang) elPulang.innerText = pulang;
   if (elLembur) elLembur.innerText = lembur;
-}
 }
