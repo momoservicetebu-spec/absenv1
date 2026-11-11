@@ -363,7 +363,8 @@ function startVerificationState(userID, userName) {
           avgEAR = (calcEAR(leftEye) + calcEAR(rightEye)) / 2.0;
         }
 
-        if (avgEAR < 0.27) { 
+        // 👁️ KEDIPAN MATA CEPAT (< 0.29)
+        if (avgEAR < 0.29) { 
           hasPassedChallenge = true; 
         }
       } else {
@@ -373,12 +374,13 @@ function startVerificationState(userID, userName) {
         } else {
           const calcMAR = (jaw, mouth) => {
             const dist = (p1, p2) => Math.hypot(p1.x - p2.x, p1.y - p2.y);
-            return dist(mouth[14], mouth[18]) / dist(mouth[12], mouth[16]);
+            return dist(mouth[13], mouth[19]) / dist(mouth[0], mouth[6]);
           };
           mouthRatio = calcMAR(detections.landmarks.getJawOutline(), detections.landmarks.getMouth());
         }
 
-        if (mouthRatio > 0.18) {
+        // 😊 SENYUMAN CEPAT & RAMAH (> 0.14)
+        if (mouthRatio > 0.14) {
           hasPassedChallenge = true;
         }
       }
