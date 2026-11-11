@@ -2093,28 +2093,35 @@ async function prosesRestore() {
 // ==========================================
 
 /**
- * 1. Cek Koneksi WA
+ * 1. Cek Koneksi WA (Membaca input token langsung dari form)
  */
 async function checkWaConnection() {
   const badge = document.getElementById("waStatusBadge");
+  const tokenInput = document.getElementById("waApiToken") ? document.getElementById("waApiToken").value.trim() : "";
 
-  badge.textContent = "Mengecek...";
-  badge.style.backgroundColor = "rgba(234, 179, 8, 0.2)";
-  badge.style.color = "#facc15";
+  if (badge) {
+    badge.textContent = "Mengecek...";
+    badge.style.backgroundColor = "rgba(234, 179, 8, 0.2)";
+    badge.style.color = "#facc15";
+  }
 
-  // PERBAIKAN: Masukkan action sebagai string di parameter ke-1
-  const response = await fetchAPI("cekKoneksiWA", {});
+  // Kirim token dari input box ke backend
+  const response = await fetchAPI("cekKoneksiWA", { token: tokenInput });
 
   if (response && response.success) {
-    badge.textContent = "Terhubung";
-    badge.style.backgroundColor = "rgba(16, 185, 129, 0.2)";
-    badge.style.color = "#34d399";
-    alert("Koneksi berhasil! Perangkat WA Anda sudah terhubung.");
+    if (badge) {
+      badge.textContent = "Terhubung";
+      badge.style.backgroundColor = "rgba(16, 185, 129, 0.2)";
+      badge.style.color = "#34d399";
+    }
+    alert("✅ Koneksi berhasil! Perangkat WhatsApp Anda sudah terhubung.");
   } else {
-    badge.textContent = "Terputus";
-    badge.style.backgroundColor = "rgba(239, 68, 68, 0.2)";
-    badge.style.color = "#f87171";
-    alert("Gagal terhubung: " + (response ? response.message : "Token belum diatur atau terjadi kesalahan sistem"));
+    if (badge) {
+      badge.textContent = "Terputus";
+      badge.style.backgroundColor = "rgba(239, 68, 68, 0.2)";
+      badge.style.color = "#f87171";
+    }
+    alert("❌ Gagal terhubung: " + (response ? response.message : "Token belum diisi atau salah."));
   }
 }
 
