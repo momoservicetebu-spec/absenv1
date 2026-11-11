@@ -1865,9 +1865,13 @@ function getStyleBadgeStatus(status) {
 // ==========================================
 
 async function muatDaftarNamaLaporan() {
-  const role = document.getElementById('lap-role').value;
+  const roleEl = document.getElementById('lap-role');
   const dataList = document.getElementById('list-nama-laporan');
   const inputTarget = document.getElementById('lap-nama-target');
+
+  if (!roleEl || !dataList || !inputTarget) return;
+
+  const role = roleEl.value; // 'Siswa' atau 'Guru'
 
   // Kosongkan list dan input setiap kali Tipe Pengguna diubah
   dataList.innerHTML = '';
@@ -1877,28 +1881,25 @@ async function muatDaftarNamaLaporan() {
   try {
     const action = (role === 'Siswa') ? 'getSiswa' : 'getGuru';
     
-    // --- KODE YANG DIPERBARUI MULAI DARI SINI ---
-    const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbxx3BLAOh7RZwF2vvukhDPhytbAPXfMP3H_RAJNeWgxLe2LNcCzojm-6HQ1kktPQMTQ/exec';
-    
-    // Cukup panggil URL langsung, default fetch adalah GET
-    const response = await fetch(`${WEB_APP_URL}?action=${action}`);
-    const res = await response.json();
-    // --- BATAS KODE YANG DIPERBARUI ---
+    // Gunakan fungsi fetchAPI bawaan sistem agar terautentikasi dan bebas CORS
+    const res = await fetchAPI(action, {});
 
-    if (res.success && res.data) {
+    if (res && res.success && Array.isArray(res.data)) {
       let optionsHtml = '';
 
-      // Looping data untuk dimasukkan ke opsi dropdown
       res.data.forEach(item => {
-        const nama = item.Nama || item.Nama_Lengkap || item.Nama_Guru || item.Nama_Siswa || '-';
-        const id = item.SiswaID || item.GuruID || item.NISN || item.NIP || '';
+        // Ambil nama & ID dari berbagai kemungkinan nama properti di database
+        const nama = item.Nama || item.nama || item.Nama_Lengkap || item.UserID || '';
+        const id = item.SiswaID || item.GuruID || item.NISN || item.NIP || item.UserID || '';
 
-        // Memasukkan nama sebagai value, dan ID sebagai label tambahan
-        optionsHtml += `<option value="${nama}">ID: ${id}</option>`;
+        if (nama && nama !== '-') {
+          // Format opsi autocomplete: Nama sebagai value utama, ID sebagai keterangan
+          optionsHtml += `<option value="${nama}">${id ? 'ID/NIP: ' + id : ''}</option>`;
+        }
       });
 
       dataList.innerHTML = optionsHtml;
-      inputTarget.placeholder = "Ketik atau pilih nama...";
+      inputTarget.placeholder = `Ketik atau pilih nama ${role}...`;
     } else {
       inputTarget.placeholder = "Kosongkan untuk Semua...";
     }
@@ -1908,11 +1909,19 @@ async function muatDaftarNamaLaporan() {
   }
 }
 
-// Tambahkan pemanggilan fungsi ini saat halaman web pertama kali dimuat
+// INISIALISASI EVENT LISTENER
 document.addEventListener('DOMContentLoaded', () => {
-  // ... (kode yang sudah ada) ...
-  if (document.getElementById('lap-nama-target')) {
+  const roleSelect = document.getElementById('lap-role');
+  const inputNama = document.getElementById('lap-nama-target');
+
+  if (inputNama) {
+    // Muat daftar nama pertama kali saat halaman dibuka
     muatDaftarNamaLaporan(); 
+  }
+
+  if (roleSelect) {
+    // Muat ulang daftar nama otomatis saat dropdown "Tipe Pengguna" (Guru/Siswa) diubah
+    roleSelect.addEventListener('change', muatDaftarNamaLaporan);
   }
 });
 
