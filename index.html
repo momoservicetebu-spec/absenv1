@@ -90,13 +90,11 @@
       cursor: pointer;
     }
 
-    /* TOMBOL KHUSUS PANDUAN */
     .btn-panduan {
       background: rgba(59, 130, 246, 0.35);
       border-color: rgba(96, 165, 250, 0.5);
     }
 
-    /* Efek hover untuk Laptop & Tablet */
     @media (hover: hover) {
       .btn-menu:hover {
         background: rgba(255, 255, 255, 0.35);
@@ -124,10 +122,6 @@
       min-height: 46px;
     }
 
-    .btn-admin:active {
-      background: rgba(0, 0, 0, 0.6);
-    }
-
     hr {
       border: 0;
       border-top: 1px solid rgba(255, 255, 255, 0.2);
@@ -139,7 +133,7 @@
       display: none;
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(0, 0, 0, 0.8);
+      background: rgba(0, 0, 0, 0.85);
       backdrop-filter: blur(8px);
       -webkit-backdrop-filter: blur(8px);
       z-index: 9999;
@@ -230,7 +224,6 @@
       <a href="terminal-guru.html" class="btn-menu">
         <span>💼</span> Buka Terminal Guru
       </a>
-      <!-- 🌟 TOMBOL BARU UNTUK MEMBUKA PANDUAN -->
       <button type="button" class="btn-menu btn-panduan" onclick="openPanduan()">
         <span>📖</span> Panduan Cara Absen (Liveness)
       </button>
@@ -243,7 +236,7 @@
     </a>
   </div>
 
-  <!-- 🌟 MODAL POPUP PANDUAN VISUAL DETEKSI WAJAH -->
+  <!-- 🌟 MODAL POPUP PANDUAN VISUAL DETEKSI WAJAH MANUSIA -->
   <div id="modalPanduan" class="modal-overlay" onclick="closePanduanOutside(event)">
     <div class="modal-content">
       <button class="btn-close-modal" onclick="closePanduan()" title="Tutup Panduan">✕</button>
@@ -266,13 +259,52 @@
               😊 TANTANGAN 1: SENYUM MANIS
             </span>
 
-            <!-- SIMULASI KAMERA / FRAME DETEKSI -->
-            <div style="width: 100%; height: 230px; background-color: #020617; border-radius: 10px; position: relative; overflow: hidden; display: flex; justify-content: center; align-items: center; border: 1px solid #334155;">
-              <div style="width: 140px; height: 170px; border: 3px solid #10b981; border-radius: 8px; position: relative; box-shadow: 0 0 15px rgba(16, 185, 129, 0.4);">
-                <span style="position: absolute; top: -28px; left: 50%; transform: translateX(-50%); background: #10b981; color: #020617; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 4px; white-space: nowrap;">
+            <!-- FRAME KAMERA DENGAN GAMBAR IBU GURU (SENYUM) -->
+            <div style="width: 100%; height: 260px; background-color: #020617; border-radius: 10px; position: relative; overflow: hidden; display: flex; justify-content: center; align-items: center; border: 1px solid #334155;">
+              
+              <!-- VECTOR WAJAH MANUSIA (IBU GURU BERJILBAB & SENYUM) -->
+              <svg width="100%" height="100%" viewBox="0 0 200 240" preserveAspectRatio="xMidYMid slice" style="position: absolute; top:0; left:0;">
+                <defs>
+                  <linearGradient id="bgGrad1" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="#1e293b"/>
+                    <stop offset="100%" stop-color="#0f172a"/>
+                  </linearGradient>
+                </defs>
+                <rect width="200" height="240" fill="url(#bgGrad1)"/>
+                <!-- Background Ruangan Sekolah -->
+                <rect x="15" y="40" width="40" height="60" fill="#334155" opacity="0.4" rx="4"/>
+                <rect x="145" y="30" width="40" height="70" fill="#334155" opacity="0.4" rx="4"/>
+                <!-- Badan / Seragam Batik -->
+                <path d="M 40 240 C 40 180, 70 160, 100 160 C 130 160, 160 180, 160 240 Z" fill="#854d0e"/>
+                <path d="M 50 240 Q 100 190 150 240" stroke="#fef08a" stroke-width="3" fill="none" opacity="0.6"/>
+                <!-- Kerudung / Hijab -->
+                <path d="M 55 120 C 50 70, 70 40, 100 40 C 130 40, 150 70, 145 120 C 145 160, 135 180, 100 180 C 65 180, 55 160, 55 120 Z" fill="#d97706"/>
+                <!-- Muka / Skin -->
+                <ellipse cx="100" cy="115" rx="30" ry="36" fill="#fde047" opacity="0.9"/>
+                <!-- Mata Terbuka & Ramah -->
+                <ellipse cx="88" cy="108" rx="4" ry="5" fill="#1e293b"/>
+                <ellipse cx="112" cy="108" rx="4" ry="5" fill="#1e293b"/>
+                <!-- Alis -->
+                <path d="M 82 100 Q 88 96 94 100" stroke="#78350f" stroke-width="2" fill="none"/>
+                <path d="M 106 100 Q 112 96 118 100" stroke="#78350f" stroke-width="2" fill="none"/>
+                <!-- Hidung -->
+                <path d="M 100 110 L 98 118 L 102 118" stroke="#b45309" stroke-width="1.5" fill="none"/>
+                <!-- Senyuman Manis -->
+                <path d="M 86 128 Q 100 142 114 128" stroke="#be123c" stroke-width="3" fill="none" stroke-linecap="round"/>
+                <!-- Pipih Merah Muda -->
+                <ellipse cx="80" cy="122" rx="5" ry="3" fill="#f43f5e" opacity="0.4"/>
+                <ellipse cx="120" cy="122" rx="5" ry="3" fill="#f43f5e" opacity="0.4"/>
+              </svg>
+
+              <!-- OVERLAY BOUNDING BOX DETEKSI AI (HIJAU) -->
+              <div style="width: 135px; height: 165px; border: 3px solid #10b981; border-radius: 8px; position: absolute; box-shadow: 0 0 15px rgba(16, 185, 129, 0.5); display: flex; justify-content: center;">
+                <span style="position: absolute; top: -28px; background: #10b981; color: #020617; font-size: 11px; font-weight: 700; padding: 2px 10px; border-radius: 4px; white-space: nowrap;">
                   ✅ Senyum Manis
                 </span>
+                <!-- Landmark Mulut -->
+                <div style="position: absolute; bottom: 32px; width: 36px; height: 16px; border: 1.5px dashed #34d399; border-radius: 50%;"></div>
               </div>
+
             </div>
 
             <!-- BADGE INDIKATOR PARAMETER -->
@@ -281,7 +313,7 @@
                 Mouth-Aspect-Ratio (MAR) &gt; 0.14 Threshold
               </div>
               <div style="font-size: 12px; color: #cbd5e1; margin-top: 4px;">
-                ✔ Liveness Valid: Senyum Terdeteksi Cepat
+                ✔ Liveness Valid: Senyum Terdeteksi (Ibu Guru)
               </div>
             </div>
           </div>
@@ -292,13 +324,50 @@
               👁️ TANTANGAN 2: KEDIPKAN MATA
             </span>
 
-            <!-- SIMULASI KAMERA / FRAME DETEKSI -->
-            <div style="width: 100%; height: 230px; background-color: #020617; border-radius: 10px; position: relative; overflow: hidden; display: flex; justify-content: center; align-items: center; border: 1px solid #334155;">
-              <div style="width: 140px; height: 170px; border: 3px solid #f59e0b; border-radius: 8px; position: relative; box-shadow: 0 0 15px rgba(245, 158, 11, 0.4);">
-                <span style="position: absolute; top: -28px; left: 50%; transform: translateX(-50%); background: #f59e0b; color: #020617; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 4px; white-space: nowrap;">
-                  👁️ Kedipkan Mata
+            <!-- FRAME KAMERA DENGAN GAMBAR IBU GURU (KEDIP MATA) -->
+            <div style="width: 100%; height: 260px; background-color: #020617; border-radius: 10px; position: relative; overflow: hidden; display: flex; justify-content: center; align-items: center; border: 1px solid #334155;">
+              
+              <!-- VECTOR WAJAH MANUSIA (IBU GURU BERJILBAB & KEDIP MATA) -->
+              <svg width="100%" height="100%" viewBox="0 0 200 240" preserveAspectRatio="xMidYMid slice" style="position: absolute; top:0; left:0;">
+                <defs>
+                  <linearGradient id="bgGrad2" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="#1e293b"/>
+                    <stop offset="100%" stop-color="#0f172a"/>
+                  </linearGradient>
+                </defs>
+                <rect width="200" height="240" fill="url(#bgGrad2)"/>
+                <!-- Background Ruangan Sekolah -->
+                <rect x="15" y="40" width="40" height="60" fill="#334155" opacity="0.4" rx="4"/>
+                <rect x="145" y="30" width="40" height="70" fill="#334155" opacity="0.4" rx="4"/>
+                <!-- Badan / Seragam Batik -->
+                <path d="M 40 240 C 40 180, 70 160, 100 160 C 130 160, 160 180, 160 240 Z" fill="#854d0e"/>
+                <path d="M 50 240 Q 100 190 150 240" stroke="#fef08a" stroke-width="3" fill="none" opacity="0.6"/>
+                <!-- Kerudung / Hijab -->
+                <path d="M 55 120 C 50 70, 70 40, 100 40 C 130 40, 150 70, 145 120 C 145 160, 135 180, 100 180 C 65 180, 55 160, 55 120 Z" fill="#d97706"/>
+                <!-- Muka / Skin -->
+                <ellipse cx="100" cy="115" rx="30" ry="36" fill="#fde047" opacity="0.9"/>
+                <!-- Mata Mengedip / Terpejam Rapat -->
+                <path d="M 83 109 Q 88 114 93 109" stroke="#1e293b" stroke-width="3" fill="none" stroke-linecap="round"/>
+                <path d="M 107 109 Q 112 114 117 109" stroke="#1e293b" stroke-width="3" fill="none" stroke-linecap="round"/>
+                <!-- Alis -->
+                <path d="M 82 100 Q 88 96 94 100" stroke="#78350f" stroke-width="2" fill="none"/>
+                <path d="M 106 100 Q 112 96 118 100" stroke="#78350f" stroke-width="2" fill="none"/>
+                <!-- Hidung -->
+                <path d="M 100 110 L 98 118 L 102 118" stroke="#b45309" stroke-width="1.5" fill="none"/>
+                <!-- Senyum Tipis -->
+                <path d="M 90 128 Q 100 134 110 128" stroke="#be123c" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+              </svg>
+
+              <!-- OVERLAY BOUNDING BOX DETEKSI AI (ORANYE) -->
+              <div style="width: 135px; height: 165px; border: 3px solid #f59e0b; border-radius: 8px; position: absolute; box-shadow: 0 0 15px rgba(245, 158, 11, 0.5); display: flex; justify-content: center;">
+                <span style="position: absolute; top: -28px; background: #f59e0b; color: #020617; font-size: 11px; font-weight: 700; padding: 2px 10px; border-radius: 4px; white-space: nowrap;">
+                  👁️ Kedipkan Mata: Ibu Guru
                 </span>
+                <!-- Landmark Mata Mengedip -->
+                <div style="position: absolute; top: 48px; left: 16px; width: 22px; height: 12px; border: 1.5px dashed #fcd34d; border-radius: 4px;"></div>
+                <div style="position: absolute; top: 48px; right: 16px; width: 22px; height: 12px; border: 1.5px dashed #fcd34d; border-radius: 4px;"></div>
               </div>
+
             </div>
 
             <!-- BADGE INDIKATOR PARAMETER -->
@@ -307,7 +376,7 @@
                 Eye-Aspect-Ratio (EAR) &lt; 0.29 Threshold
               </div>
               <div style="font-size: 12px; color: #cbd5e1; margin-top: 4px;">
-                ✔ Liveness Valid: Kedipan Terdeteksi Cepat
+                ✔ Liveness Valid: Kedipan Terdeteksi (Ibu Guru)
               </div>
             </div>
           </div>
@@ -332,12 +401,12 @@
   <script>
     function openPanduan() {
       document.getElementById('modalPanduan').classList.add('active');
-      document.body.style.overflow = 'hidden'; // Kunci scroll layar utama
+      document.body.style.overflow = 'hidden';
     }
 
     function closePanduan() {
       document.getElementById('modalPanduan').classList.remove('active');
-      document.body.style.overflow = ''; // Buka kembali scroll
+      document.body.style.overflow = '';
     }
 
     function closePanduanOutside(event) {
