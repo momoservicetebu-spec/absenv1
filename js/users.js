@@ -10,7 +10,14 @@ async function loadAdminData() {
   try {
     const response = await fetchAPI('getAdmin');
     if (response && response.success) {
-      const data = response.data || [];
+      const rawData = response.data || [];
+      // Saring baris kosong agar tidak muncul sebagai "- | - | - | Active"
+      const data = rawData.filter(admin => 
+        (admin.Username && String(admin.Username).trim() !== '') || 
+        (admin.Name && String(admin.Name).trim() !== '') ||
+        (admin.Nama && String(admin.Nama).trim() !== '')
+      );
+
       if (data.length === 0) {
         tbody.innerHTML = `<tr><td colspan="5" style="text-align: center;">Belum ada admin terdaftar.</td></tr>`;
         return;
@@ -82,6 +89,7 @@ async function simpanAdmin(event) {
     Username: username,
     Name: document.getElementById('admin-nama').value,
     Password: password,
+    PasswordHash: password,
     Role: document.getElementById('admin-role').value,
     Status: document.getElementById('admin-status').value
   };
@@ -209,7 +217,6 @@ async function hapusRole(namaRole) {
     alert('Terjadi kesalahan saat menghapus data.');
   }
 }
-
 // ==========================================
 // 3. JALANKAN OTOMATIS SAAT HALAMAN DIBUKA
 // ==========================================
