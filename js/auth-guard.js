@@ -5,6 +5,9 @@
 
 // 1. BLOK KEAMANAN (Berjalan Langsung Sebelum DOM Render)
 (function () {
+  // Batas waktu login: 8 jam (ubah angka 8 sesuai kebutuhan)
+  const MAX_SESSION_MS = 8 * 60 * 60 * 1000;
+
   const isLoggedInDirect = localStorage.getItem('isLoggedIn') === 'true';
   const roleDirect = localStorage.getItem('role');
   const sessionStr = localStorage.getItem('user_session');
@@ -20,6 +23,25 @@
 
   if (!isAuth) {
     alert("Akses ditolak! Anda harus login terlebih dahulu.");
+    window.location.replace("login.html");
+    return;
+  }
+
+  // Cek kedaluwarsa sesi login
+  const loginTime = parseInt(localStorage.getItem('login_timestamp') || '0', 10);
+  const now = Date.now();
+
+  if (!loginTime) {
+    localStorage.setItem('login_timestamp', now.toString());
+  } else if ((now - loginTime) > MAX_SESSION_MS) {
+    localStorage.removeItem('isLoggedIn');
+    localStorage.removeItem('role');
+    localStorage.removeItem('user_session');
+    localStorage.removeItem('nama');
+    localStorage.removeItem('userName');
+    localStorage.removeItem('login_timestamp');
+
+    alert("Sesi login Anda telah berakhir. Silakan login ulang.");
     window.location.replace("login.html");
     return;
   }
@@ -51,7 +73,6 @@ document.addEventListener("DOMContentLoaded", function() {
   if (sessionStr) {
     try {
       const sessionObj = JSON.parse(sessionStr);
-      // Mendukung kunci 'nama', 'name', atau 'userName' di dalam objek JSON
       if (sessionObj.nama) nama = sessionObj.nama;
       else if (sessionObj.name) nama = sessionObj.name;
       else if (sessionObj.userName) nama = sessionObj.userName;
