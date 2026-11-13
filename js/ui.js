@@ -2219,19 +2219,20 @@ const TAB_PERMISSIONS = {
   'Admin': [
     'dashboard', 'data-siswa', 'data-guru', 'import',
     'enrollment', 'fingerprint', 'rfid', 'barcode',
-    'admin-operator', 'hak-akses', 'jadwal-pelajaran',
-    'gate-pass', 'absensi-kelas', 'laporan-absensi',
+    'admin-operator', 'hak-akses', 'live-absen', 'jadwal-pelajaran',
+    'gate-pass', 'absensi-kelas', 'absensi-manual', 'laporan-absensi',
     'setting', 'backup', 'whatsapp-settings', 'geofencing'
   ],
 
   'Operator': [
     'dashboard', 'data-siswa', 'data-guru',
     'enrollment', 'fingerprint', 'rfid', 'barcode',
-    'absensi-kelas', 'laporan-absensi'
+    'live-absen', 'absensi-kelas', 'absensi-manual', 'laporan-absensi'
   ],
 
   'Guru Piket': [
-    'dashboard','gate-pass', 'absensi-kelas', 'laporan-absensi'
+    'dashboard', 'live-absen', 'gate-pass', 'absensi-kelas', 
+    'absensi-manual', 'laporan-absensi'
   ],
 
   'Guru Mata Pelajaran': [
@@ -2239,13 +2240,12 @@ const TAB_PERMISSIONS = {
   ],
 
   'Kepala Sekolah': [
-    'dashboard', 'laporan-absensi'
+    'dashboard', 'live-absen', 'laporan-absensi'
   ],
 
   'Guru': [
-  'dashboard', 'absensi-kelas', 'laporan-absensi'
+    'dashboard', 'absensi-kelas', 'laporan-absensi'
   ],
-
 };
 
 function renderSidebarByRole() {
