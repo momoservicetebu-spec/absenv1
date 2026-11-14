@@ -1742,3 +1742,23 @@ button[onclick*="unduhLaporanPoinBKPDF"]:hover {
     grid-template-columns: 1fr !important;
   }
 }
+
+/* Jaga lebar Select2 pada filter kelas Poin & BK agar sejajar inline */
+#poin-bk .select2-container {
+  width: 165px !important;
+  min-width: 150px !important;
+  margin: 0 !important;
+}
+
+#poin-bk .select2-selection--single {
+  height: 38px !important;
+  background-color: #161224 !important;
+  border: 1px solid #4a4563 !important;
+  border-radius: 6px !important;
+  padding: 4px 10px !important;
+}
+
+#poin-bk .select2-selection__rendered {
+  color: #ffffff !important;
+  line-height: 28px !important;
+}
