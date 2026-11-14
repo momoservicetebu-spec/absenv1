@@ -63,8 +63,8 @@
     <button class="nav-btn" onclick="switchTab('backup', this)" data-lang="navBackupRestore">💾 Backup & Restore</button>
     <button class="nav-btn" onclick="switchTab('whatsapp-settings', this)" data-lang="navNotifikasiWa">💬 Notifikasi WhatsApp</button>
     <button class="nav-btn" onclick="switchTab('geofencing', this)" data-lang="navLokasiGeofencing">📍 Lokasi & Geofencing</button>
-    
-    <button class="logout-btn" onclick="window.location.href='login.html'" data-lang="navKeluarSistem">🚪 Keluar Sistem</button>
+    <button type="button" onclick="clearAppCache()" style="color: #00d2d3; margin-top: 8px; background: rgba(0, 210, 211, 0.08); font-weight: 600;">🧹 Bersihkan Cache</button>
+    <button class="logout-btn" onclick="['isLoggedIn','role','user_session','nama','name','userName','username','login_timestamp'].forEach(k => localStorage.removeItem(k)); window.location.replace('login.html');" data-lang="navKeluarSistem">🚪 Keluar Sistem</button>  </div>
   </div>
   <!-- Header khusus Mobile -->
   <div class="mobile-header">
