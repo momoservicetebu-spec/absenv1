@@ -1396,3 +1396,49 @@ canvas { position: absolute; top: 0; left: 0; }
 .sidebar .menu-group.group-closed::after {
   transform: translateY(-50%) rotate(-90deg);
 }
+
+/* ========================================================= */
+/* PERBAIKAN WIDGET JAM 1 BARIS & FILTER DASHBOARD           */
+/* ========================================================= */
+.dashboard-header-controls {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 10px !important;
+}
+
+.filter-input-group {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  align-items: center !important;
+  gap: 10px !important;
+  flex: 1 !important;
+}
+
+/* Sembunyikan container Select2 saat <select> aslinya memiliki class .hidden */
+select.hidden + .select2-container {
+  display: none !important;
+}
+
+#clock-widget {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 4px !important;
+  white-space: nowrap !important;
+  flex-shrink: 0 !important;
+  background-color: #1a192f !important;
+  border: 1px solid #33334d !important;
+  padding: 8px 14px !important;
+  border-radius: 6px !important;
+  font-size: 13px !important;
+  margin-left: auto !important;
+}
+
+@media (max-width: 768px) {
+  #clock-widget {
+    width: 100% !important;
+    justify-content: center !important;
+    margin-left: 0 !important;
+  }
+}
