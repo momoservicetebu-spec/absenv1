@@ -1443,3 +1443,59 @@ select.hidden + .select2-container {
   }
 }
 .filter-input-group .select2-container { width: auto !important; min-width: 150px !important; }
+
+/* ========================================================= */
+/* PERAPIHAN KOTAK INPUT MODAL KINERJA GURU                  */
+/* ========================================================= */
+#modalKinerjaGuru .modal-card {
+  max-width: 680px !important;
+  width: 95% !important;
+}
+
+#modalKinerjaGuru .form-grid {
+  display: grid !important;
+  grid-template-columns: repeat(2, 1fr) !important;
+  gap: 14px 16px !important;
+  align-items: start !important;
+}
+
+#modalKinerjaGuru .form-group {
+  width: 100% !important;
+  margin-bottom: 0 !important;
+}
+
+#modalKinerjaGuru .form-group.full-row {
+  grid-column: 1 / -1 !important;
+}
+
+#modalKinerjaGuru .form-group label {
+  display: block !important;
+  margin-bottom: 6px !important;
+  font-size: 12.5px !important;
+}
+
+#modalKinerjaGuru input[type="month"],
+#modalKinerjaGuru input[type="number"],
+#modalKinerjaGuru input[type="text"],
+#modalKinerjaGuru select,
+#modalKinerjaGuru .select2-container {
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+  height: 40px !important;
+  padding: 8px 12px !important;
+}
+
+#modalKinerjaGuru .select2-selection--single {
+  height: 40px !important;
+  padding: 5px 12px !important;
+  background-color: #161224 !important;
+  border: 1px solid #4a4563 !important;
+  border-radius: 6px !important;
+}
+
+@media (max-width: 640px) {
+  #modalKinerjaGuru .form-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
