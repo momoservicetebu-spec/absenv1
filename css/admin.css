@@ -1529,3 +1529,154 @@ button[onclick*="exportKinerjaGuruPDF"]:hover {
     grid-template-columns: 1fr !important;
   }
 }
+
+/* ========================================================= */
+/* MODUL SISTEM POIN SISWA & BIMBINGAN KONSELING (BK)        */
+/* ========================================================= */
+
+/* Perapihan Tabel di Halaman Poin & BK */
+#poin-bk table th {
+  background-color: #161224 !important;
+  color: #a29bfe !important;
+  font-size: 11.5px !important;
+  text-transform: uppercase !important;
+  padding: 12px 10px !important;
+  border-bottom: 1px solid #383252 !important;
+  white-space: nowrap !important;
+}
+
+#poin-bk table td {
+  padding: 10px !important;
+  border-bottom: 1px solid #2c2640 !important;
+  font-size: 13px !important;
+  vertical-align: middle !important;
+}
+
+#poin-bk table tbody tr:hover {
+  background-color: rgba(108, 92, 231, 0.08) !important;
+}
+
+/* Tombol Aksi Mini di Kolom Tabel */
+#poin-bk .btn-small {
+  padding: 5px 9px !important;
+  font-size: 11.5px !important;
+  border-radius: 5px !important;
+  margin: 2px 1px !important;
+}
+
+/* Tombol Unduh Laporan PDF Merah */
+button[onclick*="unduhLaporanPoinBKPDF"] {
+  background: #d63031 !important;
+  border: 1px solid #ff7675 !important;
+  color: #ffffff !important;
+  transition: background 0.2s ease !important;
+}
+
+button[onclick*="unduhLaporanPoinBKPDF"]:hover {
+  background: #b71540 !important;
+}
+
+/* Perapihan 3 Modal (Input Poin, Konseling BK, Master Jenis Poin) */
+#modalInputPoin .modal-card,
+#modalInputBK .modal-card,
+#modalMasterPoin .modal-card {
+  width: 95% !important;
+  background-color: #1e1a2e !important;
+  border: 1px solid #4a4563 !important;
+  border-radius: 12px !important;
+  padding: 20px !important;
+}
+
+#modalInputPoin .form-group,
+#modalInputBK .form-group,
+#modalMasterPoin .form-group {
+  width: 100% !important;
+  margin-bottom: 0 !important;
+}
+
+#modalInputPoin .form-group label,
+#modalInputBK .form-group label,
+#modalMasterPoin .form-group label {
+  display: block !important;
+  margin-bottom: 6px !important;
+  font-size: 12.5px !important;
+  color: #dcd6f7 !important;
+}
+
+#modalInputPoin input[type="date"],
+#modalInputPoin input[type="number"],
+#modalInputPoin input[type="text"],
+#modalInputPoin select,
+#modalInputBK input[type="date"],
+#modalInputBK input[type="text"],
+#modalInputBK select,
+#modalMasterPoin input[type="number"],
+#modalMasterPoin input[type="text"],
+#modalMasterPoin select {
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+  height: 40px !important;
+  padding: 8px 12px !important;
+  background-color: #161224 !important;
+  border: 1px solid #4a4563 !important;
+  border-radius: 6px !important;
+  color: #ffffff !important;
+}
+
+/* Select2 Dark Theme di Dalam Modal Poin & BK */
+#modalInputPoin .select2-container,
+#modalInputBK .select2-container {
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+  padding: 0 !important;
+}
+
+#modalInputPoin .select2-selection--single,
+#modalInputBK .select2-selection--single {
+  height: 40px !important;
+  padding: 5px 12px !important;
+  background-color: #161224 !important;
+  border: 1px solid #4a4563 !important;
+  border-radius: 6px !important;
+}
+
+#modalInputPoin .select2-selection__rendered,
+#modalInputBK .select2-selection__rendered {
+  line-height: 28px !important;
+  padding-left: 0 !important;
+  color: #ffffff !important;
+}
+
+#modalInputPoin .select2-selection__arrow,
+#modalInputBK .select2-selection__arrow {
+  height: 38px !important;
+}
+
+#modalInputPoin .select2-dropdown,
+#modalInputBK .select2-dropdown {
+  background-color: #161224 !important;
+  border: 1px solid #6c5ce7 !important;
+  color: #ffffff !important;
+}
+
+#modalInputPoin .select2-search__field,
+#modalInputBK .select2-search__field {
+  background-color: #1e1a2e !important;
+  color: #ffffff !important;
+  border: 1px solid #4a4563 !important;
+}
+
+#modalInputPoin .select2-results__option--highlighted,
+#modalInputBK .select2-results__option--highlighted {
+  background-color: #6c5ce7 !important;
+  color: #ffffff !important;
+}
+
+@media (max-width: 640px) {
+  #modalInputPoin .form-grid,
+  #modalInputBK .form-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
