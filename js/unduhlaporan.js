@@ -421,7 +421,7 @@ function triggerPrintWithPreload(htmlContent) {
 }
 
 /**
- * HELPER: Muat library html2pdf secara otomatis jika belum ada
+ * HELPER: Muat library eksternal sekali saja
  */
 function loadPdfLibOnce_(src) {
   return new Promise((resolve, reject) => {
@@ -435,7 +435,7 @@ function loadPdfLibOnce_(src) {
 }
 
 /**
- * HELPER: Konversi gambar logo/TTD ke DataURL aman agar tidak memblokir html2pdf
+ * HELPER: Konversi gambar logo/TTD ke DataURL aman untuk jsPDF
  */
 function toBase64ImageSafe_(url) {
   return new Promise((resolve) => {
@@ -466,7 +466,7 @@ function toBase64ImageSafe_(url) {
 }
 
 /**
- * 4. FUNGSI UNDUH LANGSUNG FILE PDF PERFORMA KINERJA GURU (PKG)
+ * 4. FUNGSI UNDUH LANGSUNG FILE PDF PERFORMA KINERJA GURU (NATIVE VECTOR PDF)
  */
 async function unduhKinerjaGuruPDF(btnEl) {
   const rawData = (typeof cacheKinerjaGuru !== "undefined" && Array.isArray(cacheKinerjaGuru))
@@ -490,20 +490,23 @@ async function unduhKinerjaGuruPDF(btnEl) {
     return;
   }
 
-  const targetBtn = btnEl || document.querySelector('button[onclick*="unduhKinerjaGuruPDF"]');
+  const targetBtn = btnEl || document.querySelector('button[onclick*="unduhKinerjaGuruPDF"], button[onclick*="exportKinerjaGuruPDF"]');
   const oldLabel = targetBtn ? targetBtn.innerHTML : "";
   if (targetBtn) {
     targetBtn.disabled = true;
     targetBtn.innerHTML = "⏳ Mengunduh PDF...";
   }
 
-  let wrapper = null;
-
   try {
-    if (typeof html2pdf === "undefined") {
-      await loadPdfLibOnce_("https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js");
+    // Muat jsPDF & jsPDF-AutoTable
+    if (!window.jspdf) {
+      await loadPdfLibOnce_("https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js");
+    }
+    if (!window.jspdf?.jsPDF?.API?.autoTable) {
+      await loadPdfLibOnce_("https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js");
     }
 
+    // Ambil identitas sekolah & TTD dari Settings
     const instansiAtas = getSettingVal("INSTANSI_ATAS", ["setting-instansi-atas", "set-instansi-atas"], "PEMERINTAH PROVINSI LAMPUNG");
     const dinas = getSettingVal("DINAS", ["setting-dinas", "set-dinas"], "DINAS PENDIDIKAN DAN KEBUDAYAAN");
     const namaSekolah = getSettingVal("SCHOOL_NAME", ["setting-nama-sekolah", "set-nama-sekolah"], "SMA NEGERI 1 BUMI AGUNG");
@@ -528,111 +531,159 @@ async function unduhKinerjaGuruPDF(btnEl) {
     const [thn, bln] = periodeVal.split("-");
     const periodeLabel = (thn && bln) ? `${namaBulan[parseInt(bln, 10) - 1] || bln} ${thn}` : periodeVal;
 
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
+    const pageWidth = doc.internal.pageSize.getWidth(); // 297 mm
+
+    // --- KOP SURAT RESMI ---
+    if (logoKiri && logoKiri.startsWith("data:image/")) {
+      try { doc.addImage(logoKiri, "PNG", 16, 10, 19, 21); } catch (e) {}
+    }
+    if (logoKanan && logoKanan.startsWith("data:image/")) {
+      try { doc.addImage(logoKanan, "PNG", pageWidth - 35, 10, 19, 21); } catch (e) {}
+    }
+
+    doc.setTextColor(0, 0, 0);
+    doc.setFont("times", "normal");
+    doc.setFontSize(11.5);
+    doc.text(String(instansiAtas).toUpperCase(), pageWidth / 2, 14, { align: "center" });
+    doc.text(String(dinas).toUpperCase(), pageWidth / 2, 19, { align: "center" });
+
+    doc.setFont("times", "bold");
+    doc.setFontSize(14.5);
+    doc.text(String(namaSekolah).toUpperCase(), pageWidth / 2, 24.5, { align: "center" });
+
+    doc.setFont("times", "italic");
+    doc.setFontSize(8.5);
+    doc.text(`${alamatSekolah}  |  ${website}`, pageWidth / 2, 29.5, { align: "center" });
+
+    // Garis Ganda Kop Surat
+    doc.setLineWidth(0.7);
+    doc.line(14, 33, pageWidth - 14, 33);
+    doc.setLineWidth(0.25);
+    doc.line(14, 34.2, pageWidth - 14, 34.2);
+
+    // --- JUDUL DOKUMEN ---
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(11.5);
+    doc.text("LAPORAN EVALUASI PERFORMA KINERJA GURU (PKG)", pageWidth / 2, 41, { align: "center" });
+
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(9);
+    doc.text(
+      `Periode Penilaian: ${periodeLabel}   |   Bobot: Kehadiran (40%) & Supervisi Mengajar (60%)   |   Dicetak: ${new Date().toLocaleDateString("id-ID")}`,
+      pageWidth / 2, 46, { align: "center" }
+    );
+
+    // --- RINGKASAN KPI ---
     const totalGuru = listData.length;
     const rataSkor = (listData.reduce((sum, x) => sum + Number(x.skorAkhir || 0), 0) / totalGuru).toFixed(1);
     const sangatBaik = listData.filter(x => Number(x.skorAkhir) >= 91).length;
     const perluBina = listData.filter(x => Number(x.skorAkhir) < 70).length;
 
-    const rowsHtml = listData.map((item, i) => `
-      <tr>
-        <td style="border:1px solid #000; padding:6px; text-align:center;">${i + 1}</td>
-        <td style="border:1px solid #000; padding:6px;">
-          <strong>${item.namaGuru}</strong><br>
-          <span style="font-size:10px; color:#333;">NIP. ${item.nip || "-"}</span>
-        </td>
-        <td style="border:1px solid #000; padding:6px;">${item.jabatan || "-"}</td>
-        <td style="border:1px solid #000; padding:6px; text-align:center;">${item.skorKehadiran}</td>
-        <td style="border:1px solid #000; padding:6px; text-align:center;">${item.skorPerangkat}</td>
-        <td style="border:1px solid #000; padding:6px; text-align:center;">${item.skorMengajar}</td>
-        <td style="border:1px solid #000; padding:6px; text-align:center;">${item.skorAdministrasi}</td>
-        <td style="border:1px solid #000; padding:6px; text-align:center; font-weight:bold;">${Number(item.skorAkhir).toFixed(1)}</td>
-        <td style="border:1px solid #000; padding:6px; text-align:center; font-weight:bold;">${item.predikat}</td>
-        <td style="border:1px solid #000; padding:6px;">${item.catatan || "-"}</td>
-      </tr>
-    `).join("");
+    doc.setFillColor(242, 242, 242);
+    doc.setDrawColor(0, 0, 0);
+    doc.setLineWidth(0.2);
+    doc.rect(14, 49.5, pageWidth - 28, 7, "FD");
 
-    const imgKiriTag = logoKiri ? `<img src="${logoKiri}" style="height:72px; width:auto; object-fit:contain;">` : `<div style="width:72px;"></div>`;
-    const imgKananTag = logoKanan ? `<img src="${logoKanan}" style="height:72px; width:auto; object-fit:contain;">` : `<div style="width:72px;"></div>`;
-    const imgTtdTag = ttdKepsek ? `<img src="${ttdKepsek}" style="max-height:55px; max-width:140px; object-fit:contain;">` : "";
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(8.5);
+    doc.text(`Total Dinilai: ${totalGuru} Guru`, 18, 54);
+    doc.text(`Rata-Rata Skor: ${rataSkor}`, 85, 54);
+    doc.text(`Predikat Sangat Baik (>=91): ${sangatBaik} Guru`, 150, 54);
+    doc.text(`Perlu Pembinaan (<70): ${perluBina} Guru`, 230, 54);
 
-    wrapper = document.createElement("div");
-wrapper.style.cssText = "position:fixed; left:0; top:0; z-index:-1; opacity:0.99; background:#ffffff; color:#000000; padding:12px 18px; font-family:'Times New Roman', Times, serif; width:1040px;";    wrapper.innerHTML = `
-      <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:3px double #000; padding-bottom:8px; margin-bottom:12px;">
-        ${imgKiriTag}
-        <div style="text-align:center; flex:1; padding:0 10px;">
-          <div style="font-size:13px; text-transform:uppercase;">${instansiAtas}</div>
-          <div style="font-size:13px; text-transform:uppercase;">${dinas}</div>
-          <div style="font-size:17px; font-weight:bold; text-transform:uppercase; margin:2px 0;">${namaSekolah}</div>
-          <div style="font-size:10.5px; font-style:italic;">${alamatSekolah}</div>
-          <div style="font-size:10.5px; font-style:italic;">${website}</div>
-        </div>
-        ${imgKananTag}
-      </div>
+    // --- TABEL DATA ---
+    const tableBody = listData.map((item, idx) => [
+      idx + 1,
+      `${item.namaGuru}\nNIP. ${item.nip || "-"}`,
+      item.jabatan || "-",
+      item.skorKehadiran,
+      item.skorPerangkat,
+      item.skorMengajar,
+      item.skorAdministrasi,
+      Number(item.skorAkhir).toFixed(1),
+      item.predikat,
+      item.catatan || "-"
+    ]);
 
-      <div style="text-align:center; margin-bottom:10px; font-family:Arial, sans-serif;">
-        <div style="font-size:14px; font-weight:bold; text-decoration:underline; text-transform:uppercase;">LAPORAN EVALUASI PERFORMA KINERJA GURU (PKG)</div>
-        <div style="font-size:11px; margin-top:4px;">Periode Penilaian: <strong>${periodeLabel}</strong> | Bobot: Kehadiran (40%) & Supervisi Mengajar (60%) | Dicetak: ${new Date().toLocaleDateString("id-ID")}</div>
-      </div>
+    doc.autoTable({
+      startY: 59,
+      margin: { left: 14, right: 14 },
+      head: [[
+        "NO", "NAMA GURU & NIP", "JABATAN / MAPEL",
+        "HADIR\n(40%)", "PERANGKAT\n(20%)", "MENGAJAR\n(25%)", "ADMIN\n(15%)",
+        "SKOR\nAKHIR", "PREDIKAT", "CATATAN PEMBINAAN"
+      ]],
+      body: tableBody,
+      theme: "grid",
+      styles: {
+        font: "helvetica",
+        fontSize: 8.5,
+        textColor: [0, 0, 0],
+        lineColor: [0, 0, 0],
+        lineWidth: 0.2,
+        cellPadding: 2.5,
+        valign: "middle"
+      },
+      headStyles: {
+        fillColor: [224, 224, 224],
+        textColor: [0, 0, 0],
+        fontStyle: "bold",
+        halign: "center"
+      },
+      columnStyles: {
+        0: { halign: "center", cellWidth: 10 },
+        1: { cellWidth: 54 },
+        2: { cellWidth: 38 },
+        3: { halign: "center", cellWidth: 17 },
+        4: { halign: "center", cellWidth: 21 },
+        5: { halign: "center", cellWidth: 21 },
+        6: { halign: "center", cellWidth: 17 },
+        7: { halign: "center", cellWidth: 18, fontStyle: "bold" },
+        8: { halign: "center", cellWidth: 25, fontStyle: "bold" },
+        9: { cellWidth: 48 }
+      }
+    });
 
-      <div style="display:flex; justify-content:space-between; border:1px solid #000; background:#f2f2f2; padding:6px 12px; margin-bottom:10px; font-family:Arial, sans-serif; font-size:11px;">
-        <span><strong>Total Dinilai:</strong> ${totalGuru} Guru</span>
-        <span><strong>Rata-Rata Skor:</strong> ${rataSkor}</span>
-        <span><strong>Sangat Baik (≥91):</strong> ${sangatBaik} Guru</span>
-        <span><strong>Perlu Pembinaan (<70):</strong> ${perluBina} Guru</span>
-      </div>
+    // --- BLOK TANDA TANGAN KEPALA SEKOLAH ---
+    let finalY = (doc.lastAutoTable?.finalY || 120) + 10;
+    if (finalY > 168) {
+      doc.addPage();
+      finalY = 20;
+    }
 
-      <table style="width:100%; border-collapse:collapse; font-family:Arial, sans-serif; font-size:11px;">
-        <thead>
-          <tr style="background:#e0e0e0;">
-            <th style="border:1px solid #000; padding:6px; width:32px;">NO</th>
-            <th style="border:1px solid #000; padding:6px; width:190px;">NAMA GURU & NIP</th>
-            <th style="border:1px solid #000; padding:6px; width:135px;">JABATAN / MAPEL</th>
-            <th style="border:1px solid #000; padding:6px; width:62px;">HADIR<br>(40%)</th>
-            <th style="border:1px solid #000; padding:6px; width:72px;">PERANGKAT<br>(20%)</th>
-            <th style="border:1px solid #000; padding:6px; width:72px;">MENGAJAR<br>(25%)</th>
-            <th style="border:1px solid #000; padding:6px; width:62px;">ADMIN<br>(15%)</th>
-            <th style="border:1px solid #000; padding:6px; width:62px;">SKOR<br>AKHIR</th>
-            <th style="border:1px solid #000; padding:6px; width:95px;">PREDIKAT</th>
-            <th style="border:1px solid #000; padding:6px;">CATATAN</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${rowsHtml}
-        </tbody>
-      </table>
+    const ttdX = pageWidth - 65;
+    doc.setFont("times", "normal");
+    doc.setFontSize(10.5);
+    doc.text("Mengetahui,", ttdX, finalY, { align: "center" });
+    doc.text("Kepala Sekolah", ttdX, finalY + 5, { align: "center" });
 
-      <div style="margin-top:22px; display:flex; justify-content:flex-end; font-size:12px;">
-        <div style="text-align:center; min-width:230px;">
-          <div>Mengetahui,</div>
-          <div>Kepala Sekolah</div>
-          <div style="height:60px; display:flex; align-items:center; justify-content:center;">${imgTtdTag}</div>
-          <div><strong><u>${namaKepsek}</u></strong></div>
-          <div>NIP. ${nipKepsek}</div>
-        </div>
-      </div>
-    `;
+    if (ttdKepsek && ttdKepsek.startsWith("data:image/")) {
+      try { doc.addImage(ttdKepsek, "PNG", ttdX - 18, finalY + 6, 36, 15); } catch (e) {}
+    }
 
-    document.body.appendChild(wrapper);
+    doc.setFont("times", "bold");
+    doc.text(String(namaKepsek), ttdX, finalY + 24, { align: "center" });
+    const nameWidth = doc.getTextWidth(String(namaKepsek));
+    doc.setLineWidth(0.3);
+    doc.line(ttdX - nameWidth / 2, finalY + 25, ttdX + nameWidth / 2, finalY + 25);
 
-    const opt = {
-      margin: [8, 8, 8, 8],
-      filename: `Laporan_Performa_Kinerja_Guru_${periodeVal}.pdf`,
-      image: { type: "jpeg", quality: 0.98 },
-      html2canvas: { scale: 2, useCORS: true, logging: false },
-      jsPDF: { unit: "mm", format: "a4", orientation: "landscape" }
-    };
+    doc.setFont("times", "normal");
+    doc.text(`NIP. ${nipKepsek}`, ttdX, finalY + 29.5, { align: "center" });
 
-    await html2pdf().set(opt).from(wrapper).save();
+    // Simpan langsung ke folder Downloads
+    doc.save(`Laporan_Performa_Kinerja_Guru_${periodeVal}.pdf`);
   } catch (err) {
     console.error("Gagal mengunduh PDF:", err);
-    alert("Gagal mengunduh file PDF. Periksa koneksi internet Anda lalu coba kembali.");
+    alert("Gagal membuat file PDF. Periksa koneksi internet Anda lalu coba kembali.");
   } finally {
-    if (wrapper && wrapper.parentNode) {
-      wrapper.parentNode.removeChild(wrapper);
-    }
     if (targetBtn) {
       targetBtn.disabled = false;
       targetBtn.innerHTML = oldLabel || "📄 Unduh PDF";
     }
   }
 }
+
+// Alias agar tetap jalan jika tombol memanggil exportKinerjaGuruPDF()
+const exportKinerjaGuruPDF = unduhKinerjaGuruPDF;
