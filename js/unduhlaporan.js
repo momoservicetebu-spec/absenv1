@@ -300,6 +300,173 @@ function unduhLiveMonitorPDF() {
     });
   }
 
+  /**
+ * 4. FUNGSI UNDUH LAPORAN PDF PERFORMA KINERJA GURU (PKG)
+ */
+function unduhKinerjaGuruPDF() {
+  const rawData = (typeof cacheKinerjaGuru !== 'undefined' && Array.isArray(cacheKinerjaGuru))
+    ? cacheKinerjaGuru
+    : [];
+
+  if (rawData.length === 0) {
+    alert("Belum ada data penilaian kinerja guru pada periode ini untuk dicetak.");
+    return;
+  }
+
+  // Terapkan filter pencarian jika kolom cari sedang diisi
+  const keyword = (document.getElementById("kg-search-input")?.value || "").toLowerCase();
+  const listData = rawData.filter(item =>
+    String(item.namaGuru || "").toLowerCase().includes(keyword) ||
+    String(item.nip || "").toLowerCase().includes(keyword) ||
+    String(item.predikat || "").toLowerCase().includes(keyword)
+  );
+
+  if (listData.length === 0) {
+    alert("Data hasil pencarian kosong untuk dicetak ke PDF.");
+    return;
+  }
+
+  // Ambil identitas sekolah & tanda tangan dari Settings
+  const instansiAtas = getSettingVal("INSTANSI_ATAS", ["setting-instansi-atas", "set-instansi-atas"], "PEMERINTAH PROVINSI LAMPUNG");
+  const dinas = getSettingVal("DINAS", ["setting-dinas", "set-dinas"], "DINAS PENDIDIKAN DAN KEBUDAYAAN");
+  const namaSekolah = getSettingVal("SCHOOL_NAME", ["setting-nama-sekolah", "set-nama-sekolah"], "SMA NEGERI 1 BUMI AGUNG");
+  const alamatSekolah = getSettingVal("SCHOOL_ADDRESS", ["setting-alamat", "set-alamat-kop"], "Jl. Protokol No 1 Pisang Baru, Kec. Bumi Agung, Kab. Way Kanan");
+  const website = getSettingVal("WEBSITE", ["setting-website"], "Website: sman1ba.sch.id");
+
+  const logoKiri = fixDrivePhotoUrl(getSettingVal("LOGO_KIRI", ["setting-logo-kiri", "set-logo-sekolah"], ""));
+  const logoKanan = fixDrivePhotoUrl(getSettingVal("SCHOOL_LOGO_URL", ["setting-logo-kanan", "set-logo-kanan"], ""));
+  const ttdKepsek = fixDrivePhotoUrl(getSettingVal("TTD_KEPSEK", ["setting-ttd-kepsek", "set-ttd-kepsek"], ""));
+
+  const namaKepsek = getSettingVal("HEADMASTER_NAME", ["setting-nama-kepsek", "set-nama-kepsek"], "AMRODI NURUL HUDA, S.Ag");
+  const nipKepsek = getSettingVal("HEADMASTER_NIP", ["setting-nip", "set-nip-kepsek"], "197103041998021001");
+
+  // Format label periode (YYYY-MM -> Nama Bulan Tahun)
+  const periodeVal = document.getElementById("kg-filter-periode")?.value || new Date().toISOString().slice(0, 7);
+  const namaBulan = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+  const [thn, bln] = periodeVal.split("-");
+  const periodeLabel = (thn && bln) ? `${namaBulan[parseInt(bln, 10) - 1] || bln} ${thn}` : periodeVal;
+
+  // Ringkasan statistik
+  const totalGuru = listData.length;
+  const rataSkor = (listData.reduce((sum, x) => sum + Number(x.skorAkhir || 0), 0) / totalGuru).toFixed(1);
+  const sangatBaik = listData.filter(x => Number(x.skorAkhir) >= 91).length;
+  const perluBina = listData.filter(x => Number(x.skorAkhir) < 70).length;
+
+  let bodyTabelHtml = "";
+  listData.forEach((item, i) => {
+    bodyTabelHtml += `
+      <tr>
+        <td style="text-align: center;">${i + 1}</td>
+        <td>
+          <strong>${item.namaGuru}</strong><br>
+          <span style="font-size: 8.5pt; color: #444;">NIP. ${item.nip || "-"}</span>
+        </td>
+        <td>${item.jabatan || "-"}</td>
+        <td style="text-align: center;">${item.skorKehadiran}</td>
+        <td style="text-align: center;">${item.skorPerangkat}</td>
+        <td style="text-align: center;">${item.skorMengajar}</td>
+        <td style="text-align: center;">${item.skorAdministrasi}</td>
+        <td style="text-align: center; font-weight: bold; font-size: 10.5pt;">${Number(item.skorAkhir).toFixed(1)}</td>
+        <td style="text-align: center; font-weight: bold;">${item.predikat}</td>
+        <td>${item.catatan || "-"}</td>
+      </tr>`;
+  });
+
+  const imgKiriTag = logoKiri ? `<img src="${logoKiri}" style="height: 80px; width: auto; max-width: 85px; object-fit: contain;" alt="Logo Kiri">` : '<div style="width: 80px;"></div>';
+  const imgKananTag = logoKanan ? `<img src="${logoKanan}" style="height: 80px; width: auto; max-width: 85px; object-fit: contain;" alt="Logo Kanan">` : '<div style="width: 80px;"></div>';
+  const imgTtdTag = ttdKepsek ? `<img src="${ttdKepsek}" style="max-height: 60px; max-width: 150px; object-fit: contain;" alt="TTD">` : '';
+
+  const htmlContent = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <title>Laporan_Performa_Kinerja_Guru_${periodeVal}</title>
+      <style>
+        body { font-family: 'Times New Roman', Times, serif; color: #000; padding: 20px; margin: 0; }
+        .kop-container { display: flex; justify-content: space-between; align-items: center; border-bottom: 4px double #000; padding-bottom: 8px; margin-bottom: 14px; }
+        .kop-center { text-align: center; flex-grow: 1; padding: 0 10px; }
+        .kop-center h2 { margin: 0; font-size: 13pt; font-weight: normal; text-transform: uppercase; }
+        .kop-center h1 { margin: 2px 0; font-size: 15pt; font-weight: bold; text-transform: uppercase; }
+        .kop-center p { margin: 0; font-size: 8.5pt; font-style: italic; }
+
+        .judul-doc { text-align: center; margin: 12px 0 14px 0; }
+        .judul-doc h3 { margin: 0; font-size: 12pt; text-decoration: underline; text-transform: uppercase; font-family: Arial, sans-serif; }
+        .judul-doc p { margin: 4px 0 0 0; font-size: 9.5pt; font-family: Arial, sans-serif; }
+
+        .kpi-summary { display: flex; justify-content: space-between; border: 1px solid #000; background-color: #f5f5f5; padding: 6px 12px; margin-bottom: 12px; font-family: Arial, sans-serif; font-size: 9pt; }
+
+        table { width: 100%; border-collapse: collapse; font-family: Arial, sans-serif; font-size: 9.5pt; }
+        th, td { border: 1px solid #000; padding: 6px 8px; vertical-align: middle; }
+        th { background-color: #e0e0e0; font-weight: bold; text-align: center; }
+
+        .ttd-container { margin-top: 25px; float: right; text-align: center; font-size: 11pt; padding-right: 20px; min-width: 230px; page-break-inside: avoid; }
+        .ttd-container p { margin: 2px 0; }
+        .ttd-space { height: 65px; display: flex; align-items: center; justify-content: center; }
+
+        @media print {
+          @page { size: A4 landscape; margin: 12mm; }
+          body { padding: 0; }
+        }
+      </style>
+    </head>
+    <body>
+      <div class="kop-container">
+        ${imgKiriTag}
+        <div class="kop-center">
+          <h2>${instansiAtas}</h2>
+          <h2>${dinas}</h2>
+          <h1>${namaSekolah}</h1>
+          <p>${alamatSekolah}</p>
+          <p>${website}</p>
+        </div>
+        ${imgKananTag}
+      </div>
+
+      <div class="judul-doc">
+        <h3>LAPORAN EVALUASI PERFORMA KINERJA GURU (PKG)</h3>
+        <p>Periode Penilaian: <strong>${periodeLabel}</strong> | Bobot: Kehadiran (40%) & Supervisi Mengajar (60%) | Dicetak: ${new Date().toLocaleDateString('id-ID')}</p>
+      </div>
+
+      <div class="kpi-summary">
+        <span><strong>Total Guru Dinilai:</strong> ${totalGuru} Orang</span>
+        <span><strong>Rata-Rata Skor:</strong> ${rataSkor}</span>
+        <span><strong>Predikat Sangat Baik (≥91):</strong> ${sangatBaik} Guru</span>
+        <span><strong>Perlu Pembinaan (<70):</strong> ${perluBina} Guru</span>
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th style="width: 30px;">NO</th>
+            <th style="width: 190px;">NAMA GURU & NIP</th>
+            <th style="width: 140px;">JABATAN / MAPEL</th>
+            <th style="width: 65px;">HADIR<br>(40%)</th>
+            <th style="width: 75px;">PERANGKAT<br>(20%)</th>
+            <th style="width: 75px;">MENGAJAR<br>(25%)</th>
+            <th style="width: 65px;">ADMIN<br>(15%)</th>
+            <th style="width: 65px;">SKOR<br>AKHIR</th>
+            <th style="width: 95px;">PREDIKAT</th>
+            <th>CATATAN PEMBINAAN</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${bodyTabelHtml}
+        </tbody>
+      </table>
+
+      <div class="ttd-container">
+        <p>Mengetahui,</p>
+        <p>Kepala Sekolah</p>
+        <div class="ttd-space">${imgTtdTag}</div>
+        <p><strong><u>${namaKepsek}</u></strong></p>
+        <p>NIP. ${nipKepsek}</p>
+      </div>
+    </body>
+    </html>
+  `;
+
+  triggerPrintWithPreload(htmlContent);
+}
   // STYLE PENYEIMBANG UKURAN LOGO
   const imgKiriTag = logoKiri ? `<img src="${logoKiri}" style="height: 80px; width: auto; max-width: 85px; object-fit: contain;" alt="Logo Kiri">` : '<div style="width: 80px;"></div>';
   const imgKananTag = logoKanan ? `<img src="${logoKanan}" style="height: 80px; width: auto; max-width: 85px; object-fit: contain;" alt="Logo Kanan">` : '<div style="width: 80px;"></div>';
