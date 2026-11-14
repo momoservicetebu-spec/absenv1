@@ -1104,6 +1104,8 @@
         <div style="display: flex; gap: 10px; flex-wrap: wrap;">
           <button type="button" class="btn-action" onclick="exportKinerjaGuruCSV()" style="background: #161224; border: 1px solid #6c5ce7; color: #a29bfe;">
             📥 Export CSV
+          </button> <button type="button" class="btn-action" onclick="syncAbsensiKinerja()" style="background: #0984e3; color: #fff;">
+            🔄 Sinkron Absensi Otomatis
           </button>
           <button type="button" class="btn-action btn-success" onclick="openModalKinerjaGuru()">
             ➕ Nilai Kinerja Guru
@@ -2049,8 +2051,9 @@
           </div>
 
           <div class="form-group">
-            <label>1. Skor Kehadiran (Bobot 40% - Auto Log)</label>
-            <input type="number" id="kg-skor-hadir" min="0" max="100" value="100" required oninput="hitungPreviewKinerja()">
+            <label>1. Skor Kehadiran (40% - Otomatis dari Log Absen)</label>
+            <input type="number" id="kg-skor-hadir" value="0" readonly style="opacity: 0.8; background: #0f0d1c; cursor: not-allowed;">
+            <small id="kg-absen-detail" style="color: #1dd1a1; display: block; margin-top: 4px; font-size: 11px;">Pilih guru untuk menarik rekap absensi...</small>
           </div>
 
           <div class="form-group">

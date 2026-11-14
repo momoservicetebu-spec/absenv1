@@ -138,9 +138,30 @@ function openModalKinerjaGuru() {
 function onSelectGuruKinerja() {
   const guruId = document.getElementById('kg-guru-select').value;
   const guru = cacheDaftarGuruKG.find(g => String(g.guruId) === String(guruId));
+  const detailEl = document.getElementById('kg-absen-detail');
+
   if (guru) {
     document.getElementById('kg-skor-hadir').value = guru.skorKehadiranAuto;
+    if (detailEl) detailEl.textContent = guru.ringkasanAbsen || 'Tersinkron dengan log absensi';
     hitungPreviewKinerja();
+  } else if (detailEl) {
+    detailEl.textContent = 'Pilih guru untuk menarik rekap absensi...';
+  }
+}
+
+async function syncAbsensiKinerja() {
+  const periode = document.getElementById('kg-filter-periode')?.value;
+  if (!periode) return;
+  if (!confirm(`Sinkronkan ulang skor kehadiran (40%) seluruh guru pada periode ${periode} dari data absensi terbaru?`)) return;
+
+  try {
+    const url = `${getKinerjaApiUrl_()}?action=syncAbsensiKinerjaGuru&periode=${encodeURIComponent(periode)}`;
+    const res = await fetch(url);
+    const json = await res.json();
+    alert(json.message || 'Sinkronisasi selesai.');
+    loadKinerjaGuru();
+  } catch (err) {
+    alert('Gagal menyinkronkan data absensi.');
   }
 }
 
