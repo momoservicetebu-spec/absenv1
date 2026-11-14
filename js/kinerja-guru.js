@@ -11,6 +11,14 @@ function getKinerjaApiUrl_() {
   return window.API_URL || window.SCRIPT_URL || '';
 }
 
+function showModalKinerja_() {
+  const modal = document.getElementById('modalKinerjaGuru');
+  if (modal) {
+    modal.style.display = 'flex';
+    modal.classList.add('active');
+  }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   const nowMonth = new Date().toISOString().slice(0, 7);
   const filterEl = document.getElementById('kg-filter-periode');
@@ -88,6 +96,10 @@ async function populateDropdownGuruKG_() {
 
   const currentVal = select.value;
 
+  if (window.jQuery && $.fn.select2 && $(select).data('select2')) {
+    $(select).select2('destroy');
+  }
+
   if (cacheDaftarGuruKG.length === 0) {
     select.innerHTML = '<option value="">-- Data sheet Guru masih kosong (0 guru) --</option>';
   } else {
@@ -102,11 +114,7 @@ async function populateDropdownGuruKG_() {
 
   if (currentVal) select.value = currentVal;
 
-  // Inisialisasi Select2 di dalam #modalKinerjaGuru & ikat event change
   if (window.jQuery && $.fn.select2) {
-    if ($(select).data('select2')) {
-      $(select).select2('destroy');
-    }
     $(select).select2({
       width: '100%',
       dropdownParent: $('#modalKinerjaGuru'),
@@ -188,6 +196,8 @@ function renderTabelKinerjaGuru() {
 }
 
 async function openModalKinerjaGuru() {
+  showModalKinerja_();
+
   document.getElementById('modalKinerjaTitle').textContent = '🏆 Form Penilaian Kinerja Guru';
   document.getElementById('kg-id').value = '';
   const activePeriode = document.getElementById('kg-filter-periode')?.value || new Date().toISOString().slice(0, 7);
@@ -201,8 +211,13 @@ async function openModalKinerjaGuru() {
   const detailEl = document.getElementById('kg-absen-detail');
   if (detailEl) detailEl.textContent = 'Pilih guru untuk menarik rekap absensi...';
 
+  const btn = document.getElementById('btn-simpan-kg');
+  if (btn) {
+    btn.disabled = false;
+    btn.textContent = '💾 Simpan Penilaian';
+  }
+
   hitungPreviewKinerja();
-  document.getElementById('modalKinerjaGuru').classList.add('active');
 
   if (!cacheDaftarGuruKG || cacheDaftarGuruKG.length === 0) {
     const select = document.getElementById('kg-guru-select');
@@ -215,9 +230,11 @@ async function openModalKinerjaGuru() {
   const select = document.getElementById('kg-guru-select');
   if (select) {
     select.value = '';
-    if (window.jQuery && $(select).data('select2')) {
-      $(select).trigger('change.select2');
-    }
+    try {
+      if (window.jQuery && $(select).data('select2')) {
+        $(select).trigger('change.select2');
+      }
+    } catch (e) {}
   }
 }
 
@@ -330,6 +347,8 @@ async function editKinerjaGuru(idKinerja) {
   const item = cacheKinerjaGuru.find(x => String(x.idKinerja) === String(idKinerja));
   if (!item) return;
 
+  showModalKinerja_();
+
   if (!cacheDaftarGuruKG || cacheDaftarGuruKG.length === 0) {
     await populateDropdownGuruKG_();
   }
@@ -338,16 +357,25 @@ async function editKinerjaGuru(idKinerja) {
   document.getElementById('kg-id').value = item.idKinerja;
   document.getElementById('kg-periode').value = item.periode;
   document.getElementById('kg-guru-select').value = item.guruId;
-  if (window.jQuery && $('#kg-guru-select').data('select2')) {
-    $('#kg-guru-select').trigger('change.select2');
-  }
+  try {
+    if (window.jQuery && $('#kg-guru-select').data('select2')) {
+      $('#kg-guru-select').trigger('change.select2');
+    }
+  } catch (e) {}
+
   document.getElementById('kg-skor-hadir').value = item.skorKehadiran;
   document.getElementById('kg-skor-perangkat').value = item.skorPerangkat;
   document.getElementById('kg-skor-mengajar').value = item.skorMengajar;
   document.getElementById('kg-skor-admin').value = item.skorAdministrasi;
   document.getElementById('kg-catatan').value = item.catatan;
+
+  const btn = document.getElementById('btn-simpan-kg');
+  if (btn) {
+    btn.disabled = false;
+    btn.textContent = '💾 Simpan Penilaian';
+  }
+
   hitungPreviewKinerja();
-  document.getElementById('modalKinerjaGuru').classList.add('active');
 }
 
 async function hapusKinerjaGuru(idKinerja) {
