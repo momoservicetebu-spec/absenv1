@@ -1261,3 +1261,25 @@ canvas { position: absolute; top: 0; left: 0; }
     gap: 10px !important;
   }
 }
+
+/* ========================================================= */
+/* PERBAIKAN GAP / JARAK TEPI LAYAR LAPTOP & DESKTOP         */
+/* ========================================================= */
+@media (min-width: 993px) {
+  .main-content {
+    padding: 12px 16px !important;
+  }
+
+  .card {
+    padding: 16px 18px !important;
+    margin-bottom: 16px !important;
+  }
+
+  .analytics-header {
+    margin-bottom: 14px !important;
+  }
+
+  .dashboard-header-controls {
+    padding-bottom: 14px !important;
+  }
+}
