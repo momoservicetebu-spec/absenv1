@@ -1,6 +1,6 @@
 // ==========================================
 // FILE: js/unduhlaporan.js
-// MODUL EKSPOR LAPORAN ABSENSI (CSV & PDF RESMI)
+// MODUL EKSPOR LAPORAN ABSENSI & PKG (CSV & PDF RESMI)
 // ==========================================
 
 /**
@@ -153,7 +153,6 @@ function unduhLaporanPDF() {
     th.style.textAlign = "center";
   });
 
-  // STYLE PENYEIMBANG UKURAN LOGO
   const imgKiriTag = logoKiri ? `<img src="${logoKiri}" style="height: 80px; width: auto; max-width: 85px; object-fit: contain;" alt="Logo Kiri">` : '<div style="width: 80px;"></div>';
   const imgKananTag = logoKanan ? `<img src="${logoKanan}" style="height: 80px; width: auto; max-width: 85px; object-fit: contain;" alt="Logo Kanan">` : '<div style="width: 80px;"></div>';
   const imgTtdTag = ttdKepsek ? `<img src="${ttdKepsek}" style="max-height: 60px; max-width: 150px; object-fit: contain;" alt="TTD">` : '';
@@ -300,174 +299,6 @@ function unduhLiveMonitorPDF() {
     });
   }
 
-  /**
- * 4. FUNGSI UNDUH LAPORAN PDF PERFORMA KINERJA GURU (PKG)
- */
-function unduhKinerjaGuruPDF() {
-  const rawData = (typeof cacheKinerjaGuru !== 'undefined' && Array.isArray(cacheKinerjaGuru))
-    ? cacheKinerjaGuru
-    : [];
-
-  if (rawData.length === 0) {
-    alert("Belum ada data penilaian kinerja guru pada periode ini untuk dicetak.");
-    return;
-  }
-
-  // Terapkan filter pencarian jika kolom cari sedang diisi
-  const keyword = (document.getElementById("kg-search-input")?.value || "").toLowerCase();
-  const listData = rawData.filter(item =>
-    String(item.namaGuru || "").toLowerCase().includes(keyword) ||
-    String(item.nip || "").toLowerCase().includes(keyword) ||
-    String(item.predikat || "").toLowerCase().includes(keyword)
-  );
-
-  if (listData.length === 0) {
-    alert("Data hasil pencarian kosong untuk dicetak ke PDF.");
-    return;
-  }
-
-  // Ambil identitas sekolah & tanda tangan dari Settings
-  const instansiAtas = getSettingVal("INSTANSI_ATAS", ["setting-instansi-atas", "set-instansi-atas"], "PEMERINTAH PROVINSI LAMPUNG");
-  const dinas = getSettingVal("DINAS", ["setting-dinas", "set-dinas"], "DINAS PENDIDIKAN DAN KEBUDAYAAN");
-  const namaSekolah = getSettingVal("SCHOOL_NAME", ["setting-nama-sekolah", "set-nama-sekolah"], "SMA NEGERI 1 BUMI AGUNG");
-  const alamatSekolah = getSettingVal("SCHOOL_ADDRESS", ["setting-alamat", "set-alamat-kop"], "Jl. Protokol No 1 Pisang Baru, Kec. Bumi Agung, Kab. Way Kanan");
-  const website = getSettingVal("WEBSITE", ["setting-website"], "Website: sman1ba.sch.id");
-
-  const logoKiri = fixDrivePhotoUrl(getSettingVal("LOGO_KIRI", ["setting-logo-kiri", "set-logo-sekolah"], ""));
-  const logoKanan = fixDrivePhotoUrl(getSettingVal("SCHOOL_LOGO_URL", ["setting-logo-kanan", "set-logo-kanan"], ""));
-  const ttdKepsek = fixDrivePhotoUrl(getSettingVal("TTD_KEPSEK", ["setting-ttd-kepsek", "set-ttd-kepsek"], ""));
-
-  const namaKepsek = getSettingVal("HEADMASTER_NAME", ["setting-nama-kepsek", "set-nama-kepsek"], "AMRODI NURUL HUDA, S.Ag");
-  const nipKepsek = getSettingVal("HEADMASTER_NIP", ["setting-nip", "set-nip-kepsek"], "197103041998021001");
-
-  // Format label periode (YYYY-MM -> Nama Bulan Tahun)
-  const periodeVal = document.getElementById("kg-filter-periode")?.value || new Date().toISOString().slice(0, 7);
-  const namaBulan = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
-  const [thn, bln] = periodeVal.split("-");
-  const periodeLabel = (thn && bln) ? `${namaBulan[parseInt(bln, 10) - 1] || bln} ${thn}` : periodeVal;
-
-  // Ringkasan statistik
-  const totalGuru = listData.length;
-  const rataSkor = (listData.reduce((sum, x) => sum + Number(x.skorAkhir || 0), 0) / totalGuru).toFixed(1);
-  const sangatBaik = listData.filter(x => Number(x.skorAkhir) >= 91).length;
-  const perluBina = listData.filter(x => Number(x.skorAkhir) < 70).length;
-
-  let bodyTabelHtml = "";
-  listData.forEach((item, i) => {
-    bodyTabelHtml += `
-      <tr>
-        <td style="text-align: center;">${i + 1}</td>
-        <td>
-          <strong>${item.namaGuru}</strong><br>
-          <span style="font-size: 8.5pt; color: #444;">NIP. ${item.nip || "-"}</span>
-        </td>
-        <td>${item.jabatan || "-"}</td>
-        <td style="text-align: center;">${item.skorKehadiran}</td>
-        <td style="text-align: center;">${item.skorPerangkat}</td>
-        <td style="text-align: center;">${item.skorMengajar}</td>
-        <td style="text-align: center;">${item.skorAdministrasi}</td>
-        <td style="text-align: center; font-weight: bold; font-size: 10.5pt;">${Number(item.skorAkhir).toFixed(1)}</td>
-        <td style="text-align: center; font-weight: bold;">${item.predikat}</td>
-        <td>${item.catatan || "-"}</td>
-      </tr>`;
-  });
-
-  const imgKiriTag = logoKiri ? `<img src="${logoKiri}" style="height: 80px; width: auto; max-width: 85px; object-fit: contain;" alt="Logo Kiri">` : '<div style="width: 80px;"></div>';
-  const imgKananTag = logoKanan ? `<img src="${logoKanan}" style="height: 80px; width: auto; max-width: 85px; object-fit: contain;" alt="Logo Kanan">` : '<div style="width: 80px;"></div>';
-  const imgTtdTag = ttdKepsek ? `<img src="${ttdKepsek}" style="max-height: 60px; max-width: 150px; object-fit: contain;" alt="TTD">` : '';
-
-  const htmlContent = `
-    <!DOCTYPE html>
-    <html>
-    <head>
-      <title>Laporan_Performa_Kinerja_Guru_${periodeVal}</title>
-      <style>
-        body { font-family: 'Times New Roman', Times, serif; color: #000; padding: 20px; margin: 0; }
-        .kop-container { display: flex; justify-content: space-between; align-items: center; border-bottom: 4px double #000; padding-bottom: 8px; margin-bottom: 14px; }
-        .kop-center { text-align: center; flex-grow: 1; padding: 0 10px; }
-        .kop-center h2 { margin: 0; font-size: 13pt; font-weight: normal; text-transform: uppercase; }
-        .kop-center h1 { margin: 2px 0; font-size: 15pt; font-weight: bold; text-transform: uppercase; }
-        .kop-center p { margin: 0; font-size: 8.5pt; font-style: italic; }
-
-        .judul-doc { text-align: center; margin: 12px 0 14px 0; }
-        .judul-doc h3 { margin: 0; font-size: 12pt; text-decoration: underline; text-transform: uppercase; font-family: Arial, sans-serif; }
-        .judul-doc p { margin: 4px 0 0 0; font-size: 9.5pt; font-family: Arial, sans-serif; }
-
-        .kpi-summary { display: flex; justify-content: space-between; border: 1px solid #000; background-color: #f5f5f5; padding: 6px 12px; margin-bottom: 12px; font-family: Arial, sans-serif; font-size: 9pt; }
-
-        table { width: 100%; border-collapse: collapse; font-family: Arial, sans-serif; font-size: 9.5pt; }
-        th, td { border: 1px solid #000; padding: 6px 8px; vertical-align: middle; }
-        th { background-color: #e0e0e0; font-weight: bold; text-align: center; }
-
-        .ttd-container { margin-top: 25px; float: right; text-align: center; font-size: 11pt; padding-right: 20px; min-width: 230px; page-break-inside: avoid; }
-        .ttd-container p { margin: 2px 0; }
-        .ttd-space { height: 65px; display: flex; align-items: center; justify-content: center; }
-
-        @media print {
-          @page { size: A4 landscape; margin: 12mm; }
-          body { padding: 0; }
-        }
-      </style>
-    </head>
-    <body>
-      <div class="kop-container">
-        ${imgKiriTag}
-        <div class="kop-center">
-          <h2>${instansiAtas}</h2>
-          <h2>${dinas}</h2>
-          <h1>${namaSekolah}</h1>
-          <p>${alamatSekolah}</p>
-          <p>${website}</p>
-        </div>
-        ${imgKananTag}
-      </div>
-
-      <div class="judul-doc">
-        <h3>LAPORAN EVALUASI PERFORMA KINERJA GURU (PKG)</h3>
-        <p>Periode Penilaian: <strong>${periodeLabel}</strong> | Bobot: Kehadiran (40%) & Supervisi Mengajar (60%) | Dicetak: ${new Date().toLocaleDateString('id-ID')}</p>
-      </div>
-
-      <div class="kpi-summary">
-        <span><strong>Total Guru Dinilai:</strong> ${totalGuru} Orang</span>
-        <span><strong>Rata-Rata Skor:</strong> ${rataSkor}</span>
-        <span><strong>Predikat Sangat Baik (≥91):</strong> ${sangatBaik} Guru</span>
-        <span><strong>Perlu Pembinaan (<70):</strong> ${perluBina} Guru</span>
-      </div>
-
-      <table>
-        <thead>
-          <tr>
-            <th style="width: 30px;">NO</th>
-            <th style="width: 190px;">NAMA GURU & NIP</th>
-            <th style="width: 140px;">JABATAN / MAPEL</th>
-            <th style="width: 65px;">HADIR<br>(40%)</th>
-            <th style="width: 75px;">PERANGKAT<br>(20%)</th>
-            <th style="width: 75px;">MENGAJAR<br>(25%)</th>
-            <th style="width: 65px;">ADMIN<br>(15%)</th>
-            <th style="width: 65px;">SKOR<br>AKHIR</th>
-            <th style="width: 95px;">PREDIKAT</th>
-            <th>CATATAN PEMBINAAN</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${bodyTabelHtml}
-        </tbody>
-      </table>
-
-      <div class="ttd-container">
-        <p>Mengetahui,</p>
-        <p>Kepala Sekolah</p>
-        <div class="ttd-space">${imgTtdTag}</div>
-        <p><strong><u>${namaKepsek}</u></strong></p>
-        <p>NIP. ${nipKepsek}</p>
-      </div>
-    </body>
-    </html>
-  `;
-
-  triggerPrintWithPreload(htmlContent);
-}
-  // STYLE PENYEIMBANG UKURAN LOGO
   const imgKiriTag = logoKiri ? `<img src="${logoKiri}" style="height: 80px; width: auto; max-width: 85px; object-fit: contain;" alt="Logo Kiri">` : '<div style="width: 80px;"></div>';
   const imgKananTag = logoKanan ? `<img src="${logoKanan}" style="height: 80px; width: auto; max-width: 85px; object-fit: contain;" alt="Logo Kanan">` : '<div style="width: 80px;"></div>';
   const imgTtdTag = ttdKepsek ? `<img src="${ttdKepsek}" style="max-height: 60px; max-width: 150px; object-fit: contain;" alt="TTD">` : '';
@@ -587,4 +418,222 @@ function triggerPrintWithPreload(htmlContent) {
       }
     }
   };
+}
+
+/**
+ * HELPER: Muat library html2pdf secara otomatis jika belum ada
+ */
+function loadPdfLibOnce_(src) {
+  return new Promise((resolve, reject) => {
+    if (document.querySelector(`script[src="${src}"]`)) return resolve();
+    const s = document.createElement("script");
+    s.src = src;
+    s.onload = resolve;
+    s.onerror = reject;
+    document.head.appendChild(s);
+  });
+}
+
+/**
+ * HELPER: Konversi gambar logo/TTD ke DataURL aman agar tidak memblokir html2pdf
+ */
+function toBase64ImageSafe_(url) {
+  return new Promise((resolve) => {
+    if (!url) return resolve("");
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    const timer = setTimeout(() => resolve(""), 3000);
+
+    img.onload = function () {
+      clearTimeout(timer);
+      try {
+        const canvas = document.createElement("canvas");
+        canvas.width = img.naturalWidth || img.width;
+        canvas.height = img.naturalHeight || img.height;
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(img, 0, 0);
+        resolve(canvas.toDataURL("image/png"));
+      } catch (e) {
+        resolve("");
+      }
+    };
+    img.onerror = function () {
+      clearTimeout(timer);
+      resolve("");
+    };
+    img.src = url;
+  });
+}
+
+/**
+ * 4. FUNGSI UNDUH LANGSUNG FILE PDF PERFORMA KINERJA GURU (PKG)
+ */
+async function unduhKinerjaGuruPDF(btnEl) {
+  const rawData = (typeof cacheKinerjaGuru !== "undefined" && Array.isArray(cacheKinerjaGuru))
+    ? cacheKinerjaGuru
+    : [];
+
+  if (rawData.length === 0) {
+    alert("Belum ada data penilaian kinerja guru pada periode ini untuk diunduh.");
+    return;
+  }
+
+  const keyword = (document.getElementById("kg-search-input")?.value || "").toLowerCase();
+  const listData = rawData.filter(item =>
+    String(item.namaGuru || "").toLowerCase().includes(keyword) ||
+    String(item.nip || "").toLowerCase().includes(keyword) ||
+    String(item.predikat || "").toLowerCase().includes(keyword)
+  );
+
+  if (listData.length === 0) {
+    alert("Data hasil pencarian kosong untuk diunduh ke PDF.");
+    return;
+  }
+
+  const targetBtn = btnEl || document.querySelector('button[onclick*="unduhKinerjaGuruPDF"]');
+  const oldLabel = targetBtn ? targetBtn.innerHTML : "";
+  if (targetBtn) {
+    targetBtn.disabled = true;
+    targetBtn.innerHTML = "⏳ Mengunduh PDF...";
+  }
+
+  let wrapper = null;
+
+  try {
+    if (typeof html2pdf === "undefined") {
+      await loadPdfLibOnce_("https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js");
+    }
+
+    const instansiAtas = getSettingVal("INSTANSI_ATAS", ["setting-instansi-atas", "set-instansi-atas"], "PEMERINTAH PROVINSI LAMPUNG");
+    const dinas = getSettingVal("DINAS", ["setting-dinas", "set-dinas"], "DINAS PENDIDIKAN DAN KEBUDAYAAN");
+    const namaSekolah = getSettingVal("SCHOOL_NAME", ["setting-nama-sekolah", "set-nama-sekolah"], "SMA NEGERI 1 BUMI AGUNG");
+    const alamatSekolah = getSettingVal("SCHOOL_ADDRESS", ["setting-alamat", "set-alamat-kop"], "Jl. Protokol No 1 Pisang Baru, Kec. Bumi Agung, Kab. Way Kanan");
+    const website = getSettingVal("WEBSITE", ["setting-website"], "Website: sman1ba.sch.id");
+
+    const rawLogoKiri = fixDrivePhotoUrl(getSettingVal("LOGO_KIRI", ["setting-logo-kiri", "set-logo-sekolah"], ""));
+    const rawLogoKanan = fixDrivePhotoUrl(getSettingVal("SCHOOL_LOGO_URL", ["setting-logo-kanan", "set-logo-kanan"], ""));
+    const rawTtd = fixDrivePhotoUrl(getSettingVal("TTD_KEPSEK", ["setting-ttd-kepsek", "set-ttd-kepsek"], ""));
+
+    const [logoKiri, logoKanan, ttdKepsek] = await Promise.all([
+      toBase64ImageSafe_(rawLogoKiri),
+      toBase64ImageSafe_(rawLogoKanan),
+      toBase64ImageSafe_(rawTtd)
+    ]);
+
+    const namaKepsek = getSettingVal("HEADMASTER_NAME", ["setting-nama-kepsek", "set-nama-kepsek"], "AMRODI NURUL HUDA, S.Ag");
+    const nipKepsek = getSettingVal("HEADMASTER_NIP", ["setting-nip", "set-nip-kepsek"], "197103041998021001");
+
+    const periodeVal = document.getElementById("kg-filter-periode")?.value || new Date().toISOString().slice(0, 7);
+    const namaBulan = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+    const [thn, bln] = periodeVal.split("-");
+    const periodeLabel = (thn && bln) ? `${namaBulan[parseInt(bln, 10) - 1] || bln} ${thn}` : periodeVal;
+
+    const totalGuru = listData.length;
+    const rataSkor = (listData.reduce((sum, x) => sum + Number(x.skorAkhir || 0), 0) / totalGuru).toFixed(1);
+    const sangatBaik = listData.filter(x => Number(x.skorAkhir) >= 91).length;
+    const perluBina = listData.filter(x => Number(x.skorAkhir) < 70).length;
+
+    const rowsHtml = listData.map((item, i) => `
+      <tr>
+        <td style="border:1px solid #000; padding:6px; text-align:center;">${i + 1}</td>
+        <td style="border:1px solid #000; padding:6px;">
+          <strong>${item.namaGuru}</strong><br>
+          <span style="font-size:10px; color:#333;">NIP. ${item.nip || "-"}</span>
+        </td>
+        <td style="border:1px solid #000; padding:6px;">${item.jabatan || "-"}</td>
+        <td style="border:1px solid #000; padding:6px; text-align:center;">${item.skorKehadiran}</td>
+        <td style="border:1px solid #000; padding:6px; text-align:center;">${item.skorPerangkat}</td>
+        <td style="border:1px solid #000; padding:6px; text-align:center;">${item.skorMengajar}</td>
+        <td style="border:1px solid #000; padding:6px; text-align:center;">${item.skorAdministrasi}</td>
+        <td style="border:1px solid #000; padding:6px; text-align:center; font-weight:bold;">${Number(item.skorAkhir).toFixed(1)}</td>
+        <td style="border:1px solid #000; padding:6px; text-align:center; font-weight:bold;">${item.predikat}</td>
+        <td style="border:1px solid #000; padding:6px;">${item.catatan || "-"}</td>
+      </tr>
+    `).join("");
+
+    const imgKiriTag = logoKiri ? `<img src="${logoKiri}" style="height:72px; width:auto; object-fit:contain;">` : `<div style="width:72px;"></div>`;
+    const imgKananTag = logoKanan ? `<img src="${logoKanan}" style="height:72px; width:auto; object-fit:contain;">` : `<div style="width:72px;"></div>`;
+    const imgTtdTag = ttdKepsek ? `<img src="${ttdKepsek}" style="max-height:55px; max-width:140px; object-fit:contain;">` : "";
+
+    wrapper = document.createElement("div");
+    wrapper.style.cssText = "position:fixed; left:-9999px; top:0; background:#ffffff; color:#000000; padding:12px 18px; font-family:'Times New Roman', Times, serif; width:1040px;";
+    wrapper.innerHTML = `
+      <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:3px double #000; padding-bottom:8px; margin-bottom:12px;">
+        ${imgKiriTag}
+        <div style="text-align:center; flex:1; padding:0 10px;">
+          <div style="font-size:13px; text-transform:uppercase;">${instansiAtas}</div>
+          <div style="font-size:13px; text-transform:uppercase;">${dinas}</div>
+          <div style="font-size:17px; font-weight:bold; text-transform:uppercase; margin:2px 0;">${namaSekolah}</div>
+          <div style="font-size:10.5px; font-style:italic;">${alamatSekolah}</div>
+          <div style="font-size:10.5px; font-style:italic;">${website}</div>
+        </div>
+        ${imgKananTag}
+      </div>
+
+      <div style="text-align:center; margin-bottom:10px; font-family:Arial, sans-serif;">
+        <div style="font-size:14px; font-weight:bold; text-decoration:underline; text-transform:uppercase;">LAPORAN EVALUASI PERFORMA KINERJA GURU (PKG)</div>
+        <div style="font-size:11px; margin-top:4px;">Periode Penilaian: <strong>${periodeLabel}</strong> | Bobot: Kehadiran (40%) & Supervisi Mengajar (60%) | Dicetak: ${new Date().toLocaleDateString("id-ID")}</div>
+      </div>
+
+      <div style="display:flex; justify-content:space-between; border:1px solid #000; background:#f2f2f2; padding:6px 12px; margin-bottom:10px; font-family:Arial, sans-serif; font-size:11px;">
+        <span><strong>Total Dinilai:</strong> ${totalGuru} Guru</span>
+        <span><strong>Rata-Rata Skor:</strong> ${rataSkor}</span>
+        <span><strong>Sangat Baik (≥91):</strong> ${sangatBaik} Guru</span>
+        <span><strong>Perlu Pembinaan (<70):</strong> ${perluBina} Guru</span>
+      </div>
+
+      <table style="width:100%; border-collapse:collapse; font-family:Arial, sans-serif; font-size:11px;">
+        <thead>
+          <tr style="background:#e0e0e0;">
+            <th style="border:1px solid #000; padding:6px; width:32px;">NO</th>
+            <th style="border:1px solid #000; padding:6px; width:190px;">NAMA GURU & NIP</th>
+            <th style="border:1px solid #000; padding:6px; width:135px;">JABATAN / MAPEL</th>
+            <th style="border:1px solid #000; padding:6px; width:62px;">HADIR<br>(40%)</th>
+            <th style="border:1px solid #000; padding:6px; width:72px;">PERANGKAT<br>(20%)</th>
+            <th style="border:1px solid #000; padding:6px; width:72px;">MENGAJAR<br>(25%)</th>
+            <th style="border:1px solid #000; padding:6px; width:62px;">ADMIN<br>(15%)</th>
+            <th style="border:1px solid #000; padding:6px; width:62px;">SKOR<br>AKHIR</th>
+            <th style="border:1px solid #000; padding:6px; width:95px;">PREDIKAT</th>
+            <th style="border:1px solid #000; padding:6px;">CATATAN</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${rowsHtml}
+        </tbody>
+      </table>
+
+      <div style="margin-top:22px; display:flex; justify-content:flex-end; font-size:12px;">
+        <div style="text-align:center; min-width:230px;">
+          <div>Mengetahui,</div>
+          <div>Kepala Sekolah</div>
+          <div style="height:60px; display:flex; align-items:center; justify-content:center;">${imgTtdTag}</div>
+          <div><strong><u>${namaKepsek}</u></strong></div>
+          <div>NIP. ${nipKepsek}</div>
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(wrapper);
+
+    const opt = {
+      margin: [8, 8, 8, 8],
+      filename: `Laporan_Performa_Kinerja_Guru_${periodeVal}.pdf`,
+      image: { type: "jpeg", quality: 0.98 },
+      html2canvas: { scale: 2, useCORS: true, logging: false },
+      jsPDF: { unit: "mm", format: "a4", orientation: "landscape" }
+    };
+
+    await html2pdf().set(opt).from(wrapper).save();
+  } catch (err) {
+    console.error("Gagal mengunduh PDF:", err);
+    alert("Gagal mengunduh file PDF. Periksa koneksi internet Anda lalu coba kembali.");
+  } finally {
+    if (wrapper && wrapper.parentNode) {
+      wrapper.parentNode.removeChild(wrapper);
+    }
+    if (targetBtn) {
+      targetBtn.disabled = false;
+      targetBtn.innerHTML = oldLabel || "📄 Unduh PDF";
+    }
+  }
 }
