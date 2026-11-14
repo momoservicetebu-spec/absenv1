@@ -1263,30 +1263,54 @@ canvas { position: absolute; top: 0; left: 0; }
 }
 
 /* ========================================================= */
-/* PERBAIKAN GAP RAPAT & RAMPING DI LAYAR LAPTOP & DESKTOP   */
+/* HILANGKAN GAP TEPI (FULL EDGE-TO-EDGE) DI LAPTOP & PC     */
 /* ========================================================= */
 @media (min-width: 993px) {
-  /* 1. Perkecil jarak tepi atas, kiri, dan kanan area utama */
+  /* 1. Nol-kan padding & margin luar main-content agar menempel penuh ke sidebar & atas */
   .main-content {
-    padding: 8px 10px !important;
+    padding: 0 !important;
+    margin: 0 !important;
   }
 
-  /* 2. Rampingkan baris tombol Menu agar tidak memakan ruang vertikal */
+  /* 2. Rapatkan bagian atas sidebar agar sejajar dengan konten */
+  .sidebar {
+    padding: 12px 12px !important;
+    transition: margin-left 0.3s ease, opacity 0.25s ease !important;
+  }
+
+  .sidebar h2 {
+    padding-bottom: 10px !important;
+    margin-bottom: 8px !important;
+  }
+
+  .sidebar.desktop-collapsed {
+    margin-left: -260px !important;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  /* 3. Satukan tombol Menu di pojok kiri atas tanpa menyisakan baris kosong */
   .desktop-topbar {
-    margin-bottom: 6px !important;
-    min-height: unset !important;
+    padding: 10px 16px 0 16px !important;
+    margin: 0 !important;
   }
 
   .desktop-sidebar-toggle {
-    padding: 4px 10px !important;
+    padding: 5px 10px !important;
     font-size: 12px !important;
     border-radius: 5px !important;
   }
 
-  /* 3. Rapatkan jarak antar kartu dan header di semua halaman */
-  .card {
-    padding: 14px 16px !important;
-    margin-bottom: 12px !important;
+  /* 4. Hilangkan bingkai luar, sudut lengkung, & margin pada semua halaman */
+  .section,
+  .section.card,
+  #dashboard {
+    margin: 0 !important;
+    border: none !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    width: 100% !important;
+    padding: 8px 16px 20px 16px !important;
   }
 
   .analytics-header {
@@ -1303,17 +1327,72 @@ canvas { position: absolute; top: 0; left: 0; }
 
   .chart-box {
     padding: 12px !important;
-    min-height: 235px !important;
+    min-height: 230px !important;
   }
+}
 
-  /* 4. Animasi buka/tutup sidebar tetap mulus */
+/* ========================================================= */
+/* SIDEBAR DINAMIS (BUKA/TUTUP & ACCORDION) DI LAPTOP/PC     */
+/* ========================================================= */
+.desktop-topbar {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.desktop-sidebar-toggle {
+  background: #201a35;
+  color: #a29bfe;
+  border: 1px solid #30274e;
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.desktop-sidebar-toggle:hover {
+  background: #6c5ce7;
+  color: #ffffff;
+}
+
+@media (min-width: 993px) {
   .sidebar {
     transition: margin-left 0.3s ease, opacity 0.25s ease !important;
   }
 
+  /* Saat sidebar ditutup, area .main-content (flex: 1) otomatis melebar penuh */
   .sidebar.desktop-collapsed {
     margin-left: -260px !important;
     opacity: 0;
     pointer-events: none;
   }
+}
+
+@media (max-width: 992px) {
+  .desktop-topbar {
+    display: none !important;
+  }
+}
+
+/* Kategori Menu (.menu-group) Bisa Diklik untuk Dilipat */
+.sidebar .menu-group {
+  cursor: pointer;
+  position: relative;
+  padding-right: 18px;
+  user-select: none;
+}
+
+.sidebar .menu-group::after {
+  content: '▾';
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  transition: transform 0.2s ease;
+}
+
+.sidebar .menu-group.group-closed::after {
+  transform: translateY(-50%) rotate(-90deg);
 }
