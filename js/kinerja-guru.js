@@ -5,7 +5,10 @@ let cacheKinerjaGuru = [];
 let cacheDaftarGuruKG = [];
 
 function getKinerjaApiUrl_() {
-  return window.API_URL || (window.CONFIG && CONFIG.SCRIPT_URL) || window.SCRIPT_URL || '';
+  if (typeof API_URL !== 'undefined' && API_URL) return API_URL;
+  if (typeof CONFIG !== 'undefined' && CONFIG.SCRIPT_URL) return CONFIG.SCRIPT_URL;
+  if (typeof SCRIPT_URL !== 'undefined' && SCRIPT_URL) return SCRIPT_URL;
+  return window.API_URL || window.SCRIPT_URL || '';
 }
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -14,12 +17,16 @@ document.addEventListener('DOMContentLoaded', () => {
   const modalPeriodeEl = document.getElementById('kg-periode');
   if (filterEl && !filterEl.value) filterEl.value = nowMonth;
   if (modalPeriodeEl && !modalPeriodeEl.value) modalPeriodeEl.value = nowMonth;
+
+  if (modalPeriodeEl) {
+    modalPeriodeEl.addEventListener('change', onModalPeriodeChange);
+  }
 });
 
-async function loadKinerjaGuru() {
-  const periode = document.getElementById('kg-filter-periode')?.value || new Date().toISOString().slice(0, 7);
+async function loadKinerjaGuru(customPeriode) {
+  const periode = customPeriode || document.getElementById('kg-filter-periode')?.value || new Date().toISOString().slice(0, 7);
   const tbody = document.getElementById('tbody-kinerja-guru');
-  if (tbody) {
+  if (!customPeriode && tbody) {
     tbody.innerHTML = '<tr><td colspan="11" style="text-align:center; padding:20px; color:#a29bfe;">⏳ Memuat data performa kinerja guru...</td></tr>';
   }
 
@@ -29,32 +36,94 @@ async function loadKinerjaGuru() {
     const json = await res.json();
 
     if (json.status === 'success') {
-      cacheKinerjaGuru = (json.data || []).sort((a, b) => b.skorAkhir - a.skorAkhir);
       cacheDaftarGuruKG = json.daftarGuru || [];
-      populateDropdownGuruKG_();
-      updateKpiKinerjaGuru_();
-      renderTabelKinerjaGuru();
+      await populateDropdownGuruKG_();
+
+      if (!customPeriode) {
+        cacheKinerjaGuru = (json.data || []).sort((a, b) => b.skorAkhir - a.skorAkhir);
+        updateKpiKinerjaGuru_();
+        renderTabelKinerjaGuru();
+      }
+    } else {
+      await populateDropdownGuruKG_();
     }
   } catch (err) {
-    if (tbody) {
-      tbody.innerHTML = '<tr><td colspan="11" style="text-align:center; padding:20px; color:#ff6b6b;">Gagal memuat data kinerja guru.</td></tr>';
+    console.warn('Gagal memuat getKinerjaGuru, mencoba fallback getGuru:', err);
+    await populateDropdownGuruKG_();
+    if (!customPeriode && tbody) {
+      tbody.innerHTML = '<tr><td colspan="11" style="text-align:center; padding:20px; color:#ff6b6b;">Gagal memuat data kinerja guru. Pastikan Apps Script sudah di-deploy versi terbaru.</td></tr>';
     }
   }
 }
 
-function populateDropdownGuruKG_() {
+async function populateDropdownGuruKG_() {
   const select = document.getElementById('kg-guru-select');
   if (!select) return;
-  select.innerHTML = '<option value="">-- Pilih Guru --</option>';
-  cacheDaftarGuruKG.forEach(g => {
-    const opt = document.createElement('option');
-    opt.value = g.guruId;
-    opt.textContent = `${g.nama} (${g.nip})`;
-    select.appendChild(opt);
-  });
-  if (window.jQuery && $(select).data('select2')) {
-    $(select).trigger('change.select2');
+
+  // Cadangan otomatis: tarik langsung dari sheet "Guru" via action=getGuru jika daftarGuru kosong
+  if (!cacheDaftarGuruKG || cacheDaftarGuruKG.length === 0) {
+    try {
+      const res = await fetch(`${getKinerjaApiUrl_()}?action=getGuru`);
+      const json = await res.json();
+      const rawList = Array.isArray(json) ? json : (json.data || json.guru || []);
+
+      cacheDaftarGuruKG = rawList.map((g, idx) => {
+        const nama = g.Nama_Lengkap || g.Nama_Guru || g.Nama || g.nama || g.nama_guru || '';
+        const nip = g.NIP || g.nip || g.NUPTK || '-';
+        const id = g.GuruID || g.ID_Guru || g.ID || g.id || ('GURU-' + (idx + 1));
+        const jabatan = [g.Jabatan || g.jabatan || '', g.Mapel || g.mapel || ''].filter(Boolean).join(' - ') || 'Guru';
+        return {
+          guruId: String(id).trim(),
+          nip: String(nip).trim(),
+          nama: String(nama).trim(),
+          jabatan: jabatan,
+          skorKehadiranAuto: 0,
+          ringkasanAbsen: 'Belum ada log absensi pada bulan ini'
+        };
+      }).filter(g => g.nama);
+    } catch (e) {
+      console.warn('Fallback getGuru gagal:', e);
+    }
   }
+
+  const currentVal = select.value;
+
+  if (cacheDaftarGuruKG.length === 0) {
+    select.innerHTML = '<option value="">-- Data sheet Guru masih kosong (0 guru) --</option>';
+  } else {
+    select.innerHTML = '<option value="">-- Pilih Guru --</option>';
+    cacheDaftarGuruKG.forEach(g => {
+      const opt = document.createElement('option');
+      opt.value = g.guruId;
+      opt.textContent = `${g.nama} (${g.nip})`;
+      select.appendChild(opt);
+    });
+  }
+
+  if (currentVal) select.value = currentVal;
+
+  // Inisialisasi Select2 di dalam #modalKinerjaGuru & ikat event change
+  if (window.jQuery && $.fn.select2) {
+    if ($(select).data('select2')) {
+      $(select).select2('destroy');
+    }
+    $(select).select2({
+      width: '100%',
+      dropdownParent: $('#modalKinerjaGuru'),
+      placeholder: '-- Cari & Pilih Guru --'
+    });
+    $(select).off('change.kg').on('change.kg', onSelectGuruKinerja);
+  }
+}
+
+async function onModalPeriodeChange() {
+  const modalPeriode = document.getElementById('kg-periode')?.value;
+  if (!modalPeriode) return;
+  const detailEl = document.getElementById('kg-absen-detail');
+  if (detailEl) detailEl.textContent = '⏳ Menyinkronkan rekap absensi bulan terpilih...';
+
+  await loadKinerjaGuru(modalPeriode);
+  onSelectGuruKinerja();
 }
 
 function updateKpiKinerjaGuru_() {
@@ -118,21 +187,38 @@ function renderTabelKinerjaGuru() {
   }).join('');
 }
 
-function openModalKinerjaGuru() {
+async function openModalKinerjaGuru() {
   document.getElementById('modalKinerjaTitle').textContent = '🏆 Form Penilaian Kinerja Guru';
   document.getElementById('kg-id').value = '';
-  document.getElementById('kg-periode').value = document.getElementById('kg-filter-periode')?.value || new Date().toISOString().slice(0, 7);
-  document.getElementById('kg-guru-select').value = '';
-  if (window.jQuery && $('#kg-guru-select').data('select2')) {
-    $('#kg-guru-select').trigger('change.select2');
-  }
-  document.getElementById('kg-skor-hadir').value = 100;
+  const activePeriode = document.getElementById('kg-filter-periode')?.value || new Date().toISOString().slice(0, 7);
+  document.getElementById('kg-periode').value = activePeriode;
+
+  document.getElementById('kg-skor-hadir').value = 0;
   document.getElementById('kg-skor-perangkat').value = 85;
   document.getElementById('kg-skor-mengajar').value = 85;
   document.getElementById('kg-skor-admin').value = 85;
   document.getElementById('kg-catatan').value = '';
+  const detailEl = document.getElementById('kg-absen-detail');
+  if (detailEl) detailEl.textContent = 'Pilih guru untuk menarik rekap absensi...';
+
   hitungPreviewKinerja();
   document.getElementById('modalKinerjaGuru').classList.add('active');
+
+  if (!cacheDaftarGuruKG || cacheDaftarGuruKG.length === 0) {
+    const select = document.getElementById('kg-guru-select');
+    if (select) select.innerHTML = '<option value="">⏳ Memuat data guru...</option>';
+    await loadKinerjaGuru(activePeriode);
+  } else {
+    await populateDropdownGuruKG_();
+  }
+
+  const select = document.getElementById('kg-guru-select');
+  if (select) {
+    select.value = '';
+    if (window.jQuery && $(select).data('select2')) {
+      $(select).trigger('change.select2');
+    }
+  }
 }
 
 function onSelectGuruKinerja() {
@@ -144,8 +230,10 @@ function onSelectGuruKinerja() {
     document.getElementById('kg-skor-hadir').value = guru.skorKehadiranAuto;
     if (detailEl) detailEl.textContent = guru.ringkasanAbsen || 'Tersinkron dengan log absensi';
     hitungPreviewKinerja();
-  } else if (detailEl) {
-    detailEl.textContent = 'Pilih guru untuk menarik rekap absensi...';
+  } else {
+    document.getElementById('kg-skor-hadir').value = 0;
+    if (detailEl) detailEl.textContent = 'Pilih guru untuk menarik rekap absensi...';
+    hitungPreviewKinerja();
   }
 }
 
@@ -179,19 +267,19 @@ function hitungPreviewKinerja() {
   if (akhir >= 91) {
     predEl.textContent = 'Sangat Baik';
     predEl.className = 'badge badge-success';
-    predEl.style.cssText = 'font-size:13px; padding:6px 12px;';
+    predEl.style.cssText = 'font-size:13px; padding:6px 14px;';
   } else if (akhir >= 81) {
     predEl.textContent = 'Baik';
     predEl.className = 'badge';
-    predEl.style.cssText = 'font-size:13px; padding:6px 12px; background:#54a0ff; color:#fff;';
+    predEl.style.cssText = 'font-size:13px; padding:6px 14px; background:#54a0ff; color:#fff;';
   } else if (akhir >= 70) {
     predEl.textContent = 'Cukup';
     predEl.className = 'badge badge-warning';
-    predEl.style.cssText = 'font-size:13px; padding:6px 12px;';
+    predEl.style.cssText = 'font-size:13px; padding:6px 14px;';
   } else {
     predEl.textContent = 'Perlu Pembinaan';
     predEl.className = 'badge badge-danger';
-    predEl.style.cssText = 'font-size:13px; padding:6px 12px;';
+    predEl.style.cssText = 'font-size:13px; padding:6px 14px;';
   }
 }
 
@@ -238,9 +326,13 @@ async function submitKinerjaGuru(e) {
   }
 }
 
-function editKinerjaGuru(idKinerja) {
+async function editKinerjaGuru(idKinerja) {
   const item = cacheKinerjaGuru.find(x => String(x.idKinerja) === String(idKinerja));
   if (!item) return;
+
+  if (!cacheDaftarGuruKG || cacheDaftarGuruKG.length === 0) {
+    await populateDropdownGuruKG_();
+  }
 
   document.getElementById('modalKinerjaTitle').textContent = '✏️ Edit Penilaian Kinerja Guru';
   document.getElementById('kg-id').value = item.idKinerja;
