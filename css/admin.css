@@ -1263,23 +1263,57 @@ canvas { position: absolute; top: 0; left: 0; }
 }
 
 /* ========================================================= */
-/* PERBAIKAN GAP / JARAK TEPI LAYAR LAPTOP & DESKTOP         */
+/* PERBAIKAN GAP RAPAT & RAMPING DI LAYAR LAPTOP & DESKTOP   */
 /* ========================================================= */
 @media (min-width: 993px) {
+  /* 1. Perkecil jarak tepi atas, kiri, dan kanan area utama */
   .main-content {
-    padding: 12px 16px !important;
+    padding: 8px 10px !important;
   }
 
+  /* 2. Rampingkan baris tombol Menu agar tidak memakan ruang vertikal */
+  .desktop-topbar {
+    margin-bottom: 6px !important;
+    min-height: unset !important;
+  }
+
+  .desktop-sidebar-toggle {
+    padding: 4px 10px !important;
+    font-size: 12px !important;
+    border-radius: 5px !important;
+  }
+
+  /* 3. Rapatkan jarak antar kartu dan header di semua halaman */
   .card {
-    padding: 16px 18px !important;
-    margin-bottom: 16px !important;
+    padding: 14px 16px !important;
+    margin-bottom: 12px !important;
   }
 
   .analytics-header {
-    margin-bottom: 14px !important;
+    margin-bottom: 10px !important;
   }
 
   .dashboard-header-controls {
-    padding-bottom: 14px !important;
+    padding-bottom: 10px !important;
+  }
+
+  .dashboard-grid {
+    gap: 12px !important;
+  }
+
+  .chart-box {
+    padding: 12px !important;
+    min-height: 235px !important;
+  }
+
+  /* 4. Animasi buka/tutup sidebar tetap mulus */
+  .sidebar {
+    transition: margin-left 0.3s ease, opacity 0.25s ease !important;
+  }
+
+  .sidebar.desktop-collapsed {
+    margin-left: -260px !important;
+    opacity: 0;
+    pointer-events: none;
   }
 }
