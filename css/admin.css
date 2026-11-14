@@ -1445,7 +1445,7 @@ select.hidden + .select2-container {
 .filter-input-group .select2-container { width: auto !important; min-width: 150px !important; }
 
 /* ========================================================= */
-/* PERAPIHAN KOTAK INPUT MODAL KINERJA GURU                  */
+/* PERAPIHAN KOTAK INPUT MODAL & TOMBOL KINERJA GURU         */
 /* ========================================================= */
 #modalKinerjaGuru .modal-card {
   max-width: 680px !important;
@@ -1477,13 +1477,19 @@ select.hidden + .select2-container {
 #modalKinerjaGuru input[type="month"],
 #modalKinerjaGuru input[type="number"],
 #modalKinerjaGuru input[type="text"],
-#modalKinerjaGuru select,
-#modalKinerjaGuru .select2-container {
+#modalKinerjaGuru select {
   width: 100% !important;
   max-width: 100% !important;
   box-sizing: border-box !important;
   height: 40px !important;
   padding: 8px 12px !important;
+}
+
+#modalKinerjaGuru .select2-container {
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+  padding: 0 !important;
 }
 
 #modalKinerjaGuru .select2-selection--single {
@@ -1492,6 +1498,30 @@ select.hidden + .select2-container {
   background-color: #161224 !important;
   border: 1px solid #4a4563 !important;
   border-radius: 6px !important;
+}
+
+#modalKinerjaGuru .select2-selection__rendered {
+  line-height: 28px !important;
+  padding-left: 0 !important;
+  color: #ffffff !important;
+}
+
+#modalKinerjaGuru .select2-selection__arrow {
+  height: 38px !important;
+}
+
+/* Tombol Unduh PDF Merah */
+button[onclick*="unduhKinerjaGuruPDF"],
+button[onclick*="exportKinerjaGuruPDF"] {
+  background: #d63031 !important;
+  border: 1px solid #ff7675 !important;
+  color: #ffffff !important;
+  transition: background 0.2s ease !important;
+}
+
+button[onclick*="unduhKinerjaGuruPDF"]:hover,
+button[onclick*="exportKinerjaGuruPDF"]:hover {
+  background: #b71540 !important;
 }
 
 @media (max-width: 640px) {
