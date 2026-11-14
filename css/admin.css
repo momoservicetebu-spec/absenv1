@@ -1051,3 +1051,213 @@ canvas { position: absolute; top: 0; left: 0; }
     overflow-y: auto !important;
   }
 }
+
+/* ========================================================= */
+/* PERBAIKAN GLOBAL SMARTPHONE MODE LANDSCAPE (SEMUA HALAMAN) */
+/* ========================================================= */
+@media (max-width: 992px) and (orientation: landscape),
+       (max-width: 992px) and (max-height: 520px) {
+
+  /* 1. KEMBALIKAN LAYOUT MOBILE & SIDEBAR HAMBURGER */
+  body {
+    flex-direction: column !important;
+    height: auto !important;
+    min-height: 100vh !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+  }
+
+  .mobile-header {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    background: #1e1b2e !important;
+    padding: 8px 15px !important;
+    border-bottom: 1px solid #2d2643 !important;
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 999 !important;
+  }
+
+  .sidebar {
+    position: fixed !important;
+    top: 0 !important;
+    left: -300px !important;
+    width: 250px !important;
+    height: 100vh !important;
+    flex-direction: column !important;
+    overflow-y: auto !important;
+    white-space: normal !important;
+    background-color: #1e1b2e !important;
+    z-index: 1050 !important;
+    padding: 15px !important;
+    transition: left 0.3s ease-in-out !important;
+    box-shadow: 4px 0 15px rgba(0, 0, 0, 0.7) !important;
+  }
+
+  .sidebar.show-sidebar {
+    left: 0 !important;
+  }
+
+  .sidebar h2,
+  .menu-group {
+    display: block !important;
+    margin-bottom: 8px !important;
+  }
+
+  .sidebar button {
+    width: 100% !important;
+    padding: 9px 12px !important;
+    margin-bottom: 4px !important;
+  }
+
+  .sidebar-overlay {
+    display: block !important;
+    position: fixed !important;
+    inset: 0 !important;
+    background: rgba(0, 0, 0, 0.7) !important;
+    z-index: 1040 !important;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+  }
+
+  .sidebar-overlay.show-overlay {
+    opacity: 1 !important;
+    visibility: visible !important;
+  }
+
+  .main-content {
+    width: 100% !important;
+    height: auto !important;
+    padding: 12px 15px !important;
+    overflow-x: hidden !important;
+    overflow-y: visible !important;
+  }
+
+  /* 2. RAPIKAN SEMUA CARD & HEADER HALAMAN */
+  .card {
+    padding: 15px !important;
+    margin-bottom: 15px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  .section-title {
+    font-size: 17px !important;
+    margin-bottom: 10px !important;
+  }
+
+  .search-bar {
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: wrap !important;
+    gap: 8px !important;
+  }
+
+  .search-bar input,
+  .search-bar select {
+    flex: 1 1 180px !important;
+    width: auto !important;
+  }
+
+  /* 3. SEMUA TABEL BISA DIGESER KE SAMPING TANPA MEMOTONG LAYAR */
+  .analytics-table-wrap {
+    min-height: 200px !important;
+    max-height: 65vh !important;
+    width: 100% !important;
+    overflow-x: auto !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+
+  table {
+    display: block !important;
+    width: 100% !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+
+  th, td {
+    padding: 9px 8px !important;
+    font-size: 12.5px !important;
+  }
+
+  /* 4. DASHBOARD ANALYTICS, KPI & FILTER PERIODE */
+  .dashboard-header-controls {
+    flex-wrap: wrap !important;
+    gap: 8px !important;
+    padding-bottom: 12px !important;
+  }
+
+  .filter-input-group {
+    flex-wrap: wrap !important;
+  }
+
+  .kpi-row {
+    display: grid !important;
+    grid-template-columns: repeat(4, 1fr) !important;
+    gap: 8px !important;
+  }
+
+  .kpi-card {
+    padding: 8px 6px !important;
+  }
+
+  .kpi-card .kpi-num {
+    font-size: 18px !important;
+  }
+
+  .analytics-grid,
+  .dashboard-grid {
+    display: grid !important;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 12px !important;
+  }
+
+  .chart-box {
+    min-height: 220px !important;
+    padding: 12px !important;
+  }
+
+  .chart-container {
+    min-height: 165px !important;
+  }
+
+  /* 5. KAMERA ENROLLMENT WAJAH AI BERDAMPINGAN */
+  .face-enroll-wrapper {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 12px !important;
+    align-items: start !important;
+  }
+
+  .camera-action-btns {
+    grid-column: span 2 !important;
+  }
+
+  /* 6. SEMUA POP-UP MODAL AGAR TIDAK TERPOTONG TINGGI LAYAR */
+  .modal-overlay,
+  .modal {
+    padding: 8px !important;
+    align-items: flex-start !important;
+    overflow-y: auto !important;
+  }
+
+  .modal-card,
+  .modal-content,
+  #modal-admin > div,
+  #modal-role > div {
+    width: 92% !important;
+    max-width: 680px !important;
+    max-height: 92vh !important;
+    overflow-y: auto !important;
+    margin: 8px auto !important;
+    padding: 15px !important;
+  }
+
+  .form-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 10px !important;
+  }
+}
