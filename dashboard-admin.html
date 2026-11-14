@@ -56,6 +56,7 @@
     <button class="nav-btn" onclick="switchTab('gate-pass', this)" data-lang="navManajemenGatePass">🎟️ Manajemen Gate Pass</button>
     <button class="nav-btn" onclick="switchTab('absensi-kelas', this); loadSemuaJadwalAdmin();" data-lang="navAbsensiKelasSiswa">📝 Absensi Kelas Siswa </button>
     <button class="nav-btn" onclick="switchTab('absensi-manual', this); loadUserDropdownManual();" data-lang="navAbsensiManualGuru">📝 Absensi Manual Guru </button>
+    <button class="nav-btn" onclick="switchTab('kinerja-guru', this); loadKinerjaGuru();" data-lang="navKinerjaGuru">🏆 Performa Kinerja Guru</button>
 
     <div class="menu-group" data-lang="navSistemLaporan">Sistem & Laporan</div>
     <button class="nav-btn" onclick="switchTab('laporan-absensi', this)" data-lang="navLaporanAbsensi">📊 Laporan Absensi</button>
@@ -1093,6 +1094,75 @@
         </div>
       </div>
 
+      <!-- KONTEN: PERFORMA KINERJA GURU -->
+    <div id="kinerja-guru" class="section card" style="display: none;">
+      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 15px;">
+        <div>
+          <h2 class="section-title" style="margin-bottom: 4px;">🏆 Performa Kinerja Guru (PKG)</h2>
+          <p class="section-desc" style="margin: 0;">Evaluasi kinerja bulanan gabungan skor kehadiran otomatis (40%) dan supervisi mengajar (60%).</p>
+        </div>
+        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+          <button type="button" class="btn-action" onclick="exportKinerjaGuruCSV()" style="background: #161224; border: 1px solid #6c5ce7; color: #a29bfe;">
+            📥 Export CSV
+          </button>
+          <button type="button" class="btn-action btn-success" onclick="openModalKinerjaGuru()">
+            ➕ Nilai Kinerja Guru
+          </button>
+        </div>
+      </div>
+
+      <!-- RINGKASAN KPI KINERJA GURU -->
+      <div class="kpi-row" style="margin-bottom: 18px;">
+        <div class="kpi-card">
+          <h5>Guru Dinilai</h5>
+          <div class="kpi-num" id="kg-kpi-total" style="color: #00d2d3;">0</div>
+        </div>
+        <div class="kpi-card">
+          <h5>Rata-Rata Skor</h5>
+          <div class="kpi-num" id="kg-kpi-avg" style="color: #a29bfe;">0.0</div>
+        </div>
+        <div class="kpi-card">
+          <h5>Sangat Baik (≥91)</h5>
+          <div class="kpi-num" id="kg-kpi-unggul" style="color: #1dd1a1;">0</div>
+        </div>
+        <div class="kpi-card">
+          <h5>Perlu Pembinaan (&lt;70)</h5>
+          <div class="kpi-num" id="kg-kpi-bina" style="color: #ff6b6b;">0</div>
+        </div>
+      </div>
+
+      <!-- FILTER PERIODE & PENCARIAN -->
+      <div class="search-bar" style="align-items: center;">
+        <input type="month" id="kg-filter-periode" onchange="loadKinerjaGuru()" style="max-width: 190px; color-scheme: dark;">
+        <input type="text" id="kg-search-input" onkeyup="renderTabelKinerjaGuru()" placeholder="🔍 Cari Nama Guru, NIP, atau Predikat..." style="max-width: 300px;">
+        <button type="button" class="btn-action" onclick="loadKinerjaGuru()">🔄 Muat Data</button>
+      </div>
+
+      <!-- TABEL PERINGKAT & REKAP KINERJA GURU -->
+      <div class="analytics-table-wrap" style="height: auto; max-height: 60vh;">
+        <table>
+          <thead>
+            <tr style="background: rgba(108, 92, 231, 0.2);">
+              <th>NO</th>
+              <th>NAMA GURU & NIP</th>
+              <th>JABATAN / MAPEL</th>
+              <th>KEHADIRAN (40%)</th>
+              <th>PERANGKAT (20%)</th>
+              <th>MENGAJAR (25%)</th>
+              <th>ADMIN (15%)</th>
+              <th>SKOR AKHIR</th>
+              <th>PREDIKAT</th>
+              <th>CATATAN</th>
+              <th>AKSI</th>
+            </tr>
+          </thead>
+          <tbody id="tbody-kinerja-guru">
+            <tr><td colspan="11" style="text-align: center; padding: 20px; color: #a29bfe;">Memuat data kinerja guru...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
    <!-- KONTEN: LAPORAN ABSENSI (STRUKTUR SATU WADAH CARD UTUH) -->
     <div id="laporan-absensi" class="section card" style="display: flex; flex-direction: column; min-height: 100%;">
       
@@ -1954,7 +2024,72 @@
     </div>
   </div>
 </div>
+<!-- MODAL PENILAIAN KINERJA GURU -->
+  <div id="modalKinerjaGuru" class="modal-overlay">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 id="modalKinerjaTitle">🏆 Form Penilaian Kinerja Guru</h3>
+        <button type="button" class="modal-close-btn" onclick="closeModal('modalKinerjaGuru')">&times;</button>
+      </div>
 
+      <form id="formKinerjaGuru" onsubmit="submitKinerjaGuru(event)">
+        <input type="hidden" id="kg-id">
+
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Periode Penilaian (Bulan)</label>
+            <input type="month" id="kg-periode" required onchange="onSelectGuruKinerja()" style="color-scheme: dark;">
+          </div>
+
+          <div class="form-group">
+            <label>Pilih Guru</label>
+            <select id="kg-guru-select" required onchange="onSelectGuruKinerja()">
+              <option value="">-- Pilih Guru --</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>1. Skor Kehadiran (Bobot 40% - Auto Log)</label>
+            <input type="number" id="kg-skor-hadir" min="0" max="100" value="100" required oninput="hitungPreviewKinerja()">
+          </div>
+
+          <div class="form-group">
+            <label>2. Perangkat Ajar / Modul (Bobot 20%)</label>
+            <input type="number" id="kg-skor-perangkat" min="0" max="100" value="85" required oninput="hitungPreviewKinerja()">
+          </div>
+
+          <div class="form-group">
+            <label>3. Pelaksanaan Mengajar (Bobot 25%)</label>
+            <input type="number" id="kg-skor-mengajar" min="0" max="100" value="85" required oninput="hitungPreviewKinerja()">
+          </div>
+
+          <div class="form-group">
+            <label>4. Ketertiban Jurnal & Etika (Bobot 15%)</label>
+            <input type="number" id="kg-skor-admin" min="0" max="100" value="85" required oninput="hitungPreviewKinerja()">
+          </div>
+
+          <!-- KOTAK LIVE PREVIEW SKOR AKHIR -->
+          <div class="form-group full-row" style="background: #161224; border: 1px solid #30274e; border-radius: 8px; padding: 12px 15px; display: flex; justify-content: space-between; align-items: center;">
+            <div>
+              <span style="font-size: 12px; color: #a29bfe; display: block;">Kalkulasi Nilai Akhir</span>
+              <strong id="kg-preview-skor" style="font-size: 22px; color: #00d2d3;">89.5</strong>
+            </div>
+            <span id="kg-preview-predikat" class="badge badge-success" style="font-size: 13px; padding: 6px 12px;">Baik</span>
+          </div>
+
+          <div class="form-group full-row">
+            <label>Catatan Pembinaan / Apresiasi Kepala Sekolah</label>
+            <input type="text" id="kg-catatan" placeholder="Contoh: Pengelolaan kelas sangat interaktif, pertahankan ketepatan waktu.">
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn-action badge-danger" style="border: none;" onclick="closeModal('modalKinerjaGuru')">Batal</button>
+          <button type="submit" id="btn-simpan-kg" class="btn-action btn-success">💾 Simpan Penilaian</button>
+        </div>
+      </form>
+    </div>
+  </div>
 <!-- KODE KEAMANAN / PENJAGA GERBANG (WAJIB PALING ATAS) -->
 <script src="./js/auth-guard.js?v=2.0"></script>
 
@@ -1985,6 +2120,7 @@
 <!-- MODUL OPERASIONAL REAL-TIME & JADWAL -->
 <script src="./js/live-absen.js?v=2.2"></script>
 <script src="./js/jadwal.js?v=2.0"></script>
+<script src="./js/kinerja-guru.js?v=1.0"></script>
 
 <!-- UTILITAS JAM, CACHE & BAHASA -->
 <script src="./js/clock.js"></script>
