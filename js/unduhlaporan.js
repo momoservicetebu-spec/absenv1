@@ -556,8 +556,7 @@ async function unduhKinerjaGuruPDF(btnEl) {
     const imgTtdTag = ttdKepsek ? `<img src="${ttdKepsek}" style="max-height:55px; max-width:140px; object-fit:contain;">` : "";
 
     wrapper = document.createElement("div");
-    wrapper.style.cssText = "position:fixed; left:-9999px; top:0; background:#ffffff; color:#000000; padding:12px 18px; font-family:'Times New Roman', Times, serif; width:1040px;";
-    wrapper.innerHTML = `
+wrapper.style.cssText = "position:fixed; left:0; top:0; z-index:-1; opacity:0.99; background:#ffffff; color:#000000; padding:12px 18px; font-family:'Times New Roman', Times, serif; width:1040px;";    wrapper.innerHTML = `
       <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:3px double #000; padding-bottom:8px; margin-bottom:12px;">
         ${imgKiriTag}
         <div style="text-align:center; flex:1; padding:0 10px;">
