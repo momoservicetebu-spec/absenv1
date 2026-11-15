@@ -1423,8 +1423,7 @@
     </div>
 
     <!-- MODAL 2: INPUT LAYANAN BIMBINGAN KONSELING (BK) -->
-    <div id="modalInputBK" class="modal" style="display: none;">
-      <div class="modal-card" style="max-width: 650px; width: 95%;">
+      <div id="modalInputBK" class="modal-overlay" style="display: none;">      <div class="modal-card" style="max-width: 650px; width: 95%;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
           <h3 id="modalBKTitle" style="margin: 0; color: #1dd1a1;">🗣️ Form Layanan Bimbingan Konseling (BK)</h3>
           <button type="button" onclick="closeModal('modalInputBK')" style="background:none; border:none; color:#fff; font-size:20px; cursor:pointer;">✖</button>
@@ -1481,8 +1480,8 @@
     </div>
 
     <!-- MODAL 3: TAMBAH MASTER JENIS POIN -->
-    <div id="modalMasterPoin" class="modal" style="display: none;">
-      <div class="modal-card" style="max-width: 500px; width: 95%;">
+     <div id="modalMasterPoin" class="modal-overlay" style="display: none;">     
+        <div class="modal-card" style="max-width: 500px; width: 95%;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
           <h3 style="margin: 0; color: #a29bfe;">⚙️ Tambah Jenis Poin Pelanggaran / Prestasi</h3>
           <button type="button" onclick="closeModal('modalMasterPoin')" style="background:none; border:none; color:#fff; font-size:20px; cursor:pointer;">✖</button>
@@ -2323,8 +2322,8 @@
   </div>
 
 <!-- Modal Buat Gate Pass -->
-<div id="modal-gatepass" class="modal" style="display: none;">
-    <div class="modal-content">
+    <div id="modal-gatepass" class="modal-overlay" style="display: none;">
+    <div class="modal-card">
         <!-- Tombol untuk menutup modal -->
         <span class="close-btn" onclick="closeModal('modal-gatepass')" style="float: right; cursor: pointer; font-size: 24px;">&times;</span>
         
@@ -2350,8 +2349,7 @@
     </div>
 </div>
 <!-- MODAL POPUP FORM ABSENSI PER MAPEL -->
-<div id="modal-absensi-kelas" class="modal" style="display: none; position: fixed; z-index: 9999; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.7);">
-  <div class="modal-content" style="background-color: #1e1b31; margin: 3% auto; padding: 25px; border: 1px solid #4a4563; border-radius: 8px; width: 90%; max-width: 850px; color: white;">
+    <div id="modal-absensi-kelas" class="modal-overlay" style="display: none;">  <div class="modal-content" style="background-color: #1e1b31; margin: 3% auto; padding: 25px; border: 1px solid #4a4563; border-radius: 8px; width: 90%; max-width: 850px; color: white;">
     <span class="close" onclick="closeModalAbsen()" style="color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer;">&times;</span>
     
     <h3 style="color: #1dd1a1; margin-top: 0; border-bottom: 1px solid #4a4563; padding-bottom: 10px;">
@@ -2487,16 +2485,17 @@
 <script src="./js/clock.js"></script>
 <script src="./js/cache-cleaner.js?v=1.0"></script>
 <script src="./js/lang.js"></script>
-<!-- INISIALISASI SELECT2 -->
+
+  <!-- INISIALISASI SELECT2 -->
 <script>
   $(document).ready(function() {
-      // Mengaktifkan fitur pencarian (Select2) pada semua tag dropdown <select>
-      $('select').select2({
-          width: '100%'
+    $('select').each(function() {
+      const parentModal = $(this).closest('.modal-overlay, .modal');
+      $(this).select2({
+        width: '100%',
+        dropdownParent: parentModal.length ? parentModal : $(document.body)
       });
-      
-      // Catatan: Jika ada dropdown di dalam Modal (Popup), 
-      // Anda mungkin perlu men-setting 'dropdownParent' agar Select2 tidak tertutup modal.
+    });
   });
 </script>
 
