@@ -1965,3 +1965,158 @@ button[onclick*="unduhLaporanPoinBKPDF"]:hover {
     padding-top: 4px !important;
   }
 }
+
+/* =========================================================
+   PERBAIKAN RESPONSIF MODAL (DESKTOP & SMART BOARD 75"+)
+   ========================================================= */
+.modal-overlay,
+.modal {
+  position: fixed !important;
+  inset: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  background: rgba(10, 9, 20, 0.8) !important;
+  backdrop-filter: blur(4px);
+  z-index: 99990 !important;
+  padding: 24px !important;
+  box-sizing: border-box !important;
+  overflow-y: auto !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+/* Kartu Modal Proporsional (Anti Melar 4K & Anti Terpotong Scaling) */
+.modal-card,
+.modal-content {
+  width: 100% !important;
+  max-width: 780px !important;
+  max-height: 90vh !important;
+  margin: auto !important; /* Tetap di tengah baik saat display:flex maupun display:block */
+  background: #1e1b2e !important;
+  color: #ffffff !important;
+  border: 1px solid #4a4563 !important;
+  border-radius: 14px !important;
+  padding: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  overflow: hidden !important;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.65) !important;
+  box-sizing: border-box !important;
+}
+
+/* Header Modal Selalu Terkunci di Atas (Tombol X Tidak Akan Hilang) */
+.modal-header {
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 20 !important;
+  background: #1e1b2e !important;
+  padding: 18px 24px !important;
+  border-bottom: 1px solid #332d4a !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 12px !important;
+  flex-shrink: 0 !important;
+}
+
+.modal-header h3 {
+  margin: 0 !important;
+  font-size: 1.15rem !important;
+}
+
+/* Tombol Tutup (X) Jelas & Mudah Disentuh di Layar Sentuh Smart Board */
+.modal-close-btn,
+.modal-content .close-btn,
+.modal-content .close {
+  width: 38px !important;
+  height: 38px !important;
+  min-width: 38px !important;
+  background: rgba(255, 107, 107, 0.15) !important;
+  color: #ff6b6b !important;
+  border: 1px solid rgba(255, 107, 107, 0.4) !important;
+  border-radius: 8px !important;
+  font-size: 22px !important;
+  line-height: 1 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  cursor: pointer !important;
+  float: none !important;
+  flex-shrink: 0 !important;
+}
+
+.modal-close-btn:hover,
+.modal-content .close-btn:hover,
+.modal-content .close:hover {
+  background: #ff6b6b !important;
+  color: #ffffff !important;
+}
+
+/* Area Isi Form Bisa Di-Scroll di Dalam Kartu */
+.modal-card > form,
+.modal-content > form,
+.modal-body-scroll {
+  padding: 20px 24px !important;
+  overflow-y: auto !important;
+  flex: 1 1 auto !important;
+  box-sizing: border-box !important;
+}
+
+/* Footer Tombol Simpan & Batal Terkunci di Bawah */
+.modal-footer {
+  position: sticky !important;
+  bottom: -20px !important;
+  z-index: 20 !important;
+  background: #1e1b2e !important;
+  padding: 14px 0 4px 0 !important;
+  margin-top: 18px !important;
+  border-top: 1px solid #332d4a !important;
+  display: flex !important;
+  justify-content: flex-end !important;
+  gap: 10px !important;
+}
+
+/* Perbaikan Grid Form & Select2 agar Tidak Meluber */
+.modal-card .form-grid {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 14px 18px !important;
+}
+
+.modal-card .form-group {
+  min-width: 0 !important;
+  width: 100% !important;
+  margin-bottom: 0 !important;
+}
+
+.modal-card .form-group.full-row {
+  grid-column: 1 / -1 !important;
+}
+
+.modal-card input,
+.modal-card select,
+.modal-content input,
+.modal-content select,
+.modal-card .select2-container {
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+/* Penyesuaian Khusus Layar Besar / Smart Board 75" ke Atas */
+@media (min-width: 1600px) {
+  .modal-card,
+  .modal-content {
+    max-width: 900px !important;
+  }
+
+  .modal-header h3 {
+    font-size: 1.3rem !important;
+  }
+
+  .modal-card label,
+  .modal-card input,
+  .modal-card select {
+    font-size: 15px !important;
+  }
+}
