@@ -158,18 +158,19 @@ function downloadTemplate(type) {
   let csvContent = "";
   let fileName = "";
 
-  if (type === 'guru') {
+ if (type === 'guru') {
   csvContent = 
     "# ==========================================================================\n" +
     "# ATURAN PENGISIAN TEMPLATE DATA GURU (BISA LANGSUNG DIISI DI BAWAH)\n" +
-    "# 1. JANGAN MENGUBAH / MENGHAPUS NAMA HEADER PADA BARIS KE-8.\n" +
+    "# 1. JANGAN MENGUBAH / MENGHAPUS NAMA HEADER PADA BARIS KE-9.\n" +
     "# 2. Format Tanggal (TglLahir & TglMasuk): YYYY-MM-DD (Contoh: 1990-05-20).\n" +
     "# 3. Jenis Kelamin (JK): 'L' (Laki-Laki) atau 'P' (Perempuan).\n" +
     "# 4. Status: 'Aktif', 'Cuti', atau 'Non-Aktif'.\n" +
     "# 5. Role_Sistem: 'Admin', 'Kepsek', atau 'Guru'.\n" +
+    "# 6. Bercadar: 'Tidak' atau 'Ya'.\n" +
     "# ==========================================================================\n" +
-    "GuruID;NIP;Nama;JK;TmpLahir;TglLahir;HP;WA;Email;Alamat;Jabatan;Mapel;Status;FotoURL;TglMasuk;Role_Sistem;Username;Password;Kode_Guru\n" +
-    "GURU-001;199001012015011001;Ahmad Dahlan M.Pd;L;Jakarta;1990-01-01;081234567890;081234567890;ahmad@sekolah.sch.id;Jl. Merdeka No. 123;Guru Matematika;Matematika;Aktif;https://link-foto.com/guru.jpg;2015-01-10;Guru;guru_ahmad;pass123;KG-001\n";
+    "GuruID;NIP;Nama;JK;TmpLahir;TglLahir;HP;WA;Email;Alamat;Jabatan;Mapel;Status;FotoURL;TglMasuk;Role_Sistem;Username;Password;Bercadar\n" +
+    "GURU-001;199001012015011001;Ahmad Dahlan M.Pd;L;Jakarta;1990-01-01;081234567890;081234567890;ahmad@sekolah.sch.id;Jl. Merdeka No. 123;Guru Matematika;Matematika;Aktif;https://link-foto.com/guru.jpg;2015-01-10;Guru;guru_ahmad;pass123;Tidak\n";
   fileName = "Template_Import_Guru.csv";
 } else {
   csvContent = 
