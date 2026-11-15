@@ -2367,3 +2367,43 @@ function getWarnaBadgeStatus(status) {
 
 // Jalankan saat halaman selesai dimuat
 document.addEventListener("DOMContentLoaded", renderSidebarByRole);
+
+// ==========================================
+// SIDEBAR DINAMIS (COLLAPSE & ACCORDION)
+// ==========================================
+function toggleDesktopSidebar() {
+  const sidebar = document.querySelector('.sidebar');
+  if (!sidebar) return;
+  sidebar.classList.toggle('desktop-collapsed');
+  localStorage.setItem('sidebar_collapsed', sidebar.classList.contains('desktop-collapsed'));
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  // 1. Pulihkan status buka/tutup sidebar terakhir di laptop
+  const sidebar = document.querySelector('.sidebar');
+  if (sidebar && localStorage.getItem('sidebar_collapsed') === 'true') {
+    sidebar.classList.add('desktop-collapsed');
+  }
+
+  // 2. Fitur lipat/buka sub-menu saat judul kategori (.menu-group) diklik
+  document.querySelectorAll('.sidebar .menu-group').forEach(group => {
+    group.addEventListener('click', () => {
+      group.classList.toggle('group-closed');
+      const isClosed = group.classList.contains('group-closed');
+      let nextEl = group.nextElementSibling;
+
+      while (nextEl && !nextEl.classList.contains('menu-group') && !nextEl.classList.contains('logout-btn')) {
+        if (isClosed) {
+          if (nextEl.style.display !== 'none') {
+            nextEl.dataset.groupHidden = 'true';
+            nextEl.style.display = 'none';
+          }
+        } else if (nextEl.dataset.groupHidden === 'true') {
+          nextEl.style.display = '';
+          delete nextEl.dataset.groupHidden;
+        }
+        nextEl = nextEl.nextElementSibling;
+      }
+    });
+  });
+});
