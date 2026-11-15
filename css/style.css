@@ -1,0 +1,59 @@
+/* Pastikan container topbar yang berisi tombol ☰ Menu menggunakan flex */
+.top-bar, .topbar, .mobile-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+}
+
+/* Wadah Running Text Watermark Perusahaan */
+.company-watermark-marquee {
+  flex: 1;
+  min-width: 0; /* Mencegah overflow saat layar kecil */
+  overflow: hidden;
+  position: relative;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  padding: 7px 14px;
+  display: flex;
+  align-items: center;
+  /* Efek pudar halus di ujung kiri & kanan */
+  mask-image: linear-gradient(to right, transparent, black 3%, black 97%, transparent);
+  -webkit-mask-image: linear-gradient(to right, transparent, black 3%, black 97%, transparent);
+}
+
+.company-watermark-track {
+  display: inline-block;
+  white-space: nowrap;
+  padding-left: 100%;
+  animation: marqueeWatermark 28s linear infinite;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #94a3b8;
+  letter-spacing: 0.3px;
+}
+
+/* Berhenti berjalan saat diarahkan kursor */
+.company-watermark-marquee:hover .company-watermark-track {
+  animation-play-state: paused;
+}
+
+.company-watermark-track strong {
+  color: #38bdf8; /* Aksen biru cyan */
+  font-weight: 700;
+}
+
+.company-watermark-track .wm-gold {
+  color: #fbbf24; /* Aksen emas */
+  font-weight: 600;
+}
+
+@keyframes marqueeWatermark {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-100%);
+  }
+}

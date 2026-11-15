@@ -10,6 +10,7 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
   <link rel="stylesheet" href="./css/admin.css?v=5.0">
+  <link rel="stylesheet" href="./css/style.css">
   <link rel="icon" href="data:,">
 
   <!-- TAMBAHAN BARU: Library jQuery & Select2 untuk Fitur Cari Dropdown -->
@@ -79,11 +80,23 @@
 
   <!-- AREA KONTEN UTAMA -->
   <div class="main-content">
-    <div class="desktop-topbar">
-      <button type="button" class="desktop-sidebar-toggle" onclick="toggleDesktopSidebar()" title="Buka / Tutup Menu Sidebar">
-        ☰ Menu
-      </button>
-    </div>
+    <!-- Baris atas di dalam area konten utama -->
+<div class="top-bar" style="display: flex; align-items: center; gap: 14px; margin-bottom: 16px;">
+  
+  <!-- Tombol Menu yang sudah ada -->
+  <button class="menu-toggle" onclick="toggleSidebar()">☰ Menu</button>
+
+  <!-- TAMBAHKAN RUNNING TEXT WATERMARK DI SINI -->
+  <div class="company-watermark-marquee">
+  <div class="company-watermark-track">
+    ⚡ <strong>DANISH SHOP</strong> — Smart School Attendance &amp; Management System &nbsp;&bull;&nbsp;
+    Official Developer: <span class="wm-gold">PT. MOMO SERVICE</span> &nbsp;&bull;&nbsp;
+    Melayani Jasa Pembuatan <strong>Aplikasi Apa Saja &amp; Sistem Full Custom</strong> (Web, Android, Sekolah, Instansi, Kasir/POS &amp; Perusahaan) Sesuai Permintaan &nbsp;&bull;&nbsp;
+    Konsultasi &amp; Order WA: <strong>0812-7361-3498</strong> &nbsp;&bull;&nbsp;
+    Hak Cipta &copy; 2026 <span class="wm-gold">PT. MOMO SERVICE</span> &mdash; <em>All Rights Reserved</em>
+  </div>
+</div>
+</div>
     <!-- 1. DASHBOARD ANALYTICS -->
     <div id="dashboard" class="section active">
       <div class="analytics-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
