@@ -1856,3 +1856,112 @@ button[onclick*="unduhLaporanPoinBKPDF"]:hover {
     display: none !important;
   }
 }
+
+/* ========================================================= */
+/* PERBAIKAN RESPONSIVE & ANTI-OVERFLOW MODAL POIN & BK      */
+/* ========================================================= */
+#modalInputPoin,
+#modalInputBK,
+#modalMasterPoin {
+  box-sizing: border-box !important;
+  padding: 12px !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+}
+
+#modalInputPoin .modal-card,
+#modalInputBK .modal-card,
+#modalMasterPoin .modal-card {
+  width: 100% !important;
+  max-width: 600px !important;
+  max-height: 92vh !important;
+  margin: auto !important;
+  padding: 18px !important;
+  box-sizing: border-box !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  background-color: #1e1a2e !important;
+  border: 1px solid #4a4563 !important;
+  border-radius: 12px !important;
+}
+
+/* Rapikan Header Judul & Tombol Tutup (X) */
+#modalInputPoin .modal-card > div:first-child,
+#modalInputBK .modal-card > div:first-child,
+#modalMasterPoin .modal-card > div:first-child {
+  gap: 10px !important;
+  align-items: flex-start !important;
+  border-bottom: 1px solid #383252 !important;
+  padding-bottom: 12px !important;
+  margin-bottom: 14px !important;
+}
+
+#modalInputPoin .modal-card > div:first-child h3,
+#modalInputBK .modal-card > div:first-child h3,
+#modalMasterPoin .modal-card > div:first-child h3 {
+  font-size: 16px !important;
+  line-height: 1.35 !important;
+}
+
+/* Kunci Grid & Input agar Tidak Melebar Keluar Kartu */
+#modalInputPoin .form-grid,
+#modalInputBK .form-grid {
+  width: 100% !important;
+  min-width: 0 !important;
+  box-sizing: border-box !important;
+}
+
+#modalInputPoin .form-group,
+#modalInputBK .form-group,
+#modalMasterPoin .form-group {
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+  margin-bottom: 0 !important;
+  box-sizing: border-box !important;
+}
+
+#modalInputPoin input,
+#modalInputPoin select,
+#modalInputPoin .select2-container,
+#modalInputBK input,
+#modalInputBK select,
+#modalInputBK .select2-container,
+#modalMasterPoin input,
+#modalMasterPoin select {
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+/* Potong Teks Opsi Dropdown yang Terlalu Panjang dengan Elipsis (...) */
+#modalInputPoin select,
+#modalInputBK select,
+#modalMasterPoin select {
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+  padding-right: 28px !important;
+}
+
+/* Penyesuaian Layar HP / Jendela Sempit */
+@media (max-width: 640px) {
+  #modalInputPoin .modal-card,
+  #modalInputBK .modal-card,
+  #modalMasterPoin .modal-card {
+    padding: 15px !important;
+  }
+
+  #modalInputPoin .form-grid,
+  #modalInputBK .form-grid {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+  }
+
+  /* Hilangkan jarak kosong berlebih di atas checkbox WA pada tampilan 1 kolom */
+  #modalInputPoin .form-group[style*="padding-top"],
+  #modalInputBK .form-group[style*="padding-top"] {
+    padding-top: 4px !important;
+  }
+}
