@@ -9,7 +9,7 @@
   <!-- Kode Lama Kamu -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
-  <link rel="stylesheet" href="./css/admin.css">
+  <link rel="stylesheet" href="./css/admin.css?v=5.0">
   <link rel="icon" href="data:,">
 
   <!-- TAMBAHAN BARU: Library jQuery & Select2 untuk Fitur Cari Dropdown -->
@@ -17,7 +17,67 @@
   <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
   <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-  
+  <style>
+  @media (min-width: 769px) {
+    .mobile-header { display: none !important; }
+  }
+  .main-content {
+    flex: 1;
+    min-width: 0;
+  }
+  .wm-topbar-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    margin-bottom: 16px;
+  }
+  .wm-topbar-row .menu-btn {
+    background: #2a2640;
+    color: #fff;
+    border: 1px solid #4a4563;
+    padding: 7px 14px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .company-watermark-marquee {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    position: relative;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 8px;
+    padding: 7px 14px;
+    display: flex;
+    align-items: center;
+    mask-image: linear-gradient(to right, transparent, black 3%, black 97%, transparent);
+    -webkit-mask-image: linear-gradient(to right, transparent, black 3%, black 97%, transparent);
+  }
+  .company-watermark-track {
+    display: inline-block;
+    white-space: nowrap;
+    padding-left: 100%;
+    animation: marqueeWatermark 35s linear infinite;
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: #94a3b8;
+    letter-spacing: 0.3px;
+  }
+  .company-watermark-marquee:hover .company-watermark-track {
+    animation-play-state: paused;
+  }
+  .company-watermark-track strong { color: #38bdf8; font-weight: 700; }
+  .company-watermark-track .wm-gold { color: #fbbf24; font-weight: 600; }
+  @keyframes marqueeWatermark {
+    0%   { transform: translateX(0); }
+    100% { transform: translateX(-100%); }
+  }
+</style>
+  </style>
 </head>
 <body>
   <div id="loadingOverlay" class="loading-overlay hidden">
@@ -56,6 +116,8 @@
     <button class="nav-btn" onclick="switchTab('gate-pass', this)" data-lang="navManajemenGatePass">🎟️ Manajemen Gate Pass</button>
     <button class="nav-btn" onclick="switchTab('absensi-kelas', this); loadSemuaJadwalAdmin();" data-lang="navAbsensiKelasSiswa">📝 Absensi Kelas Siswa </button>
     <button class="nav-btn" onclick="switchTab('absensi-manual', this); loadUserDropdownManual();" data-lang="navAbsensiManualGuru">📝 Absensi Manual Guru </button>
+    <button class="nav-btn" onclick="switchTab('kinerja-guru', this); loadKinerjaGuru();" data-lang="navKinerjaGuru">🏆 Performa Kinerja Guru</button>
+    <button class="nav-btn" onclick="switchTab('poin-bk', this); loadDataPoinBK();" data-lang="navPoinBK">⚖️ Poin Siswa & BK</button>
 
     <div class="menu-group" data-lang="navSistemLaporan">Sistem & Laporan</div>
     <button class="nav-btn" onclick="switchTab('laporan-absensi', this)" data-lang="navLaporanAbsensi">📊 Laporan Absensi</button>
@@ -63,8 +125,8 @@
     <button class="nav-btn" onclick="switchTab('backup', this)" data-lang="navBackupRestore">💾 Backup & Restore</button>
     <button class="nav-btn" onclick="switchTab('whatsapp-settings', this)" data-lang="navNotifikasiWa">💬 Notifikasi WhatsApp</button>
     <button class="nav-btn" onclick="switchTab('geofencing', this)" data-lang="navLokasiGeofencing">📍 Lokasi & Geofencing</button>
-    
-    <button class="logout-btn" onclick="window.location.href='login.html'" data-lang="navKeluarSistem">🚪 Keluar Sistem</button>
+    <button type="button" onclick="clearAppCache()" style="color: #00d2d3; margin-top: 8px; background: rgba(0, 210, 211, 0.08); font-weight: 600;">🧹 Bersihkan Cache</button>
+    <button class="logout-btn" onclick="['isLoggedIn','role','user_session','nama','name','userName','username','login_timestamp'].forEach(k => localStorage.removeItem(k)); window.location.replace('login.html');" data-lang="navKeluarSistem">🚪 Keluar Sistem</button>  
   </div>
   <!-- Header khusus Mobile -->
   <div class="mobile-header">
@@ -78,6 +140,21 @@
   <!-- AREA KONTEN UTAMA -->
   <div class="main-content">
 
+  <div class="wm-topbar-row">
+    <!-- Biarkan tombol ☰ Menu asli milik dashboard-admin.html di sini -->
+    <button class="menu-btn" onclick="toggleSidebar()">☰ Menu</button>
+
+    <!-- Running Text Watermark Perusahaan -->
+    <div class="company-watermark-marquee">
+      <div class="company-watermark-track">
+        ⚡ <strong>DANISH SHOP</strong> — Smart School Attendance &amp; Management System &nbsp;&bull;&nbsp;
+        Official Developer: <span class="wm-gold">MOMO SERVICE</span> &nbsp;&bull;&nbsp;
+        Melayani Jasa Pembuatan <strong>Aplikasi Apa Saja &amp; Sistem Full Custom</strong> (Web, Android, Sekolah, Instansi, Kasir/POS &amp; Perusahaan) Sesuai Permintaan &nbsp;&bull;&nbsp;
+        Konsultasi &amp; Order WA: <strong>0812-7361-3498</strong> &nbsp;&bull;&nbsp;
+        Hak Cipta &copy; 2026 <span class="wm-gold">MOMO SERVICE</span> &mdash; <em>All Rights Reserved</em>
+      </div>
+    </div>
+  </div>
     <!-- 1. DASHBOARD ANALYTICS -->
     <div id="dashboard" class="section active">
       <div class="analytics-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
@@ -1093,6 +1170,357 @@
         </div>
       </div>
 
+      <!-- KONTEN: PERFORMA KINERJA GURU -->
+    <div id="kinerja-guru" class="section card" style="display: none;">
+      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 15px;">
+        <div>
+          <h2 class="section-title" style="margin-bottom: 4px;">🏆 Performa Kinerja Guru (PKG)</h2>
+          <p class="section-desc" style="margin: 0;">Evaluasi kinerja bulanan gabungan skor kehadiran otomatis (40%) dan supervisi mengajar (60%).</p>
+        </div>
+        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+          <button type="button" class="btn-action" onclick="exportKinerjaGuruCSV()" style="background: #161224; border: 1px solid #6c5ce7; color: #a29bfe;">
+            📥 Export CSV
+          </button> 
+          <button type="button" class="btn-action" onclick="unduhKinerjaGuruPDF(this)" style="background: #d63031 !important; border: 1px solid #ff7675 !important; color: #ffffff !important;">
+            📄 Unduh PDF
+          </button>
+          <button type="button" class="btn-action" onclick="syncAbsensiKinerja()" style="background: #0984e3; color: #fff;">
+            🔄 Sinkron Absensi Otomatis
+          </button>
+          <button type="button" class="btn-action btn-success" onclick="openModalKinerjaGuru()">
+            ➕ Nilai Kinerja Guru
+          </button>
+        </div>
+      </div>
+
+      <!-- RINGKASAN KPI KINERJA GURU -->
+      <div class="kpi-row" style="margin-bottom: 18px;">
+        <div class="kpi-card">
+          <h5>Guru Dinilai</h5>
+          <div class="kpi-num" id="kg-kpi-total" style="color: #00d2d3;">0</div>
+        </div>
+        <div class="kpi-card">
+          <h5>Rata-Rata Skor</h5>
+          <div class="kpi-num" id="kg-kpi-avg" style="color: #a29bfe;">0.0</div>
+        </div>
+        <div class="kpi-card">
+          <h5>Sangat Baik (≥91)</h5>
+          <div class="kpi-num" id="kg-kpi-unggul" style="color: #1dd1a1;">0</div>
+        </div>
+        <div class="kpi-card">
+          <h5>Perlu Pembinaan (&lt;70)</h5>
+          <div class="kpi-num" id="kg-kpi-bina" style="color: #ff6b6b;">0</div>
+        </div>
+      </div>
+
+      <!-- FILTER PERIODE & PENCARIAN -->
+      <div class="search-bar" style="align-items: center;">
+        <input type="month" id="kg-filter-periode" onchange="loadKinerjaGuru()" style="max-width: 190px; color-scheme: dark;">
+        <input type="text" id="kg-search-input" onkeyup="renderTabelKinerjaGuru()" placeholder="🔍 Cari Nama Guru, NIP, atau Predikat..." style="max-width: 300px;">
+        <button type="button" class="btn-action" onclick="loadKinerjaGuru()">🔄 Muat Data</button>
+      </div>
+
+      <!-- TABEL PERINGKAT & REKAP KINERJA GURU -->
+      <div class="analytics-table-wrap" style="height: auto; max-height: 60vh;">
+        <table>
+          <thead>
+            <tr style="background: rgba(108, 92, 231, 0.2);">
+              <th>NO</th>
+              <th>NAMA GURU & NIP</th>
+              <th>JABATAN / MAPEL</th>
+              <th>KEHADIRAN (40%)</th>
+              <th>PERANGKAT (20%)</th>
+              <th>MENGAJAR (25%)</th>
+              <th>ADMIN (15%)</th>
+              <th>SKOR AKHIR</th>
+              <th>PREDIKAT</th>
+              <th>CATATAN</th>
+              <th>AKSI</th>
+            </tr>
+          </thead>
+          <tbody id="tbody-kinerja-guru">
+            <tr><td colspan="11" style="text-align: center; padding: 20px; color: #a29bfe;">Memuat data kinerja guru...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ========================================================= -->
+    <!-- HALAMAN: SISTEM POIN SISWA & BIMBINGAN KONSELING (BK)     -->
+    <!-- ========================================================= -->
+    <div id="poin-bk" class="section card" style="display: none;">
+      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 18px;">
+        <div>
+          <h2 style="margin: 0; color: #f1c40f;">⚖️ Sistem Poin Siswa & Bimbingan Konseling (BK)</h2>
+          <p style="margin: 4px 0 0; color: #a29bfe; font-size: 13px;">Monitoring kedisiplinan, prestasi siswa, ambang batas SP otomatis, dan layanan konseling BK.</p>
+        </div>
+        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+          <button type="button" class="btn-action" onclick="unduhLaporanPoinBKPDF(this)" style="background: #d63031 !important; border: 1px solid #ff7675 !important; color: #fff !important;">
+            📄 Unduh Laporan PDF
+          </button>
+          <button type="button" class="btn-action" onclick="syncAbsensiPoinUI()" style="background: #0984e3; color: #fff;">
+            🔄 Tarik Telat/Alpa Absensi
+          </button>
+          <button type="button" class="btn-action" onclick="openModalMasterPoin()" style="background: #161224; border: 1px solid #6c5ce7; color: #a29bfe;">
+            ⚙️ Jenis Poin
+          </button>
+          <button type="button" class="btn-action" onclick="openModalInputBK()" style="background: #00b894; color: #fff;">
+            🗣️ Catat Konseling BK
+          </button>
+          <button type="button" class="btn-action btn-primary" onclick="openModalInputPoin()">
+            ➕ Input Poin Siswa
+          </button>
+        </div>
+      </div>
+
+      <!-- 4 KARTU KPI -->
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 14px; margin-bottom: 18px;">
+        <div style="background: #1e1a2e; border: 1px solid #383252; border-radius: 10px; padding: 16px; text-align: center;">
+          <div style="font-size: 11px; color: #a29bfe; text-transform: uppercase;">SISWA TERCATAT POIN</div>
+          <div id="pbk-kpi-siswa" style="font-size: 26px; font-weight: bold; color: #00d2d3; margin-top: 6px;">0</div>
+        </div>
+        <div style="background: #1e1a2e; border: 1px solid #383252; border-radius: 10px; padding: 16px; text-align: center;">
+          <div style="font-size: 11px; color: #a29bfe; text-transform: uppercase;">STATUS SP 1 (16–35 POIN)</div>
+          <div id="pbk-kpi-sp1" style="font-size: 26px; font-weight: bold; color: #feca57; margin-top: 6px;">0</div>
+        </div>
+        <div style="background: #1e1a2e; border: 1px solid #383252; border-radius: 10px; padding: 16px; text-align: center;">
+          <div style="font-size: 11px; color: #a29bfe; text-transform: uppercase;">STATUS SP 2 / SP 3 (≥36)</div>
+          <div id="pbk-kpi-sp2" style="font-size: 26px; font-weight: bold; color: #ff6b6b; margin-top: 6px;">0</div>
+        </div>
+        <div style="background: #1e1a2e; border: 1px solid #383252; border-radius: 10px; padding: 16px; text-align: center;">
+          <div style="font-size: 11px; color: #a29bfe; text-transform: uppercase;">SESI KONSELING BK</div>
+          <div id="pbk-kpi-bk" style="font-size: 26px; font-weight: bold; color: #1dd1a1; margin-top: 6px;">0</div>
+        </div>
+      </div>
+
+      <!-- BAR FILTER & NAVIGASI TAB -->
+      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 14px;">
+        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+          <button type="button" id="tab-btn-rekap" class="btn-action btn-primary" onclick="switchTabPoinBK('rekap')">📊 Rekap Poin Siswa</button>
+          <button type="button" id="tab-btn-riwayat" class="btn-action" style="background:#161224; border:1px solid #4a4563;" onclick="switchTabPoinBK('riwayat')">📋 Riwayat Pelanggaran & Prestasi</button>
+          <button type="button" id="tab-btn-bk" class="btn-action" style="background:#161224; border:1px solid #4a4563;" onclick="switchTabPoinBK('bk')">🗣️ Layanan Konseling BK</button>
+        </div>
+
+        <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
+          <input type="month" id="pbk-sync-bulan" style="height: 38px; padding: 6px 10px; border-radius: 6px; background: #161224; color: #fff; border: 1px solid #4a4563;">
+          <select id="pbk-filter-kelas" onchange="renderActiveTabPoinBK()" style="height: 38px; padding: 6px 10px; border-radius: 6px; background: #161224; color: #fff; border: 1px solid #4a4563;">
+            <option value="">Semua Kelas</option>
+          </select>
+          <input type="text" id="pbk-search" onkeyup="renderActiveTabPoinBK()" placeholder="🔍 Cari Nama Siswa / NISN..." style="height: 38px; padding: 6px 12px; border-radius: 6px; background: #161224; color: #fff; border: 1px solid #4a4563; min-width: 210px;">
+        </div>
+      </div>
+
+      <!-- TAB 1: REKAP POIN PER SISWA -->
+      <div id="pbk-panel-rekap" class="table-responsive" style="background: #1e1a2e; border-radius: 10px; border: 1px solid #383252; overflow-x: auto;">
+        <table style="width: 100%; border-collapse: collapse;">
+          <thead>
+            <tr>
+              <th>NO</th>
+              <th>NAMA SISWA & NISN</th>
+              <th>KELAS</th>
+              <th>PELANGGARAN (+)</th>
+              <th>PRESTASI (-)</th>
+              <th>POIN NETTO</th>
+              <th>STATUS PEMBINAAN / SP</th>
+              <th>SESI BK</th>
+              <th>AKSI</th>
+            </tr>
+          </thead>
+          <tbody id="tbody-pbk-rekap"></tbody>
+        </table>
+      </div>
+
+      <!-- TAB 2: RIWAYAT PELANGGARAN & PRESTASI -->
+      <div id="pbk-panel-riwayat" class="table-responsive" style="display: none; background: #1e1a2e; border-radius: 10px; border: 1px solid #383252; overflow-x: auto;">
+        <table style="width: 100%; border-collapse: collapse;">
+          <thead>
+            <tr>
+              <th>NO</th>
+              <th>TANGGAL</th>
+              <th>NAMA SISWA</th>
+              <th>KELAS</th>
+              <th>KATEGORI</th>
+              <th>URAIAN KEJADIAN</th>
+              <th>POIN</th>
+              <th>PELAPOR</th>
+              <th>AKSI</th>
+            </tr>
+          </thead>
+          <tbody id="tbody-pbk-riwayat"></tbody>
+        </table>
+      </div>
+
+      <!-- TAB 3: LAYANAN BIMBINGAN KONSELING (BK) -->
+      <div id="pbk-panel-bk" class="table-responsive" style="display: none; background: #1e1a2e; border-radius: 10px; border: 1px solid #383252; overflow-x: auto;">
+        <table style="width: 100%; border-collapse: collapse;">
+          <thead>
+            <tr>
+              <th>NO</th>
+              <th>TANGGAL</th>
+              <th>NAMA SISWA & KELAS</th>
+              <th>JENIS LAYANAN</th>
+              <th>PERMASALAHAN</th>
+              <th>TINDAK LANJUT</th>
+              <th>STATUS</th>
+              <th>KONSELOR</th>
+              <th>AKSI</th>
+            </tr>
+          </thead>
+          <tbody id="tbody-pbk-bk"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- MODAL 1: INPUT POIN SISWA -->
+    <div id="modalInputPoin" class="modal-overlay" style="display: none;">
+      <div class="modal-card" style="max-width: 650px; width: 95%;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+          <h3 style="margin: 0; color: #f1c40f;">⚖️ Catat Poin Pelanggaran / Prestasi Siswa</h3>
+          <button type="button" onclick="closeModal('modalInputPoin')" style="background:none; border:none; color:#fff; font-size:20px; cursor:pointer;">✖</button>
+        </div>
+        <form onsubmit="submitFormPoinSiswa(event)">
+          <div class="form-grid" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;">
+            <div class="form-group" style="grid-column: 1 / -1;">
+              <label>Pilih Siswa *</label>
+              <select id="pbk-siswa-select" required style="width: 100%; height: 40px;"></select>
+            </div>
+            <div class="form-group">
+              <label>Tanggal Kejadian *</label>
+              <input type="date" id="pbk-tanggal" required style="width: 100%; height: 40px;">
+            </div>
+            <div class="form-group">
+              <label>Kategori *</label>
+              <select id="pbk-kategori" onchange="filterDropdownAturanPoin()" style="width: 100%; height: 40px;">
+                <option value="PELANGGARAN">⚠️ Pelanggaran (+ Poin)</option>
+                <option value="PRESTASI">🏆 Prestasi / Apresiasi (- Poin)</option>
+              </select>
+            </div>
+            <div class="form-group" style="grid-column: 1 / -1;">
+              <label>Pilih Jenis Pelanggaran / Prestasi *</label>
+              <select id="pbk-aturan-select" onchange="onSelectAturanPoin()" required style="width: 100%; height: 40px;"></select>
+            </div>
+            <div class="form-group">
+              <label>Bobot Poin *</label>
+              <input type="number" id="pbk-poin-val" min="1" max="200" value="5" required style="width: 100%; height: 40px;">
+            </div>
+            <div class="form-group" style="display: flex; align-items: center; padding-top: 22px;">
+              <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; margin: 0;">
+                <input type="checkbox" id="pbk-kirim-wa" checked style="width: 18px; height: 18px;">
+                <span>Kirim Notif WA ke Orang Tua</span>
+              </label>
+            </div>
+            <div class="form-group" style="grid-column: 1 / -1;">
+              <label>Keterangan / Kronologi Singkat</label>
+              <input type="text" id="pbk-keterangan" placeholder="Contoh: Terlambat 20 menit tanpa alasan jelas..." style="width: 100%; height: 40px;">
+            </div>
+          </div>
+          <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 18px;">
+            <button type="button" class="btn-action" onclick="closeModal('modalInputPoin')">Batal</button>
+            <button type="submit" id="btn-simpan-poin" class="btn-action btn-primary">💾 Simpan Catatan Poin</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- MODAL 2: INPUT LAYANAN BIMBINGAN KONSELING (BK) -->
+    <div id="modalInputBK" class="modal" style="display: none;">
+      <div class="modal-card" style="max-width: 650px; width: 95%;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+          <h3 id="modalBKTitle" style="margin: 0; color: #1dd1a1;">🗣️ Form Layanan Bimbingan Konseling (BK)</h3>
+          <button type="button" onclick="closeModal('modalInputBK')" style="background:none; border:none; color:#fff; font-size:20px; cursor:pointer;">✖</button>
+        </div>
+        <form onsubmit="submitFormBK(event)">
+          <input type="hidden" id="bk-id">
+          <div class="form-grid" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;">
+            <div class="form-group" style="grid-column: 1 / -1;">
+              <label>Pilih Siswa *</label>
+              <select id="bk-siswa-select" required style="width: 100%; height: 40px;"></select>
+            </div>
+            <div class="form-group">
+              <label>Tanggal Layanan *</label>
+              <input type="date" id="bk-tanggal" required style="width: 100%; height: 40px;">
+            </div>
+            <div class="form-group">
+              <label>Jenis Layanan BK *</label>
+              <select id="bk-jenis" style="width: 100%; height: 40px;">
+                <option value="Konseling Individu">Konseling Individu</option>
+                <option value="Mediasi Pelanggaran">Mediasi Pelanggaran Tata Tertib</option>
+                <option value="Pemanggilan Orang Tua">Pemanggilan Orang Tua / Wali</option>
+                <option value="Konseling Belajar & Karir">Konseling Belajar & Karir</option>
+                <option value="Home Visit">Kunjungan Rumah (Home Visit)</option>
+              </select>
+            </div>
+            <div class="form-group" style="grid-column: 1 / -1;">
+              <label>Permasalahan / Topik Konseling *</label>
+              <input type="text" id="bk-masalah" required placeholder="Uraikan inti permasalahan siswa..." style="width: 100%; height: 40px;">
+            </div>
+            <div class="form-group" style="grid-column: 1 / -1;">
+              <label>Tindak Lanjut / Kesepakatan Pembinaan *</label>
+              <input type="text" id="bk-tindak" required placeholder="Contoh: Membuat surat pernyataan & pemantauan 2 minggu..." style="width: 100%; height: 40px;">
+            </div>
+            <div class="form-group">
+              <label>Status Kasus</label>
+              <select id="bk-status" style="width: 100%; height: 40px;">
+                <option value="Proses">⏳ Dalam Pemantauan (Proses)</option>
+                <option value="Selesai">✅ Selesai / Tuntas</option>
+              </select>
+            </div>
+            <div class="form-group" style="display: flex; align-items: center; padding-top: 22px;">
+              <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; margin: 0;">
+                <input type="checkbox" id="bk-kirim-wa" style="width: 18px; height: 18px;">
+                <span>Kirim Info/Undangan WA Ortu</span>
+              </label>
+            </div>
+          </div>
+          <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 18px;">
+            <button type="button" class="btn-action" onclick="closeModal('modalInputBK')">Batal</button>
+            <button type="submit" id="btn-simpan-bk" class="btn-action btn-primary">💾 Simpan Catatan BK</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- MODAL 3: TAMBAH MASTER JENIS POIN -->
+    <div id="modalMasterPoin" class="modal" style="display: none;">
+      <div class="modal-card" style="max-width: 500px; width: 95%;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+          <h3 style="margin: 0; color: #a29bfe;">⚙️ Tambah Jenis Poin Pelanggaran / Prestasi</h3>
+          <button type="button" onclick="closeModal('modalMasterPoin')" style="background:none; border:none; color:#fff; font-size:20px; cursor:pointer;">✖</button>
+        </div>
+        <form onsubmit="submitMasterPoin(event)">
+          <div class="form-group" style="margin-bottom: 12px;">
+            <label>Kategori</label>
+            <select id="mp-kategori" style="width: 100%; height: 40px;">
+              <option value="PELANGGARAN">Pelanggaran (+ Poin)</option>
+              <option value="PRESTASI">Prestasi (- Poin)</option>
+            </select>
+          </div>
+          <div class="form-group" style="margin-bottom: 12px;">
+            <label>Tingkat</label>
+            <select id="mp-tingkat" style="width: 100%; height: 40px;">
+              <option value="Ringan">Ringan</option>
+              <option value="Sedang">Sedang</option>
+              <option value="Berat">Berat</option>
+              <option value="Sekolah">Tingkat Sekolah</option>
+              <option value="Kabupaten/Provinsi">Tingkat Kabupaten/Provinsi</option>
+            </select>
+          </div>
+          <div class="form-group" style="margin-bottom: 12px;">
+            <label>Nama Aturan / Prestasi *</label>
+            <input type="text" id="mp-nama" required placeholder="Contoh: Tidak membawa buku pelajaran" style="width: 100%; height: 40px;">
+          </div>
+          <div class="form-group" style="margin-bottom: 16px;">
+            <label>Bobot Poin *</label>
+            <input type="number" id="mp-poin" min="1" max="200" value="5" required style="width: 100%; height: 40px;">
+          </div>
+          <div style="display: flex; justify-content: flex-end; gap: 10px;">
+            <button type="button" class="btn-action" onclick="closeModal('modalMasterPoin')">Batal</button>
+            <button type="submit" class="btn-action btn-primary">💾 Tambah Jenis Poin</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
    <!-- KONTEN: LAPORAN ABSENSI (STRUKTUR SATU WADAH CARD UTUH) -->
     <div id="laporan-absensi" class="section card" style="display: flex; flex-direction: column; min-height: 100%;">
       
@@ -1727,7 +2155,7 @@
     <!-- FOOTER -->
     <div class="dashboard-footer">
       &copy; 2026 Sistem Informasi Siswa (SIS) - Absensi Multi-Biometrik.<br>
-      Dikembangkan Oleh Guntoro/Danish ShoOp untuk kemajuan pendidikan Indonesia | Versi 1.1.0
+      Dikembangkan Oleh Guntoro/Danish ShoOp untuk kemajuan pendidikan Indonesia | Versi 2.1.0
     </div>
     
   </div>
@@ -1954,7 +2382,73 @@
     </div>
   </div>
 </div>
+<!-- MODAL PENILAIAN KINERJA GURU -->
+  <div id="modalKinerjaGuru" class="modal-overlay">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 id="modalKinerjaTitle">🏆 Form Penilaian Kinerja Guru</h3>
+        <button type="button" class="modal-close-btn" onclick="closeModal('modalKinerjaGuru')">&times;</button>
+      </div>
 
+      <form id="formKinerjaGuru" onsubmit="submitKinerjaGuru(event)">
+        <input type="hidden" id="kg-id">
+
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Periode Penilaian (Bulan)</label>
+            <input type="month" id="kg-periode" required onchange="onSelectGuruKinerja()" style="color-scheme: dark;">
+          </div>
+
+          <div class="form-group">
+            <label>Pilih Guru</label>
+            <select id="kg-guru-select" required onchange="onSelectGuruKinerja()">
+              <option value="">-- Pilih Guru --</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>1. Skor Kehadiran (40% - Otomatis dari Log Absen)</label>
+            <input type="number" id="kg-skor-hadir" value="0" readonly style="opacity: 0.8; background: #0f0d1c; cursor: not-allowed;">
+            <small id="kg-absen-detail" style="color: #1dd1a1; display: block; margin-top: 4px; font-size: 11px;">Pilih guru untuk menarik rekap absensi...</small>
+          </div>
+
+          <div class="form-group">
+            <label>2. Perangkat Ajar / Modul (Bobot 20%)</label>
+            <input type="number" id="kg-skor-perangkat" min="0" max="100" value="85" required oninput="hitungPreviewKinerja()">
+          </div>
+
+          <div class="form-group">
+            <label>3. Pelaksanaan Mengajar (Bobot 25%)</label>
+            <input type="number" id="kg-skor-mengajar" min="0" max="100" value="85" required oninput="hitungPreviewKinerja()">
+          </div>
+
+          <div class="form-group">
+            <label>4. Ketertiban Jurnal & Etika (Bobot 15%)</label>
+            <input type="number" id="kg-skor-admin" min="0" max="100" value="85" required oninput="hitungPreviewKinerja()">
+          </div>
+
+          <!-- KOTAK LIVE PREVIEW SKOR AKHIR -->
+          <div class="form-group full-row" style="background: #161224; border: 1px solid #30274e; border-radius: 8px; padding: 12px 15px; display: flex; justify-content: space-between; align-items: center;">
+            <div>
+              <span style="font-size: 12px; color: #a29bfe; display: block;">Kalkulasi Nilai Akhir</span>
+              <strong id="kg-preview-skor" style="font-size: 22px; color: #00d2d3;">89.5</strong>
+            </div>
+            <span id="kg-preview-predikat" class="badge badge-success" style="font-size: 13px; padding: 6px 12px;">Baik</span>
+          </div>
+
+          <div class="form-group full-row">
+            <label>Catatan Pembinaan / Apresiasi Kepala Sekolah</label>
+            <input type="text" id="kg-catatan" placeholder="Contoh: Pengelolaan kelas sangat interaktif, pertahankan ketepatan waktu.">
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn-action badge-danger" style="border: none;" onclick="closeModal('modalKinerjaGuru')">Batal</button>
+          <button type="submit" id="btn-simpan-kg" class="btn-action btn-success">💾 Simpan Penilaian</button>
+        </div>
+      </form>
+    </div>
+  </div>
 <!-- KODE KEAMANAN / PENJAGA GERBANG (WAJIB PALING ATAS) -->
 <script src="./js/auth-guard.js?v=2.0"></script>
 
@@ -1973,7 +2467,7 @@
 <!-- 🌟 MODUL PENGATURAN SYSTEM, NOTIFIKASI & PENCETAKAN LAPORAN (PDF/CSV) --> 
 <script src="./js/setting.js?v=1.1"></script>
 <script src="./js/whatsapp.js?v=2.0"></script> <!-- 🌟 MODUL NOTIFIKASI WA FONNTE -->
-<script src="./js/unduhlaporan.js?v=2.3"></script>
+<script src="./js/unduhlaporan.js?v=3.0"></script>
 
 <!-- MODUL MANAJEMEN USER & BIOMETRIK -->
 <script src="./js/users.js?v=2.0"></script>
@@ -1985,9 +2479,12 @@
 <!-- MODUL OPERASIONAL REAL-TIME & JADWAL -->
 <script src="./js/live-absen.js?v=2.2"></script>
 <script src="./js/jadwal.js?v=2.0"></script>
+<script src="./js/kinerja-guru.js?v=1.0"></script>
+<script src="js/poin-bk.js?v=1.0"></script>
 
-<!-- UTILITAS JAM & BAHASA -->
+<!-- UTILITAS JAM, CACHE & BAHASA -->
 <script src="./js/clock.js"></script>
+<script src="./js/cache-cleaner.js?v=1.0"></script>
 <script src="./js/lang.js"></script>
 <!-- INISIALISASI SELECT2 -->
 <script>
@@ -2001,5 +2498,23 @@
       // Anda mungkin perlu men-setting 'dropdownParent' agar Select2 tidak tertutup modal.
   });
 </script>
-</body>
-</html>
+
+<script>
+  function toggleSidebar() {
+    const sidebar = document.querySelector('.sidebar');
+    if (!sidebar) return;
+
+    if (window.innerWidth <= 992) {
+      sidebar.classList.toggle('show-sidebar');
+      const overlay = document.getElementById('sidebarOverlay');
+      if (overlay) overlay.classList.toggle('show-overlay');
+    } else {
+      sidebar.classList.toggle('desktop-collapsed');
+      setTimeout(() => window.dispatchEvent(new Event('resize')), 320);
+    }
+  }
+</script>
+
+</body> <!-- Baris 2501 -->
+</html> <!-- Baris 2502 -->
+

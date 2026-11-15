@@ -1,6 +1,6 @@
 // ==========================================
 // FILE: js/unduhlaporan.js
-// MODUL EKSPOR LAPORAN ABSENSI (CSV & PDF RESMI)
+// MODUL EKSPOR LAPORAN ABSENSI & PKG (CSV & PDF RESMI)
 // ==========================================
 
 /**
@@ -153,7 +153,6 @@ function unduhLaporanPDF() {
     th.style.textAlign = "center";
   });
 
-  // STYLE PENYEIMBANG UKURAN LOGO
   const imgKiriTag = logoKiri ? `<img src="${logoKiri}" style="height: 80px; width: auto; max-width: 85px; object-fit: contain;" alt="Logo Kiri">` : '<div style="width: 80px;"></div>';
   const imgKananTag = logoKanan ? `<img src="${logoKanan}" style="height: 80px; width: auto; max-width: 85px; object-fit: contain;" alt="Logo Kanan">` : '<div style="width: 80px;"></div>';
   const imgTtdTag = ttdKepsek ? `<img src="${ttdKepsek}" style="max-height: 60px; max-width: 150px; object-fit: contain;" alt="TTD">` : '';
@@ -300,7 +299,6 @@ function unduhLiveMonitorPDF() {
     });
   }
 
-  // STYLE PENYEIMBANG UKURAN LOGO
   const imgKiriTag = logoKiri ? `<img src="${logoKiri}" style="height: 80px; width: auto; max-width: 85px; object-fit: contain;" alt="Logo Kiri">` : '<div style="width: 80px;"></div>';
   const imgKananTag = logoKanan ? `<img src="${logoKanan}" style="height: 80px; width: auto; max-width: 85px; object-fit: contain;" alt="Logo Kanan">` : '<div style="width: 80px;"></div>';
   const imgTtdTag = ttdKepsek ? `<img src="${ttdKepsek}" style="max-height: 60px; max-width: 150px; object-fit: contain;" alt="TTD">` : '';
@@ -421,3 +419,271 @@ function triggerPrintWithPreload(htmlContent) {
     }
   };
 }
+
+/**
+ * HELPER: Muat library eksternal sekali saja
+ */
+function loadPdfLibOnce_(src) {
+  return new Promise((resolve, reject) => {
+    if (document.querySelector(`script[src="${src}"]`)) return resolve();
+    const s = document.createElement("script");
+    s.src = src;
+    s.onload = resolve;
+    s.onerror = reject;
+    document.head.appendChild(s);
+  });
+}
+
+/**
+ * HELPER: Konversi gambar logo/TTD ke DataURL aman untuk jsPDF
+ */
+function toBase64ImageSafe_(url) {
+  return new Promise((resolve) => {
+    if (!url) return resolve("");
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    const timer = setTimeout(() => resolve(""), 3000);
+
+    img.onload = function () {
+      clearTimeout(timer);
+      try {
+        const canvas = document.createElement("canvas");
+        canvas.width = img.naturalWidth || img.width;
+        canvas.height = img.naturalHeight || img.height;
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(img, 0, 0);
+        resolve(canvas.toDataURL("image/png"));
+      } catch (e) {
+        resolve("");
+      }
+    };
+    img.onerror = function () {
+      clearTimeout(timer);
+      resolve("");
+    };
+    img.src = url;
+  });
+}
+
+/**
+ * 4. FUNGSI UNDUH LANGSUNG FILE PDF PERFORMA KINERJA GURU (NATIVE VECTOR PDF)
+ */
+async function unduhKinerjaGuruPDF(btnEl) {
+  const rawData = (typeof cacheKinerjaGuru !== "undefined" && Array.isArray(cacheKinerjaGuru))
+    ? cacheKinerjaGuru
+    : [];
+
+  if (rawData.length === 0) {
+    alert("Belum ada data penilaian kinerja guru pada periode ini untuk diunduh.");
+    return;
+  }
+
+  const keyword = (document.getElementById("kg-search-input")?.value || "").toLowerCase();
+  const listData = rawData.filter(item =>
+    String(item.namaGuru || "").toLowerCase().includes(keyword) ||
+    String(item.nip || "").toLowerCase().includes(keyword) ||
+    String(item.predikat || "").toLowerCase().includes(keyword)
+  );
+
+  if (listData.length === 0) {
+    alert("Data hasil pencarian kosong untuk diunduh ke PDF.");
+    return;
+  }
+
+  const targetBtn = btnEl || document.querySelector('button[onclick*="unduhKinerjaGuruPDF"], button[onclick*="exportKinerjaGuruPDF"]');
+  const oldLabel = targetBtn ? targetBtn.innerHTML : "";
+  if (targetBtn) {
+    targetBtn.disabled = true;
+    targetBtn.innerHTML = "⏳ Mengunduh PDF...";
+  }
+
+  try {
+    // Muat jsPDF & jsPDF-AutoTable
+    if (!window.jspdf) {
+      await loadPdfLibOnce_("https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js");
+    }
+    if (!window.jspdf?.jsPDF?.API?.autoTable) {
+      await loadPdfLibOnce_("https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js");
+    }
+
+    // Ambil identitas sekolah & TTD dari Settings
+    const instansiAtas = getSettingVal("INSTANSI_ATAS", ["setting-instansi-atas", "set-instansi-atas"], "PEMERINTAH PROVINSI LAMPUNG");
+    const dinas = getSettingVal("DINAS", ["setting-dinas", "set-dinas"], "DINAS PENDIDIKAN DAN KEBUDAYAAN");
+    const namaSekolah = getSettingVal("SCHOOL_NAME", ["setting-nama-sekolah", "set-nama-sekolah"], "SMA NEGERI 1 BUMI AGUNG");
+    const alamatSekolah = getSettingVal("SCHOOL_ADDRESS", ["setting-alamat", "set-alamat-kop"], "Jl. Protokol No 1 Pisang Baru, Kec. Bumi Agung, Kab. Way Kanan");
+    const website = getSettingVal("WEBSITE", ["setting-website"], "Website: sman1ba.sch.id");
+
+    const rawLogoKiri = fixDrivePhotoUrl(getSettingVal("LOGO_KIRI", ["setting-logo-kiri", "set-logo-sekolah"], ""));
+    const rawLogoKanan = fixDrivePhotoUrl(getSettingVal("SCHOOL_LOGO_URL", ["setting-logo-kanan", "set-logo-kanan"], ""));
+    const rawTtd = fixDrivePhotoUrl(getSettingVal("TTD_KEPSEK", ["setting-ttd-kepsek", "set-ttd-kepsek"], ""));
+
+    const [logoKiri, logoKanan, ttdKepsek] = await Promise.all([
+      toBase64ImageSafe_(rawLogoKiri),
+      toBase64ImageSafe_(rawLogoKanan),
+      toBase64ImageSafe_(rawTtd)
+    ]);
+
+    const namaKepsek = getSettingVal("HEADMASTER_NAME", ["setting-nama-kepsek", "set-nama-kepsek"], "AMRODI NURUL HUDA, S.Ag");
+    const nipKepsek = getSettingVal("HEADMASTER_NIP", ["setting-nip", "set-nip-kepsek"], "197103041998021001");
+
+    const periodeVal = document.getElementById("kg-filter-periode")?.value || new Date().toISOString().slice(0, 7);
+    const namaBulan = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+    const [thn, bln] = periodeVal.split("-");
+    const periodeLabel = (thn && bln) ? `${namaBulan[parseInt(bln, 10) - 1] || bln} ${thn}` : periodeVal;
+
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
+    const pageWidth = doc.internal.pageSize.getWidth(); // 297 mm
+
+    // --- KOP SURAT RESMI ---
+    if (logoKiri && logoKiri.startsWith("data:image/")) {
+      try { doc.addImage(logoKiri, "PNG", 16, 10, 19, 21); } catch (e) {}
+    }
+    if (logoKanan && logoKanan.startsWith("data:image/")) {
+      try { doc.addImage(logoKanan, "PNG", pageWidth - 35, 10, 19, 21); } catch (e) {}
+    }
+
+    doc.setTextColor(0, 0, 0);
+    doc.setFont("times", "normal");
+    doc.setFontSize(11.5);
+    doc.text(String(instansiAtas).toUpperCase(), pageWidth / 2, 14, { align: "center" });
+    doc.text(String(dinas).toUpperCase(), pageWidth / 2, 19, { align: "center" });
+
+    doc.setFont("times", "bold");
+    doc.setFontSize(14.5);
+    doc.text(String(namaSekolah).toUpperCase(), pageWidth / 2, 24.5, { align: "center" });
+
+    doc.setFont("times", "italic");
+    doc.setFontSize(8.5);
+    doc.text(`${alamatSekolah}  |  ${website}`, pageWidth / 2, 29.5, { align: "center" });
+
+    // Garis Ganda Kop Surat
+    doc.setLineWidth(0.7);
+    doc.line(14, 33, pageWidth - 14, 33);
+    doc.setLineWidth(0.25);
+    doc.line(14, 34.2, pageWidth - 14, 34.2);
+
+    // --- JUDUL DOKUMEN ---
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(11.5);
+    doc.text("LAPORAN EVALUASI PERFORMA KINERJA GURU (PKG)", pageWidth / 2, 41, { align: "center" });
+
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(9);
+    doc.text(
+      `Periode Penilaian: ${periodeLabel}   |   Bobot: Kehadiran (40%) & Supervisi Mengajar (60%)   |   Dicetak: ${new Date().toLocaleDateString("id-ID")}`,
+      pageWidth / 2, 46, { align: "center" }
+    );
+
+    // --- RINGKASAN KPI ---
+    const totalGuru = listData.length;
+    const rataSkor = (listData.reduce((sum, x) => sum + Number(x.skorAkhir || 0), 0) / totalGuru).toFixed(1);
+    const sangatBaik = listData.filter(x => Number(x.skorAkhir) >= 91).length;
+    const perluBina = listData.filter(x => Number(x.skorAkhir) < 70).length;
+
+    doc.setFillColor(242, 242, 242);
+    doc.setDrawColor(0, 0, 0);
+    doc.setLineWidth(0.2);
+    doc.rect(14, 49.5, pageWidth - 28, 7, "FD");
+
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(8.5);
+    doc.text(`Total Dinilai: ${totalGuru} Guru`, 18, 54);
+    doc.text(`Rata-Rata Skor: ${rataSkor}`, 85, 54);
+    doc.text(`Predikat Sangat Baik (>=91): ${sangatBaik} Guru`, 150, 54);
+    doc.text(`Perlu Pembinaan (<70): ${perluBina} Guru`, 230, 54);
+
+    // --- TABEL DATA ---
+    const tableBody = listData.map((item, idx) => [
+      idx + 1,
+      `${item.namaGuru}\nNIP. ${item.nip || "-"}`,
+      item.jabatan || "-",
+      item.skorKehadiran,
+      item.skorPerangkat,
+      item.skorMengajar,
+      item.skorAdministrasi,
+      Number(item.skorAkhir).toFixed(1),
+      item.predikat,
+      item.catatan || "-"
+    ]);
+
+    doc.autoTable({
+      startY: 59,
+      margin: { left: 14, right: 14 },
+      head: [[
+        "NO", "NAMA GURU & NIP", "JABATAN / MAPEL",
+        "HADIR\n(40%)", "PERANGKAT\n(20%)", "MENGAJAR\n(25%)", "ADMIN\n(15%)",
+        "SKOR\nAKHIR", "PREDIKAT", "CATATAN PEMBINAAN"
+      ]],
+      body: tableBody,
+      theme: "grid",
+      styles: {
+        font: "helvetica",
+        fontSize: 8.5,
+        textColor: [0, 0, 0],
+        lineColor: [0, 0, 0],
+        lineWidth: 0.2,
+        cellPadding: 2.5,
+        valign: "middle"
+      },
+      headStyles: {
+        fillColor: [224, 224, 224],
+        textColor: [0, 0, 0],
+        fontStyle: "bold",
+        halign: "center"
+      },
+      columnStyles: {
+        0: { halign: "center", cellWidth: 10 },
+        1: { cellWidth: 54 },
+        2: { cellWidth: 38 },
+        3: { halign: "center", cellWidth: 17 },
+        4: { halign: "center", cellWidth: 21 },
+        5: { halign: "center", cellWidth: 21 },
+        6: { halign: "center", cellWidth: 17 },
+        7: { halign: "center", cellWidth: 18, fontStyle: "bold" },
+        8: { halign: "center", cellWidth: 25, fontStyle: "bold" },
+        9: { cellWidth: 48 }
+      }
+    });
+
+    // --- BLOK TANDA TANGAN KEPALA SEKOLAH ---
+    let finalY = (doc.lastAutoTable?.finalY || 120) + 10;
+    if (finalY > 168) {
+      doc.addPage();
+      finalY = 20;
+    }
+
+    const ttdX = pageWidth - 65;
+    doc.setFont("times", "normal");
+    doc.setFontSize(10.5);
+    doc.text("Mengetahui,", ttdX, finalY, { align: "center" });
+    doc.text("Kepala Sekolah", ttdX, finalY + 5, { align: "center" });
+
+    if (ttdKepsek && ttdKepsek.startsWith("data:image/")) {
+      try { doc.addImage(ttdKepsek, "PNG", ttdX - 18, finalY + 6, 36, 15); } catch (e) {}
+    }
+
+    doc.setFont("times", "bold");
+    doc.text(String(namaKepsek), ttdX, finalY + 24, { align: "center" });
+    const nameWidth = doc.getTextWidth(String(namaKepsek));
+    doc.setLineWidth(0.3);
+    doc.line(ttdX - nameWidth / 2, finalY + 25, ttdX + nameWidth / 2, finalY + 25);
+
+    doc.setFont("times", "normal");
+    doc.text(`NIP. ${nipKepsek}`, ttdX, finalY + 29.5, { align: "center" });
+
+    // Simpan langsung ke folder Downloads
+    doc.save(`Laporan_Performa_Kinerja_Guru_${periodeVal}.pdf`);
+  } catch (err) {
+    console.error("Gagal mengunduh PDF:", err);
+    alert("Gagal membuat file PDF. Periksa koneksi internet Anda lalu coba kembali.");
+  } finally {
+    if (targetBtn) {
+      targetBtn.disabled = false;
+      targetBtn.innerHTML = oldLabel || "📄 Unduh PDF";
+    }
+  }
+}
+
+// Alias agar tetap jalan jika tombol memanggil exportKinerjaGuruPDF()
+const exportKinerjaGuruPDF = unduhKinerjaGuruPDF;

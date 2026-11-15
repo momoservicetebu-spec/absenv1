@@ -985,4 +985,983 @@ canvas { position: absolute; top: 0; left: 0; }
     order: 3;
   }
 }
+/* ========================================================= */
+/* PERBAIKAN RESPONSIVE MANAJEMEN USER (ADMIN & ROLE) DI HP   */
+/* ========================================================= */
+@media (max-width: 768px) {
+  /* 1. Rapikan Judul & Tombol "+ Tambah" agar tidak bertabrakan */
+  #admin-operator .card > div:first-child,
+  #hak-akses .card > div:first-child {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 12px !important;
+  }
 
+  #admin-operator .card > div:first-child button,
+  #hak-akses .card > div:first-child button {
+    width: 100% !important;
+    text-align: center !important;
+    justify-content: center !important;
+  }
+
+  /* 2. Aktifkan Horizontal Scroll pada Tabel agar Kolom Aksi Tidak Terpotong */
+  #admin-operator table,
+  #hak-akses table {
+    display: block !important;
+    width: 100% !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+
+  #admin-operator th,
+  #admin-operator td,
+  #hak-akses th,
+  #hak-akses td {
+    padding: 10px 8px !important;
+    font-size: 12.5px !important;
+  }
+
+  /* Bungkus teks kolom Deskripsi Role agar tabel tidak terlalu panjang ke samping */
+  #hak-akses td:nth-child(2) {
+    white-space: normal !important;
+    min-width: 180px !important;
+    line-height: 1.4 !important;
+  }
+
+  /* Jaga tombol Edit & Hapus tetap sejajar rapi */
+  #admin-operator td:last-child,
+  #hak-akses td:last-child {
+    white-space: nowrap !important;
+  }
+
+  #admin-operator td:last-child button,
+  #hak-akses td:last-child button {
+    padding: 6px 10px !important;
+    font-size: 12px !important;
+    margin-right: 4px !important;
+  }
+
+  /* 3. Pastikan Pop-up Modal Tambah/Edit Admin & Role Pas di Layar HP */
+  #modal-admin > div,
+  #modal-role > div {
+    width: 94% !important;
+    max-width: 94% !important;
+    padding: 18px 15px !important;
+    max-height: 90vh !important;
+    overflow-y: auto !important;
+  }
+}
+
+/* ========================================================= */
+/* PERBAIKAN GLOBAL SMARTPHONE MODE LANDSCAPE (SEMUA HALAMAN) */
+/* ========================================================= */
+@media (max-width: 992px) and (orientation: landscape),
+       (max-width: 992px) and (max-height: 520px) {
+
+  /* 1. KEMBALIKAN LAYOUT MOBILE & SIDEBAR HAMBURGER */
+  body {
+    flex-direction: column !important;
+    height: auto !important;
+    min-height: 100vh !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+  }
+
+  .mobile-header {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    background: #1e1b2e !important;
+    padding: 8px 15px !important;
+    border-bottom: 1px solid #2d2643 !important;
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 999 !important;
+  }
+
+  .sidebar {
+    position: fixed !important;
+    top: 0 !important;
+    left: -300px !important;
+    width: 250px !important;
+    height: 100vh !important;
+    flex-direction: column !important;
+    overflow-y: auto !important;
+    white-space: normal !important;
+    background-color: #1e1b2e !important;
+    z-index: 1050 !important;
+    padding: 15px !important;
+    transition: left 0.3s ease-in-out !important;
+    box-shadow: 4px 0 15px rgba(0, 0, 0, 0.7) !important;
+  }
+
+  .sidebar.show-sidebar {
+    left: 0 !important;
+  }
+
+  .sidebar h2,
+  .menu-group {
+    display: block !important;
+    margin-bottom: 8px !important;
+  }
+
+  .sidebar button {
+    width: 100% !important;
+    padding: 9px 12px !important;
+    margin-bottom: 4px !important;
+  }
+
+  .sidebar-overlay {
+    display: block !important;
+    position: fixed !important;
+    inset: 0 !important;
+    background: rgba(0, 0, 0, 0.7) !important;
+    z-index: 1040 !important;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+  }
+
+  .sidebar-overlay.show-overlay {
+    opacity: 1 !important;
+    visibility: visible !important;
+  }
+
+  .main-content {
+    width: 100% !important;
+    height: auto !important;
+    padding: 12px 15px !important;
+    overflow-x: hidden !important;
+    overflow-y: visible !important;
+  }
+
+  /* 2. RAPIKAN SEMUA CARD & HEADER HALAMAN */
+  .card {
+    padding: 15px !important;
+    margin-bottom: 15px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  .section-title {
+    font-size: 17px !important;
+    margin-bottom: 10px !important;
+  }
+
+  .search-bar {
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: wrap !important;
+    gap: 8px !important;
+  }
+
+  .search-bar input,
+  .search-bar select {
+    flex: 1 1 180px !important;
+    width: auto !important;
+  }
+
+  /* 3. SEMUA TABEL BISA DIGESER KE SAMPING TANPA MEMOTONG LAYAR */
+  .analytics-table-wrap {
+    min-height: 200px !important;
+    max-height: 65vh !important;
+    width: 100% !important;
+    overflow-x: auto !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+
+  table {
+    display: block !important;
+    width: 100% !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+
+  th, td {
+    padding: 9px 8px !important;
+    font-size: 12.5px !important;
+  }
+
+  /* 4. DASHBOARD ANALYTICS, KPI & FILTER PERIODE */
+  .dashboard-header-controls {
+    flex-wrap: wrap !important;
+    gap: 8px !important;
+    padding-bottom: 12px !important;
+  }
+
+  .filter-input-group {
+    flex-wrap: wrap !important;
+  }
+
+  .kpi-row {
+    display: grid !important;
+    grid-template-columns: repeat(4, 1fr) !important;
+    gap: 8px !important;
+  }
+
+  .kpi-card {
+    padding: 8px 6px !important;
+  }
+
+  .kpi-card .kpi-num {
+    font-size: 18px !important;
+  }
+
+  .analytics-grid,
+  .dashboard-grid {
+    display: grid !important;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 12px !important;
+  }
+
+  .chart-box {
+    min-height: 220px !important;
+    padding: 12px !important;
+  }
+
+  .chart-container {
+    min-height: 165px !important;
+  }
+
+  /* 5. KAMERA ENROLLMENT WAJAH AI BERDAMPINGAN */
+  .face-enroll-wrapper {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 12px !important;
+    align-items: start !important;
+  }
+
+  .camera-action-btns {
+    grid-column: span 2 !important;
+  }
+
+  /* 6. SEMUA POP-UP MODAL AGAR TIDAK TERPOTONG TINGGI LAYAR */
+  .modal-overlay,
+  .modal {
+    padding: 8px !important;
+    align-items: flex-start !important;
+    overflow-y: auto !important;
+  }
+
+  .modal-card,
+  .modal-content,
+  #modal-admin > div,
+  #modal-role > div {
+    width: 92% !important;
+    max-width: 680px !important;
+    max-height: 92vh !important;
+    overflow-y: auto !important;
+    margin: 8px auto !important;
+    padding: 15px !important;
+  }
+
+  .form-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 10px !important;
+  }
+}
+
+/* ========================================================= */
+/* HILANGKAN GAP TEPI (FULL EDGE-TO-EDGE) DI LAPTOP & PC     */
+/* ========================================================= */
+@media (min-width: 993px) {
+  /* 1. Nol-kan padding & margin luar main-content agar menempel penuh ke sidebar & atas */
+  .main-content {
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  /* 2. Rapatkan bagian atas sidebar agar sejajar dengan konten */
+  .sidebar {
+    padding: 12px 12px !important;
+    transition: margin-left 0.3s ease, opacity 0.25s ease !important;
+  }
+
+  .sidebar h2 {
+    padding-bottom: 10px !important;
+    margin-bottom: 8px !important;
+  }
+
+  .sidebar.desktop-collapsed {
+    margin-left: -260px !important;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  /* 3. Satukan tombol Menu di pojok kiri atas tanpa menyisakan baris kosong */
+  .desktop-topbar {
+    padding: 10px 16px 0 16px !important;
+    margin: 0 !important;
+  }
+
+  .desktop-sidebar-toggle {
+    padding: 5px 10px !important;
+    font-size: 12px !important;
+    border-radius: 5px !important;
+  }
+
+  /* 4. Hilangkan bingkai luar, sudut lengkung, & margin pada semua halaman */
+  .section,
+  .section.card,
+  #dashboard {
+    margin: 0 !important;
+    border: none !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    width: 100% !important;
+    padding: 8px 16px 20px 16px !important;
+  }
+
+  .analytics-header {
+    margin-bottom: 10px !important;
+  }
+
+  .dashboard-header-controls {
+    padding-bottom: 10px !important;
+  }
+
+  .dashboard-grid {
+    gap: 12px !important;
+  }
+
+  .chart-box {
+    padding: 12px !important;
+    min-height: 230px !important;
+  }
+}
+
+/* ========================================================= */
+/* SIDEBAR DINAMIS (BUKA/TUTUP & ACCORDION) DI LAPTOP/PC     */
+/* ========================================================= */
+.desktop-topbar {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.desktop-sidebar-toggle {
+  background: #201a35;
+  color: #a29bfe;
+  border: 1px solid #30274e;
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.desktop-sidebar-toggle:hover {
+  background: #6c5ce7;
+  color: #ffffff;
+}
+
+@media (min-width: 993px) {
+  .sidebar {
+    transition: margin-left 0.3s ease, opacity 0.25s ease !important;
+  }
+
+  /* Saat sidebar ditutup, area .main-content (flex: 1) otomatis melebar penuh */
+  .sidebar.desktop-collapsed {
+    margin-left: -260px !important;
+    opacity: 0;
+    pointer-events: none;
+  }
+}
+
+@media (max-width: 992px) {
+  .desktop-topbar {
+    display: none !important;
+  }
+}
+
+/* Kategori Menu (.menu-group) Bisa Diklik untuk Dilipat */
+.sidebar .menu-group {
+  cursor: pointer;
+  position: relative;
+  padding-right: 18px;
+  user-select: none;
+}
+
+.sidebar .menu-group::after {
+  content: '▾';
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  transition: transform 0.2s ease;
+}
+
+.sidebar .menu-group.group-closed::after {
+  transform: translateY(-50%) rotate(-90deg);
+}
+
+/* ========================================================= */
+/* PERBAIKAN WIDGET JAM 1 BARIS & FILTER DASHBOARD           */
+/* ========================================================= */
+.dashboard-header-controls {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 10px !important;
+}
+
+.filter-input-group {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  align-items: center !important;
+  gap: 10px !important;
+  flex: 1 !important;
+}
+
+/* Sembunyikan container Select2 saat <select> aslinya memiliki class .hidden */
+select.hidden + .select2-container {
+  display: none !important;
+}
+
+#clock-widget {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 4px !important;
+  white-space: nowrap !important;
+  flex-shrink: 0 !important;
+  background-color: #1a192f !important;
+  border: 1px solid #33334d !important;
+  padding: 8px 14px !important;
+  border-radius: 6px !important;
+  font-size: 13px !important;
+  margin-left: auto !important;
+}
+
+@media (max-width: 768px) {
+  #clock-widget {
+    width: 100% !important;
+    justify-content: center !important;
+    margin-left: 0 !important;
+  }
+}
+.filter-input-group .select2-container { width: auto !important; min-width: 150px !important; }
+
+/* ========================================================= */
+/* PERAPIHAN KOTAK INPUT MODAL & TOMBOL KINERJA GURU         */
+/* ========================================================= */
+#modalKinerjaGuru .modal-card {
+  max-width: 680px !important;
+  width: 95% !important;
+}
+
+#modalKinerjaGuru .form-grid {
+  display: grid !important;
+  grid-template-columns: repeat(2, 1fr) !important;
+  gap: 14px 16px !important;
+  align-items: start !important;
+}
+
+#modalKinerjaGuru .form-group {
+  width: 100% !important;
+  margin-bottom: 0 !important;
+}
+
+#modalKinerjaGuru .form-group.full-row {
+  grid-column: 1 / -1 !important;
+}
+
+#modalKinerjaGuru .form-group label {
+  display: block !important;
+  margin-bottom: 6px !important;
+  font-size: 12.5px !important;
+}
+
+#modalKinerjaGuru input[type="month"],
+#modalKinerjaGuru input[type="number"],
+#modalKinerjaGuru input[type="text"],
+#modalKinerjaGuru select {
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+  height: 40px !important;
+  padding: 8px 12px !important;
+}
+
+#modalKinerjaGuru .select2-container {
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+  padding: 0 !important;
+}
+
+#modalKinerjaGuru .select2-selection--single {
+  height: 40px !important;
+  padding: 5px 12px !important;
+  background-color: #161224 !important;
+  border: 1px solid #4a4563 !important;
+  border-radius: 6px !important;
+}
+
+#modalKinerjaGuru .select2-selection__rendered {
+  line-height: 28px !important;
+  padding-left: 0 !important;
+  color: #ffffff !important;
+}
+
+#modalKinerjaGuru .select2-selection__arrow {
+  height: 38px !important;
+}
+
+/* Tombol Unduh PDF Merah */
+button[onclick*="unduhKinerjaGuruPDF"],
+button[onclick*="exportKinerjaGuruPDF"] {
+  background: #d63031 !important;
+  border: 1px solid #ff7675 !important;
+  color: #ffffff !important;
+  transition: background 0.2s ease !important;
+}
+
+button[onclick*="unduhKinerjaGuruPDF"]:hover,
+button[onclick*="exportKinerjaGuruPDF"]:hover {
+  background: #b71540 !important;
+}
+
+@media (max-width: 640px) {
+  #modalKinerjaGuru .form-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* ========================================================= */
+/* MODUL SISTEM POIN SISWA & BIMBINGAN KONSELING (BK)        */
+/* ========================================================= */
+
+/* 1. Rapikan Baris Filter (Bulan, Kelas, Cari) agar Sejajar Horizontal */
+#pbk-sync-bulan,
+#pbk-filter-kelas,
+#pbk-search {
+  width: auto !important;
+  margin: 0 !important;
+  height: 38px !important;
+  padding: 6px 12px !important;
+  box-sizing: border-box !important;
+  background-color: #161224 !important;
+  border: 1px solid #4a4563 !important;
+  border-radius: 6px !important;
+  color: #ffffff !important;
+  font-size: 13px !important;
+}
+
+#pbk-sync-bulan {
+  min-width: 155px !important;
+}
+
+#pbk-filter-kelas {
+  min-width: 150px !important;
+}
+
+#pbk-search {
+  min-width: 225px !important;
+}
+
+/* 2. Bedakan Warna Tombol Tab Aktif vs Non-Aktif */
+#poin-bk button[id^="tab-btn-"] {
+  background: #161224 !important;
+  border: 1px solid #4a4563 !important;
+  color: #a29bfe !important;
+  margin: 0 !important;
+  transition: all 0.2s ease !important;
+}
+
+#poin-bk button[id^="tab-btn-"]:hover {
+  border-color: #6c5ce7 !important;
+  color: #ffffff !important;
+}
+
+#poin-bk button[id^="tab-btn-"].btn-primary {
+  background: linear-gradient(135deg, #6c5ce7, #5f27cd) !important;
+  border-color: #a29bfe !important;
+  color: #ffffff !important;
+  box-shadow: 0 3px 10px rgba(108, 92, 231, 0.35) !important;
+}
+
+/* 3. Perapihan Tabel & Perataan Kolom Angka */
+#poin-bk table th {
+  background-color: #161224 !important;
+  color: #a29bfe !important;
+  font-size: 11px !important;
+  text-transform: uppercase !important;
+  padding: 12px 10px !important;
+  border-bottom: 1px solid #383252 !important;
+  white-space: nowrap !important;
+}
+
+#poin-bk table td {
+  padding: 10px !important;
+  border-bottom: 1px solid #2c2640 !important;
+  font-size: 13px !important;
+  vertical-align: middle !important;
+}
+
+#poin-bk table tbody tr:hover {
+  background-color: rgba(108, 92, 231, 0.08) !important;
+}
+
+/* Rata Tengah Kolom Angka, Status, & Aksi pada Tabel Rekap */
+#pbk-panel-rekap th:nth-child(1),
+#pbk-panel-rekap td:nth-child(1),
+#pbk-panel-rekap th:nth-child(n+3),
+#pbk-panel-rekap td:nth-child(n+3) {
+  text-align: center !important;
+}
+
+#pbk-panel-rekap th:nth-child(2),
+#pbk-panel-rekap td:nth-child(2) {
+  text-align: left !important;
+}
+
+/* Tombol Aksi Mini di Kolom Tabel */
+#poin-bk .btn-small {
+  padding: 5px 9px !important;
+  font-size: 11.5px !important;
+  border-radius: 5px !important;
+  margin: 2px 2px !important;
+}
+
+/* Tombol Unduh Laporan PDF Merah */
+button[onclick*="unduhLaporanPoinBKPDF"] {
+  background: #d63031 !important;
+  border: 1px solid #ff7675 !important;
+  color: #ffffff !important;
+  transition: background 0.2s ease !important;
+}
+
+button[onclick*="unduhLaporanPoinBKPDF"]:hover {
+  background: #b71540 !important;
+}
+
+/* 4. Perapihan 3 Modal (Input Poin, Konseling BK, Master Jenis Poin) */
+#modalInputPoin .modal-card,
+#modalInputBK .modal-card,
+#modalMasterPoin .modal-card {
+  width: 95% !important;
+  background-color: #1e1a2e !important;
+  border: 1px solid #4a4563 !important;
+  border-radius: 12px !important;
+  padding: 20px !important;
+}
+
+#modalInputPoin .form-group,
+#modalInputBK .form-group,
+#modalMasterPoin .form-group {
+  width: 100% !important;
+  margin-bottom: 0 !important;
+}
+
+#modalInputPoin .form-group label,
+#modalInputBK .form-group label,
+#modalMasterPoin .form-group label {
+  display: block !important;
+  margin-bottom: 6px !important;
+  font-size: 12.5px !important;
+  color: #dcd6f7 !important;
+}
+
+#modalInputPoin input[type="date"],
+#modalInputPoin input[type="number"],
+#modalInputPoin input[type="text"],
+#modalInputPoin select,
+#modalInputBK input[type="date"],
+#modalInputBK input[type="text"],
+#modalInputBK select,
+#modalMasterPoin input[type="number"],
+#modalMasterPoin input[type="text"],
+#modalMasterPoin select {
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+  height: 40px !important;
+  padding: 8px 12px !important;
+  background-color: #161224 !important;
+  border: 1px solid #4a4563 !important;
+  border-radius: 6px !important;
+  color: #ffffff !important;
+}
+
+/* Select2 Dark Theme di Dalam Modal Poin & BK */
+#modalInputPoin .select2-container,
+#modalInputBK .select2-container {
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+  padding: 0 !important;
+}
+
+#modalInputPoin .select2-selection--single,
+#modalInputBK .select2-selection--single {
+  height: 40px !important;
+  padding: 5px 12px !important;
+  background-color: #161224 !important;
+  border: 1px solid #4a4563 !important;
+  border-radius: 6px !important;
+}
+
+#modalInputPoin .select2-selection__rendered,
+#modalInputBK .select2-selection__rendered {
+  line-height: 28px !important;
+  padding-left: 0 !important;
+  color: #ffffff !important;
+}
+
+#modalInputPoin .select2-selection__arrow,
+#modalInputBK .select2-selection__arrow {
+  height: 38px !important;
+}
+
+#modalInputPoin .select2-dropdown,
+#modalInputBK .select2-dropdown {
+  background-color: #161224 !important;
+  border: 1px solid #6c5ce7 !important;
+  color: #ffffff !important;
+}
+
+#modalInputPoin .select2-search__field,
+#modalInputBK .select2-search__field {
+  background-color: #1e1a2e !important;
+  color: #ffffff !important;
+  border: 1px solid #4a4563 !important;
+}
+
+#modalInputPoin .select2-results__option--highlighted,
+#modalInputBK .select2-results__option--highlighted {
+  background-color: #6c5ce7 !important;
+  color: #ffffff !important;
+}
+
+@media (max-width: 640px) {
+  #modalInputPoin .form-grid,
+  #modalInputBK .form-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* Jaga lebar Select2 pada filter kelas Poin & BK agar sejajar inline */
+#poin-bk .select2-container {
+  width: 165px !important;
+  min-width: 150px !important;
+  margin: 0 !important;
+}
+
+#poin-bk .select2-selection--single {
+  height: 38px !important;
+  background-color: #161224 !important;
+  border: 1px solid #4a4563 !important;
+  border-radius: 6px !important;
+  padding: 4px 10px !important;
+}
+
+#poin-bk .select2-selection__rendered {
+  color: #ffffff !important;
+  line-height: 28px !important;
+}
+
+/* ========================================================= */
+/* TOPBAR MENU & RUNNING TEXT WATERMARK PERUSAHAAN           */
+/* ========================================================= */
+.wm-topbar-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 10px 16px 0 16px;
+  margin-bottom: 6px;
+  box-sizing: border-box;
+}
+
+.wm-topbar-row .menu-btn {
+  background: #201a35;
+  color: #a29bfe;
+  border: 1px solid #30274e;
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+}
+
+.wm-topbar-row .menu-btn:hover {
+  background: #6c5ce7;
+  color: #ffffff;
+}
+
+.company-watermark-marquee {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  position: relative;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid #30274e;
+  border-radius: 6px;
+  padding: 6px 14px;
+  display: flex;
+  align-items: center;
+  mask-image: linear-gradient(to right, transparent, black 3%, black 97%, transparent);
+  -webkit-mask-image: linear-gradient(to right, transparent, black 3%, black 97%, transparent);
+}
+
+.company-watermark-track {
+  display: inline-block;
+  white-space: nowrap;
+  padding-left: 100%;
+  animation: marqueeWatermark 35s linear infinite;
+  font-size: 13px;
+  font-weight: 500;
+  color: #94a3b8;
+  letter-spacing: 0.3px;
+}
+
+.company-watermark-marquee:hover .company-watermark-track {
+  animation-play-state: paused;
+}
+
+.company-watermark-track strong {
+  color: #38bdf8;
+  font-weight: 700;
+}
+
+.company-watermark-track .wm-gold {
+  color: #fbbf24;
+  font-weight: 600;
+}
+
+@keyframes marqueeWatermark {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-100%); }
+}
+
+/* Pastikan sidebar 270px di layar lebar (>1400px) juga tertutup penuh saat collapsed */
+@media (min-width: 1400px) {
+  .sidebar.desktop-collapsed {
+    margin-left: -270px !important;
+  }
+}
+
+/* Di HP/Tablet (<992px), sembunyikan tombol Menu desktop karena sudah ada .mobile-header */
+@media (max-width: 992px) {
+  .wm-topbar-row {
+    padding: 0 0 10px 0;
+  }
+  .wm-topbar-row .menu-btn {
+    display: none !important;
+  }
+}
+
+/* ========================================================= */
+/* PERBAIKAN RESPONSIVE & ANTI-OVERFLOW MODAL POIN & BK      */
+/* ========================================================= */
+#modalInputPoin,
+#modalInputBK,
+#modalMasterPoin {
+  box-sizing: border-box !important;
+  padding: 12px !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+}
+
+#modalInputPoin .modal-card,
+#modalInputBK .modal-card,
+#modalMasterPoin .modal-card {
+  width: 100% !important;
+  max-width: 600px !important;
+  max-height: 92vh !important;
+  margin: auto !important;
+  padding: 18px !important;
+  box-sizing: border-box !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  background-color: #1e1a2e !important;
+  border: 1px solid #4a4563 !important;
+  border-radius: 12px !important;
+}
+
+/* Rapikan Header Judul & Tombol Tutup (X) */
+#modalInputPoin .modal-card > div:first-child,
+#modalInputBK .modal-card > div:first-child,
+#modalMasterPoin .modal-card > div:first-child {
+  gap: 10px !important;
+  align-items: flex-start !important;
+  border-bottom: 1px solid #383252 !important;
+  padding-bottom: 12px !important;
+  margin-bottom: 14px !important;
+}
+
+#modalInputPoin .modal-card > div:first-child h3,
+#modalInputBK .modal-card > div:first-child h3,
+#modalMasterPoin .modal-card > div:first-child h3 {
+  font-size: 16px !important;
+  line-height: 1.35 !important;
+}
+
+/* Kunci Grid & Input agar Tidak Melebar Keluar Kartu */
+#modalInputPoin .form-grid,
+#modalInputBK .form-grid {
+  width: 100% !important;
+  min-width: 0 !important;
+  box-sizing: border-box !important;
+}
+
+#modalInputPoin .form-group,
+#modalInputBK .form-group,
+#modalMasterPoin .form-group {
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+  margin-bottom: 0 !important;
+  box-sizing: border-box !important;
+}
+
+#modalInputPoin input,
+#modalInputPoin select,
+#modalInputPoin .select2-container,
+#modalInputBK input,
+#modalInputBK select,
+#modalInputBK .select2-container,
+#modalMasterPoin input,
+#modalMasterPoin select {
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+/* Potong Teks Opsi Dropdown yang Terlalu Panjang dengan Elipsis (...) */
+#modalInputPoin select,
+#modalInputBK select,
+#modalMasterPoin select {
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+  padding-right: 28px !important;
+}
+
+/* Penyesuaian Layar HP / Jendela Sempit */
+@media (max-width: 640px) {
+  #modalInputPoin .modal-card,
+  #modalInputBK .modal-card,
+  #modalMasterPoin .modal-card {
+    padding: 15px !important;
+  }
+
+  #modalInputPoin .form-grid,
+  #modalInputBK .form-grid {
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+  }
+
+  /* Hilangkan jarak kosong berlebih di atas checkbox WA pada tampilan 1 kolom */
+  #modalInputPoin .form-group[style*="padding-top"],
+  #modalInputBK .form-group[style*="padding-top"] {
+    padding-top: 4px !important;
+  }
+}
