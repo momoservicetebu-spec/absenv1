@@ -3,7 +3,6 @@
 // MODUL KHUSUS CRUD DATA GURU & DATA SISWA
 // ==========================================
 
-// Deklarasi Variabel Global Data Master
 let listDataGuru = [];
 let listDataSiswa = [];
 
@@ -16,8 +15,10 @@ function openGuruModal(data = null) {
 
   if (form) form.reset();
 
+  const elTitle = document.getElementById('modalGuruTitle') || document.getElementById('modal-guru-title');
+  const elKode = document.getElementById('Kode_Guru') || document.getElementById('guru_Kode_Guru');
+
   if (data) {
-    const elTitle = document.getElementById('modalGuruTitle') || document.getElementById('modal-guru-title');
     if (elTitle) elTitle.innerText = '✏️ Edit Data Guru / Staf';
 
     if (document.getElementById('guru_GuruID')) document.getElementById('guru_GuruID').value = data.GuruID || data.id || '';
@@ -33,20 +34,29 @@ function openGuruModal(data = null) {
     if (document.getElementById('guru_Mapel')) document.getElementById('guru_Mapel').value = data.Mapel || '';
     if (document.getElementById('guru_Status')) document.getElementById('guru_Status').value = data.Status || 'Aktif';
     if (document.getElementById('guru_TglMasuk')) document.getElementById('guru_TglMasuk').value = data.TglMasuk ? String(data.TglMasuk).split('T')[0] : '';
-    if (document.getElementById('Kode_Guru')) document.getElementById('Kode_Guru').value = data.Kode_Guru || '';
+    if (elKode) elKode.value = data.Kode_Guru || '';
 
-    let rawRole = String(data.Role_Sistem || data.Role || data.Jabatan || 'Guru').trim();
-    if (rawRole.includes('Admin') || rawRole.includes('TU') || rawRole.includes('Tenaga')) {
-      rawRole = 'Tenaga Kependidikan';
-    } else if (rawRole.includes('Kepsek') || rawRole.includes('Kepala')) {
-      rawRole = 'Kepala Sekolah';
-    } else {
-      rawRole = 'Guru';
+    // Pencocokan otomatis berdasarkan value maupun teks <option>
+    const roleSelect = document.getElementById('guru_Role_Sistem');
+    if (roleSelect) {
+      const targetRole = String(data.Role_Sistem || data.Role || data.Jabatan || 'Guru').trim();
+      let matched = false;
+      for (const opt of roleSelect.options) {
+        if (opt.value.toLowerCase() === targetRole.toLowerCase() || opt.text.toLowerCase() === targetRole.toLowerCase()) {
+          roleSelect.value = opt.value;
+          matched = true;
+          break;
+        }
+      }
+      if (!matched) {
+        if (/admin|tu|tenaga/i.test(targetRole)) roleSelect.value = 'Admin';
+        else if (/kepsek|kepala/i.test(targetRole)) roleSelect.value = 'Kepsek';
+        else roleSelect.value = 'Guru';
+      }
     }
-    if (document.getElementById('guru_Role_Sistem')) document.getElementById('guru_Role_Sistem').value = rawRole;
+
     if (document.getElementById('guru_Username')) document.getElementById('guru_Username').value = data.Username || data.NIP || '';
   } else {
-    const elTitle = document.getElementById('modalGuruTitle') || document.getElementById('modal-guru-title');
     if (elTitle) elTitle.innerText = '👔 Tambah Data Guru / Staf';
     if (document.getElementById('guru_GuruID')) document.getElementById('guru_GuruID').value = 'AUTO';
   }
@@ -103,45 +113,78 @@ function openSiswaModal(data = null) {
 // 3. SUBMIT FORM SIMPAN GURU & SISWA
 // ==========================================
 async function handleGuruSubmit(event) {
-  event.preventDefault();
+  if (event) event.preventDefault();
+
+  const form = document.getElementById('formGuru');
+  const submitBtn = form ? form.querySelector('button[type="submit"]') : null;
+  const originalText = submitBtn ? submitBtn.innerText : 'Simpan Data Guru';
+  const elKode = document.getElementById('Kode_Guru') || document.getElementById('guru_Kode_Guru');
+  const hpVal = document.getElementById('guru_HPWA')?.value || '';
 
   const payload = {
-    GuruID: document.getElementById('guru_GuruID').value,
-    NIP: document.getElementById('guru_NIP').value,
-    Nama: document.getElementById('guru_Nama').value,
-    JK: document.getElementById('guru_JK').value,
-    TmpLahir: document.getElementById('guru_TmpLahir').value,
-    TglLahir: document.getElementById('guru_TglLahir').value,
-    HPWA: document.getElementById('guru_HPWA').value,
-    Email: document.getElementById('guru_Email').value,
-    Alamat: document.getElementById('guru_Alamat').value,
-    Jabatan: document.getElementById('guru_Jabatan').value,
-    Mapel: document.getElementById('guru_Mapel').value,
-    Status: document.getElementById('guru_Status').value,
-    TglMasuk: document.getElementById('guru_TglMasuk').value,
-    Role_Sistem: document.getElementById('guru_Role_Sistem').value,
-    Kode_Guru: document.getElementById('Kode_Guru').value,
-    Username: document.getElementById('guru_Username') ? document.getElementById('guru_Username').value : '',
-    Password: document.getElementById('guru_Password') ? document.getElementById('guru_Password').value : ''
+    GuruID: document.getElementById('guru_GuruID')?.value || '',
+    NIP: document.getElementById('guru_NIP')?.value || '',
+    Nama: document.getElementById('guru_Nama')?.value || '',
+    JK: document.getElementById('guru_JK')?.value || 'L',
+    TmpLahir: document.getElementById('guru_TmpLahir')?.value || '',
+    TglLahir: document.getElementById('guru_TglLahir')?.value || '',
+    HPWA: hpVal,
+    HP: hpVal,
+    WA: hpVal,
+    Email: document.getElementById('guru_Email')?.value || '',
+    Alamat: document.getElementById('guru_Alamat')?.value || '',
+    Jabatan: document.getElementById('guru_Jabatan')?.value || '',
+    Mapel: document.getElementById('guru_Mapel')?.value || '',
+    Status: document.getElementById('guru_Status')?.value || 'Aktif',
+    TglMasuk: document.getElementById('guru_TglMasuk')?.value || '',
+    Role_Sistem: document.getElementById('guru_Role_Sistem')?.value || 'Guru',
+    Kode_Guru: elKode ? elKode.value : '',
+    Username: document.getElementById('guru_Username')?.value || '',
+    Password: document.getElementById('guru_Password')?.value || ''
   };
 
-  try {
-    const result = await fetchAPI("saveGuru", payload);
+  console.log('Mengirim saveGuru payload:', payload);
 
-    if (result && (result.success || result.status)) {
-      alert("✅ Data Guru / Staf berhasil disimpan!");
-      closeModal('modalGuru');
-      loadDataGuru();
+  if (submitBtn) {
+    submitBtn.innerText = '⏳ Menyimpan...';
+    submitBtn.disabled = true;
+  }
+  if (typeof showLoading === 'function') {
+    showLoading('Menyimpan data guru...');
+  }
+
+  try {
+    const result = await fetchAPI('saveGuru', payload);
+    console.log('Respons saveGuru:', result);
+
+    if (result && (result.success || result.status === true || result.status === 'success')) {
+      alert('✅ Data Guru / Staf berhasil disimpan!');
+      if (typeof closeModal === 'function') closeModal('modalGuru');
+      await loadDataGuru();
     } else {
-      alert("❌ Gagal menyimpan data: " + (result?.message || "Terjadi kesalahan server"));
+      alert('❌ Gagal menyimpan data: ' + (result?.message || JSON.stringify(result) || 'Terjadi kesalahan server'));
     }
   } catch (err) {
-    alert("❌ Error koneksi: " + err.message);
+    console.error('Error saveGuru:', err);
+    alert('❌ Error koneksi: ' + err.message);
+  } finally {
+    if (submitBtn) {
+      submitBtn.innerText = originalText;
+      submitBtn.disabled = false;
+    }
+    if (typeof hideLoading === 'function') {
+      hideLoading();
+    }
   }
 }
 
 async function handleSiswaSubmit(e) {
-  e.preventDefault();
+  if (e) e.preventDefault();
+
+  const form = document.getElementById('formSiswa');
+  const submitBtn = form ? form.querySelector('button[type="submit"]') : null;
+  const originalText = submitBtn ? submitBtn.innerText : 'Simpan Data Siswa';
+  const hpVal = document.getElementById('siswa_HPWA')?.value || '';
 
   const payload = {
     SiswaID: document.getElementById('siswa_SiswaID')?.value || '',
@@ -151,7 +194,9 @@ async function handleSiswaSubmit(e) {
     JK: document.getElementById('siswa_JK')?.value || 'L',
     TmpLahir: document.getElementById('siswa_TmpLahir')?.value || '',
     TglLahir: document.getElementById('siswa_TglLahir')?.value || '',
-    HPWA: document.getElementById('siswa_HPWA')?.value || '',
+    HPWA: hpVal,
+    HP: hpVal,
+    WA: hpVal,
     NamaOrtu: document.getElementById('siswa_NamaOrtu')?.value || '',
     WA_Ortu: document.getElementById('siswa_WA_Ortu')?.value || '',
     KelasID: document.getElementById('siswa_KelasID')?.value || '',
@@ -162,18 +207,34 @@ async function handleSiswaSubmit(e) {
     Password: document.getElementById('siswa_Password')?.value || ''
   };
 
+  if (submitBtn) {
+    submitBtn.innerText = '⏳ Menyimpan...';
+    submitBtn.disabled = true;
+  }
+  if (typeof showLoading === 'function') {
+    showLoading('Menyimpan data siswa...');
+  }
+
   try {
     const res = await fetchAPI('saveSiswa', payload);
-    if (res && res.success) {
+    if (res && (res.success || res.status === true || res.status === 'success')) {
       alert('✅ Data Siswa Berhasil Disimpan!');
-      closeModal('modalSiswa');
-      loadDataSiswa();
+      if (typeof closeModal === 'function') closeModal('modalSiswa');
+      await loadDataSiswa();
     } else {
       alert('❌ Gagal Menyimpan: ' + (res?.message || 'Terjadi kesalahan sistem'));
     }
   } catch (err) {
     console.error('Error saving Siswa:', err);
     alert('❌ Gagal Menyimpan: Terjadi kesalahan jaringan / server.');
+  } finally {
+    if (submitBtn) {
+      submitBtn.innerText = originalText;
+      submitBtn.disabled = false;
+    }
+    if (typeof hideLoading === 'function') {
+      hideLoading();
+    }
   }
 }
 
@@ -204,7 +265,7 @@ function renderGuruTable(dataArray) {
       <td>${guru.JK || '-'}</td>
       <td>${guru.TmpLahir || '-'}</td>
       <td>${tglLahir}</td>
-      <td>${guru.HP || guru.WA || '-'}</td>
+      <td>${guru.HP || guru.WA || guru.HPWA || '-'}</td>
       <td>${guru.Email || '-'}</td>
       <td>${guru.Alamat || '-'}</td>
       <td>${guru.Jabatan || '-'}</td>
@@ -252,7 +313,7 @@ function renderSiswaTable(dataArray) {
       <td>${siswa.JK || '-'}</td>
       <td>${siswa.TmpLahir || '-'}</td>
       <td>${tglLahir}</td>
-      <td>${siswa.HP || siswa.WA || '-'}</td>
+      <td>${siswa.HP || siswa.WA || siswa.HPWA || '-'}</td>
       <td>${siswa.NamaOrtu || '-'}</td>
       <td>${siswa.WA_Ortu || '-'}</td>
       <td><span style="background:#4834d4; padding:3px 8px; border-radius:4px; color:white;">${siswa.KelasID || '-'}</span></td>
@@ -331,21 +392,7 @@ async function loadDataSiswa() {
 }
 
 async function loadAllData() {
-  try {
-    const resGuru = await fetchAPI('getGuru');
-    if (resGuru && resGuru.success && resGuru.data) {
-      listDataGuru = resGuru.data;
-      renderGuruTable(listDataGuru);
-    }
-
-    const resSiswa = await fetchAPI('getSiswa');
-    if (resSiswa && resSiswa.success && resSiswa.data) {
-      listDataSiswa = resSiswa.data;
-      renderSiswaTable(listDataSiswa);
-    }
-  } catch (error) {
-    console.error("Gagal memuat data dari database:", error);
-  }
+  await Promise.all([loadDataGuru(), loadDataSiswa()]);
 }
 
 async function deleteGuruByID(guruID) {
