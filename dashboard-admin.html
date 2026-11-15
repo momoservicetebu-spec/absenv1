@@ -2498,5 +2498,23 @@
       // Anda mungkin perlu men-setting 'dropdownParent' agar Select2 tidak tertutup modal.
   });
 </script>
-</body>
-</html>
+
+<script>
+  function toggleSidebar() {
+    const sidebar = document.querySelector('.sidebar');
+    if (!sidebar) return;
+
+    if (window.innerWidth <= 992) {
+      sidebar.classList.toggle('show-sidebar');
+      const overlay = document.getElementById('sidebarOverlay');
+      if (overlay) overlay.classList.toggle('show-overlay');
+    } else {
+      sidebar.classList.toggle('desktop-collapsed');
+      setTimeout(() => window.dispatchEvent(new Event('resize')), 320);
+    }
+  }
+</script>
+
+</body> <!-- Baris 2501 -->
+</html> <!-- Baris 2502 -->
+

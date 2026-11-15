@@ -1762,3 +1762,97 @@ button[onclick*="unduhLaporanPoinBKPDF"]:hover {
   color: #ffffff !important;
   line-height: 28px !important;
 }
+
+/* ========================================================= */
+/* TOPBAR MENU & RUNNING TEXT WATERMARK PERUSAHAAN           */
+/* ========================================================= */
+.wm-topbar-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 10px 16px 0 16px;
+  margin-bottom: 6px;
+  box-sizing: border-box;
+}
+
+.wm-topbar-row .menu-btn {
+  background: #201a35;
+  color: #a29bfe;
+  border: 1px solid #30274e;
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+}
+
+.wm-topbar-row .menu-btn:hover {
+  background: #6c5ce7;
+  color: #ffffff;
+}
+
+.company-watermark-marquee {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  position: relative;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid #30274e;
+  border-radius: 6px;
+  padding: 6px 14px;
+  display: flex;
+  align-items: center;
+  mask-image: linear-gradient(to right, transparent, black 3%, black 97%, transparent);
+  -webkit-mask-image: linear-gradient(to right, transparent, black 3%, black 97%, transparent);
+}
+
+.company-watermark-track {
+  display: inline-block;
+  white-space: nowrap;
+  padding-left: 100%;
+  animation: marqueeWatermark 35s linear infinite;
+  font-size: 13px;
+  font-weight: 500;
+  color: #94a3b8;
+  letter-spacing: 0.3px;
+}
+
+.company-watermark-marquee:hover .company-watermark-track {
+  animation-play-state: paused;
+}
+
+.company-watermark-track strong {
+  color: #38bdf8;
+  font-weight: 700;
+}
+
+.company-watermark-track .wm-gold {
+  color: #fbbf24;
+  font-weight: 600;
+}
+
+@keyframes marqueeWatermark {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-100%); }
+}
+
+/* Pastikan sidebar 270px di layar lebar (>1400px) juga tertutup penuh saat collapsed */
+@media (min-width: 1400px) {
+  .sidebar.desktop-collapsed {
+    margin-left: -270px !important;
+  }
+}
+
+/* Di HP/Tablet (<992px), sembunyikan tombol Menu desktop karena sudah ada .mobile-header */
+@media (max-width: 992px) {
+  .wm-topbar-row {
+    padding: 0 0 10px 0;
+  }
+  .wm-topbar-row .menu-btn {
+    display: none !important;
+  }
+}
