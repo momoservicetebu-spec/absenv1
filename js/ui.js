@@ -167,7 +167,7 @@ function downloadTemplate(type) {
     "# 3. Jenis Kelamin (JK): 'L' (Laki-Laki) atau 'P' (Perempuan).\n" +
     "# 4. Status: 'Aktif', 'Cuti', atau 'Non-Aktif'.\n" +
     "# 5. Role_Sistem: 'Admin', 'Kepsek', atau 'Guru'.\n" +
-    "# 6. Bercadar: 'Tidak' atau 'Ya'.\n" +
+    "# 6. Bercadar: 'TIDAK' atau 'YA'.\n" +
     "# ==========================================================================\n" +
     "GuruID;NIP;Nama;JK;TmpLahir;TglLahir;HP;WA;Email;Alamat;Jabatan;Mapel;Status;FotoURL;TglMasuk;Role_Sistem;Username;Password;Bercadar\n" +
     "GURU-001;199001012015011001;Ahmad Dahlan M.Pd;L;Jakarta;1990-01-01;081234567890;081234567890;ahmad@sekolah.sch.id;Jl. Merdeka No. 123;Guru Matematika;Matematika;Aktif;https://link-foto.com/guru.jpg;2015-01-10;Guru;guru_ahmad;pass123;Tidak\n";
