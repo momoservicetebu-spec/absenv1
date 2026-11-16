@@ -410,3 +410,183 @@ function exportKinerjaTendikCSV() {
   link.click();
   link.remove();
 }
+
+async function unduhKinerjaTendikPDF(btnEl) {
+  if (!cacheKinerjaTendik || cacheKinerjaTendik.length === 0) {
+    return alert('Tidak ada data penilaian kinerja Tendik pada periode ini untuk diunduh.');
+  }
+
+  if (typeof html2pdf === 'undefined') {
+    return alert('Library html2pdf belum termuat. Periksa koneksi internet lalu muat ulang halaman.');
+  }
+
+  const oriText = btnEl ? btnEl.innerHTML : '📄 Unduh PDF';
+  if (btnEl) {
+    btnEl.disabled = true;
+    btnEl.innerHTML = '⏳ Membuat PDF...';
+  }
+
+  try {
+    const periodeVal = document.getElementById('kt-filter-periode')?.value || new Date().toISOString().slice(0, 7);
+    const namaBulan = [
+      'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+      'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+    ];
+    const [tahunStr, bulanStr] = periodeVal.split('-');
+    const labelPeriode = (tahunStr && bulanStr)
+      ? `${namaBulan[parseInt(bulanStr, 10) - 1] || bulanStr} ${tahunStr}`
+      : periodeVal;
+
+    // Ambil data Kop Surat & Kepala Sekolah dari form Setting / localStorage
+    let savedCfg = {};
+    try {
+      savedCfg = JSON.parse(localStorage.getItem('app_settings') || localStorage.getItem('school_settings') || '{}');
+    } catch (e) {}
+
+    const getFieldVal = (id, key, fallback = '') => {
+      const el = document.getElementById(id);
+      return (el && el.value ? el.value.trim() : '') || savedCfg[key] || fallback;
+    };
+
+    const instansiAtas = getFieldVal('set-instansi-atas', 'instansiAtas', 'PEMERINTAH PROVINSI / YAYASAN PENDIDIKAN');
+    const dinas = getFieldVal('set-dinas', 'dinas', 'DINAS PENDIDIKAN');
+    const namaSekolah = getFieldVal('set-nama-sekolah', 'namaSekolah', 'SEKOLAH MENENGAH');
+    const alamatKop = getFieldVal('set-alamat-kop', 'alamatKop', '');
+    const website = getFieldVal('set-website', 'website', '');
+    const nomorSurat = getFieldVal('set-nomor-surat', 'nomorSurat', '');
+    const logoKiri = getFieldVal('set-logo-kiri', 'logoKiri', '');
+    const logoKanan = getFieldVal('set-logo-kanan', 'logoKanan', '');
+    const namaKepsek = getFieldVal('set-nama-kepsek', 'namaKepsek', '__________________________');
+    const nipKepsek = getFieldVal('set-nip-kepsek', 'nipKepsek', '-');
+    const ttdKepsek = getFieldVal('set-ttd-kepsek', 'ttdKepsek', '');
+
+    // Hitung ringkasan statistik
+    const total = cacheKinerjaTendik.length;
+    const avg = (cacheKinerjaTendik.reduce((s, x) => s + Number(x.skorAkhir || 0), 0) / total).toFixed(1);
+    const sangatBaik = cacheKinerjaTendik.filter(x => Number(x.skorAkhir) >= 91).length;
+    const baik = cacheKinerjaTendik.filter(x => Number(x.skorAkhir) >= 81 && Number(x.skorAkhir) < 91).length;
+    const cukup = cacheKinerjaTendik.filter(x => Number(x.skorAkhir) >= 70 && Number(x.skorAkhir) < 81).length;
+    const pembinaan = cacheKinerjaTendik.filter(x => Number(x.skorAkhir) < 70).length;
+
+    const tglCetak = new Date().toLocaleDateString('id-ID', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric'
+    });
+
+    const rowsHtml = cacheKinerjaTendik.map((item, idx) => {
+      let badgeColor = '#d63031';
+      if (item.skorAkhir >= 91) badgeColor = '#00b894';
+      else if (item.skorAkhir >= 81) badgeColor = '#0984e3';
+      else if (item.skorAkhir >= 70) badgeColor = '#e17055';
+
+      return `
+        <tr>
+          <td style="border:1px solid #333; padding:6px; text-align:center;">${idx + 1}</td>
+          <td style="border:1px solid #333; padding:6px;">
+            <strong>${item.namaTendik}</strong><br>
+            <span style="font-size:9px; color:#555;">NIP/NIK: ${item.nip || '-'}</span>
+          </td>
+          <td style="border:1px solid #333; padding:6px;">${item.jabatan || '-'}</td>
+          <td style="border:1px solid #333; padding:6px; text-align:center;">${item.skorKehadiran}</td>
+          <td style="border:1px solid #333; padding:6px; text-align:center;">${item.skorLayanan}</td>
+          <td style="border:1px solid #333; padding:6px; text-align:center;">${item.skorProduktivitas}</td>
+          <td style="border:1px solid #333; padding:6px; text-align:center;">${item.skorPerilaku}</td>
+          <td style="border:1px solid #333; padding:6px; text-align:center; font-weight:bold;">${item.skorAkhir}</td>
+          <td style="border:1px solid #333; padding:6px; text-align:center; font-weight:bold; color:${badgeColor};">${item.predikat}</td>
+          <td style="border:1px solid #333; padding:6px;">${item.catatan || '-'}</td>
+        </tr>
+      `;
+    }).join('');
+
+    const container = document.createElement('div');
+    container.style.cssText = 'font-family: Arial, Helvetica, sans-serif; color: #111; background: #fff; padding: 12px 18px; font-size: 11px;';
+    container.innerHTML = `
+      <div style="display:flex; align-items:center; justify-content:space-between; border-bottom:3px double #000; padding-bottom:8px; margin-bottom:12px;">
+        <div style="width:65px; text-align:center;">
+          ${logoKiri ? `<img src="${logoKiri}" crossorigin="anonymous" style="max-height:60px; max-width:60px;">` : ''}
+        </div>
+        <div style="flex:1; text-align:center; line-height:1.35;">
+          <div style="font-size:12px; font-weight:bold; text-transform:uppercase;">${instansiAtas}</div>
+          <div style="font-size:12px; font-weight:bold; text-transform:uppercase;">${dinas}</div>
+          <div style="font-size:16px; font-weight:bold; text-transform:uppercase;">${namaSekolah}</div>
+          ${alamatKop ? `<div style="font-size:10px;">${alamatKop}</div>` : ''}
+          ${website ? `<div style="font-size:9px; color:#333;">${website}</div>` : ''}
+        </div>
+        <div style="width:65px; text-align:center;">
+          ${logoKanan ? `<img src="${logoKanan}" crossorigin="anonymous" style="max-height:60px; max-width:60px;">` : ''}
+        </div>
+      </div>
+
+      <div style="text-align:center; margin-bottom:12px;">
+        <div style="font-size:13px; font-weight:bold; text-decoration:underline;">LAPORAN REKAPITULASI PERFORMA KINERJA TENAGA KEPENDIDIKAN (PKT)</div>
+        ${nomorSurat ? `<div style="font-size:10px; margin-top:2px;">${nomorSurat}</div>` : ''}
+        <div style="font-size:11px; margin-top:3px;">Periode Penilaian: <strong>${labelPeriode}</strong></div>
+      </div>
+
+      <div style="display:flex; gap:12px; margin-bottom:10px; font-size:10px; background:#f4f6f9; border:1px solid #ccc; padding:7px 10px; border-radius:4px;">
+        <div>Total Dinilai: <strong>${total} Tendik</strong></div>
+        <div>|</div>
+        <div>Rata-rata Skor: <strong>${avg}</strong></div>
+        <div>|</div>
+        <div>Sangat Baik: <strong>${sangatBaik}</strong></div>
+        <div>|</div>
+        <div>Baik: <strong>${baik}</strong></div>
+        <div>|</div>
+        <div>Cukup: <strong>${cukup}</strong></div>
+        <div>|</div>
+        <div>Perlu Pembinaan: <strong>${pembinaan}</strong></div>
+      </div>
+
+      <table style="width:100%; border-collapse:collapse; font-size:10px;">
+        <thead>
+          <tr style="background:#2d3436; color:#fff;">
+            <th style="border:1px solid #333; padding:7px; width:28px;">NO</th>
+            <th style="border:1px solid #333; padding:7px;">NAMA TENDIK &amp; NIP</th>
+            <th style="border:1px solid #333; padding:7px;">JABATAN / UNIT</th>
+            <th style="border:1px solid #333; padding:7px; width:65px;">HADIR (40%)</th>
+            <th style="border:1px solid #333; padding:7px; width:68px;">LAYANAN (25%)</th>
+            <th style="border:1px solid #333; padding:7px; width:72px;">PRODUKTIVITAS (20%)</th>
+            <th style="border:1px solid #333; padding:7px; width:68px;">PERILAKU (15%)</th>
+            <th style="border:1px solid #333; padding:7px; width:58px;">SKOR AKHIR</th>
+            <th style="border:1px solid #333; padding:7px; width:85px;">PREDIKAT</th>
+            <th style="border:1px solid #333; padding:7px;">CATATAN</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${rowsHtml}
+        </tbody>
+      </table>
+
+      <div style="display:flex; justify-content:flex-end; margin-top:18px; page-break-inside:avoid;">
+        <div style="width:240px; text-align:left; font-size:10.5px; line-height:1.4;">
+          <div>Ditetapkan pada tanggal ${tglCetak}</div>
+          <div>Mengetahui,<br>Kepala Sekolah,</div>
+          <div style="height:55px; display:flex; align-items:center;">
+            ${ttdKepsek ? `<img src="${ttdKepsek}" crossorigin="anonymous" style="max-height:50px;">` : ''}
+          </div>
+          <div style="font-weight:bold; text-decoration:underline;">${namaKepsek}</div>
+          <div>NIP. ${nipKepsek}</div>
+        </div>
+      </div>
+    `;
+
+    const opt = {
+      margin: [8, 8, 8, 8],
+      filename: `Laporan_Performa_Kinerja_Tendik_${periodeVal}.pdf`,
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: { scale: 2, useCORS: true },
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' }
+    };
+
+    await html2pdf().set(opt).from(container).save();
+  } catch (err) {
+    console.error('Gagal membuat PDF PKT:', err);
+    alert('Terjadi kesalahan saat membuat PDF Kinerja Tendik.');
+  } finally {
+    if (btnEl) {
+      btnEl.disabled = false;
+      btnEl.innerHTML = oriText;
+    }
+  }
+}
