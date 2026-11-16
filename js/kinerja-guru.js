@@ -11,6 +11,51 @@ function getKinerjaApiUrl_() {
   return window.API_URL || window.SCRIPT_URL || '';
 }
 
+// Filter untuk memisahkan Tenaga Kependidikan (Tendik) dari daftar Guru
+function isTendikItem_(g) {
+  const jab = String(g.jabatan || g.Jabatan || '').toLowerCase().trim();
+  const role = String(g.role || g.Role_Sistem || g.role_sistem || g.Role || '').toLowerCase().trim();
+
+  const kataKunciTendik = [
+    'tendik',
+    'tenaga kependidikan',
+    'tata usaha',
+    'kasubag tu',
+    'staf tu',
+    'staff tu',
+    'administrasi',
+    'operator',
+    'pustakawan',
+    'laboran',
+    'teknisi',
+    'satpam',
+    'security',
+    'penjaga sekolah',
+    'kebersihan',
+    'pramu'
+  ];
+
+  if (kataKunciTendik.some(k => jab.includes(k) || role.includes(k))) {
+    return true;
+  }
+
+  // Di form Data Guru, pilihan "Tenaga Kependidikan" menyimpan value="Admin" pada Role_Sistem
+  if (
+    (role === 'admin' || role === 'tendik' || role === 'staf' || role === 'staff') &&
+    !jab.includes('guru') &&
+    !jab.includes('kepala sekolah') &&
+    !jab.includes('kepsek')
+  ) {
+    return true;
+  }
+
+  if (jab === 'tu' || jab === 'staf' || jab === 'staff') {
+    return true;
+  }
+
+  return false;
+}
+
 function showModalKinerja_() {
   const modal = document.getElementById('modalKinerjaGuru');
   if (modal) {
@@ -44,11 +89,14 @@ async function loadKinerjaGuru(customPeriode) {
     const json = await res.json();
 
     if (json.status === 'success') {
-      cacheDaftarGuruKG = json.daftarGuru || [];
+      // Saring agar Tendik tidak ikut masuk ke daftar dropdown Guru
+      cacheDaftarGuruKG = (json.daftarGuru || []).filter(g => !isTendikItem_(g));
       await populateDropdownGuruKG_();
 
       if (!customPeriode) {
-        cacheKinerjaGuru = (json.data || []).sort((a, b) => b.skorAkhir - a.skorAkhir);
+        cacheKinerjaGuru = (json.data || [])
+          .filter(item => !isTendikItem_(item))
+          .sort((a, b) => b.skorAkhir - a.skorAkhir);
         updateKpiKinerjaGuru_();
         renderTabelKinerjaGuru();
       }
@@ -75,20 +123,23 @@ async function populateDropdownGuruKG_() {
       const json = await res.json();
       const rawList = Array.isArray(json) ? json : (json.data || json.guru || []);
 
-      cacheDaftarGuruKG = rawList.map((g, idx) => {
-        const nama = g.Nama_Lengkap || g.Nama_Guru || g.Nama || g.nama || g.nama_guru || '';
-        const nip = g.NIP || g.nip || g.NUPTK || '-';
-        const id = g.GuruID || g.ID_Guru || g.ID || g.id || ('GURU-' + (idx + 1));
-        const jabatan = [g.Jabatan || g.jabatan || '', g.Mapel || g.mapel || ''].filter(Boolean).join(' - ') || 'Guru';
-        return {
-          guruId: String(id).trim(),
-          nip: String(nip).trim(),
-          nama: String(nama).trim(),
-          jabatan: jabatan,
-          skorKehadiranAuto: 0,
-          ringkasanAbsen: 'Belum ada log absensi pada bulan ini'
-        };
-      }).filter(g => g.nama);
+      cacheDaftarGuruKG = rawList
+        .filter(g => !isTendikItem_(g))
+        .map((g, idx) => {
+          const nama = g.Nama_Lengkap || g.Nama_Guru || g.Nama || g.nama || g.nama_guru || '';
+          const nip = g.NIP || g.nip || g.NUPTK || '-';
+          const id = g.GuruID || g.ID_Guru || g.ID || g.id || ('GURU-' + (idx + 1));
+          const jabatan = [g.Jabatan || g.jabatan || '', g.Mapel || g.mapel || ''].filter(Boolean).join(' - ') || 'Guru';
+          return {
+            guruId: String(id).trim(),
+            nip: String(nip).trim(),
+            nama: String(nama).trim(),
+            jabatan: jabatan,
+            skorKehadiranAuto: 0,
+            ringkasanAbsen: 'Belum ada log absensi pada bulan ini'
+          };
+        })
+        .filter(g => g.nama);
     } catch (e) {
       console.warn('Fallback getGuru gagal:', e);
     }
@@ -101,7 +152,7 @@ async function populateDropdownGuruKG_() {
   }
 
   if (cacheDaftarGuruKG.length === 0) {
-    select.innerHTML = '<option value="">-- Data sheet Guru masih kosong (0 guru) --</option>';
+    select.innerHTML = '<option value="">-- Data Guru masih kosong (0 guru) --</option>';
   } else {
     select.innerHTML = '<option value="">-- Pilih Guru --</option>';
     cacheDaftarGuruKG.forEach(g => {
@@ -407,4 +458,3 @@ function exportKinerjaGuruCSV() {
   link.click();
   link.remove();
 }
-
