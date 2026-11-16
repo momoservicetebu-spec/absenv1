@@ -1779,7 +1779,7 @@ const TAB_PERMISSIONS = {
     'enrollment', 'fingerprint', 'rfid', 'barcode',
     'admin-operator', 'hak-akses', 'live-absen', 'jadwal-pelajaran',
     'gate-pass', 'absensi-kelas', 'absensi-manual', 'kinerja-guru',
-    'poin-bk', 'laporan-absensi',
+    'kinerja-tendik', 'poin-bk', 'laporan-absensi',
     'setting', 'backup', 'whatsapp-settings', 'geofencing'
   ],
 
@@ -1803,7 +1803,7 @@ const TAB_PERMISSIONS = {
   ],
 
   'Kepala Sekolah': [
-    'dashboard', 'live-absen', 'laporan-absensi', 'kinerja-guru', 'poin-bk'
+    'dashboard', 'live-absen', 'laporan-absensi', 'kinerja-guru', 'kinerja-tendik', 'poin-bk'
   ],
 
   'Guru': [
