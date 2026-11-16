@@ -117,6 +117,7 @@
     <button class="nav-btn" onclick="switchTab('absensi-kelas', this); loadSemuaJadwalAdmin();" data-lang="navAbsensiKelasSiswa">📝 Absensi Kelas Siswa </button>
     <button class="nav-btn" onclick="switchTab('absensi-manual', this); loadUserDropdownManual();" data-lang="navAbsensiManualGuru">📝 Absensi Manual Guru </button>
     <button class="nav-btn" onclick="switchTab('kinerja-guru', this); loadKinerjaGuru();" data-lang="navKinerjaGuru">🏆 Performa Kinerja Guru</button>
+    <button onclick="showSection('kinerja-tendik', this); loadKinerjaTendik();">📋 Performa Kinerja Tendik</button>
     <button class="nav-btn" onclick="switchTab('poin-bk', this); loadDataPoinBK();" data-lang="navPoinBK">⚖️ Poin Siswa & BK</button>
 
     <div class="menu-group" data-lang="navSistemLaporan">Sistem & Laporan</div>
@@ -1245,6 +1246,73 @@
       </div>
     </div>
 
+    <!-- SECTION: PERFORMA KINERJA TENDIK (PKT) -->
+    <div id="section-kinerja-tendik" class="section" style="display: none;">
+      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:10px;">
+        <div>
+          <h2 style="margin:0;">📋 Performa Kinerja Tendik (PKT)</h2>
+          <p style="margin:4px 0 0 0; font-size:13px; color:#a29bfe;">
+            Evaluasi kinerja bulanan Tenaga Kependidikan: kehadiran &amp; disiplin waktu (40%) dan kualitas layanan/administrasi (60%).
+          </p>
+        </div>
+        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+          <button type="button" class="btn-action" onclick="exportKinerjaTendikCSV()">📤 Export CSV</button>
+          <button type="button" class="btn-action" style="background:#0984e3;" onclick="syncAbsensiKinerjaTendik()">🔄 Sinkron Absensi Otomatis</button>
+          <button type="button" class="btn-primary" onclick="openModalKinerjaTendik()">➕ Nilai Kinerja Tendik</button>
+        </div>
+      </div>
+
+      <!-- KPI CARDS -->
+      <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:14px; margin:16px 0;">
+        <div class="card" style="padding:16px; text-align:center;">
+          <div style="font-size:11px; color:#a29bfe; text-transform:uppercase;">Tendik Dinilai</div>
+          <div id="kt-kpi-total" style="font-size:26px; font-weight:bold; color:#00d2d3; margin-top:6px;">0</div>
+        </div>
+        <div class="card" style="padding:16px; text-align:center;">
+          <div style="font-size:11px; color:#a29bfe; text-transform:uppercase;">Rata-Rata Skor</div>
+          <div id="kt-kpi-avg" style="font-size:26px; font-weight:bold; color:#74b9ff; margin-top:6px;">0.0</div>
+        </div>
+        <div class="card" style="padding:16px; text-align:center;">
+          <div style="font-size:11px; color:#a29bfe; text-transform:uppercase;">Sangat Baik (&ge;91)</div>
+          <div id="kt-kpi-unggul" style="font-size:26px; font-weight:bold; color:#55efc4; margin-top:6px;">0</div>
+        </div>
+        <div class="card" style="padding:16px; text-align:center;">
+          <div style="font-size:11px; color:#a29bfe; text-transform:uppercase;">Perlu Pembinaan (&lt;70)</div>
+          <div id="kt-kpi-bina" style="font-size:26px; font-weight:bold; color:#ff7675; margin-top:6px;">0</div>
+        </div>
+      </div>
+
+      <!-- FILTER & SEARCH -->
+      <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:14px; align-items:center;">
+        <input type="month" id="kt-filter-periode" style="padding:8px 12px; border-radius:6px;">
+        <input type="text" id="kt-search-input" onkeyup="renderTabelKinerjaTendik()" placeholder="🔍 Cari Nama Tendik, NIP, Jabatan, atau Predikat..." style="padding:8px 12px; border-radius:6px; min-width:260px;">
+        <button type="button" class="btn-primary" onclick="loadKinerjaTendik()">🔄 Muat Data</button>
+      </div>
+
+      <!-- TABEL DATA KINERJA TENDIK -->
+      <div class="analytics-table-wrap" style="overflow-x:auto;">
+        <table style="width:100%; border-collapse:collapse;">
+          <thead>
+            <tr>
+              <th>NO</th>
+              <th>NAMA TENDIK &amp; NIP</th>
+              <th>JABATAN / UNIT</th>
+              <th>KEHADIRAN (40%)</th>
+              <th>LAYANAN &amp; ADMIN (25%)</th>
+              <th>PRODUKTIVITAS (20%)</th>
+              <th>PERILAKU (15%)</th>
+              <th>SKOR AKHIR</th>
+              <th>PREDIKAT</th>
+              <th>CATATAN</th>
+              <th>AKSI</th>
+            </tr>
+          </thead>
+          <tbody id="tbody-kinerja-tendik">
+            <tr><td colspan="11" style="text-align:center; padding:20px; color:#74b9ff;">Belum ada data penilaian kinerja Tendik pada periode ini.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
     <!-- ========================================================= -->
     <!-- HALAMAN: SISTEM POIN SISWA & BIMBINGAN KONSELING (BK)     -->
     <!-- ========================================================= -->
@@ -2447,6 +2515,77 @@
       </form>
     </div>
   </div>
+
+  <!-- MODAL: FORM PENILAIAN KINERJA TENDIK -->
+<div id="modalKinerjaTendik" class="modal-overlay" style="display: none;">
+  <div class="modal-card">
+    <div class="modal-header">
+      <h3 id="modalKinerjaTendikTitle">📋 Form Penilaian Kinerja Tendik</h3>
+      <button type="button" class="modal-close-btn" onclick="closeModal('modalKinerjaTendik')">&times;</button>
+    </div>
+
+    <form onsubmit="submitKinerjaTendik(event)">
+      <input type="hidden" id="kt-id">
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Periode Penilaian (Bulan)</label>
+          <input type="month" id="kt-periode" required>
+        </div>
+
+        <div class="form-group">
+          <label>Pilih Tenaga Kependidikan</label>
+          <select id="kt-tendik-select" required>
+            <option value="">-- Pilih Tenaga Kependidikan --</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>1. Skor Kehadiran &amp; Disiplin (40% - Otomatis Log Absen)</label>
+          <input type="number" id="kt-skor-hadir" min="0" max="100" step="0.1" readonly>
+          <small id="kt-absen-detail" style="display:block; margin-top:6px; color:#55efc4; line-height:1.4;">
+            Pilih Tenaga Kependidikan untuk menarik rekap absensi...
+          </small>
+        </div>
+
+        <div class="form-group">
+          <label>2. Kualitas Layanan &amp; Administrasi (Bobot 25%)</label>
+          <input type="number" id="kt-skor-layanan" min="0" max="100" step="0.1" value="85" oninput="hitungPreviewKinerjaTendik()" required>
+        </div>
+
+        <div class="form-group">
+          <label>3. Produktivitas &amp; Penyelesaian Tugas (Bobot 20%)</label>
+          <input type="number" id="kt-skor-produktivitas" min="0" max="100" step="0.1" value="85" oninput="hitungPreviewKinerjaTendik()" required>
+        </div>
+
+        <div class="form-group">
+          <label>4. Perilaku Kerja, Integritas &amp; Kolaborasi (Bobot 15%)</label>
+          <input type="number" id="kt-skor-perilaku" min="0" max="100" step="0.1" value="85" oninput="hitungPreviewKinerjaTendik()" required>
+        </div>
+
+        <div class="form-group full-row">
+          <div style="background:#161224; border:1px solid #332d4a; border-radius:10px; padding:14px 18px; display:flex; justify-content:space-between; align-items:center;">
+            <div>
+              <div style="font-size:12px; color:#a29bfe;">Kalkulasi Nilai Akhir Tendik</div>
+              <div id="kt-preview-skor" style="font-size:26px; font-weight:bold; color:#00d2d3;">51.0</div>
+            </div>
+            <span id="kt-preview-predikat" class="badge badge-danger" style="font-size:13px; padding:6px 14px;">Perlu Pembinaan</span>
+          </div>
+        </div>
+
+        <div class="form-group full-row">
+          <label>Catatan Pembinaan / Apresiasi Kepala Sekolah &amp; Kasubag TU</label>
+          <input type="text" id="kt-catatan" placeholder="Contoh: Pelayanan administrasi cepat dan arsip tertata rapi.">
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn-secondary" onclick="closeModal('modalKinerjaTendik')">Batal</button>
+        <button type="submit" id="btn-simpan-kt" class="btn-primary">💾 Simpan Penilaian</button>
+      </div>
+    </form>
+  </div>
+</div>
+
 <!-- KODE KEAMANAN / PENJAGA GERBANG (WAJIB PALING ATAS) -->
 <script src="./js/auth-guard.js?v=2.0"></script>
 
@@ -2479,6 +2618,7 @@
 <script src="./js/live-absen.js?v=2.2"></script>
 <script src="./js/jadwal.js?v=2.0"></script>
 <script src="./js/kinerja-guru.js?v=1.0"></script>
+<script src="./js/kinerja-tendik.js"></script>
 <script src="js/poin-bk.js?v=1.0"></script>
 
 <!-- UTILITAS JAM, CACHE & BAHASA -->
