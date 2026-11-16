@@ -307,7 +307,7 @@ function startVerificationState(userID, userName) {
     isProcessing = false;
     putarSuaraKonfirmasi(`Data wajah belum didaftarkan.`);
     showAlert(`❌ Data wajah untuk ${displayName} (${cleanInputID}) belum didaftarkan di sistem.`, "#e74c3c");
-    setTimeout(resetToStandby, 3500);
+    setTimeout(resetToStandby, 3000);
     return;
   }
 
@@ -428,7 +428,7 @@ function startVerificationState(userID, userName) {
       showAlert(`❌ Verifikasi Gagal: Wajah tidak cocok dengan data ${displayName}.`, "#e74c3c");
       setTimeout(resetToStandby, 2500);
     }
-  }, 4000);
+  }, 2500);
 }
 
 // Utility Capture Foto
