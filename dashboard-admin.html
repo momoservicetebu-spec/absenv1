@@ -117,9 +117,8 @@
     <button class="nav-btn" onclick="switchTab('absensi-kelas', this); loadSemuaJadwalAdmin();" data-lang="navAbsensiKelasSiswa">📝 Absensi Kelas Siswa </button>
     <button class="nav-btn" onclick="switchTab('absensi-manual', this); loadUserDropdownManual();" data-lang="navAbsensiManualGuru">📝 Absensi Manual Guru </button>
     <button class="nav-btn" onclick="switchTab('kinerja-guru', this); loadKinerjaGuru();" data-lang="navKinerjaGuru">🏆 Performa Kinerja Guru</button>
-    <button onclick="showSection('kinerja-tendik', this); loadKinerjaTendik();">📋 Performa Kinerja Tendik</button>
+    <button class="nav-btn" onclick="switchTab('kinerja-tendik', this); loadKinerjaTendik();">📋 Performa Kinerja Tendik</button>
     <button class="nav-btn" onclick="switchTab('poin-bk', this); loadDataPoinBK();" data-lang="navPoinBK">⚖️ Poin Siswa & BK</button>
-
     <div class="menu-group" data-lang="navSistemLaporan">Sistem & Laporan</div>
     <button class="nav-btn" onclick="switchTab('laporan-absensi', this)" data-lang="navLaporanAbsensi">📊 Laporan Absensi</button>
     <button class="nav-btn" onclick="switchTab('setting', this)" data-lang="navPengaturan">🛠 Pengaturan (Setting)</button>
@@ -1245,55 +1244,60 @@
         </table>
       </div>
     </div>
-
-    <!-- SECTION: PERFORMA KINERJA TENDIK (PKT) -->
-    <div id="section-kinerja-tendik" class="section" style="display: none;">
-      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:10px;">
+<!-- SECTION: PERFORMA KINERJA TENDIK (PKT) -->
+    <div id="kinerja-tendik" class="section card" style="display: none;">
+      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 15px;">
         <div>
-          <h2 style="margin:0;">📋 Performa Kinerja Tendik (PKT)</h2>
-          <p style="margin:4px 0 0 0; font-size:13px; color:#a29bfe;">
+          <h2 class="section-title" style="margin-bottom: 4px;">📋 Performa Kinerja Tendik (PKT)</h2>
+          <p class="section-desc" style="margin: 0;">
             Evaluasi kinerja bulanan Tenaga Kependidikan: kehadiran &amp; disiplin waktu (40%) dan kualitas layanan/administrasi (60%).
           </p>
         </div>
-        <div style="display:flex; gap:8px; flex-wrap:wrap;">
-          <button type="button" class="btn-action" onclick="exportKinerjaTendikCSV()">📤 Export CSV</button>
-          <button type="button" class="btn-action" style="background:#0984e3;" onclick="syncAbsensiKinerjaTendik()">🔄 Sinkron Absensi Otomatis</button>
-          <button type="button" class="btn-primary" onclick="openModalKinerjaTendik()">➕ Nilai Kinerja Tendik</button>
+        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+          <button type="button" class="btn-action" onclick="exportKinerjaTendikCSV()" style="background: #161224; border: 1px solid #6c5ce7; color: #a29bfe;">
+            📥 Export CSV
+          </button>
+          <button type="button" class="btn-action" onclick="syncAbsensiKinerjaTendik()" style="background: #0984e3; color: #fff;">
+            🔄 Sinkron Absensi Otomatis
+          </button>
+          <button type="button" class="btn-action btn-success" onclick="openModalKinerjaTendik()">
+            ➕ Nilai Kinerja Tendik
+          </button>
         </div>
       </div>
 
       <!-- KPI CARDS -->
-      <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:14px; margin:16px 0;">
-        <div class="card" style="padding:16px; text-align:center;">
-          <div style="font-size:11px; color:#a29bfe; text-transform:uppercase;">Tendik Dinilai</div>
-          <div id="kt-kpi-total" style="font-size:26px; font-weight:bold; color:#00d2d3; margin-top:6px;">0</div>
+      <div class="kpi-row" style="margin-bottom: 18px;">
+        <div class="kpi-card">
+          <h5>Tendik Dinilai</h5>
+          <div class="kpi-num" id="kt-kpi-total" style="color: #00d2d3;">0</div>
         </div>
-        <div class="card" style="padding:16px; text-align:center;">
-          <div style="font-size:11px; color:#a29bfe; text-transform:uppercase;">Rata-Rata Skor</div>
-          <div id="kt-kpi-avg" style="font-size:26px; font-weight:bold; color:#74b9ff; margin-top:6px;">0.0</div>
+        <div class="kpi-card">
+          <h5>Rata-Rata Skor</h5>
+          <div class="kpi-num" id="kt-kpi-avg" style="color: #a29bfe;">0.0</div>
         </div>
-        <div class="card" style="padding:16px; text-align:center;">
-          <div style="font-size:11px; color:#a29bfe; text-transform:uppercase;">Sangat Baik (&ge;91)</div>
-          <div id="kt-kpi-unggul" style="font-size:26px; font-weight:bold; color:#55efc4; margin-top:6px;">0</div>
+        <div class="kpi-card">
+          <h5>Sangat Baik (&ge;91)</h5>
+          <div class="kpi-num" id="kt-kpi-unggul" style="color: #1dd1a1;">0</div>
         </div>
-        <div class="card" style="padding:16px; text-align:center;">
-          <div style="font-size:11px; color:#a29bfe; text-transform:uppercase;">Perlu Pembinaan (&lt;70)</div>
-          <div id="kt-kpi-bina" style="font-size:26px; font-weight:bold; color:#ff7675; margin-top:6px;">0</div>
+        <div class="kpi-card">
+          <h5>Perlu Pembinaan (&lt;70)</h5>
+          <div class="kpi-num" id="kt-kpi-bina" style="color: #ff6b6b;">0</div>
         </div>
       </div>
 
       <!-- FILTER & SEARCH -->
-      <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:14px; align-items:center;">
-        <input type="month" id="kt-filter-periode" style="padding:8px 12px; border-radius:6px;">
-        <input type="text" id="kt-search-input" onkeyup="renderTabelKinerjaTendik()" placeholder="🔍 Cari Nama Tendik, NIP, Jabatan, atau Predikat..." style="padding:8px 12px; border-radius:6px; min-width:260px;">
-        <button type="button" class="btn-primary" onclick="loadKinerjaTendik()">🔄 Muat Data</button>
+      <div class="search-bar" style="align-items: center;">
+        <input type="month" id="kt-filter-periode" onchange="loadKinerjaTendik()" style="max-width: 190px; color-scheme: dark;">
+        <input type="text" id="kt-search-input" onkeyup="renderTabelKinerjaTendik()" placeholder="🔍 Cari Nama Tendik, NIP, Jabatan, atau Predikat..." style="max-width: 320px;">
+        <button type="button" class="btn-action" onclick="loadKinerjaTendik()">🔄 Muat Data</button>
       </div>
 
       <!-- TABEL DATA KINERJA TENDIK -->
-      <div class="analytics-table-wrap" style="overflow-x:auto;">
-        <table style="width:100%; border-collapse:collapse;">
+      <div class="analytics-table-wrap" style="height: auto; max-height: 60vh;">
+        <table>
           <thead>
-            <tr>
+            <tr style="background: rgba(108, 92, 231, 0.2);">
               <th>NO</th>
               <th>NAMA TENDIK &amp; NIP</th>
               <th>JABATAN / UNIT</th>
@@ -1308,11 +1312,12 @@
             </tr>
           </thead>
           <tbody id="tbody-kinerja-tendik">
-            <tr><td colspan="11" style="text-align:center; padding:20px; color:#74b9ff;">Belum ada data penilaian kinerja Tendik pada periode ini.</td></tr>
+            <tr><td colspan="11" style="text-align:center; padding:20px; color:#a29bfe;">Belum ada data penilaian kinerja Tendik pada periode ini.</td></tr>
           </tbody>
         </table>
       </div>
     </div>
+
     <!-- ========================================================= -->
     <!-- HALAMAN: SISTEM POIN SISWA & BIMBINGAN KONSELING (BK)     -->
     <!-- ========================================================= -->
@@ -2579,8 +2584,8 @@
       </div>
 
       <div class="modal-footer">
-        <button type="button" class="btn-secondary" onclick="closeModal('modalKinerjaTendik')">Batal</button>
-        <button type="submit" id="btn-simpan-kt" class="btn-primary">💾 Simpan Penilaian</button>
+        <button type="button" class="btn-action badge-danger" style="border: none;" onclick="closeModal('modalKinerjaTendik')">Batal</button>
+        <button type="submit" id="btn-simpan-kt" class="btn-action btn-success">💾 Simpan Penilaian</button>
       </div>
     </form>
   </div>
