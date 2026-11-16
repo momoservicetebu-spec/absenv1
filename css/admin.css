@@ -2120,3 +2120,98 @@ button[onclick*="unduhLaporanPoinBKPDF"]:hover {
     font-size: 15px !important;
   }
 }
+
+/* =========================================================
+   STYLING MODUL PERFORMA KINERJA TENDIK (PKT)
+   ========================================================= */
+#modalKinerjaTendik .form-group input[type="month"],
+#modalKinerjaTendik .form-group input[type="number"],
+#modalKinerjaTendik .form-group input[type="text"],
+#modalKinerjaTendik .form-group select {
+  width: 100%;
+  height: 44px;
+  padding: 10px 14px;
+  background: #161224;
+  color: #ffffff;
+  border: 1px solid #4a4563;
+  border-radius: 8px;
+  font-size: 14px;
+  box-sizing: border-box;
+  color-scheme: dark;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+#modalKinerjaTendik .form-group input:focus,
+#modalKinerjaTendik .form-group select:focus {
+  outline: none;
+  border-color: #6c5ce7;
+  box-shadow: 0 0 0 3px rgba(108, 92, 231, 0.22);
+}
+
+/* Tampilan khusus kolom Skor Kehadiran (Otomatis / Readonly) */
+#modalKinerjaTendik #kt-skor-hadir[readonly] {
+  background: #0f0d1c;
+  color: #55efc4;
+  font-weight: 700;
+  border-color: #332d4a;
+  cursor: not-allowed;
+  opacity: 0.9;
+}
+
+/* Samakan tinggi container Select2 dengan input di sebelahnya */
+#modalKinerjaTendik .select2-container--default .select2-selection--single {
+  height: 44px !important;
+  background-color: #161224 !important;
+  border: 1px solid #4a4563 !important;
+  border-radius: 8px !important;
+  display: flex;
+  align-items: center;
+}
+
+#modalKinerjaTendik .select2-container--default .select2-selection--single .select2-selection__rendered {
+  color: #ffffff !important;
+  line-height: 42px !important;
+  padding-left: 14px !important;
+}
+
+#modalKinerjaTendik .select2-container--default .select2-selection--single .select2-selection__arrow {
+  height: 42px !important;
+}
+
+/* Filter periode di halaman utama PKT */
+#kinerja-tendik #kt-filter-periode {
+  height: 40px;
+  padding: 8px 12px;
+  background: #161224;
+  color: #ffffff;
+  border: 1px solid #4a4563;
+  border-radius: 6px;
+  color-scheme: dark;
+}
+
+/* Tombol Batal berwarna merah lembut agar kontras dengan Simpan */
+#modalKinerjaTendik .modal-footer .badge-danger {
+  background: rgba(231, 76, 60, 0.18) !important;
+  color: #ff7675 !important;
+  border: 1px solid rgba(231, 76, 60, 0.45) !important;
+}
+
+#modalKinerjaTendik .modal-footer .badge-danger:hover {
+  background: #e74c3c !important;
+  color: #ffffff !important;
+}
+
+/* Responsif HP & Layar Sentuh Smart Board 75"+ */
+@media (max-width: 640px) {
+  #modalKinerjaTendik .form-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+@media (min-width: 1600px) {
+  #modalKinerjaTendik .form-group input,
+  #modalKinerjaTendik .select2-container--default .select2-selection--single {
+    height: 50px !important;
+    font-size: 16px !important;
+  }
+}
