@@ -287,7 +287,7 @@ function startVerificationState(userID, userName) {
     }
   }
 
-  // 2. PENCOCOKAN WAJAH DENGAN DATABASE WAJAH
+// 2. PENCOCOKAN WAJAH DENGAN DATABASE WAJAH
   const dbWajah = typeof databaseWajah !== 'undefined' ? databaseWajah : [];
   const searchMasterUp = masterUserID.toUpperCase();
   const searchNameUpper = String(displayName).toUpperCase().trim();
@@ -307,7 +307,7 @@ function startVerificationState(userID, userName) {
     isProcessing = false;
     putarSuaraKonfirmasi(`Data wajah belum didaftarkan.`);
     showAlert(`❌ Data wajah untuk ${displayName} (${cleanInputID}) belum didaftarkan di sistem.`, "#e74c3c");
-    setTimeout(resetToStandby, 3000);
+    setTimeout(resetToStandby, 3500);
     return;
   }
 
@@ -331,7 +331,12 @@ function startVerificationState(userID, userName) {
   if (canvas) faceapi.matchDimensions(canvas, displaySize);
 
   let hasPassedChallenge = false;
-  const detectorOptions = new faceapi.TinyFaceDetectorOptions({ inputSize: 320, scoreThreshold: 0.5 });
+  let baselineEAR = null;
+  let baselineMAR = null;
+  let baselineNose = null;
+
+  // InputSize 224 mempercepat deteksi AI ~40% tiap frame
+  const detectorOptions = new faceapi.TinyFaceDetectorOptions({ inputSize: 224, scoreThreshold: 0.5 });
 
   verificationInterval = setInterval(async () => {
     if (typeof video === 'undefined' || !video) return;
@@ -347,41 +352,50 @@ function startVerificationState(userID, userName) {
       const distance = faceapi.euclideanDistance(detections.descriptor, currentMFAUser.descriptor);
       const isMatch = distance < STRICT_FACE_THRESHOLD; 
 
-      // 🌟 MEMANGGIL FUNGSI DARI attendance-app_2.js
-      if (livenessChallenge === 'BLINK') {
-        const leftEye = detections.landmarks.getLeftEye();
-        const rightEye = detections.landmarks.getRightEye();
+      // 🌟 MEMANGGIL HELPER DARI attendance-app_2.js
+      const leftEye = detections.landmarks.getLeftEye();
+      const rightEye = detections.landmarks.getRightEye();
+      const jawOutline = detections.landmarks.getJawOutline();
+      const mouth = detections.landmarks.getMouth();
+      const nose = detections.landmarks.getNose()[3];
 
-        let avgEAR = 0.3;
-        if (typeof getEyeAspectRatio === 'function') {
-          avgEAR = (getEyeAspectRatio(leftEye) + getEyeAspectRatio(rightEye)) / 2.0;
-        } else {
-          const calcEAR = (eye) => {
-            const dist = (p1, p2) => Math.hypot(p1.x - p2.x, p1.y - p2.y);
-            return (dist(eye[1], eye[5]) + dist(eye[2], eye[4])) / (2.0 * dist(eye[0], eye[3]));
-          };
-          avgEAR = (calcEAR(leftEye) + calcEAR(rightEye)) / 2.0;
-        }
-
-        // 👁️ KEDIPAN MATA CEPAT (< 0.29)
-        if (avgEAR < 0.29) { 
-          hasPassedChallenge = true; 
-        }
+      let currentEAR = 0.3;
+      if (typeof getEyeAspectRatio === 'function') {
+        currentEAR = (getEyeAspectRatio(leftEye) + getEyeAspectRatio(rightEye)) / 2.0;
       } else {
-        let mouthRatio = 0.2;
-        if (typeof getMouthAspectRatio === 'function') {
-          mouthRatio = getMouthAspectRatio(detections.landmarks.getJawOutline(), detections.landmarks.getMouth());
-        } else {
-          const calcMAR = (jaw, mouth) => {
-            const dist = (p1, p2) => Math.hypot(p1.x - p2.x, p1.y - p2.y);
-            return dist(mouth[13], mouth[19]) / dist(mouth[0], mouth[6]);
-          };
-          mouthRatio = calcMAR(detections.landmarks.getJawOutline(), detections.landmarks.getMouth());
-        }
+        const calcEAR = (eye) => {
+          const dist = (p1, p2) => Math.hypot(p1.x - p2.x, p1.y - p2.y);
+          return (dist(eye[1], eye[5]) + dist(eye[2], eye[4])) / (2.0 * dist(eye[0], eye[3]));
+        };
+        currentEAR = (calcEAR(leftEye) + calcEAR(rightEye)) / 2.0;
+      }
 
-        // 😊 SENYUMAN CEPAT & RAMAH (> 0.14)
-        if (mouthRatio > 0.14) {
-          hasPassedChallenge = true;
+      let currentMAR = 0.1;
+      if (typeof getMouthAspectRatio === 'function') {
+        currentMAR = getMouthAspectRatio(jawOutline, mouth);
+      } else {
+        const dist = (p1, p2) => Math.hypot(p1.x - p2.x, p1.y - p2.y);
+        currentMAR = dist(mouth[13], mouth[19]) / dist(mouth[0], mouth[6]);
+      }
+
+      // Rekam patokan awal wajah (Mencegah foto diam di layar HP lolos)
+      if (baselineEAR === null) {
+        baselineEAR = currentEAR;
+        baselineMAR = currentMAR;
+        baselineNose = { x: nose.x, y: nose.y };
+      } else if (!hasPassedChallenge) {
+        const earDiff = Math.abs(baselineEAR - currentEAR);
+        const marDiff = Math.abs(baselineMAR - currentMAR);
+        const headMove = Math.hypot(nose.x - baselineNose.x, nose.y - baselineNose.y);
+
+        if (livenessChallenge === 'BLINK') {
+          if (earDiff >= 0.045 || currentEAR < 0.27 || (headMove >= 7 && earDiff >= 0.025)) {
+            hasPassedChallenge = true;
+          }
+        } else {
+          if (marDiff >= 0.045 || currentMAR > 0.15 || (headMove >= 7 && marDiff >= 0.025)) {
+            hasPassedChallenge = true;
+          }
         }
       }
 
@@ -426,24 +440,23 @@ function startVerificationState(userID, userName) {
       isProcessing = false;
       putarSuaraKonfirmasi("Verifikasi wajah gagal. Wajah tidak cocok.");
       showAlert(`❌ Verifikasi Gagal: Wajah tidak cocok dengan data ${displayName}.`, "#e74c3c");
-      setTimeout(resetToStandby, 2500);
+      setTimeout(resetToStandby, 1500);
     }
-  }, 2500);
+  }, 3500);
 }
-
-// Utility Capture Foto
+// Utility Capture Foto (Diperkecil ke 320x240 agar pengiriman super ringan)
 function captureKameraBase64() {
   try {
     const videoElem = document.getElementById("video");
     if (!videoElem) return "";
     
     const canvas = document.createElement("canvas");
-    canvas.width = videoElem.videoWidth || 640;
-    canvas.height = videoElem.videoHeight || 480;
+    canvas.width = 320;
+    canvas.height = 240;
     
     const ctx = canvas.getContext("2d");
     ctx.drawImage(videoElem, 0, 0, canvas.width, canvas.height);
-    return canvas.toDataURL("image/jpeg", 0.6); 
+    return canvas.toDataURL("image/jpeg", 0.45); 
   } catch (err) {
     console.error("Gagal capture foto:", err);
     return "";
@@ -512,6 +525,11 @@ async function executeAttendance(userID, userName) {
     if (record.Nama || record.nama) displayName = record.Nama || record.nama;
 
     if (result && result.success) {
+      // ⚡ Jalankan upload foto Drive & pengiriman WhatsApp di latar belakang tanpa menahan UI
+      if (result.queuePayload) {
+        fetchAPI("processAttendanceQueue", result.queuePayload).catch(() => {});
+      }
+
       const statusAbsen = String(
         record["Status(Hadir/Telat/Izin/dll)"] || 
         record.Status || 
@@ -589,7 +607,7 @@ async function executeAttendance(userID, userName) {
     showAlert(`❌ Error Sistem / Jaringan`, "#e74c3c");
   }
 
-  setTimeout(resetToStandby, 3000);
+  setTimeout(resetToStandby, 1800);
 }
 
 // ==========================================
@@ -608,17 +626,6 @@ function resetToStandby() {
   hideAlert();
   
   bukaKunciMetodeInput();
-}
-
-function showAlert(text, color) {
-  if (!alertBox) return;
-  alertBox.style.display = "block";
-  alertBox.style.backgroundColor = color;
-  alertBox.innerText = text;
-}
-
-function hideAlert() { 
-  if (alertBox) alertBox.style.display = "none"; 
 }
 
 // ==========================================
