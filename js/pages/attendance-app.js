@@ -431,19 +431,19 @@ function startVerificationState(userID, userName) {
   }, 2500);
 }
 
-// Utility Capture Foto
+// Utility Capture Foto (Diperkecil ke 320x240 agar upload 4x lebih cepat)
 function captureKameraBase64() {
   try {
     const videoElem = document.getElementById("video");
     if (!videoElem) return "";
     
     const canvas = document.createElement("canvas");
-    canvas.width = videoElem.videoWidth || 640;
-    canvas.height = videoElem.videoHeight || 480;
+    canvas.width = 320;
+    canvas.height = 240;
     
     const ctx = canvas.getContext("2d");
     ctx.drawImage(videoElem, 0, 0, canvas.width, canvas.height);
-    return canvas.toDataURL("image/jpeg", 0.6); 
+    return canvas.toDataURL("image/jpeg", 0.45); 
   } catch (err) {
     console.error("Gagal capture foto:", err);
     return "";
@@ -451,7 +451,7 @@ function captureKameraBase64() {
 }
 
 // ==========================================
-// 5. EKSEKUSI ABSENSI KE SERVER
+// 5. EKSEKUSI ABSENSI KE SERVER (CEPAT + WARNA STATUS LENGKAP)
 // ==========================================
 let isSubmittingAttendance = false;
 
@@ -460,12 +460,6 @@ async function executeAttendance(userID, userName) {
   isSubmittingAttendance = true;
 
   let displayName = userName || userID;
-  showAlert(`Mencatat Absensi...`, "#f1c40f");
-  if (typeof statusText !== 'undefined' && statusText) {
-    statusText.innerText = "Mengirim Data Absensi...";
-    statusText.style.color = "#f1c40f";
-  }
-
   const userIdUpper = String(userID).trim().toUpperCase();
   let finalRole = (typeof TERMINAL_ROLE !== 'undefined') ? TERMINAL_ROLE : "GURU";
 
@@ -475,6 +469,13 @@ async function executeAttendance(userID, userName) {
     finalRole = "Guru";
   } else if (userIdUpper.startsWith('SISWA') || userIdUpper.startsWith('NIS')) {
     finalRole = "Siswa";
+  }
+
+  // Konfirmasi cepat saat wajah valid sambil menunggu klasifikasi status dari server
+  showAlert(`⏳ Memproses Status Absensi: ${displayName}...`, "#f1c40f");
+  if (typeof statusText !== 'undefined' && statusText) {
+    statusText.innerText = `Memproses Status (${displayName})...`;
+    statusText.style.color = "#f1c40f";
   }
 
   const JAM_MASUK_CONFIG = (typeof CONFIG !== 'undefined' && CONFIG.jamMasuk) ? CONFIG.jamMasuk : (localStorage.getItem('jam_masuk') || "07:15");
@@ -589,7 +590,8 @@ async function executeAttendance(userID, userName) {
     showAlert(`❌ Error Sistem / Jaringan`, "#e74c3c");
   }
 
-  setTimeout(resetToStandby, 3000);
+  // Dipersingkat dari 3000ms menjadi 1800ms agar transisi ke peserta berikutnya lebih cepat
+  setTimeout(resetToStandby, 1800);
 }
 
 // ==========================================
@@ -606,7 +608,6 @@ function resetToStandby() {
   if (canvas) canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
 
   hideAlert();
-  
   bukaKunciMetodeInput();
 }
 
@@ -620,7 +621,6 @@ function showAlert(text, color) {
 function hideAlert() { 
   if (alertBox) alertBox.style.display = "none"; 
 }
-
 // ==========================================
 // FUNGSI SUARA KONFIRMASI (TEXT-TO-SPEECH NATURAL)
 // ==========================================
