@@ -248,8 +248,12 @@ async function executeAttendanceSiswa(userID, userName, kelasSiswa) {
     showAlert(`❌ Error Jaringan, silakan scan ulang`, "#e74c3c");
   }
 
-  // Jeda 1.2 detik agar antrean siswa berikutnya di gerbang bisa langsung scan
-  setTimeout(resetToStandbySiswa, 1200);
+  // Langsung buka kunci scanner agar siswa berikutnya bisa langsung scan tanpa jeda!
+  isProcessing = false;
+  bukaKunciInputSiswa();
+
+  // Kotak alert warna tetap tampil 1.5 detik lalu hilang otomatis
+  setTimeout(hideAlert, 1500);
 }
 
 function resetToStandbySiswa() {
