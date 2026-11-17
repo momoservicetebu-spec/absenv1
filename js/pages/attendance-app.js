@@ -444,6 +444,7 @@ function startVerificationState(userID, userName) {
     }
   }, 3500);
 }
+
 // Utility Capture Foto (Diperkecil ke 320x240 agar pengiriman super ringan)
 function captureKameraBase64() {
   try {
