@@ -5,15 +5,32 @@ const standbyUI = document.getElementById('standby-ui');
 const nfcInput = document.getElementById('nfcSimulator');
 const statusText = document.getElementById('statusText');
 const alertBox = document.getElementById('alertBox');
+const selectPos = document.getElementById('pilihPosGerbang');
 
 let dataSiswa = [];
 let mapSiswaLokal = {}; // Lookup instan O(1) berdasarkan UserID, NIS, atau RFID
 let isProcessing = false;
 let modeAbsensiSaatIni = "qr";
 
-// Ambil nama perangkat dari URL (contoh: terminal-siswa.html?pos=GERBANG-1)
+// ==========================================
+// PENGATURAN OTOMATIS POS / GERBANG PERANGKAT
+// ==========================================
 const urlParams = new URLSearchParams(window.location.search);
-const DEVICE_ID_SISWA = urlParams.get('pos') ? `TERMINAL-${urlParams.get('pos').toUpperCase()}` : "TERMINAL-SISWA";
+let posAktif = urlParams.get('pos') || localStorage.getItem('pos_gerbang_siswa') || "GERBANG-1";
+posAktif = posAktif.toUpperCase();
+localStorage.setItem('pos_gerbang_siswa', posAktif);
+
+let DEVICE_ID_SISWA = `TERMINAL-${posAktif}`;
+
+if (selectPos) {
+  selectPos.value = posAktif;
+  selectPos.addEventListener('change', function () {
+    posAktif = this.value.toUpperCase();
+    localStorage.setItem('pos_gerbang_siswa', posAktif);
+    DEVICE_ID_SISWA = `TERMINAL-${posAktif}`;
+    if (nfcInput && !nfcInput.disabled) nfcInput.focus();
+  });
+}
 
 // 1. Inisialisasi Master Siswa & Pengaturan (Tanpa AI Wajah & Kamera)
 Promise.all([
@@ -44,7 +61,7 @@ async function loadMasterSiswa() {
         if (rfid) mapSiswaLokal[rfid.toUpperCase()] = info;
       });
 
-      console.log(`[Master Siswa Loaded] Total: ${dataSiswa.length} akun`);
+      console.log(`[Master Siswa Loaded] Total: ${dataSiswa.length} akun | Pos: ${DEVICE_ID_SISWA}`);
     }
   } catch (e) {
     console.warn("Gagal memuat master data siswa:", e);
@@ -92,9 +109,10 @@ function bukaKunciInputSiswa() {
 // 2. LISTENER SCANNER INSTAN (1x TEMBAK SERVER)
 // ==========================================
 if (nfcInput) {
-  // Pastikan kursor selalu fokus di kolom scanner jika terklik di luar
+  // Pastikan kursor selalu fokus di kolom scanner jika terklik di luar (kecuali tombol/dropdown)
   document.addEventListener('click', (e) => {
-    if (e.target.tagName !== 'BUTTON' && e.target.tagName !== 'A' && !nfcInput.disabled) {
+    const tag = e.target.tagName;
+    if (tag !== 'BUTTON' && tag !== 'A' && tag !== 'SELECT' && tag !== 'OPTION' && !nfcInput.disabled) {
       nfcInput.focus();
     }
   });
@@ -254,7 +272,7 @@ function putarSuaraKonfirmasi(teks) {
   window.speechSynthesis.cancel();
   const utterance = new SpeechSynthesisUtterance(String(teks || ''));
   utterance.lang = 'id-ID';
-  utterance.rate = 1.05; // Sedikit lebih cepat untuk antrean siswa
+  utterance.rate = 1.05;
   const voices = window.speechSynthesis.getVoices();
   const idVoice = voices.find(v => (v.lang.includes('id') || v.lang.includes('IND')) && (v.name.includes('Google') || v.name.includes('Natural')))
                || voices.find(v => v.lang.includes('id') || v.lang.includes('IND'));

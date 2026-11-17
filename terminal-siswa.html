@@ -11,7 +11,6 @@
   
   <!-- CSS TAMBAHAN: MODERN UI & ANIMASI BACKGROUND -->
   <style>
-    /* Animasi Background Gradient */
     body {
       margin: 0;
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -30,7 +29,6 @@
       100% { background-position: 0% 50%; }
     }
 
-    /* Efek Glassmorphism untuk Card Utama */
     .card {
       background: rgba(255, 255, 255, 0.1);
       backdrop-filter: blur(12px);
@@ -44,16 +42,39 @@
       text-align: center;
     }
 
-    h2 { margin-top: 0; font-weight: 600; letter-spacing: 1px; color: #fff;}
+    h2 { margin-top: 0; margin-bottom: 12px; font-weight: 600; letter-spacing: 1px; color: #fff; }
+
+    /* Styling Dropdown Pilihan Pos Gerbang */
+    #pilihPosGerbang {
+      padding: 8px 18px;
+      border-radius: 20px;
+      border: 1px solid rgba(255, 255, 255, 0.35);
+      background: rgba(15, 32, 39, 0.75);
+      color: #ffffff;
+      font-weight: bold;
+      font-size: 14px;
+      cursor: pointer;
+      outline: none;
+      margin-bottom: 14px;
+      transition: 0.3s;
+    }
+    #pilihPosGerbang:hover, #pilihPosGerbang:focus {
+      border-color: #4facfe;
+      box-shadow: 0 0 10px rgba(79, 172, 254, 0.4);
+    }
+    #pilihPosGerbang option {
+      background: #1e3c72;
+      color: #ffffff;
+    }
     
-    /* Styling Input NFC agar lebih elegan */
+    /* Styling Input NFC / Barcode */
     #nfcSimulator {
       width: 90%;
       padding: 12px;
       margin-top: 10px;
       border-radius: 8px;
       border: 1px solid rgba(255,255,255,0.3);
-      background: rgba(255, 255, 255, 0.9);
+      background: rgba(255, 255, 255, 0.95);
       font-size: 16px;
       text-align: center;
       transition: all 0.3s;
@@ -79,35 +100,37 @@
     .gps-btn:hover, .login-btn:hover { background: rgba(255, 255, 255, 0.3); }
     hr { border-color: rgba(255,255,255,0.1); margin: 20px 0; }
   </style>
-
-  <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
 </head>
 <body>
   <div class="card">
     <h2>🎓 Terminal Absensi Siswa</h2>
-    <div class="status" id="statusText" style="color: #feca57;">Memuat Engine AI...</div>
+
+    <!-- PILIHAN POS GERBANG OTOMATIS TERSIMPAN DI PERANGKAT -->
+    <div>
+      <select id="pilihPosGerbang" title="Pilih Pos Gerbang Perangkat Ini">
+        <option value="GERBANG-1">📍 Pos: Gerbang 1 (Utama)</option>
+        <option value="GERBANG-2">📍 Pos: Gerbang 2</option>
+        <option value="GERBANG-3">📍 Pos: Gerbang 3</option>
+        <option value="GERBANG-4">📍 Pos: Gerbang 4</option>
+        <option value="GERBANG-5">📍 Pos: Gerbang 5</option>
+      </select>
+    </div>
+
+    <div class="status" id="statusText" style="color: #feca57;">Memuat Data Siswa...</div>
     
     <!-- Tombol Verifikasi Lokasi -->
     <button class="gps-btn" id="btnGps" onclick="prosesAbsensiGPS()">📍 Verifikasi Lokasi Perangkat</button>
     <p id="gpsStatusText" style="font-size: 13px; font-weight:bold; margin-top: 10px; margin-bottom: 15px;">Sistem terkunci. Verifikasi GPS dibutuhkan.</p>
 
     <div id="standby-ui">
-      <p style="font-size: 14px; opacity: 0.8;"><b>Faktor Pertama: Tap Kartu / Scan Barcode</b></p>
+      <p style="font-size: 14px; opacity: 0.8;"><b>Tap Kartu RFID / Scan Barcode Siswa</b></p>
       
-      <!-- Area NFC -->
       <div class="method-box" id="boxNfc">
-        <input type="text" id="nfcSimulator" placeholder="📡 Fokus di sini & Tap Kartu / Barcode" disabled autocomplete="off">
+        <input type="text" id="nfcSimulator" placeholder="📡 Fokus di sini & Scan Barcode / Kartu" disabled autocomplete="off">
       </div>
-      
-      <!-- Area Fingerprint DISIMPAN/DISEMBUNYIKAN SEMENTARA -->
-      <!-- <div class="method-box" id="boxFingerprint">...</div> -->
     </div>
 
-    <div id="video-container" style="display: none; justify-content: center; margin-top: 15px;">
-      <video id="video" width="480" height="360" style="border-radius: 10px; border: 2px solid rgba(255,255,255,0.2);" autoplay muted playsinline></video>
-    </div>
-
-    <div class="alert-box" id="alertBox" style="display: none; padding: 10px; border-radius: 8px; margin-top: 15px; font-weight: bold;"></div>
+    <div class="alert-box" id="alertBox" style="display: none; padding: 12px; border-radius: 8px; margin-top: 15px; font-weight: bold;"></div>
     <hr>
     <a href="login.html" class="login-btn">⚙️ Masuk ke Dashboard Admin</a>
   </div>
@@ -116,9 +139,9 @@
   <script>
     const TERMINAL_ROLE = "SISWA";
   </script>
-<script src="./js/config.js?v=5.0"></script>
-<script src="./js/api.js?v=5.0"></script>
-<script src="./js/pages/geofencing.js?v=5.0"></script>
-<script src="./js/pages/attendance-siswa.js?v=1.0"></script>
+  <script src="./js/config.js?v=5.0"></script>
+  <script src="./js/api.js?v=5.0"></script>
+  <script src="./js/pages/geofencing.js?v=5.0"></script>
+  <script src="./js/pages/attendance-siswa.js?v=1.1"></script>
 </body>
 </html>
