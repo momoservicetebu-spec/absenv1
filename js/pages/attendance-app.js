@@ -444,7 +444,8 @@ function startVerificationState(userID, userName) {
     }
   }, 3500);
 }
-// Utility Capture Foto (Diperkecil ke 320x240 agar pengiriman super ringan)
+
+// Utility Capture Foto
 function captureKameraBase64() {
   try {
     const videoElem = document.getElementById("video");
@@ -464,7 +465,7 @@ function captureKameraBase64() {
 }
 
 // ==========================================
-// 5. EKSEKUSI ABSENSI KE SERVER
+// 5. EKSEKUSI ABSENSI KE SERVER (CEPAT + WARNA STATUS LENGKAP)
 // ==========================================
 let isSubmittingAttendance = false;
 
@@ -473,12 +474,6 @@ async function executeAttendance(userID, userName) {
   isSubmittingAttendance = true;
 
   let displayName = userName || userID;
-  showAlert(`Mencatat Absensi...`, "#f1c40f");
-  if (typeof statusText !== 'undefined' && statusText) {
-    statusText.innerText = "Mengirim Data Absensi...";
-    statusText.style.color = "#f1c40f";
-  }
-
   const userIdUpper = String(userID).trim().toUpperCase();
   let finalRole = (typeof TERMINAL_ROLE !== 'undefined') ? TERMINAL_ROLE : "GURU";
 
@@ -488,6 +483,13 @@ async function executeAttendance(userID, userName) {
     finalRole = "Guru";
   } else if (userIdUpper.startsWith('SISWA') || userIdUpper.startsWith('NIS')) {
     finalRole = "Siswa";
+  }
+
+  // Konfirmasi cepat saat wajah valid sambil menunggu klasifikasi status dari server
+  showAlert(`⏳ Memproses Status Absensi: ${displayName}...`, "#f1c40f");
+  if (typeof statusText !== 'undefined' && statusText) {
+    statusText.innerText = `Memproses Status (${displayName})...`;
+    statusText.style.color = "#f1c40f";
   }
 
   const JAM_MASUK_CONFIG = (typeof CONFIG !== 'undefined' && CONFIG.jamMasuk) ? CONFIG.jamMasuk : (localStorage.getItem('jam_masuk') || "07:15");
@@ -607,7 +609,7 @@ async function executeAttendance(userID, userName) {
     showAlert(`❌ Error Sistem / Jaringan`, "#e74c3c");
   }
 
-  setTimeout(resetToStandby, 1800);
+  setTimeout(resetToStandby, 3000);
 }
 
 // ==========================================
@@ -624,8 +626,18 @@ function resetToStandby() {
   if (canvas) canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
 
   hideAlert();
-  
   bukaKunciMetodeInput();
+}
+
+function showAlert(text, color) {
+  if (!alertBox) return;
+  alertBox.style.display = "block";
+  alertBox.style.backgroundColor = color;
+  alertBox.innerText = text;
+}
+
+function hideAlert() { 
+  if (alertBox) alertBox.style.display = "none"; 
 }
 
 // ==========================================
