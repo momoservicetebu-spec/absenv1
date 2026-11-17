@@ -1,16 +1,24 @@
 // ==========================================
-// FILE: js/pages/attendance-siswa.js (ULTRA-FAST 1-STEP BARCODE/RFID SISWA)
+// FILE: js/pages/attendance-siswa.js (ULTRA-FAST 1-STEP + KAMERA QR HP)
 // ==========================================
 const standbyUI = document.getElementById('standby-ui');
 const nfcInput = document.getElementById('nfcSimulator');
 const statusText = document.getElementById('statusText');
 const alertBox = document.getElementById('alertBox');
 const selectPos = document.getElementById('pilihPosGerbang');
+const btnToggleCamera = document.getElementById('btnToggleCamera');
+const qrReaderElem = document.getElementById('qr-reader');
 
 let dataSiswa = [];
-let mapSiswaLokal = {}; // Lookup instan O(1) berdasarkan UserID, NIS, atau RFID
+let mapSiswaLokal = {}; 
 let isProcessing = false;
 let modeAbsensiSaatIni = "qr";
+
+// Variabel Kamera QR & Anti-Double-Scan
+let html5QrScanner = null;
+let isCameraRunning = false;
+let lastScannedId = "";
+let lastScannedTime = 0;
 
 // ==========================================
 // PENGATURAN OTOMATIS POS / GERBANG PERANGKAT
@@ -32,7 +40,7 @@ if (selectPos) {
   });
 }
 
-// 1. Inisialisasi Master Siswa & Pengaturan (Tanpa AI Wajah & Kamera)
+// 1. Inisialisasi Master Siswa & Pengaturan
 Promise.all([
   loadMasterSiswa(),
   terapkanPengaturanTerminalSiswa()
@@ -91,7 +99,7 @@ function bukaKunciInputSiswa() {
   if (standbyUI) standbyUI.style.display = 'block';
   if (nfcInput) {
     nfcInput.disabled = false;
-    nfcInput.focus();
+    if (!isCameraRunning) nfcInput.focus();
   }
 
   const modeLower = String(modeAbsensiSaatIni).toLowerCase();
@@ -106,76 +114,150 @@ function bukaKunciInputSiswa() {
 }
 
 // ==========================================
-// 2. LISTENER SCANNER INSTAN (1x TEMBAK SERVER)
+// 2. KONTROL KAMERA SCAN QR/BARCODE HP
+// ==========================================
+async function toggleKameraQR() {
+  if (typeof Html5Qrcode === 'undefined') {
+    showAlert("❌ Library kamera belum termuat. Periksa koneksi internet.", "#e74c3c");
+    return;
+  }
+
+  if (isCameraRunning && html5QrScanner) {
+    try {
+      await html5QrScanner.stop();
+      html5QrScanner.clear();
+    } catch (e) {}
+    isCameraRunning = false;
+    if (qrReaderElem) qrReaderElem.style.display = "none";
+    if (btnToggleCamera) {
+      btnToggleCamera.innerText = "📷 Aktifkan Kamera Scan QR/Barcode";
+      btnToggleCamera.classList.remove("active");
+    }
+    if (nfcInput && !nfcInput.disabled) nfcInput.focus();
+    return;
+  }
+
+  // Jalankan kamera belakang HP
+  if (qrReaderElem) qrReaderElem.style.display = "block";
+  if (btnToggleCamera) {
+    btnToggleCamera.innerText = "⏹️ Matikan Kamera Scan";
+    btnToggleCamera.classList.add("active");
+  }
+
+  html5QrScanner = new Html5Qrcode("qr-reader");
+  const configKamera = {
+    fps: 15,
+    qrbox: { width: 230, height: 230 },
+    aspectRatio: 1.0
+  };
+
+  try {
+    await html5QrScanner.start(
+      { facingMode: "environment" },
+      configKamera,
+      (decodedText) => {
+        if (decodedText) {
+          prosesScanSiswa(decodedText);
+        }
+      },
+      () => {} // Abaikan frame kosong saat mencari kode
+    );
+    isCameraRunning = true;
+  } catch (err) {
+    console.error("Gagal membuka kamera:", err);
+    isCameraRunning = false;
+    if (qrReaderElem) qrReaderElem.style.display = "none";
+    if (btnToggleCamera) {
+      btnToggleCamera.innerText = "📷 Aktifkan Kamera Scan QR/Barcode";
+      btnToggleCamera.classList.remove("active");
+    }
+    showAlert("❌ Izin kamera ditolak atau kamera tidak tersedia.", "#e74c3c");
+  }
+}
+
+// ==========================================
+// 3. LISTENER SCANNER FISIK / NFC / KAMERA
 // ==========================================
 if (nfcInput) {
-  // Pastikan kursor selalu fokus di kolom scanner jika terklik di luar (kecuali tombol/dropdown)
   document.addEventListener('click', (e) => {
     const tag = e.target.tagName;
-    if (tag !== 'BUTTON' && tag !== 'A' && tag !== 'SELECT' && tag !== 'OPTION' && !nfcInput.disabled) {
+    if (!isCameraRunning && tag !== 'BUTTON' && tag !== 'A' && tag !== 'SELECT' && tag !== 'OPTION' && !nfcInput.disabled) {
       nfcInput.focus();
     }
   });
 
-  nfcInput.addEventListener('keypress', async function (e) {
+  nfcInput.addEventListener('keypress', function (e) {
     if (e.key === 'Enter') {
       const rawInput = this.value.trim();
       this.value = '';
-      if (rawInput === '' || isProcessing) return;
-
-      isProcessing = true;
-      let targetUserId = rawInput;
-
-      // Bongkar jika QR Code berformat JSON {"id":"SISWA-001", ...}
-      if (rawInput.startsWith("{") && rawInput.endsWith("}")) {
-        try {
-          const parsedQR = JSON.parse(rawInput);
-          if (parsedQR.id) targetUserId = String(parsedQR.id).replace(/'/g, "").trim();
-        } catch (err) {}
-      }
-
-      targetUserId = String(targetUserId).replace(/'/g, "").trim();
-      const lookupKey = targetUserId.toUpperCase();
-
-      // Cek langsung di memori lokal browser (0.001 detik tanpa tanya server)
-      let siswaDitemukan = mapSiswaLokal[lookupKey];
-
-      // Jika belum ketemu di cache lokal (misal siswa baru ditambahkan), verifikasi ke server
-      if (!siswaDitemukan) {
-        if (statusText) {
-          statusText.innerText = `Memverifikasi ID (${targetUserId})...`;
-          statusText.style.color = "orange";
-        }
-        const resVerif = await fetchAPI("verifikasiRFID", { rfid: targetUserId, role: "SISWA" });
-        if (resVerif && resVerif.success) {
-          siswaDitemukan = {
-            id: String(resVerif.data.userId || resVerif.data.id || targetUserId).replace(/'/g, "").trim(),
-            nama: resVerif.data.nama || resVerif.data.Nama || targetUserId,
-            kelas: resVerif.data.kelas || ""
-          };
-          mapSiswaLokal[lookupKey] = siswaDitemukan;
-        }
-      }
-
-      if (siswaDitemukan) {
-        executeAttendanceSiswa(siswaDitemukan.id, siswaDitemukan.nama, siswaDitemukan.kelas);
-      } else {
-        isProcessing = false;
-        putarSuaraKonfirmasi("Kartu atau barcode tidak terdaftar.");
-        showAlert(`❌ ID (${targetUserId}) tidak terdaftar.`, "#e74c3c");
-        setTimeout(resetToStandbySiswa, 1500);
+      if (rawInput !== '') {
+        prosesScanSiswa(rawInput);
       }
     }
   });
 }
 
+async function prosesScanSiswa(rawInput) {
+  if (!rawInput || isProcessing) return;
+
+  let targetUserId = String(rawInput).trim();
+  if (targetUserId.startsWith("{") && targetUserId.endsWith("}")) {
+    try {
+      const parsedQR = JSON.parse(targetUserId);
+      if (parsedQR.id) targetUserId = String(parsedQR.id).replace(/'/g, "").trim();
+    } catch (err) {}
+  }
+
+  targetUserId = String(targetUserId).replace(/'/g, "").trim();
+  const lookupKey = targetUserId.toUpperCase();
+
+  // Cegah kartu yang SAMA PERSIS ter-scan ganda dalam 3 detik (misal saat kamera/laser masih menyorot kartu)
+  const nowMs = Date.now();
+  if (lookupKey === lastScannedId && (nowMs - lastScannedTime) < 3000) {
+    return;
+  }
+
+  isProcessing = true;
+  lastScannedId = lookupKey;
+  lastScannedTime = nowMs;
+
+  // Cek langsung di memori lokal browser (0.001 detik tanpa tanya server)
+  let siswaDitemukan = mapSiswaLokal[lookupKey];
+
+  if (!siswaDitemukan) {
+    if (statusText) {
+      statusText.innerText = `Memverifikasi ID (${targetUserId})...`;
+      statusText.style.color = "orange";
+    }
+    const resVerif = await fetchAPI("verifikasiRFID", { rfid: targetUserId, role: "SISWA" });
+    if (resVerif && resVerif.success) {
+      siswaDitemukan = {
+        id: String(resVerif.data.userId || resVerif.data.id || targetUserId).replace(/'/g, "").trim(),
+        nama: resVerif.data.nama || resVerif.data.Nama || targetUserId,
+        kelas: resVerif.data.kelas || ""
+      };
+      mapSiswaLokal[lookupKey] = siswaDitemukan;
+    }
+  }
+
+  if (siswaDitemukan) {
+    await executeAttendanceSiswa(siswaDitemukan.id, siswaDitemukan.nama, siswaDitemukan.kelas);
+  } else {
+    putarSuaraKonfirmasi("Tidak terdaftar");
+    showAlert(`❌ ID (${targetUserId}) tidak terdaftar.`, "#e74c3c");
+    isProcessing = false;
+    bukaKunciInputSiswa();
+    setTimeout(hideAlert, 1500);
+  }
+}
+
 // ==========================================
-// 3. EKSEKUSI ABSENSI SISWA (CEPAT + ANTREAN WA)
+// 4. EKSEKUSI ABSENSI SISWA (CEPAT + SUARA SINGKAT)
 // ==========================================
 async function executeAttendanceSiswa(userID, userName, kelasSiswa) {
   let displayName = userName || userID;
 
-  showAlert(`⏳ Mencatat Absensi: ${displayName}...`, "#f1c40f");
+  showAlert(`⏳ Mencatat: ${displayName}...`, "#f1c40f");
   if (statusText) {
     statusText.innerText = `Memproses (${displayName})...`;
     statusText.style.color = "#f1c40f";
@@ -183,7 +265,7 @@ async function executeAttendanceSiswa(userID, userName, kelasSiswa) {
 
   const JAM_MASUK_CONFIG = (typeof CONFIG !== 'undefined' && CONFIG.jamMasuk) ? CONFIG.jamMasuk : (localStorage.getItem('jam_masuk') || "07:15");
   const modeLower = String(modeAbsensiSaatIni).toLowerCase();
-  const priMethod = modeLower.includes("rfid") ? "RFID" : "QR_CODE";
+  const priMethod = isCameraRunning ? "QR_CAMERA" : (modeLower.includes("rfid") ? "RFID" : "QR_CODE");
 
   const payload = {
     userId: String(userID).trim(),
@@ -208,23 +290,25 @@ async function executeAttendanceSiswa(userID, userName, kelasSiswa) {
     if (record.Nama || record.nama) displayName = record.Nama || record.nama;
 
     if (result && result.success) {
-      // Kirim WA orang tua di latar belakang
       if (result.queuePayload) {
         fetchAPI("processAttendanceQueue", result.queuePayload).catch(() => {});
       }
 
       const statusAbsen = String(record["Status(Hadir/Telat/Izin/dll)"] || record.Status || record.status || backendMessage || "").toUpperCase().trim();
+      const namaPanggilan = displayName.split(" ")[0];
+
       let warnaBg = "#2ecc71", ikon = "✅", teksJudul = "ABSEN MASUK SUKSES", teksStatus = "Masuk Tepat Waktu";
-      let teksSuara = record.pesanSuara || `Terima kasih ${displayName}. Absen masuk berhasil. Selamat belajar.`;
+      let teksSuara = `Masuk, ${namaPanggilan}`;
 
       if (statusAbsen.includes("PULANG NORMAL") || statusAbsen.includes("PULANG")) {
         warnaBg = "#3498db"; ikon = "🔵"; teksJudul = "ABSEN PULANG SUKSES"; teksStatus = "Sudah Absen Pulang";
-        teksSuara = record.pesanSuara || `Terima kasih ${displayName}. Absen pulang berhasil. Hati-hati di jalan.`;
+        teksSuara = `Pulang, ${namaPanggilan}`;
       } else if (statusAbsen.includes("PULANG AWAL")) {
         warnaBg = "#f39c12"; ikon = "🟡"; teksJudul = "ABSEN PULANG AWAL"; teksStatus = "Pulang Awal";
-        teksSuara = record.pesanSuara || `Terima kasih ${displayName}. Absen pulang awal berhasil dicatat.`;
+        teksSuara = `Pulang awal, ${namaPanggilan}`;
       } else if (statusAbsen.includes("TELAT") || statusAbsen.includes("TERLAMBAT")) {
         warnaBg = "#e67e22"; ikon = "⚠️"; teksJudul = "ABSEN MASUK (TERLAMBAT)"; teksStatus = "Masuk Terlambat";
+        teksSuara = `Terlambat, ${namaPanggilan}`;
       }
 
       putarSuaraKonfirmasi(teksSuara);
@@ -235,7 +319,14 @@ async function executeAttendanceSiswa(userID, userName, kelasSiswa) {
       }
     } else {
       const cleanMsg = (backendMessage || "Absensi Ditolak").replace("[Sistem]", "").trim();
-      putarSuaraKonfirmasi((record && record.pesanSuara) ? record.pesanSuara : cleanMsg);
+      let suaraTolak = "Ditolak";
+      if (cleanMsg.toLowerCase().includes("sudah melakukan absen masuk")) suaraTolak = "Sudah absen masuk";
+      else if (cleanMsg.toLowerCase().includes("sudah melakukan absen pulang")) suaraTolak = "Sudah absen pulang";
+      else if (cleanMsg.toLowerCase().includes("belum melakukan absen masuk")) suaraTolak = "Belum absen masuk";
+      else if (cleanMsg.toLowerCase().includes("tunggu 1 menit")) suaraTolak = "Tunggu sebentar";
+      else if (cleanMsg.toLowerCase().includes("libur") || cleanMsg.toLowerCase().includes("dinonaktifkan")) suaraTolak = "Hari libur";
+
+      putarSuaraKonfirmasi(suaraTolak);
       showAlert(`⚠️ ${cleanMsg}`, "#e67e22");
       if (statusText) {
         statusText.innerText = `⚠️ ${cleanMsg}`;
@@ -244,22 +335,14 @@ async function executeAttendanceSiswa(userID, userName, kelasSiswa) {
     }
   } catch (error) {
     console.error("Error Absen Siswa:", error);
-    putarSuaraKonfirmasi("Terjadi kesalahan jaringan.");
+    putarSuaraKonfirmasi("Error jaringan");
     showAlert(`❌ Error Jaringan, silakan scan ulang`, "#e74c3c");
   }
 
-  // Langsung buka kunci scanner agar siswa berikutnya bisa langsung scan tanpa jeda!
+  // Langsung siap menerima siswa berikutnya tanpa jeda lama
   isProcessing = false;
   bukaKunciInputSiswa();
-
-  // Kotak alert warna tetap tampil 1.5 detik lalu hilang otomatis
   setTimeout(hideAlert, 1500);
-}
-
-function resetToStandbySiswa() {
-  isProcessing = false;
-  hideAlert();
-  bukaKunciInputSiswa();
 }
 
 function showAlert(text, color) {
@@ -276,7 +359,7 @@ function putarSuaraKonfirmasi(teks) {
   window.speechSynthesis.cancel();
   const utterance = new SpeechSynthesisUtterance(String(teks || ''));
   utterance.lang = 'id-ID';
-  utterance.rate = 1.05;
+  utterance.rate = 1.15;
   const voices = window.speechSynthesis.getVoices();
   const idVoice = voices.find(v => (v.lang.includes('id') || v.lang.includes('IND')) && (v.name.includes('Google') || v.name.includes('Natural')))
                || voices.find(v => v.lang.includes('id') || v.lang.includes('IND'));

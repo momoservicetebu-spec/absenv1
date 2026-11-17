@@ -6,10 +6,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="icon" href="data:,">
   
-  <!-- PEMANGGILAN CSS BAWAAN -->
   <link rel="stylesheet" href="./css/terminal.css">
+  <!-- LIBRARY RINGAN PEMINDAI QR/BARCODE KAMERA HP -->
+  <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
   
-  <!-- CSS TAMBAHAN: MODERN UI & ANIMASI BACKGROUND -->
   <style>
     body {
       margin: 0;
@@ -35,7 +35,7 @@
       -webkit-backdrop-filter: blur(12px);
       border: 1px solid rgba(255, 255, 255, 0.2);
       border-radius: 20px;
-      padding: 30px;
+      padding: 25px;
       width: 90%;
       max-width: 500px;
       box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
@@ -44,7 +44,6 @@
 
     h2 { margin-top: 0; margin-bottom: 12px; font-weight: 600; letter-spacing: 1px; color: #fff; }
 
-    /* Styling Dropdown Pilihan Pos Gerbang */
     #pilihPosGerbang {
       padding: 8px 18px;
       border-radius: 20px;
@@ -62,16 +61,12 @@
       border-color: #4facfe;
       box-shadow: 0 0 10px rgba(79, 172, 254, 0.4);
     }
-    #pilihPosGerbang option {
-      background: #1e3c72;
-      color: #ffffff;
-    }
+    #pilihPosGerbang option { background: #1e3c72; color: #ffffff; }
     
-    /* Styling Input NFC / Barcode */
     #nfcSimulator {
       width: 90%;
       padding: 12px;
-      margin-top: 10px;
+      margin-top: 8px;
       border-radius: 8px;
       border: 1px solid rgba(255,255,255,0.3);
       background: rgba(255, 255, 255, 0.95);
@@ -84,8 +79,7 @@
     .status { font-weight: bold; margin-bottom: 15px; font-size: 1.1em; }
     #gpsStatusText { color: #ff6b6b !important; }
     
-    /* Tombol GPS & Login */
-    .gps-btn, .login-btn {
+    .gps-btn, .login-btn, .cam-btn {
       background: rgba(255, 255, 255, 0.15);
       border: 1px solid rgba(255,255,255,0.3);
       color: white;
@@ -96,8 +90,29 @@
       transition: 0.3s;
       text-decoration: none;
       display: inline-block;
+      margin-top: 10px;
     }
-    .gps-btn:hover, .login-btn:hover { background: rgba(255, 255, 255, 0.3); }
+    .cam-btn {
+      background: rgba(46, 204, 113, 0.25);
+      border-color: #2ecc71;
+    }
+    .cam-btn.active {
+      background: rgba(231, 76, 60, 0.35);
+      border-color: #e74c3c;
+    }
+    .gps-btn:hover, .login-btn:hover, .cam-btn:hover { background: rgba(255, 255, 255, 0.3); }
+
+    /* Kotak Kamera QR/Barcode */
+    #qr-reader {
+      width: 100%;
+      max-width: 340px;
+      margin: 15px auto 0 auto;
+      border-radius: 12px;
+      overflow: hidden;
+      border: 2px solid rgba(255,255,255,0.3);
+      display: none;
+    }
+
     hr { border-color: rgba(255,255,255,0.1); margin: 20px 0; }
   </style>
 </head>
@@ -105,7 +120,7 @@
   <div class="card">
     <h2>🎓 Terminal Absensi Siswa</h2>
 
-    <!-- PILIHAN POS GERBANG OTOMATIS TERSIMPAN DI PERANGKAT -->
+    <!-- PILIHAN POS GERBANG -->
     <div>
       <select id="pilihPosGerbang" title="Pilih Pos Gerbang Perangkat Ini">
         <option value="GERBANG-1">📍 Pos: Gerbang 1 (Utama)</option>
@@ -123,11 +138,17 @@
     <p id="gpsStatusText" style="font-size: 13px; font-weight:bold; margin-top: 10px; margin-bottom: 15px;">Sistem terkunci. Verifikasi GPS dibutuhkan.</p>
 
     <div id="standby-ui">
-      <p style="font-size: 14px; opacity: 0.8;"><b>Tap Kartu RFID / Scan Barcode Siswa</b></p>
+      <p style="font-size: 14px; opacity: 0.85; margin-bottom: 6px;"><b>Tap Kartu RFID / Scan Barcode Siswa</b></p>
       
       <div class="method-box" id="boxNfc">
         <input type="text" id="nfcSimulator" placeholder="📡 Fokus di sini & Scan Barcode / Kartu" disabled autocomplete="off">
       </div>
+
+      <!-- TOMBOL & AREA KAMERA QR/BARCODE HP -->
+      <div>
+        <button type="button" class="cam-btn" id="btnToggleCamera" onclick="toggleKameraQR()">📷 Aktifkan Kamera Scan QR/Barcode</button>
+      </div>
+      <div id="qr-reader"></div>
     </div>
 
     <div class="alert-box" id="alertBox" style="display: none; padding: 12px; border-radius: 8px; margin-top: 15px; font-weight: bold;"></div>
@@ -135,13 +156,12 @@
     <a href="login.html" class="login-btn">⚙️ Masuk ke Dashboard Admin</a>
   </div>
 
-  <!-- PENANDA ROLE TERMINAL UNTUK JAVASCRIPT -->
   <script>
     const TERMINAL_ROLE = "SISWA";
   </script>
   <script src="./js/config.js?v=5.0"></script>
   <script src="./js/api.js?v=5.0"></script>
   <script src="./js/pages/geofencing.js?v=5.0"></script>
-  <script src="./js/pages/attendance-siswa.js?v=1.1"></script>
+  <script src="./js/pages/attendance-siswa.js?v=1.3"></script>
 </body>
 </html>
